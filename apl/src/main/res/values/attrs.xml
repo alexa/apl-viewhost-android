@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+    <declare-styleable name="APLLayout">
+
+        <attr name="dpi" format="integer" />
+        <attr name="pixelHeight" format="integer" />
+        <attr name="pixelWidth" format="integer" />
+
+        <!-- Enum values are mirrored in APLLayout -->
+        <!-- ViewportMode enum mirror-->
+        <attr name="mode" format="enum">
+            <enum name="auto" value="0" />
+            <enum name="hub" value="1" />
+            <enum name="mobile" value="2" />
+            <enum name="pc" value="3" />
+            <enum name="tv" value="4" />
+        </attr>
+
+        <attr name="isRound" format="boolean"/>
+
+        <attr name="aplTheme" format="enum">
+            <enum name="light" value="0" />
+            <enum name="dark" value="1" />
+        </attr>
+
+        <attr name="defaultBackground" format="color"/>
+
+    </declare-styleable>
+</resources>

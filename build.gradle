@@ -1,0 +1,42 @@
+/*
+ * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ */
+
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+def version = "1.7.0";
+
+project.buildDir = "build"
+
+buildscript {
+    
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.2'
+        classpath 'org.jacoco:org.jacoco.core:0.8.2'
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    if (System.getenv("MAINLINE_BUILD")) {
+        project.version = "${version}-SNAPSHOT"
+    } else {
+        project.version = "${version}." + (System.getenv("CODEBUILD_BUILD_NUMBER") ?: "0")
+    }
+    project.group = "APLViewhostAndroid"
+
+    repositories {
+        google()
+        jcenter()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}

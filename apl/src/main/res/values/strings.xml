@@ -1,0 +1,24 @@
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+    <string name="accessibility_role_alert_description">alert</string>
+    <string name="accessibility_role_button_description">button</string>
+    <string name="accessibility_role_combobox_description">combo box</string>
+    <string name="accessibility_role_header_description">header</string>
+    <string name="accessibility_role_image_description">image</string>
+    <string name="accessibility_role_imagebutton_description">image button</string>
+    <string name="accessibility_role_link_description">link</string>
+    <string name="accessibility_role_menu_description">menu</string>
+    <string name="accessibility_role_menuitem_description">menu item</string>
+    <string name="accessibility_role_progressbar_description">progress bar</string>
+    <string name="accessibility_role_radiogroup_description">radio group</string>
+    <string name="accessibility_role_scrollbar_description">scroll bar</string>
+    <string name="accessibility_role_search_description">search</string>
+    <string name="accessibility_role_tab_description">tab</string>
+    <string name="accessibility_role_tablist_description">tab list</string>
+    <string name="accessibility_role_timer_description">timer</string>
+    <string name="accessibility_role_toolbar_description">tool bar</string>
+</resources>

@@ -1,0 +1,10 @@
+# The following files will not be mounted into the Docker container
+.git
+.gitignore
+.idea/
+*.iml
+Config
+build/
+commit-message-template.txt
+local.properties
+*.md

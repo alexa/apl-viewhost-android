@@ -1,0 +1,71 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package com.amazon.apl.android.primitive;
+
+import com.amazon.apl.android.BoundObject;
+import com.amazon.apl.enums.APLEnum;
+import com.google.auto.value.AutoValue;
+
+import java.util.ArrayList;
+
+/**
+ * MediaSource Property
+ * See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-video.html#source
+ */
+@AutoValue
+public abstract class MediaSources implements IterableProperty<MediaSources.MediaSource> {
+    public static final int REPEAT_FOREVER = -1;
+
+    public static MediaSources create(BoundObject boundObject, APLEnum propertyKey) {
+        return IterableProperty.create(new MediaSourceGetter(boundObject, propertyKey));
+    }
+
+    @AutoValue
+    public static abstract class MediaSource {
+        public abstract String url();
+        public abstract int duration();
+        public abstract int repeatCount();
+        public abstract int offset();
+        public static Builder builder() {
+            return new AutoValue_MediaSources_MediaSource.Builder();
+        }
+
+        @AutoValue.Builder
+        static abstract class Builder {
+            abstract Builder url(String url);
+            abstract Builder duration(int duration);
+            abstract Builder repeatCount(int repeatCount);
+            abstract Builder offset(int offset);
+            abstract MediaSource build();
+        }
+    }
+
+    private static class MediaSourceGetter extends ArrayGetter<MediaSources, MediaSource> {
+        private MediaSourceGetter(BoundObject boundObject, APLEnum propertyKey) {
+            super(boundObject, propertyKey);
+        }
+
+        @Override
+        MediaSources builder() {
+            return new AutoValue_MediaSources(new ArrayList<>());
+        }
+
+        @Override
+        public MediaSource get(int index) {
+            return MediaSource.builder()
+                    .url(nGetMediaSourceUrlAt(getNativeHandle(), getIndex(), index))
+                    .duration(nGetMediaSourceDurationAt(getNativeHandle(), getIndex(), index))
+                    .offset(nGetMediaSourceOffsetAt(getNativeHandle(), getIndex(), index))
+                    .repeatCount(nGetMediaSourceRepeatCountAt(getNativeHandle(), getIndex(), index))
+                    .build();
+        }
+    }
+
+    private static native String nGetMediaSourceUrlAt(long componentHandle, int propertyKey, int index);
+    private static native int nGetMediaSourceDurationAt(long componentHandle, int propertyKey, int index);
+    private static native int nGetMediaSourceRepeatCountAt(long componentHandle, int propertyKey, int index);
+    private static native int nGetMediaSourceOffsetAt(long componentHandle, int propertyKey, int index);
+}

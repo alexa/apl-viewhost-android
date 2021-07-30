@@ -1,0 +1,5 @@
+<resources>
+    <!-- Used for custom accessibility actions in the Drag-and-Drop locale list -->
+    <item type="id" name="action_double_tap" />
+    <item type="id" name="action_swipe_away" />
+</resources>

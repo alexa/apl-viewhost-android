@@ -1,0 +1,13 @@
+.gradle
+**/*.iml
+apl/.externalNativeBuild/
+local.properties
+captures/
+build/
+.git
+build
+.idea/
+.vscode
+.DS_Store
+apl/.cxx/
+jacoco.exec
