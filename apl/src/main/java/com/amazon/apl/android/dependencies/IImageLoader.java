@@ -10,6 +10,9 @@ import android.graphics.drawable.Drawable;
 import android.widget.ImageView;
 
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.google.auto.value.AutoValue;
+
+import java.util.Map;
 
 /**
  * ImageDownloader dependency.
@@ -29,12 +32,16 @@ public interface IImageLoader {
      * Loads an image in asynchronous mode. Once the image has been fetched
      * from the source url, the callback will be invoked.
      *
-     * @param path Image source to download.
-     * @param imageView ImageView where sets the placerhold or error in place.
-     * @param callback Notifies the result when the asynchronous thread has finished.
-     *                 'onSuccess(..)' and 'onError(..)'. Either invoke will run onto
-     *                 UI thread.
+     * @param load The image load parameters
      */
+    default void loadImage(LoadImageParams load) {
+        loadImage(load.path(), load.imageView(), load.callback(), load.needsScaling());
+    }
+
+    /**
+     * @deprecated Use {@link #loadImage(LoadImageParams)}.
+     */
+    @Deprecated
     default void loadImage(final String path, ImageView imageView, LoadImageCallback2 callback, boolean needsScaling) {
         loadImage(path, imageView, new LoadImageCallback() {
             @Override
@@ -97,7 +104,7 @@ public interface IImageLoader {
     /**
      *  Cancel the image download.
      */
-    void cancel();
+    default void cancel() {}
 
     /**
      * Class which holds ImageLoader optional and featured properties.
@@ -136,5 +143,68 @@ public interface IImageLoader {
     interface LoadImageCallback2 {
         void onSuccess(Bitmap bitmap, String source);
         void onError(Exception exception, String source);
+
+        /**
+         * Adds an additional errorCode that will be passed on to image onFail callbacks.
+         * @param exception The exception that occurred
+         * @param errorCode An error code as defined by the runtime, such as the HttpResponseCode.
+         * @param source The url of the image source that failed to load
+         */
+        default void onError(Exception exception, int errorCode, String source) {
+            onError(exception, source);
+        }
+    }
+
+    /**
+     * Parameters for an Image load.
+     */
+    @AutoValue
+    abstract class LoadImageParams {
+        /**
+         * @return the path to the image
+         */
+        public abstract String path();
+
+        /**
+         * @return the target imageview
+         */
+        public abstract ImageView imageView();
+
+        /**
+         * @return the callback for completion or error
+         */
+        public abstract LoadImageCallback2 callback();
+
+        /**
+         * @return whether the bitmap should be scaled to fit the target view.
+         *      For example, {@link com.amazon.apl.enums.ImageScale#kImageScaleNone} would return false.
+         */
+        public abstract boolean needsScaling();
+
+        /**
+         * @return the request headers.
+         */
+        public abstract Map<String, String> headers();
+
+        /**
+         * @return whether the bitmap should be scaled up to fill the target view. This is false unless
+         *      we are have multiple sources to blend to maintain a previous quirk.
+         */
+        public abstract boolean allowUpscaling();
+
+        public static Builder builder() {
+            return new AutoValue_IImageLoader_LoadImageParams.Builder();
+        }
+
+        @AutoValue.Builder
+        public static abstract class Builder {
+            public abstract Builder path(String path);
+            public abstract Builder imageView(ImageView imageView);
+            public abstract Builder callback(LoadImageCallback2 callbacks);
+            public abstract Builder needsScaling(boolean needsScaling);
+            public abstract Builder headers(Map<String, String> headers);
+            public abstract Builder allowUpscaling(boolean allowUpscaling);
+            public abstract LoadImageParams build();
+        }
     }
 }

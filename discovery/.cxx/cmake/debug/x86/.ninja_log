@@ -1,0 +1,14 @@
+# ninja log v5
+1	73	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir	c2f78f87fedc526
+74	209	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-download	7b820c6c8fb1a05e
+209	234	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-update	3cf01d3a37581fd8
+209	236	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch	236a6f84dce77b71
+236	262	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure	ca0b8051e7dbfa33
+262	287	1644975757	rapidjson-prefix/src/rapidjson-stamp/rapidjson-build	f8aa50322031557
+287	754	1644975757	build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o	f27283fd0005cdcd
+288	1403	1644975758	build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o	21ba5bb3006f5078
+288	1525	1644975758	build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o	ee646675a2bb0f3b
+288	2027	1644975759	build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o	4dcd64cb309c4462
+287	5180	1644975762	build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o	86339e95d809181c
+5180	5228	1644975762	build-extensions/alexaext/libalexaext.a	3af8a107e3b4337b
+5228	5284	1644975762	../../../../build/intermediates/cmake/debug/obj/x86/libdiscovery-jni.so	c79151d00b70e4b

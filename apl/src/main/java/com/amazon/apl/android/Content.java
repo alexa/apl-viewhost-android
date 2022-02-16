@@ -21,9 +21,12 @@ import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.GradientType;
+import com.google.auto.value.AutoValue;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -52,8 +55,6 @@ public final class Content extends BoundObject {
     public static final String METRIC_CONTENT_IMPORT_REQUESTS = TAG + ".imports";
     private int cContentImportRequests;
 
-    private CallbackV2 mCallback;
-
     // The outstanding list of ImportRequests.
     private final Set<ImportRequest> mImportRequests;
 
@@ -65,14 +66,15 @@ public final class Content extends BoundObject {
     private DocumentBackground mDocumentBackground;
 
     @NonNull
-    private ITelemetryProvider mTelemetryProvider;
-
+    private final ITelemetryProvider mTelemetryProvider;
     @NonNull
-    private IPackageLoader mPackageLoader;
-    @NonNull
-    private IContentDataRetriever mDataRetriever;
-
     private final Handler mMainHandler;
+
+    private IPackageLoader mPackageLoader;
+    private IContentDataRetriever mDataRetriever;
+    private CallbackV2 mCallback;
+
+    private Map<ImportRef, APLJSONData> mPackages = new HashMap<>();
 
     /**
      * This Exception is thrown when a Content object cannot be created.
@@ -92,7 +94,10 @@ public final class Content extends BoundObject {
     /**
      * Private constructor use {@link Content#create(String)} or {@link Content#create(String, Callback)}.
      */
-    private Content(@NonNull ITelemetryProvider telemetryProvider, IPackageLoader packageLoader, IContentDataRetriever dataRetriever, long entryTime) {
+    private Content(@NonNull ITelemetryProvider telemetryProvider,
+                    @Nullable IPackageLoader packageLoader,
+                    @Nullable IContentDataRetriever dataRetriever,
+                    long entryTime) {
         // private constructor
         mImportRequests = Collections.newSetFromMap(new ConcurrentHashMap<>());
         mParameters = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -104,8 +109,8 @@ public final class Content extends BoundObject {
 
         long currentTime = System.nanoTime();
         mTelemetryProvider.startTimer(tContentCreate, NANOSECONDS, currentTime - entryTime);
-        mPackageLoader = packageLoader;
         mDataRetriever = dataRetriever;
+        setPackageLoader(packageLoader);
         mMainHandler = new Handler(Looper.getMainLooper());
     }
 
@@ -163,6 +168,12 @@ public final class Content extends BoundObject {
          * The document has failed to import.
          */
         public void onError(Exception e) {
+        }
+
+        /**
+         * Any package was loaded and processed.
+         */
+        public void onPackageLoaded(Content content) {
         }
     }
 
@@ -270,7 +281,7 @@ public final class Content extends BoundObject {
             if (content != null) {
                 content.recordErrorState();
             }
-            throw new ContentException("Could not create APL content", e);
+            throw new ContentException("Could not create APL content:", e);
         }
         if (!content.isBound()) {
             content.recordErrorState();
@@ -283,7 +294,7 @@ public final class Content extends BoundObject {
         mCallback = callbackV2;
         // Override callbacks and loaders if old callback is set.
         if (callback != null) {
-            mPackageLoader = (importRequest, onSuccess, onFailure) -> callback.onPackageRequest(Content.this, importRequest);
+            setPackageLoader((importRequest, onSuccess, onFailure) -> callback.onPackageRequest(Content.this, importRequest));
             mDataRetriever = (source, onSuccess, onFailure) -> callback.onDataRequest(Content.this, source);
             mCallback = new CallbackV2() {
                 @Override
@@ -297,6 +308,10 @@ public final class Content extends BoundObject {
                 }
             };
         }
+    }
+
+    private void setPackageLoader(IPackageLoader loader) {
+        mPackageLoader = loader;
     }
 
     /**
@@ -357,7 +372,13 @@ public final class Content extends BoundObject {
             throw new ContentException("Could not add APL package. Name: " + importRequest.getPackageName() + ", version: " + importRequest.getVersion());
         }
 
-        nAddPackage(getNativeHandle(), importRequest.getNativeHandle(), packageContents);
+        addPackage(importRequest, APLJSONData.create(packageContents));
+    }
+
+    synchronized public void addPackage(@NonNull ImportRequest importRequest,
+                                        @NonNull APLJSONData jsonData) {
+        mPackages.put(importRequest.getImportRef(), jsonData);
+        nAddPackage(getNativeHandle(), importRequest.getNativeHandle(), jsonData.getNativeHandle());
         // update the callback with package requests, no need for data requests
         notifyCallback(true, true);
     }
@@ -384,25 +405,53 @@ public final class Content extends BoundObject {
         // All import/data requests are satisfied via manual calls from the runtime.
         if (mCallback == null) return;
 
+        mCallback.onPackageLoaded(this);
+
         if (notifyPackages) {
             for (ImportRequest importRequest : getRequestedPackages()) {
+                final long startTime = System.nanoTime();
                 mPackageLoader.fetch(importRequest,
-                        this::handleImportSuccess,
-                        (request, message) -> Log.e(TAG, "Unable to load content for request: " + request + ". " + message));
+                        (ImportRequest request, APLJSONData result) -> this.handleImportSuccess(request, result, startTime),
+                        (ImportRequest request, String message) -> {
+                            final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            Log.e(TAG, String.format("Unable to load content for request: %s. Failed in %d milliseconds. %s",
+                                    request,
+                                    duration,
+                                    message));
+                        });
+
             }
         }
         if (notifyData) {
             for (String parameter : mParameters) {
+                final long startTime = System.nanoTime();
+
                 mDataRetriever.fetch(parameter,
-                        this::handleDataSuccess,
-                        (param, message) -> Log.e(TAG, "Unable to fetch parameter: " + param + ". " + message));
+                        (String param, String result) -> {
+                            final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            Log.i(TAG, String.format("Param '%s' took %d milliseconds to fetch.",
+                                    param,
+                                    duration));
+                            this.handleDataSuccess(param, result);
+                        },
+                        (String param, String message) -> {
+                            final long duration =  NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            Log.e(TAG, String.format("Unable to fetch parameter: %s. Failed in %d milliseconds. %s",
+                                    param,
+                                    duration,
+                                    message));
+                        });
             }
             mParameters.clear();
         }
     }
 
-    private void handleImportSuccess(ImportRequest request, String result) {
-        invokeOnMyThread(() -> tryAddPackage(request, result));
+    private void handleImportSuccess(ImportRequest request, APLJSONData result, final long startTime) {
+        final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        Log.i(TAG, String.format("Package '%s' took %d milliseconds to download.",
+                request.getPackageName(),
+                duration));
+        invokeOnMyThread(() -> addPackage(request, result));
     }
 
     private void handleDataSuccess(String param, String result) {
@@ -417,13 +466,8 @@ public final class Content extends BoundObject {
         }
     }
 
-    private void tryAddPackage(ImportRequest request, String result) {
-        try {
-            addPackage(request, result);
-        } catch (ContentException e) {
-            Log.e(TAG, "Unable to load content for request: " + request, e);
-            mCallback.onError(e);
-        }
+    private void tryAddPackage(ImportRequest request, APLJSONData result) {
+        addPackage(request, result);
     }
 
     /**
@@ -455,6 +499,7 @@ public final class Content extends BoundObject {
         recordSuccessState();
         if (mCallback != null) {
             mCallback.onComplete(this);
+            mCallback = null;
         }
     }
 
@@ -467,6 +512,7 @@ public final class Content extends BoundObject {
         recordErrorState();
         if (mCallback != null) {
             mCallback.onError(new ContentException("Content Error."));
+            mCallback = null;
         }
     }
 
@@ -527,12 +573,15 @@ public final class Content extends BoundObject {
         @Deprecated
         final public String version;
 
+        private final ImportRef mImportRef;
+
         ImportRequest(long nativeHandle, String source, String packageName, String version) {
             bind(nativeHandle);
             // TODO replace these fields with native call to bound object
             this.source = source;
             this.packageName = packageName;
             this.version = version;
+            mImportRef = ImportRef.create(packageName, version);
         }
 
 
@@ -551,6 +600,22 @@ public final class Content extends BoundObject {
             return source;
         }
 
+        public ImportRef getImportRef() {
+            return mImportRef;
+        }
+    }
+
+    /**
+     * Unique identifier of an Import.
+     */
+    @AutoValue
+    public static abstract class ImportRef {
+        public abstract String name();
+        public abstract String version();
+
+        public static ImportRef create(String name, String version) {
+            return new AutoValue_Content_ImportRef(name, version);
+        }
     }
 
 
@@ -744,7 +809,7 @@ public final class Content extends BoundObject {
 
     private native void nUpdate(long nativeHandle);
 
-    private native void nAddPackage(long nativeHandle, long requestId, String content);
+    private native void nAddPackage(long nativeHandle, long requestId, long aplJsonData);
 
     private native void nAddData(long nativeHandle, String dataId, String dataPayload);
 

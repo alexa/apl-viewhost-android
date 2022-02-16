@@ -8,7 +8,7 @@ package com.amazon.apl.android.image.filters;
 import android.graphics.Bitmap;
 
 import com.amazon.apl.android.bitmap.BitmapCreationException;
-import com.amazon.apl.android.bitmap.BitmapFactory;
+import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
@@ -31,7 +31,7 @@ public abstract class FilterOperationTest<T extends FilterOperation> extends Vie
 
     protected FilterOperation mFilterOperation;
     @Mock
-    protected BitmapFactory mBitmapFactory;
+    protected IBitmapFactory mBitmapFactory;
     @Mock
     protected RenderScriptWrapper mRenderScript;
     @Mock

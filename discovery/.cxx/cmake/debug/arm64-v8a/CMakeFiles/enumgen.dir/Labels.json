@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen-complete.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"enumgen"
+		],
+		"name" : "enumgen"
+	}
+}

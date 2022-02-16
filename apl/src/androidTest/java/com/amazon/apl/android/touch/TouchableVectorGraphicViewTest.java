@@ -9,8 +9,6 @@ import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
 
-import static androidx.test.espresso.matcher.ViewMatchers.withId;
-
 public class TouchableVectorGraphicViewTest extends TouchableViewTest {
     static String BATTERY =
             "{" +
@@ -54,7 +52,7 @@ public class TouchableVectorGraphicViewTest extends TouchableViewTest {
     @Override
     APLOptions getOptions() {
         return APLOptions.builder()
-                .sendEventCallback(mSendEventCallback)
+                .sendEventCallbackV2(mSendEventCallback)
                 .dataRetrieverProvider(new TouchableVectorGraphicViewTest.TestDataRetrieverProvider())
                 .build();
     }

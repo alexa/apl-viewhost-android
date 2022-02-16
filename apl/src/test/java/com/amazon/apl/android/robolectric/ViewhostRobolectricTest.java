@@ -73,6 +73,16 @@ public abstract class ViewhostRobolectricTest {
         @Override
         @Implementation
         protected void drawBitmap(Bitmap source, Matrix matrix, Paint paint) {
+           drawInternal(source);
+        }
+
+        @Override
+        @Implementation
+        protected void drawBitmap(Bitmap source, float left, float top, Paint paint) {
+            drawInternal(source);
+        }
+
+        private void drawInternal(Bitmap source) {
             Buffer buf = ByteBuffer.allocate(source.getByteCount());
             source.copyPixelsToBuffer(buf);
             buf.rewind();

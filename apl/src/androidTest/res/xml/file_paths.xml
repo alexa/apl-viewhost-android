@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<paths>
+    <external-files-path name="documents" path="documents/" />
+    <external-files-path name="images" path="images/" />
+    <external-files-path name="avgs" path="avgs/" />
+</paths>

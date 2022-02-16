@@ -14,6 +14,8 @@ public interface ISendEventCallback {
      * @param args Arguments corresponding to the evaluated `arguments` array of SendEvent.
      * @param components Map of component ids to component values.
      * @param sources The rich source object describing who raised this event.
+     * @deprecated use {@link ISendEventCallbackV2#onSendEvent(Object[], Map, Map, Map)}
      */
+    @Deprecated
     void onSendEvent(Object[] args, Map<String, Object> components, Map<String, Object> sources);
 }

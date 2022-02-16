@@ -5,7 +5,7 @@
 
 package com.amazon.apl.android.scaling;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.ViewportMode;
 import com.google.auto.value.AutoValue;
 
@@ -21,7 +21,6 @@ public class Scaling extends BoundObject {
      */
     @AutoValue
     public abstract static class ViewportSpecification {
-
         public abstract int getMinWidth();
         public abstract int getMaxWidth();
         public abstract int getMinHeight();
@@ -57,6 +56,10 @@ public class Scaling extends BoundObject {
      */
     public Scaling(double biasConstant, Collection<ViewportSpecification> specifications) {
         this(biasConstant, specifications, Collections.EMPTY_LIST);
+    }
+
+    public boolean isScalingRequested() {
+        return isBound();
     }
 
     /**

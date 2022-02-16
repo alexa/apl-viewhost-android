@@ -32,17 +32,15 @@ public interface IExtensionEventCallback {
      *                       with the result of the extension event execution.
      */
     default void onExtensionEvent(String name, String uri,
-                          Event event,
-                          Map<String, Object> source,
-                          Map<String, Object> custom,
-                          IExtensionEventCallbackResult resultCallback) {
+                                  Event event,
+                                  Map<String, Object> source,
+                                  Map<String, Object> custom,
+                                  IExtensionEventCallbackResult resultCallback) {
         onExtensionEvent(name, uri, source, custom, resultCallback);
     }
 
     /**
      * Callback for Extension Events.
-     *
-     * @deprecated use {@link #onExtensionEvent(String, String, Event, Map, Map, IExtensionEventCallbackResult)}.
      *
      * @param name           The name of the extension assigned by the APL document.
      * @param uri            The URI of the extension.
@@ -50,10 +48,12 @@ public interface IExtensionEventCallback {
      * @param custom         Map of the user-specified properties listed at registration time.
      * @param resultCallback NULL if the extension command does not require resolution.  Call this
      *                       with the result of the extension event execution.
+     * @deprecated use {@link #onExtensionEvent(String, String, Event, Map, Map, IExtensionEventCallbackResult)}.
      */
     @Deprecated
     void onExtensionEvent(String name, String uri,
                           Map<String, Object> source,
                           Map<String, Object> custom,
                           IExtensionEventCallbackResult resultCallback);
+
 }

@@ -51,7 +51,7 @@ public class HttpRequestHandler implements ContentRetriever.RequestHandler<Strin
         try {
             successCallback.onSuccess(source, loadDocument(source.toString()));
         } catch (Exception e) {
-            failureCallback.onFailure(source,"Unable to retrieve asset: " + source + ". " + e.getMessage());
+            failureCallback.onFailure(source,"Unable to retrieve asset: " + e.getMessage());
         }
     }
 

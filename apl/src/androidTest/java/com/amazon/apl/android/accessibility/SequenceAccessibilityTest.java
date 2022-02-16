@@ -7,24 +7,31 @@ package com.amazon.apl.android.accessibility;
 
 import android.content.Intent;
 
+import androidx.test.espresso.ViewAssertion;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 
 import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.doubleClick;
+import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
@@ -172,4 +179,39 @@ public class SequenceAccessibilityTest extends AbstractDocViewTest {
         onView(isRoot()).perform(waitFor(5000));
     }
 
+    @Ignore
+    @Test
+    public void testInitialAccessibilityFocus() {
+        Component firstChild = mSequence.getChildAt(0);
+        onView(withComponent(firstChild))
+                .check(isAccessibilityFocused());
+    }
+
+    @Ignore
+    @Test
+    public void testAccessibilityClick() {
+        // Double tap to activate
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(doubleClick());
+
+        verify(mSendEventCallback, times(1)).onSendEvent(eq(new String[] {"Pick up Stacy from soccer practice"}), any(), any());
+    }
+
+    @Ignore
+    @Test
+    public void testMoveAccessibilityFocus() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(swipeRight());
+
+        onView(withComponent(mSequence.getChildAt(1)))
+                .check(isAccessibilityFocused());
+    }
+
+    static ViewAssertion isAccessibilityFocused() {
+        return (view, noViewFoundException) -> {
+            if (!view.isAccessibilityFocused()) {
+                throw new AssertionError("View: " + view + " not focused by accessibility");
+            }
+        };
+    }
 }

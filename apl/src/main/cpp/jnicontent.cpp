@@ -221,17 +221,15 @@ namespace apl {
         Java_com_amazon_apl_android_Content_nAddPackage(JNIEnv *env, jobject instance,
                                                         jlong contentHandle,
                                                         jlong requestHandle,
-                                                        jstring docContents_) {
-            const char *docContents = env->GetStringUTFChars(docContents_, nullptr);
+                                                        jlong jsonDataHandle) {
+            auto jsonData = get<JsonData>(jsonDataHandle);
             // Get the content from the handle
             auto c = get<Content>(contentHandle);
             // add the package
             auto it = get<ImportRequest>(requestHandle);
-            c->addPackage(*it, docContents);
-            env->ReleaseStringUTFChars(docContents_, docContents);
+            c->addPackage(*it, jsonData->get());
             update(env, instance, c, true, true); // update packages, data, and status
         }
-
 
         /**
          * Add data payload.

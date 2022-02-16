@@ -10,6 +10,8 @@ import android.graphics.Color;
 
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
+import com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +36,8 @@ public class PooledBitmapFactoryTest extends ViewhostRobolectricTest {
         when(mockTelemetryProvider
                 .createMetricId(anyString(), anyString(), any(ITelemetryProvider.Type.class)))
                 .thenReturn(42);
-        bitmapPool = new GlideCachingBitmapPool(32 * 1024 * 1024);
+
+        bitmapPool = new GlideCachingBitmapPool(new LruBitmapPool(10 * 1024 * 1024));
         pooledBitmapFactory = new PooledBitmapFactory(mockTelemetryProvider, bitmapPool);
     }
 

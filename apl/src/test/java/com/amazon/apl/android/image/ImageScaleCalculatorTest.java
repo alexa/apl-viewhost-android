@@ -7,6 +7,7 @@ package com.amazon.apl.android.image;
 
 import android.view.Gravity;
 
+import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.ImageAlign;
 import com.amazon.apl.enums.ImageScale;
 
@@ -15,7 +16,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class ImageScaleCalculatorTest {
+public class ImageScaleCalculatorTest extends ViewhostRobolectricTest {
 
     /**
      * Same set of tests for testImageScaleCalculator_BestFitCase but using different expected results
@@ -127,18 +128,5 @@ public class ImageScaleCalculatorTest {
 
         scales = ImageScaleCalculator.getScale(ImageScale.kImageScaleBestFitDown, 1000, 1000, 2000, 1500);
         assertArrayEquals(new float[]{0.5f, 0.5f}, scales, 0.01f);
-    }
-
-    @Test
-    public void testGetGravity() {
-        assertEquals(Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignBottom));
-        assertEquals(Gravity.LEFT | Gravity.BOTTOM, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignBottomLeft));
-        assertEquals(Gravity.RIGHT | Gravity.BOTTOM, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignBottomRight));
-        assertEquals(Gravity.LEFT | Gravity.CENTER_VERTICAL, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignLeft));
-        assertEquals(Gravity.RIGHT | Gravity.CENTER_VERTICAL, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignRight));
-        assertEquals(Gravity.CENTER_HORIZONTAL | Gravity.TOP, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignTop));
-        assertEquals(Gravity.LEFT | Gravity.TOP, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignTopLeft));
-        assertEquals(Gravity.RIGHT | Gravity.TOP, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignTopRight));
-        assertEquals(Gravity.CENTER, ImageScaleCalculator.getGravity(ImageAlign.kImageAlignCenter));
     }
 }

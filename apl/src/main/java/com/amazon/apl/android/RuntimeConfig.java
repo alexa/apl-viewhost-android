@@ -6,6 +6,13 @@
 package com.amazon.apl.android;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.amazon.apl.android.bitmap.IBitmapCache;
+import com.amazon.apl.android.bitmap.IBitmapPool;
+import com.amazon.apl.android.bitmap.NoOpBitmapCache;
+import com.amazon.apl.android.bitmap.NoOpBitmapPool;
+import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.font.CompatFontResolver;
 import com.amazon.apl.android.font.IFontResolver;
 import com.google.auto.value.AutoValue;
@@ -18,19 +25,36 @@ public abstract class RuntimeConfig {
     // Runtime Font Resolver
     public abstract IFontResolver getFontResolver();
 
-    // Runtime handles accessibility state changes
-    public abstract boolean getAccessibilityHandledByRuntime();
-
     public abstract boolean isPreloadingFontsEnabled();
+
+    public abstract IBitmapPool getBitmapPool();
+
+    public abstract IBitmapCache getBitmapCache();
+
+    @Nullable
+    public abstract IPackageCache getPackageCache();
+
+    /**
+     * Whether or not we should clear the views when a document is finished. Currently used
+     * for transparent activity case with Video components as clearing the layout causes the
+     * home screen to show through.
+     *
+     * @return true if we need to clear views when we finish a document
+     */
+    public abstract boolean isClearViewsOnFinish();
 
     /**
      * @return gets a builder for {@link RuntimeConfig} with default implementation
      */
     public static Builder builder() {
+        IBitmapCache bitmapCache = new NoOpBitmapCache();
+        IBitmapPool bitmapPool = new NoOpBitmapPool();
         return new AutoValue_RuntimeConfig.Builder()
                 .fontResolver(new CompatFontResolver())
-                .accessibilityHandledByRuntime(false)
-                .preloadingFontsEnabled(true);
+                .preloadingFontsEnabled(true)
+                .bitmapCache(bitmapCache)
+                .bitmapPool(bitmapPool)
+                .clearViewsOnFinish(true);
     }
 
     @AutoValue.Builder
@@ -50,11 +74,36 @@ public abstract class RuntimeConfig {
         public abstract Builder preloadingFontsEnabled(boolean shouldPreloadFonts);
 
         /**
-         * Defaults to false
-         * @param accessibilityHandledByRuntime
+         * Bitmap pool to use for creating new Bitmap objects.
+         *
+         * @param bitmapPool bitmap pool
          * @return this builder
          */
-        public abstract Builder accessibilityHandledByRuntime(boolean accessibilityHandledByRuntime);
+        public abstract Builder bitmapPool(IBitmapPool bitmapPool);
+
+        /**
+         * Bitmap cache to use (key-value store).
+         *
+         * @param bitmapCache bitmap cache
+         * @return this builder
+         */
+        public abstract Builder bitmapCache(IBitmapCache bitmapCache);
+
+
+        /**
+         * A memory cache for import requests
+         * @param packageCache import request cache.
+         * @return this builder
+         */
+        public abstract Builder packageCache(@NonNull IPackageCache packageCache);
+
+        /**
+         * Defaults to true.
+         * Flag to clear android views when we finish the apl document.
+         * @param clearViewsOnFinish true if views should be cleared on finish
+         * @return this builder
+         */
+        public abstract Builder clearViewsOnFinish(boolean clearViewsOnFinish);
 
         /**
          * Builds the config

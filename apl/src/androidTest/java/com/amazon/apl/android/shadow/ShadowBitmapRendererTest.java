@@ -9,8 +9,9 @@ import android.graphics.Bitmap;
 import android.graphics.RectF;
 
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.bitmap.IBitmapPool;
 import com.amazon.apl.android.bitmap.LruBitmapCache;
-import com.amazon.apl.android.bitmap.BitmapFactory;
+import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 
 import org.junit.Before;
@@ -34,7 +35,7 @@ public class ShadowBitmapRendererTest {
     @Before
     public void setUp() {
         mMockCache = mock(LruBitmapCache.class);
-        mRenderer = new ShadowBitmapRenderer(mMockCache, BitmapFactory.create(mock(ITelemetryProvider.class)));
+        mRenderer = new ShadowBitmapRenderer(mMockCache, PooledBitmapFactory.create(mock(ITelemetryProvider.class), mock(IBitmapPool.class)));
     }
 
     // verify we do nothing when no shadow is set on the component

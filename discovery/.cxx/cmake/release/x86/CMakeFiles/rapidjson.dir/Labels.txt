@@ -1,0 +1,13 @@
+# Target labels
+ rapidjson
+# Source files and their labels
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson-complete.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule
+/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule

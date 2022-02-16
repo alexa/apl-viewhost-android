@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
@@ -20,6 +21,7 @@ import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.UpdateType;
 
@@ -28,7 +30,7 @@ import java.util.List;
 /**
  * The APL View Context.  Responsible for building Views and displaying.
  */
-public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecycleListener {
+public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecycleListener, ViewGroup.OnHierarchyChangeListener {
 
     // TODO not yet a true Presenter
     // TODO this class represents architectural migration from tightly coupled
@@ -37,7 +39,7 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
     // TODO 3) extract the relationship between model and view
 
     /**
-     * @return The Anroid Context.
+     * @return The Android Context.
      */
     Context getContext();
 
@@ -73,11 +75,6 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
     View findView(Component component);
 
     /**
-     * @return The viewport density
-     */
-    float getDensity();
-
-    /**
      * Finds the Component represented by the View.
      *
      * @param view The view.
@@ -92,7 +89,7 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * that the View visually represents the Component.
      * This method also disassociates any previous Component that View was already associated with.
      */
-    void associateView(Component component, View view);
+    void associate(Component component, View view);
 
     /**
      * Disassociates any View currently bound to given Component, meaning the given component is no
@@ -100,11 +97,13 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * Calls to {@link #findView(Component)} with the same Component after calling this method will
      * return null until a new view is associated with it.
      *
-     * See {@link #associateView(Component, View)}
+     * See {@link #associate(Component, View)}
      *
      * @param component The component whose view will be disassociated
      */
-    void disassociateView(Component component);
+    void disassociate(Component component);
+
+    void disassociate(View view);
 
     /**
      * Create and return the viewport metrics.
@@ -115,13 +114,7 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      *
      */
     @NonNull
-    ViewportMetrics createViewportMetrics() throws IllegalStateException;
-
-    /**
-     * Returns an instance of {@link ViewportMetrics}.
-     */
-    @Nullable
-    ViewportMetrics getViewportMetrics();
+    ViewportMetrics getOrCreateViewportMetrics() throws IllegalStateException;
 
 
     /**
@@ -135,9 +128,8 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
     /**
      * A context is being prepared, a call to onDocumentRender will follow when
      * the context is ready. Call this method to start performance timers prior to render.
-     * @param restore this document is being restored from a previous context.
      */
-    void preDocumentRender(boolean restore);
+    void preDocumentRender();
 
     /**
      * Returns an instance of {@link ShadowBitmapRenderer} for drawing shadows under Components
@@ -215,7 +207,7 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * Adds a listener for document lifecycle events.
      * @param documentLifecycleListener the listener.
      */
-    void addDocumentLifecycleListener(IDocumentLifecycleListener documentLifecycleListener);
+    void addDocumentLifecycleListener(@NonNull IDocumentLifecycleListener documentLifecycleListener);
 
     void updateComponent(View componentView, UpdateType updateType, boolean value);
 
@@ -243,5 +235,29 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      */
     void releaseLastMotionEvent();
 
+    /**
+     * Trigger a pass to reinflate the view hierarchy for the current RootContext.
+     * This should be done in response to a {@link com.amazon.apl.android.events.ReinflateEvent}.
+     */
+    void reinflate();
+
     AbstractMediaPlayerProvider<View> getMediaPlayerProvider();
+
+    /**
+     * Notifies core that the media related to the url has been loaded successfully.
+     * @param url The url of the media object that has loaded
+     */
+    void mediaLoaded(String url);
+
+    /**
+     * Notifies core that there was an error loading the media object.
+     * @param url The url of the media object that failed to load.
+     * @param errorCode The error code (typically HttpStatusCode) that was received, if any.
+     *                  This is defined by the runtimes, and is not defined in the spec.
+     * @param errorMessage A generic error message
+     */
+    void mediaLoadFailed(String url, int errorCode, String errorMessage);
+
+    @Nullable
+    APLTrace getAPLTrace();
 }

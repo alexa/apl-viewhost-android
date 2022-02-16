@@ -20,8 +20,12 @@ include(${APL_DEPENDENCIES_DIR}/thirdparty.cmake)
 
 # tools
 include_directories(${APL_CORE_DIR}/aplcore)
-set(APL_CORE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
 include_directories(${APL_CORE_BUILD_DIR/aplcore/include})
+
+# Extensions framework
+include_directories(${APL_CORE_DIR}/extensions/alexaext/include)
+
+set(APL_CORE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
 include(${APL_CORE_DIR}/options.cmake)
 include(${APL_CORE_DIR}/tools.cmake)
 
@@ -44,6 +48,7 @@ add_library(
         src/main/cpp/jnicontent.cpp
         src/main/cpp/jniextensionclient.cpp
         src/main/cpp/jniextensioncommand.cpp
+        src/main/cpp/jniextensioncomponent.cpp
         src/main/cpp/jniextensioneventhandler.cpp
         src/main/cpp/jniextensionfilter.cpp
         src/main/cpp/jnirootcontext.cpp
@@ -56,6 +61,7 @@ add_library(
         src/main/cpp/jniscaling.cpp
         src/main/cpp/jnimetricstransform.cpp
         src/main/cpp/jnigraphic.cpp
+        src/main/cpp/jnitextmeasurecallback.cpp
         src/main/cpp/jnishadowblur.cpp
         src/main/cpp/jninoisefilter.cpp
 )
@@ -98,6 +104,9 @@ include_directories(${PEGTL_INCLUDE})
 include_directories(${RAPIDJSON_INCLUDE})
 include_directories(${YOGA_INCLUDE})
 
+# Common lib includes
+include_directories(../common/src/main/cpp/include)
+
 add_custom_target(generate-android-enums ALL
         COMMAND cd ${APL_CORE_DIR} && ${ENUMGEN_BIN}
         -f  "AnimationQuality"
@@ -106,6 +115,7 @@ add_custom_target(generate-android-enums ALL
         -f  "ContainerDirection"
         -f  "DimensionType"
         -f  "Display"
+        -f  "DisplayState"
         -f  "EventAudioTrack"
         -f  "EventControlMediaCommand"
         -f  "EventDirection"
@@ -114,6 +124,7 @@ add_custom_target(generate-android-enums ALL
         -f  "EventReason"
         -f  "EventScrollAlign"
         -f  "EventType"
+        -f  "EventMediaType"
         -f  "FilterType"
         -f  "FilterProperty"
         -f  "FlexboxAlign"
@@ -155,6 +166,7 @@ add_custom_target(generate-android-enums ALL
         -f  "TextAlign"
         -f  "TextAlignVertical"
         -f  "TokenType"
+        -f  "TrackState"
         -f  "UpdateType"
         -f  "VectorGraphicAlign"
         -f  "VectorGraphicScale"
@@ -165,6 +177,7 @@ add_custom_target(generate-android-enums ALL
         -f  "SubmitKeyType"
         -f  "ScreenMode"
         -f  "Role"
+        -f  "ExtensionComponentResourceState"
         -l java -p com.amazon.apl.enums -o ${CMAKE_CURRENT_SOURCE_DIR}/src/main/java/com/amazon/apl/enums
         ${APL_CORE_DIR}/aplcore/include/action/*.h
         ${APL_CORE_DIR}/aplcore/include/animation/*.h
@@ -172,6 +185,7 @@ add_custom_target(generate-android-enums ALL
         ${APL_CORE_DIR}/aplcore/include/apl/component/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/content/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/datagrammar/*.h
+        ${APL_CORE_DIR}/aplcore/include/apl/document/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/engine/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/graphic/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/primitives/*.h
@@ -183,3 +197,10 @@ add_custom_target(generate-android-enums ALL
 )
 
 add_dependencies(apl-jni generate-android-enums)
+
+# ccache
+find_program(CCACHE_FOUND ccache)
+if(CCACHE_FOUND)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+endif(CCACHE_FOUND)

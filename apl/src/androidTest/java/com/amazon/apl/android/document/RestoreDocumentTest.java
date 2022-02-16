@@ -10,6 +10,7 @@ import android.view.KeyEvent;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.DocumentState;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
+import com.amazon.apl.android.views.APLTextView;
 
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
@@ -32,10 +33,10 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.finish;
-import static com.amazon.apl.android.espresso.APLViewActions.restore;
+import static com.amazon.apl.android.espresso.APLViewActions.restoreAndExecuteCommands;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static com.amazon.apl.android.espresso.APLViewAssertions.isFinished;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(AndroidJUnit4.class)
 public class RestoreDocumentTest extends AbstractDocViewTest {
@@ -66,6 +67,11 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
                     "            \"width\": \"100vw\",\n" +
                     "            \"id\": \"frame3\",\n" +
                     "            \"backgroundColor\": \"green\"\n" +
+                    "          },\n" +
+                    "          {\n" +
+                    "            \"type\": \"Text\",\n" +
+                    "            \"text\": \"Hello\",\n" +
+                    "            \"id\": \"textComponent\"" +
                     "          }\n" +
                     "        ]\n" +
                     "      }";
@@ -96,6 +102,11 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
                     "          \"width\": \"100vw\",\n" +
                     "          \"id\": \"frame3\",\n" +
                     "          \"backgroundColor\": \"green\"\n" +
+                    "        },\n" +
+                    "        {\n" +
+                    "          \"type\": \"Text\",\n" +
+                    "          \"text\": \"Hello\",\n" +
+                    "          \"id\": \"textComponent\"" +
                     "        }\n" +
                     "      ]";
 
@@ -124,6 +135,11 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
                     "          \"width\": \"100vw\",\n" +
                     "          \"id\": \"frame3\",\n" +
                     "          \"backgroundColor\": \"green\"\n" +
+                    "        },\n" +
+                    "        {\n" +
+                    "          \"type\": \"Text\",\n" +
+                    "          \"text\": \"Hello\",\n" +
+                    "          \"id\": \"textComponent\"" +
                     "        }\n" +
                     "      ]";
 
@@ -202,36 +218,6 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
         testFramesAreDisplayed(DOC_PAGER, swipeLeft(), swipeLeft());
     }
 
-    @Test
-    public void testRestoreDocument_restoresTime() {
-        onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(inflate(DOC_SCROLLVIEW, ""))
-                .check(hasRootContext());
-
-        onView(isRoot()).perform(waitFor(1000));
-
-        DocumentState documentState = mAplController.getDocumentState();
-        long previousElapsedTime = mTestContext.getPresenter().getElapsedTime();
-        assertTrue(previousElapsedTime >= 1000);
-
-        onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(finish(mAplController))
-                .check(isFinished())
-                .perform(inflate(DOC_SCROLLVIEW, ""))
-                .check(hasRootContext())
-                .perform(finish(mAplController))
-                .check(isFinished())
-                .perform(restore(mTestContext.getPresenter(), documentState))
-                .check(hasRootContext());
-
-        onView(isRoot()).perform(waitFor(500));
-
-        long currentElapsedTime = mTestContext.getPresenter().getElapsedTime();
-        final int TOLERANCE = 70;
-        // check for a range of a tolerance in case of rounding errors / device delay
-        assertTrue(String.format("%d >= %d + %d", currentElapsedTime, previousElapsedTime, 500), currentElapsedTime >= previousElapsedTime + 500 - TOLERANCE && currentElapsedTime <= previousElapsedTime + 500 + TOLERANCE );
-    }
-
     // TODO determine better way to swipe until view is displayed.
     private void testFramesAreDisplayed(String DOC, ViewAction... swipeActions) {
         // Inflate first document
@@ -266,11 +252,19 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
         // Verify that initial frame is displayed
         verifyFrameIsDisplayed("frame1");
 
+        String commands = "[\n" +
+                "    {\n" +
+                "        \"type\": \"SetValue\",\n" +
+                "        \"property\": \"text\",\n" +
+                "        \"value\": \"World\",\n" +
+                "        \"componentId\": \"textComponent\"\n" +
+                "    }\n" +
+                "]";
         // Finish and restore first document
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(finish(mAplController))
                 .check(isFinished())
-                .perform(restore(mTestContext.getPresenter(), cacheDocumentState))
+                .perform(restoreAndExecuteCommands(mTestContext.getPresenter(), cacheDocumentState, commands))
                 .check(hasRootContext());
 
         mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
@@ -279,11 +273,20 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
 
         // Verify that last frame is displayed
         verifyFrameIsDisplayed("frame3");
+        // Verify that the SetValue command is executed after document is restored
+        verifyCommandsExecuted();
     }
 
     private void verifyFrameIsDisplayed(String displayedFrame) {
         Component displayed = mTestContext.getRootContext().findComponentById(displayedFrame);
         onView(withComponent(displayed))
                 .check(matches(isDisplayed()));
+    }
+
+    private void verifyCommandsExecuted() {
+        onView(isRoot()).perform(waitFor(100));
+        Component textComponent = mTestContext.getRootContext().findComponentById("textComponent");
+        APLTextView aplTextView = (APLTextView) mTestContext.getPresenter().findView(textComponent);
+        assertEquals("World", aplTextView.getLayout().getText().toString());
     }
 }

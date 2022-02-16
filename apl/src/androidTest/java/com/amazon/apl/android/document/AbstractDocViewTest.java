@@ -7,6 +7,8 @@ package com.amazon.apl.android.document;
 
 import android.view.View;
 
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.IdlingResource;
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
@@ -20,12 +22,16 @@ import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.TestActivity;
 
 import org.hamcrest.Matcher;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
+import org.mockito.MockitoAnnotations;
 
 import static androidx.test.espresso.action.ViewActions.actionWithAssertions;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayingAtLeast;
@@ -70,6 +76,19 @@ public abstract class AbstractDocViewTest {
 
     protected APLTestContext mTestContext;
     protected APLController mAplController;
+    protected IdlingResource mIdlingResource;
+
+    @Before
+    public void setup() {
+        MockitoAnnotations.initMocks(this);
+    }
+
+    @After
+    public void teardown() {
+        if (mIdlingResource != null) {
+            IdlingRegistry.getInstance().unregister(mIdlingResource);
+        }
+    }
 
 
     @Rule
@@ -81,13 +100,15 @@ public abstract class AbstractDocViewTest {
         private final String mPayloadId;
         private final String mData;
         private final APLOptions mOptions;
+        private final RootConfig mRootConfig;
 
-        public InflateAPLViewAction(String componentProps, String documentProps, String payloadId, String data, APLOptions options) {
+        public InflateAPLViewAction(String componentProps, String documentProps, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
             mComponentProps = componentProps;
             mDocumentProps = documentProps;
             mPayloadId = payloadId;
             mData = data;
             mOptions = options;
+            mRootConfig = rootConfig;
         }
 
         @Override
@@ -108,6 +129,10 @@ public abstract class AbstractDocViewTest {
                     .setDocumentPayload(mPayloadId, mData)
                     .setAplOptions(mOptions)
                     .buildRootContextDependencies();
+
+            if (mRootConfig != null) {
+                mTestContext.setRootConfig(mRootConfig);
+            }
             
             APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl);
             try {
@@ -145,6 +170,10 @@ public abstract class AbstractDocViewTest {
     }
 
     public ViewAction inflate(String componentProps, String documentProps, String payloadId, String data, APLOptions options) {
+        return inflate(componentProps, documentProps, payloadId, data, options, null);
+    }
+
+    public ViewAction inflate(String componentProps, String documentProps, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
         if (componentProps.length() > 0) {
             componentProps =  ", " + componentProps;
         }
@@ -152,8 +181,9 @@ public abstract class AbstractDocViewTest {
             documentProps =  ", " + documentProps;
         }
 
-        return actionWithAssertions(new InflateAPLViewAction(componentProps, documentProps, payloadId, data, options));
+        return actionWithAssertions(new InflateAPLViewAction(componentProps, documentProps, payloadId, data, options, rootConfig));
     }
+
 
     public ViewAssertion hasRootContext() {
         return new RootContextViewAssertion();

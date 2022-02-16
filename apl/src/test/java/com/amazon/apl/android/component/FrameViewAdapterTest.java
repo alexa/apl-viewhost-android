@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.view.View;
 
 import com.amazon.apl.android.APLGradientDrawable;
+import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.PropertyMap;

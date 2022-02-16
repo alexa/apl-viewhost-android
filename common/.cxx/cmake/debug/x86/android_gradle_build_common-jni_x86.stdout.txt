@@ -1,0 +1,3 @@
+ninja: Entering directory `/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86'
+[1/2] Building CXX object CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o
+[2/2] Linking CXX shared library ../../../../build/intermediates/cmake/debug/obj/x86/libcommon-jni.so

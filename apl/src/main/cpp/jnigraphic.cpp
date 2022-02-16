@@ -185,7 +185,7 @@ namespace apl {
         Java_com_amazon_apl_android_graphic_GraphicPattern_nGetWidth(JNIEnv *env, jclass clazz,
                 jlong handle, jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGraphicPattern();
 
             return static_cast<jfloat>(g->getWidth());
@@ -195,7 +195,7 @@ namespace apl {
                 Java_com_amazon_apl_android_graphic_GraphicPattern_nGetHeight(JNIEnv *env, jclass clazz,
                         jlong handle, jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGraphicPattern();
 
             return static_cast<jfloat>(g->getHeight());
@@ -204,7 +204,7 @@ namespace apl {
         JNIEXPORT jlongArray JNICALL
         Java_com_amazon_apl_android_graphic_GraphicPattern_nGetItems(JNIEnv *env, jclass clazz,
                                                                      jlong handle, jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGraphicPattern();
 
 

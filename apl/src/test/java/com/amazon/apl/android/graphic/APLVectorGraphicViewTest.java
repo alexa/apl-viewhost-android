@@ -8,7 +8,9 @@ import android.graphics.drawable.Drawable;
 import android.util.Pair;
 
 import com.amazon.apl.android.IAPLViewPresenter;
-import com.amazon.apl.android.bitmap.BitmapFactory;
+import com.amazon.apl.android.bitmap.IBitmapFactory;
+import com.amazon.apl.android.bitmap.IBitmapPool;
+import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.VectorGraphicAlign;
@@ -40,7 +42,7 @@ public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
 
     @Before
     public void setUp() {
-        BitmapFactory bitmapFactory = BitmapFactory.create(mock(ITelemetryProvider.class));
+        IBitmapFactory bitmapFactory = PooledBitmapFactory.create(mock(ITelemetryProvider.class), mock(IBitmapPool.class));
         when(mMockPresenter.getBitmapFactory()).thenReturn(bitmapFactory);
         mAPLVectorGraphicView = spy(new APLVectorGraphicView(ViewhostRobolectricTest.getApplication().getApplicationContext(), mMockPresenter));
         mAPLVectorGraphicView.setFrame(0, 0, VIEW_SIZE, VIEW_SIZE);

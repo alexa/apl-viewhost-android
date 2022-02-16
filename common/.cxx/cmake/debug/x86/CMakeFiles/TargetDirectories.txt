@@ -1,0 +1,3 @@
+/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86/CMakeFiles/rebuild_cache.dir
+/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86/CMakeFiles/edit_cache.dir
+/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86/CMakeFiles/common-jni.dir

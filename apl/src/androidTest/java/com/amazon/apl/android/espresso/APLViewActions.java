@@ -13,10 +13,14 @@ import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.action.ViewActions;
 
 import com.amazon.apl.android.APLController;
+import com.amazon.apl.android.APLLayout;
+import com.amazon.apl.android.APLLayoutParams;
+import com.amazon.apl.android.Action;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.DocumentState;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.configuration.ConfigurationChange;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
@@ -44,7 +48,9 @@ public final class APLViewActions {
 
     public static ViewAction executeCommands(RootContext rootContext, String command) { return new ExecuteCommandViewAction(rootContext, command); }
 
-    public static ViewAction restore(IAPLViewPresenter presenter, DocumentState documentState) { return ViewActions.actionWithAssertions(new RestoreViewAction(presenter, documentState)); }
+    public static ViewAction updateDataSource(RootContext rootContext, String type, String data) { return new UpdateDataSourceViewAction(rootContext, type, data); }
+
+    public static ViewAction restoreAndExecuteCommands(IAPLViewPresenter presenter, DocumentState documentState, String commands) { return ViewActions.actionWithAssertions(new RestoreViewAndExecuteCommandsAction(presenter, documentState, commands)); }
 
     public static ViewAction finish(APLController controller) { return ViewActions.actionWithAssertions(new FinishAPLViewAction(controller)); }
 
@@ -54,8 +60,12 @@ public final class APLViewActions {
 
     public static ViewAction performClick() { return new AccessibilityClick(); }
 
-    public static ViewAction performConfigurationChange(RootContext rootContext) {
-        return new ConfigurationChangeEvent(rootContext);
+    public static ViewAction performConfigurationChange(RootContext rootContext, ConfigurationChange configurationChange) {
+        return new ConfigurationChangeEvent(rootContext, configurationChange);
+    }
+
+    public static ViewAction resizeApl(boolean handleConfigChange, int width, int height) {
+        return new APLLayoutResizeViewAction(handleConfigChange, width, height);
     }
 
     static class RequestFocus implements ViewAction {
@@ -122,13 +132,18 @@ public final class APLViewActions {
         }
     }
 
-    static class RestoreViewAction implements ViewAction {
-        private IAPLViewPresenter mPresenter;
-        private DocumentState mDocumentState;
+    /**
+     * Restore a document and execute the specified commands on the restored document.
+     */
+    static class RestoreViewAndExecuteCommandsAction implements ViewAction {
+        private final IAPLViewPresenter mPresenter;
+        private final DocumentState mDocumentState;
+        private final String mCommands;
 
-        public RestoreViewAction(IAPLViewPresenter presenter, DocumentState documentState) {
+        public RestoreViewAndExecuteCommandsAction(IAPLViewPresenter presenter, DocumentState documentState, String commands) {
             mPresenter = presenter;
             mDocumentState = documentState;
+            mCommands = commands;
         }
 
         @Override
@@ -139,13 +154,16 @@ public final class APLViewActions {
 
         @Override
         public String getDescription() {
-            return "Restore a Document";
+            return "Restore a Document and execute commands";
         }
 
         @Override
         public void perform(UiController uiController, View view) {
             try {
-                APLController.restoreDocument(mDocumentState, mPresenter);
+                final APLController aplController = APLController.restoreDocument(mDocumentState, mPresenter);
+                if (mCommands != null) {
+                    aplController.executeCommands(mCommands, null);
+                }
             } catch (APLController.APLException e) {
                 Assert.fail(e.getMessage());
             }
@@ -175,6 +193,36 @@ public final class APLViewActions {
         }
     }
 
+    static class UpdateDataSourceViewAction implements ViewAction {
+        private final RootContext mRootContext;
+        private final String mType;
+        private final String mData;
+
+        public UpdateDataSourceViewAction(RootContext rootContext, String type, String data) {
+            mRootContext = rootContext;
+            mType = type;
+            mData = data;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return isDisplayingAtLeast(90);
+        }
+
+        @Override
+        public String getDescription() {
+            return "Execute command";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            mRootContext.updateDataSource(mType, mData);
+
+            // Force an update.
+            mRootContext.doFrame(1);
+        }
+    }
+
     static class ExecuteCommandViewAction implements ViewAction {
         private final RootContext mRootContext;
         private final String mCommand;
@@ -196,8 +244,12 @@ public final class APLViewActions {
 
         @Override
         public void perform(UiController uiController, View view) {
-            mRootContext.executeCommands(mCommand);
+            Action commandAction = mRootContext.executeCommands(mCommand);
             mRootContext.doFrame(1);
+
+            while (commandAction.isPending()) {
+                uiController.loopMainThreadForAtLeast(50);
+            }
         }
     }
 
@@ -275,10 +327,13 @@ public final class APLViewActions {
     static class ConfigurationChangeEvent implements ViewAction {
 
         private final RootContext mRootContext;
+        private final ConfigurationChange mConfigurationChange;
 
-        public ConfigurationChangeEvent(RootContext rootContext) {
+        public ConfigurationChangeEvent(RootContext rootContext, ConfigurationChange configurationChange) {
             mRootContext = rootContext;
+            mConfigurationChange = configurationChange;
         }
+
         @Override
         public Matcher<View> getConstraints() {
             return isDisplayed();
@@ -291,8 +346,36 @@ public final class APLViewActions {
 
         @Override
         public void perform(UiController uiController, View view) {
-            mRootContext.handleConfigurationChange(mRootContext.createConfigurationChange().fontScale(2.0f).build());
+            mRootContext.handleConfigurationChange(mConfigurationChange);
             mRootContext.doFrame(1);
+        }
+    }
+
+    static class APLLayoutResizeViewAction implements ViewAction {
+        private final boolean mHandleConfigChange;
+        private final int mWidth, mHeight;
+
+        public APLLayoutResizeViewAction(boolean handleConfigChange, int width, int height) {
+            mHandleConfigChange = handleConfigChange;
+            mWidth = width;
+            mHeight = height;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return isDisplayed();
+        }
+
+        @Override
+        public String getDescription() {
+            return "Resize APLLayout to: " + mWidth + "x" + mHeight;
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            APLLayout aplLayout = (APLLayout) view;
+            aplLayout.setHandleConfigurationChangeOnSizeChanged(mHandleConfigChange);
+            aplLayout.setLayoutParams(new APLLayoutParams(mWidth, mHeight, 0, 0));
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import android.view.View;
 
 import com.amazon.apl.android.APLAccessibilityDelegate;
+import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.PropertyMap;
@@ -16,6 +17,7 @@ import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
+import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScrollDirection;
 import com.amazon.apl.enums.UpdateType;
@@ -23,7 +25,9 @@ import com.amazon.apl.enums.UpdateType;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +38,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -294,6 +299,88 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         ArgumentCaptor<Integer> updateCaptor = ArgumentCaptor.forClass(Integer.class);
         verify(component()).update(eq(UpdateType.kUpdateScrollPosition), updateCaptor.capture());
         assertEquals(Math.round(200 + 200 * -0.9f), updateCaptor.getValue().intValue());
+    }
+
+
+    @Test
+    public void test_refresh_displayedChildren_container_legacy() {
+        MultiChildComponent mockChild = mock(MultiChildComponent.class);
+        View childView = new View(getApplication());
+        when(mockChild.getComponentType()).thenReturn(ComponentType.kComponentTypeFrame);
+        when(mockChild.getBounds()).thenReturn(Rect.builder().width(10).height(10).left(0).top(0).build());
+
+        when(component().getChildCount()).thenReturn(1);
+        when(component().getAllChildren()).thenReturn(Arrays.asList(mockChild));
+        when(component().getProperties()).thenReturn(mockPropertyMap);
+        when(component().getRenderingContext().getDocVersion()).thenReturn(APLVersionCodes.APL_1_5);
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeContainer);
+        when(mockPropertyMap.get(PropertyKey.kPropertyNotifyChildrenChanged)).thenReturn(new Object[]{});
+        when(mMockPresenter.inflateComponentHierarchy(mockChild)).thenReturn(childView);
+
+        // Check that view has no children
+        assertEquals(0, getView().getChildCount());
+
+        refreshProperties(PropertyKey.kPropertyNotifyChildrenChanged);
+
+        assertEquals(1, getView().getChildCount());
+        assertEquals(childView, getView().getChildAt(0));
+    }
+
+    @Test
+    public void test_refresh_displayedChildren_touchWrapper_legacy() {
+        MultiChildComponent mockChild = mock(MultiChildComponent.class);
+        View childView = new View(getApplication());
+        when(mockChild.getComponentType()).thenReturn(ComponentType.kComponentTypeFrame);
+        when(mockChild.getBounds()).thenReturn(Rect.builder().width(10).height(10).left(0).top(0).build());
+
+        when(component().getChildCount()).thenReturn(1);
+        when(component().getAllChildren()).thenReturn(Arrays.asList(mockChild));
+        when(component().getProperties()).thenReturn(mockPropertyMap);
+        when(component().getRenderingContext().getDocVersion()).thenReturn(APLVersionCodes.APL_1_5);
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeTouchWrapper);
+        when(mockPropertyMap.get(PropertyKey.kPropertyNotifyChildrenChanged)).thenReturn(new Object[]{});
+        when(mMockPresenter.inflateComponentHierarchy(mockChild)).thenReturn(childView);
+
+        // Check that view has no children
+        assertEquals(0, getView().getChildCount());
+
+        refreshProperties(PropertyKey.kPropertyNotifyChildrenChanged);
+
+        assertEquals(1, getView().getChildCount());
+        assertEquals(childView, getView().getChildAt(0));
+    }
+
+    @Test
+    public void test_refresh_displayedChildren_noChildrenChanged_doesntModifyViews() {
+        MultiChildComponent mockChild = mock(MultiChildComponent.class);
+        APLAbsoluteLayout mockView = mock(APLAbsoluteLayout.class);
+        when(mockChild.getComponentType()).thenReturn(ComponentType.kComponentTypeFrame);
+        when(mockChild.getBounds()).thenReturn(Rect.builder().width(10).height(10).left(0).top(0).build());
+
+        when(component().getChildCount()).thenReturn(1);
+        when(component().getAllChildren()).thenReturn(Arrays.asList(mockChild));
+        when(component().getProperties()).thenReturn(mockPropertyMap);
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeContainer);
+        when(mockPropertyMap.get(PropertyKey.kPropertyNotifyChildrenChanged)).thenReturn(new Object[]{});
+        when(mMockPresenter.inflateComponentHierarchy(mockChild)).thenReturn(mockView);
+        when(mMockPresenter.findView(mockChild)).thenReturn(mockView);
+
+        when(mockView.getChildCount()).thenReturn(0);
+
+        refreshProperties(mockView, PropertyKey.kPropertyNotifyChildrenChanged);
+
+        verify(mockView).detachAllViews();
+        verify(mockView).attachView(mockView);
+
+        Mockito.reset(mockView);
+        when(mockView.getChildCount()).thenReturn(1);
+        when(mockView.getChildAt(0)).thenReturn(mockView);
+
+        refreshProperties(mockView, PropertyKey.kPropertyNotifyChildrenChanged);
+
+        verify(mockView, never()).detachAllViews();
+        verify(mockView, never()).attachView(any());
+        verify(mockView).invalidate();
     }
 
     private void setupChildWithBounds(Rect bounds) {

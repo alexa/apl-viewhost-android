@@ -14,10 +14,14 @@ import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Video;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.dependencies.impl.NoOpMediaPlayer;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
+import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
+import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.ComponentType;
+import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.VideoScale;
 
 import org.junit.Before;
@@ -38,7 +42,7 @@ import static org.mockito.Mockito.when;
 
 public class VideoTest extends AbstractComponentUnitTest<View, Video> {
     private static final String DUMMY_URL =
-            "http://mirrors.standaloneinstaller.com/video-sample/DLP_PART_2_768k.mp4";
+            "http://videotest.invalid/video-sample.mp4";
     private static final String DUMMY_DESCRIPTION = "Testing video component";
 
     @Override
@@ -139,6 +143,7 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
             "      \"items\": [" +
             "        {" +
             "          \"type\": \"Video\"," +
+            "          \"id\": \"testcomp\"," +
             "          \"source\": \"${payload.movie.properties.single}\"" +
             "        }," +
             "        {" +
@@ -196,5 +201,23 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
 
             assertEquals(sources.at(0).url(), "URL1");
         }
+    }
+
+    @Test
+    @SmallTest
+    public void testDisallowVideo_True() {
+        mRootConfig = mRootConfig.set(RootProperty.kDisallowVideo, true);
+        inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
+        AbstractMediaPlayerProvider mediaPlayerProvider = getTestComponent().getMediaPlayerProvider();
+        assertTrue(mediaPlayerProvider instanceof NoOpMediaPlayerProvider);
+    }
+
+    @Test
+    @SmallTest
+    public void testDisallowVideo_False() {
+        mRootConfig = mRootConfig.set(RootProperty.kDisallowVideo, false);
+        inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
+        AbstractMediaPlayerProvider mediaPlayerProvider = getTestComponent().getMediaPlayerProvider();
+        assertTrue(mediaPlayerProvider instanceof MediaPlayerProvider);
     }
 }

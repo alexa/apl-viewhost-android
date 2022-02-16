@@ -15,6 +15,7 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
@@ -128,7 +129,8 @@ public abstract class AbstractDocUnitTest {
         mRootConfig = buildRootConfig();
 
         mAPLPresenter = mock(IAPLViewPresenter.class);
-        when(mAPLPresenter.getViewportMetrics()).thenReturn(metrics);
+        when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
 
         mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter));
 

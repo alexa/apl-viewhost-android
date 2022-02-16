@@ -18,12 +18,14 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -61,7 +63,7 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
 
         // Assert
         assertTrue(successCalled.get());
-        verify(httpsRequestHandler).fetch(eq(uri), any(), any());
+        verify(httpsRequestHandler).fetchV2(eq(uri), anyMap(), any(), any());
     }
 
     @Test
@@ -84,7 +86,7 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
 
         // Assert
         assertTrue(failureCalled.get());
-        verify(httpsRequestHandler, never()).fetch(any(), any(), any());
+        verify(httpsRequestHandler, never()).fetchV2(any(), anyMap(), any(), any());
     }
 
     @Test
@@ -118,8 +120,8 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
         // Assert
         assertTrue(uriACalled.get());
         assertTrue(uriBCalled.get());
-        verify(multiRequestHandler).fetch(eq(aUri), any(), any());
-        verify(multiRequestHandler).fetch(eq(bUri), any(), any());
+        verify(multiRequestHandler).fetchV2(eq(aUri), anyMap(), any(), any());
+        verify(multiRequestHandler).fetchV2(eq(bUri), anyMap(), any(), any());
     }
 
     @Test
@@ -156,8 +158,8 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
         assertTrue(httpsFetch.get());
         assertTrue(contentFetch.get());
         // Check that the uris were passed to the correct handlers
-        verify(httpsRequestHandler).fetch(eq(httpsUri), any(), any());
-        verify(contentRequestHandler).fetch(eq(contentUri), any(), any());
+        verify(httpsRequestHandler).fetchV2(eq(httpsUri), anyMap(), any(), any());
+        verify(contentRequestHandler).fetchV2(eq(contentUri), anyMap(), any(), any());
     }
 
     @Test
@@ -171,7 +173,13 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
             IContentRetriever.FailureCallback<Uri> failureCallback = invocation.getArgument(2);
             failureCallback.onFailure(source, source.getScheme() + "Fail");
             return null;
-        }).when(mockHandler).fetch(any(), any(), any());
+        }).when(mockHandler).fetch(any(),  any(), any());
+        doAnswer(invocation -> {
+            Uri source = invocation.getArgument(0);
+            IContentRetriever.FailureCallbackV2<Uri> failureCallback = invocation.getArgument(3);
+            failureCallback.onFailure(source, source.getScheme() + "Fail", 0);
+            return null;
+        }).when(mockHandler).fetchV2(any(), anyMap(), any(), any());
         mContentRetriever.addRequestHandler(mockHandler);
         AtomicBoolean failureCalled = new AtomicBoolean();
 
@@ -186,7 +194,39 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
 
         // Assert
         assertTrue(failureCalled.get());
-        verify(mockHandler).fetch(eq(uri), any(), any());
+        verify(mockHandler).fetchV2(eq(uri), anyMap(), any(), any());
+    }
+
+    @Test
+    public void failureCallback_invokedV2() {
+        // Arrange
+        int errorCodeTest = 123;
+        Uri uri = Uri.parse("https://myobj");
+        ContentRetriever.RequestHandler<String> mockHandler = mock(ContentRetriever.RequestHandler.class);
+        when(mockHandler.supportedSchemes()).thenReturn(Arrays.asList("https"));
+        doAnswer(invocation -> {
+            Uri source = invocation.getArgument(0);
+            IContentRetriever.FailureCallbackV2<Uri> failureCallback = invocation.getArgument(3);
+            failureCallback.onFailure(source, source.getScheme() + "Fail", errorCodeTest);
+            return null;
+        }).when(mockHandler).fetchV2(any(), anyMap(), any(), any());
+        mContentRetriever.addRequestHandler(mockHandler);
+        AtomicBoolean failureCalled = new AtomicBoolean();
+
+        // Act
+        mContentRetriever.fetchV2(uri,
+                Collections.emptyMap(),
+                (source, result) -> fail("Success shouldn't be invoked."),
+                (source, failure, errorCode) -> {
+                    assertEquals(uri, source);
+                    assertEquals("httpsFail", failure);
+                    assertEquals(errorCodeTest, errorCode);
+                    failureCalled.set(true);
+                });
+
+        // Assert
+        assertTrue(failureCalled.get());
+        verify(mockHandler).fetchV2(eq(uri), anyMap(), any(), any());
     }
 
     @Test
@@ -195,29 +235,22 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
         Uri uri = Uri.parse("https://someimage");
         Bitmap expectedResult = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         ContentRetriever<Bitmap> bitmapContentRetriever = new ContentRetriever<>(Runnable::run);
-        ContentRetriever.RequestHandler<Bitmap> mockHandler = mock(ContentRetriever.RequestHandler.class);
-        when(mockHandler.supportedSchemes()).thenReturn(Collections.singletonList("https"));
-        doAnswer(invocation -> {
-            Uri source = invocation.getArgument(0);
-            IContentRetriever.SuccessCallback<Uri, Bitmap> successCallback = invocation.getArgument(1);
-            successCallback.onSuccess(source, expectedResult);
-            return null;
-        }).when(mockHandler).fetch(any(), any(), any());
+        ContentRetriever.RequestHandler<Bitmap> mockHandler = setupMockHandler((source) -> expectedResult, "https");
         bitmapContentRetriever.addRequestHandler(mockHandler);
         AtomicBoolean callbackInvoked = new AtomicBoolean();
 
         // Act
-        bitmapContentRetriever.fetch(uri,
+        bitmapContentRetriever.fetchV2(uri,
                 (source, result) -> {
                     assertEquals(uri, source);
                     assertEquals(expectedResult, result);
                     callbackInvoked.set(true);
                 },
-                (source, failure) -> fail("Failure shouldn't be invoked."));
+                (source, failure, errorCode) -> fail("Failure shouldn't be invoked."));
 
         // Assert
         assertTrue(callbackInvoked.get());
-        verify(mockHandler).fetch(eq(uri), any(), any());
+        verify(mockHandler).fetchV2(eq(uri), anyMap(), any(), any());
     }
 
     @Test
@@ -228,8 +261,12 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
                 (source, success) -> fail("success should not be invoked"),
                 (source, failure) -> {
                     assertEquals(uri, source);
-                    assertEquals("No scheme for source: " + source, failure);
+                    assertEquals("No scheme for source", failure);
                 });
+    }
+
+    private ContentRetriever.RequestHandler<String> setupMockHandler(String... schemes) {
+        return setupMockHandler((uri) -> uri.getScheme() + "Data", schemes);
     }
 
     /**
@@ -237,15 +274,27 @@ public class ContentRetrieverTest extends ViewhostRobolectricTest {
      * @param schemes schemes this handler supports.
      * @return the mock handler
      */
-    private ContentRetriever.RequestHandler<String> setupMockHandler(String... schemes) {
-        ContentRetriever.RequestHandler<String> mockHandler = mock(ContentRetriever.RequestHandler.class);
+    private <T> ContentRetriever.RequestHandler<T> setupMockHandler(Function<Uri,T> result, String... schemes) {
+        ContentRetriever.RequestHandler<T> mockHandler = mock(ContentRetriever.RequestHandler.class);
         when(mockHandler.supportedSchemes()).thenReturn(Arrays.asList(schemes));
         doAnswer(invocation -> {
             Uri source = invocation.getArgument(0);
-            IContentRetriever.SuccessCallback<Uri, String> successCallback = invocation.getArgument(1);
-            successCallback.onSuccess(source, source.getScheme() + "Data");
+            IContentRetriever.SuccessCallback<Uri, T> successCallback = invocation.getArgument(1);
+            successCallback.onSuccess(source, result.apply(source));
             return null;
         }).when(mockHandler).fetch(any(), any(), any());
+        doAnswer(invocation -> {
+            Uri source = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Uri, T> successCallback = invocation.getArgument(1);
+            successCallback.onSuccess(source, result.apply(source));
+            return null;
+        }).when(mockHandler).fetchV2(any(), any(), any());
+        doAnswer(invocation -> {
+            Uri source = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Uri, T> successCallback = invocation.getArgument(2);
+            successCallback.onSuccess(source, result.apply(source));
+            return null;
+        }).when(mockHandler).fetchV2(any(), anyMap(), any(), any());
         return mockHandler;
     }
 }

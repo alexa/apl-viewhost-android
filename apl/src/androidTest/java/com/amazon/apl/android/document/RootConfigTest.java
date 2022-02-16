@@ -5,12 +5,12 @@
 
 package com.amazon.apl.android.document;
 
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.enums.AnimationQuality;
 import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenMode;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -22,32 +22,21 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class RootConfigTest implements BoundObjectDefaultTest {
+public class RootConfigTest extends APLViewhostTest {
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = RootConfig.create("Test", "1.0")
+                .getNativeHandle();
 
-//    private static final String TAG = RootConfigTest.class.getSimpleName();
-
-    static {
-        System.loadLibrary("apl-jni");
-    }
-
-
-    @Before
-    public void doBefore() {
-
-    }
-
-
-    @Override
-    public long createBoundObjectHandle() {
-        RootConfig rootConfig = RootConfig.create("Test", "1.0");
-        long handle = rootConfig.getNativeHandle();
-        return handle;
+        assertNativeHandle(handle);
     }
 
     @Test
@@ -244,7 +233,7 @@ public class RootConfigTest implements BoundObjectDefaultTest {
         assertEquals(offset, rootConfig.getLocalTimeAdjustment());
         assertTrue(Math.abs(rootConfig.getUTCTime() - now) < 100);
         // may vary per device configuration
-        assertEquals(1.0, rootConfig.getFontScale(), 0.01);
+        assertTrue(rootConfig.getFontScale() >= 1.0f);
         assertEquals("normal", rootConfig.getScreenMode());
         assertEquals(false, rootConfig.getScreenReader());
     }

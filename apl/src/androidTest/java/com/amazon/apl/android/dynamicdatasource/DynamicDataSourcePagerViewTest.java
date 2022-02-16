@@ -22,6 +22,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.After;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -139,6 +140,7 @@ public class DynamicDataSourcePagerViewTest extends AbstractDynamicDataSourceCom
      */
     @Test
     @LargeTest
+    @Ignore
     public void testViewsRendered_indexList() {
         final TestDataSourceFetchCallback dataSourceFetchCallback = new TestDataSourceFetchCallback();
         onView(withId(com.amazon.apl.android.test.R.id.apl))
@@ -261,6 +263,7 @@ public class DynamicDataSourcePagerViewTest extends AbstractDynamicDataSourceCom
      */
     @Test
     @LargeTest
+    @Ignore
     public void testViewsRendered_tokenList() {
         final int eachPageTokenCount = COLOURS.length;
 

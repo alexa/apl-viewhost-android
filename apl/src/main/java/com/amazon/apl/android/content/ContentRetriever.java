@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.thread.Threading;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -53,20 +54,30 @@ public class ContentRetriever<T> implements IContentRetriever<Uri, T> {
 
     @Override
     public void fetch(@NonNull Uri source, @NonNull SuccessCallback<Uri, T> successCallback, @NonNull FailureCallback<Uri> failureCallback) {
-        mExecutor.execute(() -> fetchInternal(source, successCallback, failureCallback));
+        mExecutor.execute(() -> fetchInternal(source, Collections.emptyMap(), successCallback, (request, errorMessage, errorCode) -> failureCallback.onFailure(request, errorMessage)));
     }
 
-    private void fetchInternal(Uri source, SuccessCallback<Uri, T> successCallback, FailureCallback<Uri> failureCallback) {
+    @Override
+    public void fetchV2(@NonNull Uri source, @NonNull SuccessCallback<Uri, T> successCallback, @NonNull FailureCallbackV2<Uri> failureCallback) {
+        mExecutor.execute(() -> fetchInternal(source, Collections.emptyMap(), successCallback, failureCallback));
+    }
+
+    @Override
+    public void fetchV2(@NonNull Uri source, @NonNull Map<String, String> headers, @NonNull SuccessCallback<Uri, T> successCallback, @NonNull FailureCallbackV2<Uri> failureCallback) {
+        mExecutor.execute(() -> fetchInternal(source, headers, successCallback, failureCallback));
+    }
+
+    private void fetchInternal(Uri source, Map<String, String> headers, SuccessCallback<Uri, T> successCallback, FailureCallbackV2<Uri> failureCallbackV2) {
         String scheme = source.getScheme();
         if (scheme == null) {
-            failureCallback.onFailure(source, "No scheme for source: " + source);
+            failureCallbackV2.onFailure(source, "No scheme for source", DEFAULT_ERROR_CODE);
             return;
         }
         RequestHandler<T> requestHandler = mRequestHandlers.get(scheme);
         if (requestHandler == null) {
-            failureCallback.onFailure(source, "No handler registered for source: " + source);
+            failureCallbackV2.onFailure(source, "No handler registered for source", DEFAULT_ERROR_CODE);
         } else {
-            requestHandler.fetch(source, successCallback, failureCallback);
+            requestHandler.fetchV2(source, headers, successCallback, failureCallbackV2);
         }
     }
 
@@ -74,18 +85,10 @@ public class ContentRetriever<T> implements IContentRetriever<Uri, T> {
      * Interface for a URI scheme-based RequestHandler.
      * @param <T> the type of data to fetch.
      */
-    public interface RequestHandler<T> {
+    public interface RequestHandler<T> extends IContentRetriever<Uri, T> {
         /**
          * @return a list of the {@link Uri} schemes that are supported.
          */
         @NonNull List<String> supportedSchemes();
-
-        /**
-         * Request a file from the given source.
-         * @param source            The source Uri. Guaranteed to have a scheme that is in this {@link RequestHandler#supportedSchemes()}.
-         * @param successCallback   The callback for a successful fetch.
-         * @param failureCallback   The callback for a failure to fetch.
-         */
-        void fetch(@NonNull Uri source, @NonNull SuccessCallback<Uri, T> successCallback, @NonNull FailureCallback<Uri> failureCallback);
     }
 }

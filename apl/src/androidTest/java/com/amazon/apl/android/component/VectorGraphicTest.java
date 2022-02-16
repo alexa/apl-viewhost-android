@@ -14,6 +14,7 @@ import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.VectorGraphic;
 import com.amazon.apl.android.graphic.APLVectorGraphicView;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -33,6 +34,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(AndroidJUnit4.class)
@@ -183,14 +185,14 @@ public class VectorGraphicTest extends AbstractComponentUnitTest<APLVectorGraphi
 
     @Override
     void testProperties_optionalDefaultValues(VectorGraphic component) {
-        assertEquals("", component.getSource());
+        assertEquals("", component.getSourceRequest().url());
         assertEquals(VectorGraphicAlign.kVectorGraphicAlignCenter, component.getAlign());
         assertEquals(VectorGraphicScale.kVectorGraphicScaleNone, component.getScale());
     }
 
     @Override
     void testProperties_optionalExplicitValues(VectorGraphic component) {
-        assertEquals(DUMMY_GRAPHIC, component.getSource());
+        assertEquals(DUMMY_GRAPHIC, component.getSourceRequest().url());
         assertEquals(VectorGraphicAlign.kVectorGraphicAlignCenter, component.getAlign());
         assertEquals(VectorGraphicScale.kVectorGraphicScaleBestFit, component.getScale());
         GraphicContainerElement root = component.getOrCreateGraphicContainerElement();
@@ -214,6 +216,26 @@ public class VectorGraphicTest extends AbstractComponentUnitTest<APLVectorGraphi
         assertEquals(VectorGraphicAlign.kVectorGraphicAlignCenter, component.getAlign());
         assertEquals(VectorGraphicScale.kVectorGraphicScaleBestFit, component.getScale());
         assertNull(component.getOrCreateGraphicContainerElement());
+    }
+
+    @Test
+    public void testProperties_sourceWithHeaders() {
+        String headerKey = "headerKey";
+        String headerValue = "headerValue";
+        OPTIONAL_PROPERTIES =
+                " \"source\": {\"url\": \"" + DUMMY_URL + "\", \"headers\": [\"" + headerKey + ": " + headerValue + "\"]}," +
+                        " \"width\": \"100\"," +
+                        " \"height\": \"100\"," +
+                        " \"scale\": \"best-fit\"";
+
+        String doc = buildDocument(BASE_DOC, REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES, "");
+        inflateDocument(doc);
+        VectorGraphic component = getTestComponent();
+        assertNotNull(component);
+        UrlRequests.UrlRequest sourceRequest = component.getSourceRequest();
+        assertEquals(DUMMY_URL, sourceRequest.url());
+        assertTrue(sourceRequest.headers().containsKey(headerKey));
+        assertEquals(headerValue, sourceRequest.headers().get(headerKey));
     }
 
     @Override

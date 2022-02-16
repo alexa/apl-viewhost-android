@@ -6,13 +6,14 @@
 package com.amazon.apl.android;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.net.Uri;
+import android.view.View;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.amazon.apl.android.bitmap.BitmapKey;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.dependencies.IImageLoader;
@@ -22,7 +23,9 @@ import com.amazon.apl.android.image.ImageShadowBoundsCalculator;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.primitive.Gradient;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
+import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.enums.ImageAlign;
 import com.amazon.apl.enums.ImageScale;
 import com.amazon.apl.enums.PropertyKey;
@@ -33,14 +36,13 @@ import java.util.List;
 /**
  * Creates a APL Image component.
  */
-public class Image extends Component implements BitmapKey {
+public class Image extends Component {
     private final IImageLoaderProvider mImageLoaderProvider;
     private final IImageProcessor mImageProcessor;
     private final IImageUriSchemeValidator mUriSchemeValidator;
     private final IExtensionImageFilterCallback mExtensionImageFilterCallback;
     private final IBitmapFactory mBitmapFactory;
     private final int mAplVersion;
-    private boolean mShouldDrawShadow;
     private RectF mShadowBounds = new RectF();
 
     /**
@@ -57,36 +59,32 @@ public class Image extends Component implements BitmapKey {
         mExtensionImageFilterCallback = renderingContext.getExtensionImageFilterCallback();
     }
 
-    public boolean hasShadow() {
-        return getShadowOffsetHorizontal() != 0
-                || getShadowOffsetVertical() != 0
-                || getShadowRadius() > 0;
-    }
-
-    @Override
-    public boolean shouldDrawBoxShadow() {
-        return mShouldDrawShadow;
-    }
-
-    public void setShouldDrawBoxShadow(boolean shouldDrawBoxShadow) {
-        mShouldDrawShadow = shouldDrawBoxShadow;
-    }
-
     @Override
     public RectF getShadowRect() {
         return mShadowBounds;
     }
 
-    public void setShadowBounds(Bitmap image, ImageAlign align) {
-        mShadowBounds = ImageShadowBoundsCalculator.builder()
-                .bounds(getBounds())
-                .innerBounds(getInnerBounds())
-                .align(align)
-                .image(image)
-                .offsetX(getShadowOffsetHorizontal())
-                .offsetY(getShadowOffsetVertical())
-                .build()
-                .calculateShadowBounds();
+    public void setShadowBounds(Rect clipPath) {
+        if (shouldDrawBoxShadow()) {
+            mShadowBounds = ImageShadowBoundsCalculator.builder()
+                    .bounds(getBounds())
+                    .innerBounds(getInnerBounds())
+                    .align(getAlign())
+                    .imageBounds(clipPath)
+                    .offsetX(getShadowOffsetHorizontal())
+                    .offsetY(getShadowOffsetVertical())
+                    .build()
+                    .calculateShadowBounds();
+            // Prepare the shadow and invalidate the parent.
+            ShadowBitmapRenderer shadowBitmapRenderer = getViewPresenter().getShadowRenderer();
+            if (shadowBitmapRenderer != null) {
+                shadowBitmapRenderer.prepareShadow(this);
+                View parent = getViewPresenter().findView(getParent());
+                if (parent != null) {
+                    parent.invalidate();
+                }
+            }
+        }
     }
 
     public IImageUriSchemeValidator getUriSchemeValidator() {
@@ -127,20 +125,38 @@ public class Image extends Component implements BitmapKey {
      *
      * Note: filters may not work properly if an image fails validation.
      *
-     * @return a list of Urls to download.
+     * @return a list of {@link UrlRequests.UrlRequest} to download.
      */
-    public final List<String> getSources() {
-        List<String> validatedSources = new ArrayList<>();
-        String[] sources = mProperties.getStringArray(PropertyKey.kPropertySource);
-        if (sources != null) {
-            for (String source : sources) {
-                if (mUriSchemeValidator.isUriSchemeValid(Uri.parse(source).getScheme(), getAplVersion())) {
-                    validatedSources.add(source);
+    public final List<UrlRequests.UrlRequest> getSourceRequests() {
+        List<UrlRequests.UrlRequest> validatedSources = new ArrayList<>();
+        UrlRequests urlRequests = mProperties.getUrlRequests(PropertyKey.kPropertySource);
+
+        if (urlRequests != null && urlRequests.size() > 0) {
+            for (UrlRequests.UrlRequest request : urlRequests) {
+                if (request.url() != null &&
+                        !request.url().isEmpty() &&
+                        mUriSchemeValidator.isUriSchemeValid(Uri.parse(request.url()).getScheme(), getAplVersion())) {
+                    validatedSources.add(request);
                 }
             }
         }
 
         return validatedSources;
+    }
+
+    /**
+     * Returns the list of Sources as validated by the URI scheme validator.
+     *
+     * Note: filters may not work properly if an image fails validation.
+     *
+     * @return a list of source urls to download.
+     */
+    public final List<String> getSourceUrls() {
+        List<String> urls = new ArrayList<>();
+        for(UrlRequests.UrlRequest request : getSourceRequests()) {
+            urls.add(request.url());
+        }
+        return urls;
     }
 
     /**
@@ -162,6 +178,9 @@ public class Image extends Component implements BitmapKey {
      */
     @Nullable
     public final Gradient getOverlayGradient() {
+        // gradient is not a defaulted property, check if it is set before fetch
+        if (!mProperties.hasProperty(PropertyKey.kPropertyOverlayGradient))
+            return null;
         return mProperties.getGradient(PropertyKey.kPropertyOverlayGradient);
     }
 

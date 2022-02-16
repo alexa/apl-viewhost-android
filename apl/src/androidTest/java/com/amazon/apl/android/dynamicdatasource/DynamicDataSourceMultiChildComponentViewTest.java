@@ -13,9 +13,11 @@ import androidx.test.filters.LargeTest;
 
 import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLGradientDrawable;
+import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.espresso.APLMatchers;
+import com.amazon.apl.android.functional.Consumer;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLTextView;
 
@@ -25,6 +27,7 @@ import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.List;
 import java.util.Map;
 
 import static androidx.test.espresso.Espresso.onView;
@@ -36,9 +39,8 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
+import static com.amazon.apl.android.espresso.APLViewActions.updateDataSource;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -160,28 +162,17 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "    { \"color\": \"white\", \"text\": \"6\" }\n" +
                 "  ]\n" +
                 "}", FORWARD_PAGE_TOKEN);
-        assertTrue(mAplController.updateDataSource("dynamicTokenList", updatePayload));
-        onView(withId(container.getComponentId().hashCode())).perform(longClick());
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicTokenList", updatePayload));
 
         // Verify new items 2-6 are loaded
         assertEquals(6, container.getChildCount()); // 1 initial + 5 new ones
         assertEquals(6, absoluteLayout.getChildCount());
 
-        // Verify the new item Views are rendered
+        // Verify the new item Views are rendered. Only check the first because depending on device,
+        // the rest may not render due to screen size.
         onView(APLMatchers.withText("2")).check(matches(isDisplayed()));
         assertEquals(absoluteLayout.getChildAt(1).getWidth(), container.getChildAt(1).getBounds().intWidth());
-
-        onView(APLMatchers.withText("3")).check(matches(isDisplayed()));
-        assertEquals(absoluteLayout.getChildAt(2).getWidth(), container.getChildAt(2).getBounds().intWidth());
-
-        onView(APLMatchers.withText("4")).check(matches(isDisplayed()));
-        assertEquals(absoluteLayout.getChildAt(3).getWidth(), container.getChildAt(3).getBounds().intWidth());
-
-        onView(APLMatchers.withText("5")).check(matches(isDisplayed()));
-        assertEquals(absoluteLayout.getChildAt(4).getWidth(), container.getChildAt(4).getBounds().intWidth());
-
-        onView(APLMatchers.withText("6")).check(matches(isDisplayed()));
-        assertEquals(absoluteLayout.getChildAt(5).getWidth(), container.getChildAt(5).getBounds().intWidth());
     }
 
     /**
@@ -230,7 +221,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "    { \"color\": \"white\", \"text\": \"9\" }\n" +
                 "  ]\n" +
                 "}";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify new items 5-9 are loaded
@@ -261,7 +253,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "    { \"color\": \"purple\", \"text\": \"11\" }\n" +
                 "  ]\n" +
                 "}";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify item 11 loaded
@@ -317,7 +310,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify new item has been added to Container
@@ -382,7 +376,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify new items have been added to Container
@@ -448,7 +443,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify Container has one less item
@@ -483,8 +479,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
-        onView(isRoot()).perform(waitFor(100));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
 
         final MultiChildComponent multiChildComponent = (MultiChildComponent) mTestContext.getRootContext().findComponentById("container");
         final APLAbsoluteLayout absoluteLayout = (APLAbsoluteLayout) mTestContext.getPresenter().findView(multiChildComponent);
@@ -495,6 +491,75 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
         // Verify the item that was after the deleted items is now shifted to the deleted items position
         assertSquare(absoluteLayout.getChildAt(0), Color.BLUE, "999");
         assertEquals(3, mTestContext.getRootContext().getComponents().size());
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .check((view, noViewFoundException) -> {
+                    APLLayout layout = (APLLayout) view;
+                    assertEquals(3, layout.getComponents().size());
+                    assertEquals(3, layout.getViews().size());
+                });
+    }
+
+    @Test
+    @LargeTest
+    public void testUpdate_AddDeleteManyTimes() throws JSONException {
+        final int itemCount = 5;
+        final String data = createManyItems(itemCount).toString();
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(actionWithAssertions(inflate(DOC, data, (type, payload) -> {
+                })))
+                .check(hasRootContext());
+
+        // Alternate removing and inserting components
+        for (int i = 1; i <= 10; i++) {
+            JSONArray operations = new JSONArray();
+            if (i % 2 != 0) {
+                operations.put(new JSONObject()
+                        .put("type", "DeleteMultipleItems")
+                        .put("index", 0)
+                        .put("count", itemCount));
+            } else {
+                JSONArray items = new JSONArray();
+                for (int j = 0; j < itemCount; j++) {
+                    items.put(new JSONObject()
+                            .put("color", "blue")
+                            .put("text", Integer.toString(j)));
+                }
+
+                operations.put(new JSONObject()
+                        .put("type", "InsertMultipleItems")
+                        .put("index", 0)
+                        .put("items", items));
+            }
+            JSONObject payload = new JSONObject()
+                    .put("listId", "vQdpOESlok")
+                    .put("listVersion", i)
+                    .put("operations", operations);
+            onView(isRoot())
+                    .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", payload.toString()));
+        }
+
+        assertEquals(11, mTestContext.getRootContext().getComponents().size());
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .check((view, noViewFoundException) -> {
+                    APLLayout layout = (APLLayout) view;
+                    assertEquals(11, layout.getComponents().size());
+                    assertEquals(11, layout.getViews().size());
+
+                    // Match hierarchy of views to components
+                    List<View> bfsOrderedViews = layout.getBfsOrderedViews();
+                    APLLayout.traverseComponentHierarchy(mTestContext.getRootContext().getTopComponent(), new Consumer<Component>() {
+                        int index = 0;
+
+                        @Override
+                        public void accept(Component component) {
+                            View view = mTestContext.getPresenter().findView(component);
+                            assertEquals(view, bfsOrderedViews.get(index));
+                            index++;
+                        }
+                    });
+                });
     }
 
     private static JSONObject createManyItems(int size) {
@@ -561,7 +626,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify Container has less items
@@ -621,7 +687,8 @@ public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynami
                 "      }\n" +
                 "    ]\n" +
                 "  }";
-        assertTrue(mAplController.updateDataSource("dynamicIndexList", updatePayload));
+        onView(isRoot())
+                .perform(updateDataSource(mTestContext.getRootContext(), "dynamicIndexList", updatePayload));
         onView(withId(multiChildComponent.getComponentId().hashCode())).perform(longClick());
 
         // Verify old item properties on updated item are gone

@@ -49,4 +49,9 @@ public interface IMetricsTransform {
      * @return Y difference between viewport and scaled layout
      */
     int getViewportOffsetY();
+
+    /**
+     * @return The unscaled viewport metrics.
+     */
+     ViewportMetrics getUnscaledMetrics();
 }

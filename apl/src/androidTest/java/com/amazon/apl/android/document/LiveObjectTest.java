@@ -11,6 +11,7 @@ import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
 
 import org.junit.Assert;
 import org.mockito.Mockito;
@@ -23,8 +24,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
-public abstract class LiveObjectTest extends AbstractDocUnitTest implements BoundObjectDefaultTest {
+public abstract class LiveObjectTest extends AbstractDocUnitTest {
     /**
      * Replace the stock "loadDocument" command with one that creates a LiveObject.
      * The LiveObject is initially empty.
@@ -43,6 +45,7 @@ public abstract class LiveObjectTest extends AbstractDocUnitTest implements Boun
         registerLiveData(rootConfig);
 
         mAPLPresenter = mock(IAPLViewPresenter.class);
+        when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter));
         assertNotNull(mRootContext);
 

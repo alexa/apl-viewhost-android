@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import android.graphics.Matrix;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -18,13 +19,23 @@ import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.primitive.Radii;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.primitive.StyledText;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.ColorUtils;
+import com.amazon.apl.android.utils.JNIUtils;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
 import com.amazon.apl.enums.ObjectType;
 
 import java.util.Objects;
 
+/**
+ * JNI lookup of properties on a bound object.  See the APL Specification to identify properties
+ * that are guaranteed to be non-null.  It is on the caller to use {@link #hasProperty(APLEnum)}
+ * when the APL specification allows for null.
+ * @param <B> The bound object type for property checking, Component for example
+ * @param <K> The enumeration of the object properties.
+ */
 public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
 
     @NonNull
@@ -119,19 +130,7 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
     }
 
     public final String getString(K property) {
-        int index = property.getIndex();
-        if (nHasProperty(getNativeHandle(), index)) {
-            return nGetString(getNativeHandle(), property.getIndex());
-        }
-        return null;
-    }
-
-    public final String[] getStringArray(K property) {
-        int index = property.getIndex();
-        if (nHasProperty(getNativeHandle(), index)) {
-            return nGetStringArray(getNativeHandle(), index);
-        }
-        return null;
+        return JNIUtils.safeStringValues(nGetString(getNativeHandle(), property.getIndex()));
     }
 
     public final int getColor(K property) {
@@ -140,71 +139,51 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
     }
 
     public final int getEnum(K property) {
-        int index = property.getIndex();
-        if (nHasProperty(getNativeHandle(), index)) {
-            return nGetEnum(getNativeHandle(), index);
-        }
-        return NO_VALUE;
+        return nGetEnum(getNativeHandle(), property.getIndex());
     }
 
     public final Dimension getDimension(K property) {
         final IMetricsTransform transform = Objects.requireNonNull(getMetricsTransform());
-        if (hasProperty(property))
-            return Dimension.create(getMapOwner(), property, transform);
-        return null;
+        return Dimension.create(getMapOwner(), property, transform);
     }
 
     public final Radii getRadii(K property) {
         final IMetricsTransform transform = Objects.requireNonNull(getMetricsTransform());
-        if (hasProperty(property))
-            return Radii.create(getMapOwner(), property, transform);
-        return null;
+        return Radii.create(getMapOwner(), property, transform);
     }
 
     public final StyledText getStyledText(K property) {
-        if (hasProperty(property))
-            return new StyledText(getMapOwner(), property, getMetricsTransform());
-        return null;
+        return new StyledText(getMapOwner(), property, getMetricsTransform());
     }
 
     public final Gradient getGradient(K property) {
-        if (hasProperty(property))
-            return Gradient.create(getMapOwner(), property);
-        return null;
+        return Gradient.create(getMapOwner(), property);
     }
 
     public final MediaSources getMediaSources(K property) {
-        if (hasProperty(property)) {
-            return MediaSources.create(getMapOwner(), property);
-        }
-        return null;
+        return MediaSources.create(getMapOwner(), property);
+    }
+
+    public final UrlRequests getUrlRequests(K property) {
+        return UrlRequests.create(getMapOwner(), property);
     }
 
     public final Filters getFilters(K property) {
         final IMetricsTransform transform = Objects.requireNonNull(getMetricsTransform());
-        if (hasProperty(property))
-            return Filters.create(getMapOwner(), property, transform);
-        return Filters.create();
+        return Filters.create(getMapOwner(), property, transform);
     }
 
     public final Rect getRect(K property) {
         final IMetricsTransform transform = Objects.requireNonNull(getMetricsTransform());
-        if (hasProperty(property)) {
-            return Rect.create(getMapOwner(), property, transform);
-        }
-        return null;
+        return Rect.create(getMapOwner(), property, transform);
     }
 
     public final AccessibilityActions getAccessibilityActions(K property) {
-        if (hasProperty(property))
-            return AccessibilityActions.create(getMapOwner(), property);
-        return null;
+        return AccessibilityActions.create(getMapOwner(), property);
     }
 
     public final GraphicFilters getGraphicFilters(K property) {
-        if (hasProperty(property))
-            return GraphicFilters.create(getMapOwner(), property);
-        return null;
+        return GraphicFilters.create(getMapOwner(), property);
     }
 
     /**
@@ -229,7 +208,6 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
     private static native boolean nGetBoolean(long nativeHandle, int propertyKey);
     @NonNull
     private static native String nGetString(long nativeHandle, int propertyKey);
-    private static native String[] nGetStringArray(long nativeHandle, int propertyKey);
     private static native long nGetColor(long nativeHandle, int propertyKey);
     private long getNativeHandle() {
         return getMapOwner().getNativeHandle();

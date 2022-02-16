@@ -11,7 +11,7 @@ import android.graphics.Shader;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.utils.ColorUtils;
 import com.amazon.apl.enums.APLEnum;
 import com.amazon.apl.enums.GradientProperty;

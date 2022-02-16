@@ -6,22 +6,26 @@
 package com.amazon.apl.android;
 
 import android.os.Looper;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.UiThread;
-import androidx.annotation.VisibleForTesting;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Choreographer;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
+
 import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
+import com.amazon.apl.android.dependencies.IExtensionEventCallback;
+import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.events.ControlMediaEvent;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.ExtensionEvent;
 import com.amazon.apl.android.events.FinishEvent;
 import com.amazon.apl.android.events.FocusEvent;
+import com.amazon.apl.android.events.LoadMediaRequestEvent;
 import com.amazon.apl.android.events.OpenKeyboardEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
 import com.amazon.apl.android.events.PlayMediaEvent;
@@ -31,16 +35,24 @@ import com.amazon.apl.android.events.RequestFirstLineBounds;
 import com.amazon.apl.android.events.SendEvent;
 import com.amazon.apl.android.events.SpeakEvent;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.touch.Pointer;
+import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.JNIUtils;
+import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.enums.ComponentType;
+import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.enums.EventScrollAlign;
 import com.amazon.apl.enums.EventType;
 import com.amazon.apl.enums.FocusDirection;
 import com.amazon.apl.enums.PropertyKey;
+import com.amazon.apl.enums.RootProperty;
+import com.amazon.common.BoundObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -70,7 +82,6 @@ import static com.amazon.apl.enums.EventType.valueOf;
  */
 public class RootContext extends BoundObject implements Choreographer.FrameCallback {
 
-    
     private static final String TAG = "RootContext";
     private static final boolean DEBUG = false;
 
@@ -94,16 +105,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     private int tInflate;
 
     // Reinflate metrics
-    private static final String METRIC_REINFLATE = TAG + ".reinflate";
+    public static final String METRIC_REINFLATE = TAG + ".reinflate";
     private int tReinflate;
-
-    // Text measure metrics
-    private static final String METRIC_MEASURE = TAG + ".measure";
-    private int tMeasureText;
-    private static final String METRIC_MEASURE_COUNT = TAG + ".measureCount";
-    private int cMeasureText;
-    private static final String METRIC_REMEASURE_COUNT = TAG + ".reMeasureCount";
-    private int cReMeasureText;
 
     private static final String METRIC_COMPONENT_COUNT = TAG + ".componentCount";
     private int cComponent;
@@ -116,8 +119,6 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     private Map<ComponentType, Integer> cComponentType = new EnumMap<>(ComponentType.class);
 
-    private static final MeasureMode[] MEASURE_MODES = MeasureMode.values();
-
     // Map of Component unique ID to Components in this layout
     // TODO consider only creating components as needed (i.e. ones that are laid-out by core).
     private static final int INITIAL_COMPONENT_MAP_CAPACITY = 128;
@@ -127,7 +128,10 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     private long mStartLoopTime = 0;
 
     // The active state of the document
-    private final AtomicBoolean isFinished = new AtomicBoolean(false);
+    private final AtomicBoolean mIsFinished = new AtomicBoolean(false);
+
+    // Whether the document is in the resumed state (i.e. the frame loop has been started)
+    private final AtomicBoolean mIsResumed = new AtomicBoolean(false);
 
     @NonNull
     private final Queue<Runnable> mWorkQueue = new ConcurrentLinkedQueue<>();
@@ -136,7 +140,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     @NonNull
     private final IAPLViewPresenter mViewPresenter;
 
-    private final TextMeasurementCache mTextMeasurementCache = new TextMeasurementCache();
+    // This callback is used by native code, maintain this instance
+    @NonNull
+    private final TextMeasureCallback mTextMeasureCallback;
 
     private boolean lastScreenLockStatus = false; // disabled
 
@@ -144,9 +150,13 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     private final RootConfig mRootConfig;
     private final RenderingContext mRenderingContext;
 
-    private Set<Event> mPendingEvents = new HashSet<>();
+    private final Set<BoundObject> mPending = new HashSet<>();
 
     private final Object mLock = new Object();
+
+    private final String mAgentName;
+
+    private final APLTrace mAplTrace;
 
     /**
      * Construct a new RootContext object.
@@ -162,16 +172,22 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                         @NonNull RootConfig rootConfig,
                         @NonNull APLOptions options,
                         @NonNull IAPLViewPresenter viewPresenter) {
-        mOptions = options;
-        mTelemetryProvider = mOptions.getTelemetryProvider();
-        mViewPresenter = viewPresenter;
-        mRootConfig = rootConfig;
-        mMetricsTransform = MetricsTransform.create(metrics);
-        mRenderingContext = buildRenderingContext(options, mMetricsTransform, mTextMeasurementCache, APLVersionCodes.getVersionCode(content.getAPLVersion()));
-        preBindInit();
-        final long nativeHandle = createHandle(metrics, content, rootConfig);
-        bind(nativeHandle);
-        inflate();
+        mAplTrace = viewPresenter.getAPLTrace();
+        try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
+            mOptions = options;
+            mTelemetryProvider = mOptions.getTelemetryProvider();
+            mViewPresenter = viewPresenter;
+            mRootConfig = rootConfig;
+            mMetricsTransform = MetricsTransform.create(metrics);
+            mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(content.getAPLVersion()),
+                    options, rootConfig, mMetricsTransform);
+            mTextMeasureCallback = TextMeasureCallback.factory().create(mMetricsTransform, new TextMeasure(mRenderingContext));
+            mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
+            preBindInit();
+            final long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
+            bind(nativeHandle);
+            inflate();
+        }
     }
 
     /**
@@ -186,42 +202,72 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                         @NonNull MetricsTransform metricsTransform,
                         @NonNull RootConfig rootConfig,
                         long nativeHandle) {
-        mOptions = options;
-        mTelemetryProvider = mOptions.getTelemetryProvider();
-        mMetricsTransform = metricsTransform;
-        mRootConfig = rootConfig;
-        mViewPresenter = viewPresenter;
-        mRenderingContext = buildRenderingContext(options, mMetricsTransform, mTextMeasurementCache, APLVersionCodes.getVersionCode(nGetVersionCode(nativeHandle)));
-        preBindInit();
-        bind(nativeHandle);
-        inflate();
+        mAplTrace = viewPresenter.getAPLTrace();
+        try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
+            mOptions = options;
+            mTelemetryProvider = mOptions.getTelemetryProvider();
+            mMetricsTransform = metricsTransform;
+            mRootConfig = rootConfig;
+            mViewPresenter = viewPresenter;
+            bind(nativeHandle);
+            mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(nGetVersionCode(nativeHandle)),
+                    options, rootConfig, metricsTransform);
+            // rebind to the previously configured text measure.
+            mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
+            mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
+            inflate();
+        }
     }
 
-    private RenderingContext buildRenderingContext(APLOptions options, MetricsTransform metricsTransform, TextMeasurementCache measurementCache, int docVersion) {
-        return RenderingContext.builder()
+    private RenderingContext buildRenderingContext(int docVersion, APLOptions options, RootConfig config,MetricsTransform metricsTransform) {
+
+        // TODO this is adapting legacy framework to new, deprecate the old
+        ExtensionMediator extensionMediator = config.getExtensionMediator();
+        IExtensionImageFilterCallback ifCB = (extensionMediator == null)
+                ? options.getExtensionImageFilterCallback()
+                : extensionMediator;
+        IExtensionEventCallback eeCB = (extensionMediator == null)
+                ? options.getExtensionEventCallback()
+                : extensionMediator;
+
+        RenderingContext.Builder ctxBuilder = RenderingContext.builder()
                 .metricsTransform(metricsTransform)
-                .textMeasurementCache(measurementCache)
                 .docVersion(docVersion)
                 .telemetryProvider(options.getTelemetryProvider())
                 .avgContentRetriever(options.getAvgRetriever())
                 .imageProcessor(options.getImageProcessor())
                 .imageLoaderProvider(options.getImageProvider())
                 .imageUriSchemeValidator(options.getImageUriSchemeValidator())
-                .mediaPlayerProvider(options.getMediaPlayerProvider())
-                .bitmapFactory(PooledBitmapFactory.create(options.getTelemetryProvider(), options.getBitmapPool()))
-                .extensionImageFilterCallback(options.getExtensionImageFilterCallback())
-                .bitmapCache(options.getBitmapCache())
-                .build();
+                .mediaPlayerProvider(getMediaPlayerProvider((Boolean) mRootConfig.getProperty(RootProperty.kDisallowVideo), options))
+                .bitmapFactory(PooledBitmapFactory.create(options.getTelemetryProvider(), APLController.getRuntimeConfig().getBitmapPool()))
+                .bitmapCache(APLController.getRuntimeConfig().getBitmapCache())
+                .textLayoutFactory(TextLayoutFactory.create(metricsTransform))
+                .extensionImageFilterCallback(ifCB)
+                .extensionEventCallback(eeCB)
+                .aplTrace(mAplTrace);
+
+        if (extensionMediator != null) {
+            ctxBuilder.extensionResourceProvider(extensionMediator.extensionResourceProvider);
+        }
+
+        return ctxBuilder.build();
+    }
+
+    private AbstractMediaPlayerProvider getMediaPlayerProvider(boolean disallowVideo, APLOptions options) {
+        return disallowVideo ? NoOpMediaPlayerProvider.getInstance() : options.getMediaPlayerProvider();
     }
 
     /**
      * Creates a RootContext from metrics, content and root config information.
-     * @param metrics       the viewport metrics
-     * @param content       the content
-     * @param rootConfig    the root config
+     *
+     * @param metrics    the viewport metrics
+     * @param content    the content
+     * @param rootConfig the root config
+     * @param textMeasureCallback the callback for text measurement
      * @return a non-zero handle if created, 0 if failed.
      */
-    private long createHandle(ViewportMetrics metrics, Content content, RootConfig rootConfig) {
+    private long createHandle(ViewportMetrics metrics, Content content,
+                              RootConfig rootConfig, TextMeasureCallback textMeasureCallback) {
         final Scaling scaling = metrics.scaling();
         boolean retry;
         long rootContextHandle;
@@ -231,6 +277,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             rootContextHandle = nCreate(
                     content.getNativeHandle(),
                     rootConfig.getNativeHandle(),
+                    textMeasureCallback.getNativeHandle(),
                     scaledMetrics.width(),
                     scaledMetrics.height(),
                     scaledMetrics.dpi(),
@@ -259,10 +306,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         cDropFrame = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_DROP_FRAME, COUNTER);
 
         tInflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_INFLATE, TIMER);
-        tReinflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_REINFLATE, COUNTER);
-        tMeasureText = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_MEASURE, TIMER);
-        cMeasureText = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_MEASURE_COUNT, COUNTER);
-        cReMeasureText = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_REMEASURE_COUNT, COUNTER);
+        tReinflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_REINFLATE, TIMER);
         cComponent = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_COMPONENT_COUNT, COUNTER);
     }
 
@@ -290,6 +334,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         } else if (presenter == null) {
             throw new IllegalArgumentException("APLPresenter must not be null");
         }
+        presenter.preDocumentRender();
         RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter);
         if (!rootContext.isBound()) {
             throw new IllegalStateException("Could not create RootContext");
@@ -299,12 +344,11 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Inflate the layout.
-     * This results in core calling back to {@link #buildComponent(long, int)}.
+     * This results in core calling back to {@link #buildComponent(String, long, int)}.
      */
     private void inflate() {
         try {
             nInflate(getNativeHandle());
-            notifyVisualContext();
         } catch (Exception e) {
             mTelemetryProvider.fail(tInflate);
             throw (e);
@@ -313,44 +357,44 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Reinflate the layout.
-     * This results in core calling back to {@link #buildComponent(long, int)}.
+     * This results in core calling back to #buildComponent(String, long, int)}.
      */
     public void reinflate() {
-        // Finish component and views resources
-        clearComponentAndViewsResources();
-
-        // Recreate a new Viewport metrics (required before any inflation).
-        mViewPresenter.createViewportMetrics();
-
-        // Stop processing frame loops so that events are not processed until reinflation is completed.
-        pauseDocument();
-        isFinished.set(true);
-
-        // Java components and views reinflation
-        try {
+        try (APLTrace.AutoTrace trace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_RE_INFLATE)) {
             mTelemetryProvider.startTimer(tReinflate);
-            if (!nReinflate(getNativeHandle())) {
-                Log.w(TAG, "Reinflation failed because document cannot be rendered");
-                return;
-            }
-            mTelemetryProvider.stopTimer(tReinflate);
-            notifyVisualContext();
-        } catch (Exception e) {
-            mTelemetryProvider.fail(tReinflate);
-            throw (e);
-        }
+            // Finish component and views resources
+            clearComponentAndViewsResources();
 
-        // Initialize presenter using existing rootContext.
-        mViewPresenter.onDocumentRender(this);
+            // Recreate a new Viewport metrics (required before any inflation).
+            mViewPresenter.getOrCreateViewportMetrics();
+
+            // Stop processing frame loops so that events are not processed until reinflation is completed.
+            pauseDocument();
+            mIsFinished.set(true);
+
+            // Java components and views reinflation
+            try {
+                if (!nReinflate(getNativeHandle())) {
+                    Log.w(TAG, "Reinflation failed because document cannot be rendered");
+                    return;
+                }
+                notifyVisualContext();
+            } catch (Exception e) {
+                mTelemetryProvider.fail(tReinflate);
+                throw (e);
+            }
+
+            // Initialize presenter using existing rootContext.
+            mViewPresenter.reinflate();
+        }
     }
 
     private void clearComponentAndViewsResources() {
         mViewPresenter.clearLayout();
-        mTextMeasurementCache.clear();
         mWorkQueue.clear();
-        mPendingEvents.clear();
+        mPending.clear();
         mAplComponents.clear();
-        mOptions.getMediaPlayerProvider().releasePlayers();
+        mRenderingContext.getMediaPlayerProvider().releasePlayers();
     }
 
     /**
@@ -360,7 +404,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * @param viewPresenter target ViewPresenter
      * @return a new {@link RootContext} from {@link DocumentState} and {@link IAPLViewPresenter}
      */
-    static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState, @NonNull IAPLViewPresenter viewPresenter) {
+    public static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState, @NonNull IAPLViewPresenter viewPresenter) {
         return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getNativeHandle());
     }
 
@@ -368,7 +412,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         return mRenderingContext;
     }
 
-    MetricsTransform getMetricsTransform() { return mMetricsTransform; }
+    MetricsTransform getMetricsTransform() {
+        return mMetricsTransform;
+    }
 
     RootConfig getRootConfig() {
         return mRootConfig;
@@ -376,6 +422,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Increment the count of a metric using the global TelemetryProvider.
+     *
      * @param metricName the metric name to be incremented
      */
     public void incrementMetricCount(final String metricName) {
@@ -384,15 +431,15 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     }
 
 
-
     /**
      * Request that the document be finished.
      */
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void finishDocument() {
         synchronized (mLock) {
             checkUiThread();
             // mark the context as finished to block any per frame loop.
-            isFinished.set(true);
+            mIsFinished.set(true);
             APLChoreographer.getInstance().removeFrameCallback(this);
 
             // End all active events
@@ -401,23 +448,21 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             // notify providers that rendering is finished
             mViewPresenter.onDocumentFinish();
 
-            // clean up text measurement cache
-            mTextMeasurementCache.clear();
-
             // clear all work
             mWorkQueue.clear();
 
             // clean up any pending events
-            mPendingEvents.clear();
+            mPending.clear();
 
             // clean up Components
             mAplComponents.clear();
         }
     }
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void pauseDocument() {
-        if (!isFinished.get()) {
+        if (!mIsFinished.get() && mIsResumed.get()) {
+            mIsResumed.set(false);
             APLChoreographer.getInstance().removeFrameCallback(this);
             cancelExecution();
             mStartLoopTime = 0;
@@ -425,14 +470,14 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         }
     }
 
-    @VisibleForTesting
+    @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void resumeDocument() {
-        if (!isFinished.get()) {
+        if (!mIsFinished.get() && !mIsResumed.get()) {
+            mIsResumed.set(true);
             APLChoreographer.getInstance().postFrameCallback(this);
             mViewPresenter.onDocumentResumed();
         }
     }
-
 
     /**
      * @return The APL configuration options.
@@ -468,35 +513,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     }
 
     /**
-     * @return Measure of a component in response to core layout.
-     */
-    @NonNull
-    @SuppressWarnings("unused")
-    private float[] callbackMeasure(String componentId, long nativeHandle, int typeId,
-                                   float widthDp, int widthMode, float heightDp, int heightMode) {
-        mTelemetryProvider.incrementCount(cMeasureText);
-        mTelemetryProvider.startTimer(tMeasureText);
-        final ITextMeasurable text = getOrCreateTextComponent(componentId, nativeHandle, ComponentType.valueOf(typeId));
-        if (mAplComponents.containsKey(componentId)) {
-            mTelemetryProvider.incrementCount(cReMeasureText);
-        }
-
-        // Android internals of Text view are pixel based.  Do the conversion to and from dp here.
-        text.measureTextContent(mViewPresenter.getDensity(),
-                mMetricsTransform.toViewhost(widthDp), MEASURE_MODES[widthMode],
-                mMetricsTransform.toViewhost(heightDp), MEASURE_MODES[heightMode]);
-
-        int measuredW = text.getMeasuredWidthPx();
-        int measuredH = text.getMeasuredHeightPx();
-
-        float[] measurement = new float[]{mMetricsTransform.toCore(measuredW), mMetricsTransform.toCore(measuredH)};
-        mTelemetryProvider.stopTimer(tMeasureText);
-        return measurement;
-    }
-
-    /**
      * callback for APLCore to use java string functions
-     * @param value the string to be capitalized
+     *
+     * @param value        the string to be capitalized
      * @param localeString language tag
      * @return capitalized value parameter
      */
@@ -505,12 +524,13 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     public static String callbackToUpperCase(String value, String localeString) {
         Locale locale = (localeString == null || localeString.isEmpty()) ? Locale.getDefault()
                 : Locale.forLanguageTag(localeString);
-        return value.toUpperCase(locale);
+        return JNIUtils.safeStringValues(value).toUpperCase(locale);
     }
 
     /**
      * callback for APLCore to use java string functions
-     * @param value the string to be uncapitalized
+     *
+     * @param value        the string to be uncapitalized
      * @param localeString language tag
      * @return uncapitalized value parameter
      */
@@ -519,27 +539,19 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     public static String callbackToLowerCase(String value, String localeString) {
         Locale locale = (localeString == null || localeString.isEmpty()) ? Locale.getDefault()
                 : Locale.forLanguageTag(localeString);
-        return value.toLowerCase(locale);
+
+        return JNIUtils.safeStringValues(value).toLowerCase(locale);
     }
 
-    private ITextMeasurable getOrCreateTextComponent(String componentId, long nativeHandle, ComponentType textComponentType) {
-        // If we've already built a text component then return that one.
-        final Component component = mAplComponents.get(componentId);
-        if (component instanceof ITextMeasurable) {
-            return (ITextMeasurable) component;
-        }
-
-        buildComponent(componentId, nativeHandle, textComponentType.getIndex());
-        return (ITextMeasurable) mAplComponents.get(componentId);
-    }
 
     /**
      * Build a Component and pair it with the native Component.
-     *
+     * <p>
      * This method is also called from the native layer during {@link #inflate()}.
-     *
+     * <p>
      * TODO extract this into a ComponentFactory when moving Components to package
      *
+     * @param componentId   the unique string id of the component
      * @param nativeHandle  the pointer to the native Component
      * @param typeId        the type of component to inflate
      */
@@ -565,6 +577,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             case kComponentTypeFrame:
                 component = new Frame(nativeHandle, componentId, getRenderingContext());
                 break;
+            case kComponentTypeExtension:
+                component = new ExtensionComponent(nativeHandle, componentId, getRenderingContext());
+                break;
             case kComponentTypeImage:
                 component = new Image(nativeHandle, componentId, getRenderingContext());
                 break;
@@ -578,7 +593,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                 component = new Video(nativeHandle, componentId, getRenderingContext());
                 break;
             case kComponentTypeEditText:
-                component = new EditText(nativeHandle, componentId, getRenderingContext());
+                component = (Boolean) mRootConfig.getProperty(RootProperty.kDisallowEditText) ?
+                    new NoOpComponent(nativeHandle, componentId, getRenderingContext()) :
+                    new EditText(nativeHandle, componentId, getRenderingContext());
         }
 
         //TODO remove this, component should not have ref to RootContext
@@ -592,8 +609,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             // metrics per component, not for production, used for debug only
             Integer cIdx = cComponentType.get(type);
             if (null == cIdx) {
-                cIdx = mTelemetryProvider.createMetricId(APL_DOMAIN, TAG+"."+type.toString(), COUNTER);
-                cComponentType.put(type,cIdx);
+                cIdx = mTelemetryProvider.createMetricId(APL_DOMAIN, TAG + "." + type.toString(), COUNTER);
+                cComponentType.put(type, cIdx);
             }
             mTelemetryProvider.incrementCount(cIdx);
         }
@@ -602,6 +619,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     /**
      * Set the local time adjustment. This is the number of milliseconds added to the UTC
      * time that gives the correct local time including DST.
+     *
      * @param adjustment The adjustment time in milliseconds
      */
     public void setLocalTimeAdjustment(long adjustment) {
@@ -615,7 +633,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * Updates the core with the current frame time.
      *
      * @param frameTime frame time in nanoseconds since loop start.
-     * @param utcTime Current UTC time in millis
+     * @param utcTime   Current UTC time in millis
      */
     @UiThread
     private static native void updateTime(long nativeHandle, long frameTime, long utcTime);
@@ -632,18 +650,23 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         if (handle == 0) {
             return null;
         }
-        Action action = new Action(handle);
+        Action action = new Action(handle, this);
         return action;
     }
 
 
     @Nullable
     public Action invokeExtensionEventHandler(String uri, String name, Map<String, Object> data,
-                                       boolean fastmode) {
+                                              boolean fastmode) {
 
         long handle = nInvokeExtensionEventHandler(getNativeHandle(),
                 uri, name, data, fastmode);
-        return new Action(handle);
+
+        if (handle == 0) {
+            return null;
+        } else {
+            return new Action(handle, this);
+        }
     }
 
     /**
@@ -665,6 +688,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * @param ensureLayout The child should have it's layout calculated.
      */
     private void onComponentChange(@NonNull Component component, @SuppressWarnings("SameParameterValue") boolean ensureLayout, List<PropertyKey> dirtyProperties) {
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_ON_COMPONENT_CHANGE);
         if (ensureLayout) {
             component.ensureLayout();
         }
@@ -672,27 +696,32 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         if (dirtyProperties.contains(PropertyKey.kPropertyNotifyChildrenChanged)) {
             Object[] changes = component.getChangedChildren();
             for (Object o : changes) {
-                if(!(o instanceof Map)) {
+                if (!(o instanceof Map)) {
                     Log.e(TAG, "Could not process kPropertyNotifyChildrenChanged, content is not a Map.");
                     return;
                 }
                 Map change = (Map) o;
-                if(!change.containsKey("uid")) {
+                if (!change.containsKey("uid")) {
                     Log.e(TAG, "Missing uid key in kPropertyNotifyChildrenChanged map.");
                     return;
                 }
 
                 String id = (String) change.get("uid");
                 if (TextUtils.equals((String) change.get("action"), "insert")) {
-                    inflateComponentWithUniqueId(id);
+                    getOrInflateComponentWithUniqueId(id);
                 } else if (TextUtils.equals((String) change.get("action"), "remove")) {
                     Component toRemove = mAplComponents.get(id);
-                    APLLayout.traverseComponentHierarchy(toRemove, child -> mAplComponents.remove(child.getComponentId()));
+                    if (toRemove == null) {
+                        Log.w(TAG, "Invalid component to remove in kPropertyNotifyChildrenChanged, ignoring.");
+                    } else {
+                        APLLayout.traverseComponentHierarchy(toRemove, child -> mAplComponents.remove(child.getComponentId()));
+                    }
                 }
             }
         }
 
         mViewPresenter.onComponentChange(component, dirtyProperties);
+        mAplTrace.endTrace();
     }
 
     /**
@@ -722,9 +751,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                 return PrerollEvent.create(nativeHandle, this, mOptions.getTtsPlayerProvider());
             case kEventTypeSendEvent:
                 return SendEvent.create(nativeHandle, this,
-                        mOptions.getSendEventCallback());
+                        mOptions.getSendEventCallbackV2());
             case kEventTypeExtension:
-                return ExtensionEvent.create(nativeHandle,this,
+                return ExtensionEvent.create(nativeHandle, this,
                         mOptions.getExtensionEventCallback());
             case kEventTypeSpeak:
                 return SpeakEvent.create(nativeHandle, this,
@@ -740,6 +769,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                         mOptions.getDataSourceFetchCallback());
             case kEventTypeOpenKeyboard:
                 return OpenKeyboardEvent.create(nativeHandle, this);
+            case kEventTypeMediaRequest:
+                return LoadMediaRequestEvent.create(nativeHandle, this, mOptions.getImageProvider());
         }
 
         return null;
@@ -759,27 +790,27 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     }
 
     /**
-     * Adds an event pending resolution. This is used to ensure that Events are not GC'd before Core
+     * Adds a BoundObject that is pending execution. This is used to ensure that Events and Actions are not GC'd before Core
      * needs to terminate them.
-     * @param event an event that is pending resolution.
+     * @param object an bound object that is pending resolution.
      */
-    void addPendingEvent(Event event) {
-        mPendingEvents.add(event);
+    void addPending(BoundObject object) {
+        mPending.add(object);
     }
 
     /**
-     * Remove an event that was pending resolution. This enables the Event to be cleaned up correctly
+     * Remove an BoundObject that was pending resolution. This enables Events and Actions to be cleaned up correctly
      * by GC.
-     * @param event the event that was resolved or terminated.
+     * @param object the bound object that was resolved or terminated.
      */
-    void removePendingEvent(Event event) {
-        mPendingEvents.remove(event);
+    void removePending(BoundObject object) {
+        mPending.remove(object);
     }
 
     /**
      * Notify visual context.
      * For now, we rely only on core specifying the visual context is dirty and call this during the frame loop.
-     *
+     * <p>
      * TODO consider moving this to a worker thread with the payload String if it is too expensive.
      */
     public void notifyVisualContext() {
@@ -799,7 +830,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * For now, we rely only on core specifying the data source context is dirty and call this during the frame loop.
      * Works on same logic as visual context, so any update on visual context may also apply on data source context.
      *                            */
-    public void notifyDataSourceContext() {
+    private void notifyDataSourceContext() {
         mLastDataSourceUpdateTime = System.currentTimeMillis();
         try {
             mOptions.getDataSourceContextListener()
@@ -810,20 +841,10 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             Log.wtf(TAG, "Error serializing dataSource context object.", e);
         }
     }
-    /**
-     * Gets the APL component.
-     *
-     * @param componentId the Id of the component.
-     * @return the View representing the component.
-     */
-    @Nullable
-    public Component getComponent(String componentId) {
-        return mAplComponents.get(componentId);
-    }
 
     /**
      * Finds a component by the common name assigned in the APL document.  This method traverses
-     * the Component list and is therefore slower than {@link #getComponent(String)}.
+     * the Component list and is therefore slower than {@link #getOrInflateComponentWithUniqueId(String)}.
      *
      * @param id The common name assigned to the Component in the APL document.
      * @return The Component, null if the name does not exist.
@@ -841,7 +862,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * Create the document context. This method is called from  the APLView during onLayout().
      */
     @UiThread
-    native long nCreate(long contentHandle, long rootConfigHandle,
+    native long nCreate(long contentHandle, long rootConfigHandle, long textMeasureHandle,
                         int width, int height, int dpi, int shape, String theme, int mode);
 
     /**
@@ -876,11 +897,11 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
 
     /**
-     * Start the frame choreographer.  This should be called when the views are ready..
+     * Start the frame choreographer.  This should be called when the views are ready.
      */
     public void initTime() {
         mStartLoopTime = 0;
-        isFinished.set(false);
+        mIsFinished.set(false);
         resumeDocument();
     }
 
@@ -888,18 +909,12 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * Updates an APL component.
      * This method is called from the native layer during {@link #nHandleDirtyProperties(long)} ()}.
      *
-     * @param componentId The handle to the native peer.
+     * @param componentId     The handle to the native peer.
      * @param dirtyProperties The {@link com.amazon.apl.enums.PropertyKey properties} that have been updated.
      */
     @SuppressWarnings("unused")
     private void callbackUpdateComponent(String componentId, int[] dirtyProperties) {
         Component component = mAplComponents.get(componentId);
-        if (BuildConfig.DEBUG && component == null) {
-            // Component might not be created yet if this was lazily created by Core and this method was called
-            // for dirty layout props on the new component before the kPropertyNotifyChildrenChanged property
-            // was processed on the parent of the new children, which creates them (dirty property ordering is not guaranteed).
-            Log.i(TAG, String.format("callbackUpdateComponent: component with id %s not yet created, doing nothing", componentId));
-        }
         if (component != null) {
             onComponentChange(component, false, createPropertyKeyListFromIntArray(dirtyProperties));
         }
@@ -933,10 +948,11 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Identify if there is a status change for screen lock and post updates if required.
+     *
      * @param screenLocked Core screen lock state.
      */
     private void processScreenLock(boolean screenLocked) {
-        final boolean hasPlayingMedia = mOptions.getMediaPlayerProvider().hasPlayingMediaPlayer();
+        final boolean hasPlayingMedia = mRenderingContext.getMediaPlayerProvider().hasPlayingMediaPlayer();
         final boolean screenLockStatus = screenLocked || hasPlayingMedia;
         if (lastScreenLockStatus != screenLockStatus) {
             lastScreenLockStatus = screenLockStatus;
@@ -954,37 +970,51 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * * Process requested events.
      * * Check and set screenlock if required.
      * * check for data source errors.
+     *
      * @param time system time in milliseconds.
      */
     private void coreFrameUpdate(long time) {
         long nativeHandle = getNativeHandle();
 
         long now = System.currentTimeMillis();
+
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_UPDATE_TIME);
         updateTime(nativeHandle, time, now);
+        mAplTrace.endTrace();
 
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_CLEAR_PENDING);
         nClearPending(nativeHandle);
+        mAplTrace.endTrace();
 
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_DIRTY_PROPERTIES);
         nHandleDirtyProperties(nativeHandle);
+        mAplTrace.endTrace();
 
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_EVENTS);
         nHandleEvents(nativeHandle);
+        mAplTrace.endTrace();
 
         processScreenLock(nIsScreenLocked(nativeHandle));
 
         checkDataSourceErrors(nativeHandle);
 
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_NOTIFY_VISUAL_CONTEXT);
         if (nIsVisualContextDirty(nativeHandle) && now - mLastVisualContextUpdateTime >= VISUAL_CONTEXT_UPDATE_INTERVAL_MS) {
             notifyVisualContext();
         }
+        mAplTrace.endTrace();
 
+        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_NOTIFY_DATA_SOURCE_CONTEXT);
         if (nIsDataSourceContextDirty(nativeHandle) && now - mLastDataSourceUpdateTime >= DATA_SOURCE_CONTEXT_UPDATE_INTERVAL_MS) {
             notifyDataSourceContext();
         }
+        mAplTrace.endTrace();
     }
 
     private void checkDataSourceErrors(final long nativeHandle) {
         final Object errors = nGetDataSourceErrors(nativeHandle);
-        if(errors != null) {
-             mOptions.getDataSourceErrorCallback().onDataSourceError(errors);
+        if (errors != null) {
+            mOptions.getDataSourceErrorCallback().onDataSourceError(errors);
         }
     }
 
@@ -997,51 +1027,55 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      */
     @Override
     public void doFrame(long frameTimeNanos) {
-        synchronized (mLock) {
-            try {
-                if (mStartLoopTime == 0) {
-                    // Use the elapsed time from core if it was set
-                    mStartLoopTime = frameTimeNanos - getElapsedTime() * 1000000;
-                } else if (isFinished.get())
-                    return;
+        try {
+            mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_DO_FRAME);
+            if (mStartLoopTime == 0) {
+                // Use the elapsed time from core if it was set
+                mStartLoopTime = frameTimeNanos - getElapsedTime() * 1000000;
+            } else if (mIsFinished.get())
+                return;
 
 
-                //do any work that's pending
-                while (!mWorkQueue.isEmpty()) {
-                    Runnable r = mWorkQueue.poll();
-                    r.run();
-                }
+            //do any work that's pending
+            while (!mWorkQueue.isEmpty()) {
+                Runnable r = mWorkQueue.poll();
+                r.run();
+            }
 
-                // convert to ms
-                long time = (frameTimeNanos - mStartLoopTime) / 1000000;
+            // convert to ms
+            long time = (frameTimeNanos - mStartLoopTime) / 1000000;
 
-                coreFrameUpdate(time);
+            coreFrameUpdate(time);
 
-                // rerun every frame
-                // Do not run when reinflating.
-                if (!isFinished.get()) {
-                    APLChoreographer.getInstance().postFrameCallback(this);
-                }
+            // rerun every frame
+            // Do not run when reinflating.
+            if (!mIsFinished.get()) {
+                APLChoreographer.getInstance().postFrameCallback(this);
+            }
 
-                final long end = System.nanoTime();
-                final long doFrameTime = end - frameTimeNanos;
+            final long end = System.nanoTime();
+            final long doFrameTime = end - frameTimeNanos;
 
-                if (doFrameTime > TARGET_DO_FRAME_TIME && mTelemetryProvider != null) {
+            if (doFrameTime > TARGET_DO_FRAME_TIME && mTelemetryProvider != null) {
+                if(!mIsFinished.get()){
                     mTelemetryProvider.incrementCount(cDropFrame);
                 }
-            } catch (Exception e) {
-                // mTelemetryProvider may be null if the document has been finished.
-                if (mTelemetryProvider != null) {
-                    mTelemetryProvider.incrementCount(cDoFrameFail);
-                }
-
-                throw e;
             }
+        } catch (Exception e) {
+            // mTelemetryProvider may be null if the document has been finished.
+            if (mTelemetryProvider != null) {
+                mTelemetryProvider.incrementCount(cDoFrameFail);
+            }
+
+            throw e;
+        } finally {
+            mAplTrace.endTrace();
         }
     }
 
     /**
      * Get's the elapsed time since the document was displayed.
+     *
      * @return the elapsed time in milliseconds.
      */
     long getElapsedTime() {
@@ -1050,9 +1084,10 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Returns whether or not the setting was set in the document.
+     *
      * @param propertyName the name of the setting.
      * @return true if the setting was set in the document,
-     *      false otherwise.
+     * false otherwise.
      */
     @Deprecated
     public boolean hasSetting(String propertyName) {
@@ -1061,10 +1096,11 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Gets the setting value stored in the APL Document or the fallback value if it wasn't set.
-     * @param propertyName  the value in the apl document
-     * @param defaultValue  the fallback value if it is not set
-     * @param <K>           the type of the expected setting value
-     * @return              the setting value
+     *
+     * @param propertyName the value in the apl document
+     * @param defaultValue the fallback value if it is not set
+     * @param <K>          the type of the expected setting value
+     * @return the setting value
      */
     @Deprecated
     @SuppressWarnings("unchecked")
@@ -1100,13 +1136,13 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     boolean handleKeyboard(APLKeyboard keyboard) {
         boolean isAplConsumed =
                 nHandleKeyboard(getNativeHandle(), keyboard.type().getIndex(),
-                keyboard.code(),
-                keyboard.key(),
-                keyboard.repeat(),
-                keyboard.shift(),
-                keyboard.alt(),
-                keyboard.ctrl(),
-                keyboard.meta());
+                        keyboard.code(),
+                        keyboard.key(),
+                        keyboard.repeat(),
+                        keyboard.shift(),
+                        keyboard.alt(),
+                        keyboard.ctrl(),
+                        keyboard.meta());
 
         if (DEBUG) Log.d(TAG, "keyboard: " + keyboard + ", isAplConsumed: " + isAplConsumed);
         return isAplConsumed;
@@ -1114,6 +1150,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * ask Core to switch focus to the next element in a direction. Core will most likely send a FocusEvent.
+     *
      * @param focusDirection direction of movement
      * @return boolean if a next element has been found
      */
@@ -1130,6 +1167,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Get a list of all focusable Areas from APLCore
+     *
      * @return Hash were the keys are the identifiers from corecomponents, and the value is a float array of [x,y,width,height]
      */
     LinkedHashMap<String, float[]> getFocusableAreas() {
@@ -1138,15 +1176,16 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Sets focus to an element in core
+     *
      * @param direction focus movement direction
-     * @param x coordinate of origin
-     * @param y coordinate of origin
-     * @param width width of origin
-     * @param height height of origin
+     * @param x         coordinate of origin
+     * @param y         coordinate of origin
+     * @param width     width of origin
+     * @param height    height of origin
      * @param target_id targetId ID of area selected by runtime from list provided by getFocusableAreas()
      * @return true if focus was accepted, false otherwise
      */
-    boolean setFocus(FocusDirection direction, float x,float y, float width, float height, String target_id) {
+    boolean setFocus(FocusDirection direction, float x, float y, float width, float height, String target_id) {
         return nSetFocus(getNativeHandle(),
                 direction.getIndex(),
                 x,
@@ -1158,6 +1197,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * set focus to a component
+     *
      * @param component component to focus
      * @return true if focus was accepted, false otherwise
      */
@@ -1168,6 +1208,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * set focus to a component in a certain direction of origin
+     *
      * @param component origin component
      * @param direction direction of movement
      * @return true if focus was accepted, false otherwise
@@ -1202,21 +1243,23 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     /**
      * Creates a {@link ConfigurationChange} object with values filled with current ViewportMetrics and RootConfig values.
      * This needs to be used by Runtime to fill new values, which are available with Runtime.
+     *
      * @return {@link ConfigurationChange}
      */
     public ConfigurationChange.Builder createConfigurationChange() {
-        return ConfigurationChange.create(mMetricsTransform.getScaledMetrics(), getRootConfig());
+        return ConfigurationChange.create(mMetricsTransform.getUnscaledMetrics(), getRootConfig());
     }
 
     /**
      * Handle a configuration change.
+     *
      * @param configurationChange the {@link ConfigurationChange}
      */
     public void handleConfigurationChange(@NonNull final ConfigurationChange configurationChange) {
         if (DEBUG) Log.d(TAG, "On Configuration Change: " + configurationChange);
 
         // create new viewport profile
-        ViewportMetrics oldMetrics = mViewPresenter.getViewportMetrics();
+        ViewportMetrics oldMetrics = mViewPresenter.getOrCreateViewportMetrics();
         ViewportMetrics newMetrics = ViewportMetrics.builder()
                 .width(configurationChange.width())
                 .height(configurationChange.height())
@@ -1229,18 +1272,52 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
         // Run scaling algo and update its references with this new MetricsTransform object.
         mMetricsTransform = MetricsTransform.create(newMetrics);
+        mTextMeasureCallback.setMetricsTransform(mMetricsTransform);
         mRenderingContext.setMetricsTransform(mMetricsTransform);
+
+        AbstractMediaPlayerProvider oldMediaPlayerProvider = mRenderingContext.getMediaPlayerProvider();
+        AbstractMediaPlayerProvider newMediaPlayerProvider = getMediaPlayerProvider(configurationChange.disallowVideo(), mOptions);
+        if (oldMediaPlayerProvider != newMediaPlayerProvider) {
+            oldMediaPlayerProvider.releasePlayers();
+            mRenderingContext.setMediaPlayerProvider(newMediaPlayerProvider);
+        }
 
         // Notify Core about new config changes.
         // If there is auto-scaling, use scaled metrics.
+        ViewportMetrics scaledMetrics = mMetricsTransform.getScaledMetrics();
+        Log.d(TAG, "handleConfigurationChange. metrics: " + scaledMetrics);
+
         nHandleConfigurationChange(getNativeHandle(),
-                mMetricsTransform.getScaledMetrics().width(),
-                mMetricsTransform.getScaledMetrics().height(),
-                mMetricsTransform.getScaledMetrics().theme(),
-                mMetricsTransform.getScaledMetrics().mode().getIndex(),
+                scaledMetrics.width(),
+                scaledMetrics.height(),
+                scaledMetrics.theme(),
+                scaledMetrics.mode().getIndex(),
                 configurationChange.fontScale(),
                 configurationChange.screenMode().getIndex(),
-                configurationChange.screenReaderEnabled());
+                configurationChange.screenReaderEnabled(),
+                configurationChange.disallowVideo(),
+                configurationChange.environmentValues());
+
+        // If we have a scaled viewport and we're undergoing a configuration change,
+        // then our metrics are changing and the existing layouts need to be cleared and re-laid out.
+        // We may get a further optimization here by checking if the scaled metrics are the same as
+        // before (i.e. oldMetrics.equals(scaledMetrics)).
+        if (scaledMetrics.scaling().isScalingRequested()) {
+            Log.d(TAG, "Handling a configuration change due to scaling.");
+            mRenderingContext.getTextLayoutFactory().clear();
+            APLLayout.traverseComponentHierarchy(getTopComponent(), mViewPresenter::requestLayout);
+        }
+    }
+
+    /**
+     * Inform document about its display state.
+     *
+     * @param displayState the {@link DisplayState}
+     */
+    public void updateDisplayState(final DisplayState displayState) {
+        if (DEBUG) Log.d(TAG, "Update Display State: " + displayState.name());
+
+        nUpdateDisplayState(getNativeHandle(), displayState.getIndex());
     }
 
     /**
@@ -1295,7 +1372,6 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         }
     }
 
-
     /**
      * Testing use only.
      * This method advances the core time without processing changes from core.  It allows
@@ -1321,26 +1397,22 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         return nIsDirty(getNativeHandle());
     }
 
-    public enum MeasureMode {
-        Undefined,
-        Exactly,
-        AtMost
-    }
-
     /**
+     * Returns a Java Component with the specified Component id, inflating one if necessary.
+     *
      * Inflates a Component hierarchy rooted at the Component with given {@link Component#getComponentId()}.
      * Inflation in this context means creating and binding Java Component objects to their
      * corresponding Core Component objects. This method does not inflate any android Views.
      *
      * @param componentId The unique id of the Component to inflate
      */
-    void inflateComponentWithUniqueId(final String componentId) {
-        if(mAplComponents.containsKey(componentId)) {
-            return;
+    public Component getOrInflateComponentWithUniqueId(final String componentId) {
+        Component component = mAplComponents.get(componentId);
+        if (component != null) {
+            return component;
         }
-        nInflateComponentWithUniqueId(
-                getNativeHandle(),
-                componentId);
+        nInflateComponentWithUniqueId(getNativeHandle(), componentId);
+        return mAplComponents.get(componentId);
     }
 
     /**
@@ -1349,8 +1421,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * pushing calls to the Ui Thread in the future.
      */
     private void checkUiThread() {
-        if(Looper.getMainLooper() != Looper.myLooper()) {
-            if(BuildConfig.DEBUG) throw new NotOnUiThreadError("Not on the main thread");
+        if (Looper.getMainLooper() != Looper.myLooper()) {
+            if (BuildConfig.DEBUG) throw new NotOnUiThreadError("Not on the main thread");
             Log.wtf(TAG, "Not on the main thread");
         }
     }
@@ -1359,7 +1431,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * @return the visual context
      */
     private String serializeVisualContext() {
-        return nSerializeVisualContext(getNativeHandle());
+        return JNIUtils.safeStringValues(nSerializeVisualContext(getNativeHandle()));
     }
 
     /**
@@ -1374,6 +1446,32 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      */
     public String getFocusedComponentId() {
         return nGetFocusedComponent(getNativeHandle());
+    }
+
+    /**
+     * Notifies core that the media has loaded, for the given source url.
+     * @param source The url of the media that was requested.
+     */
+    public void mediaLoaded(final String source) {
+        nMediaLoaded(getNativeHandle(), source);
+    }
+
+    /**
+     * Notifies core that the media has failed to load, for the given source url.
+     * @param source The url that was requested by core
+     * @param errorCode An error code defined by the runtimes, that is passed to the onFail callback
+     * @param failureReason An error message that is passed to the onFail callback
+     */
+    public void mediaLoadFailed(final String source, int errorCode, String failureReason) {
+        nMediaLoadFailed(getNativeHandle(), source, errorCode, failureReason);
+    }
+
+    /**
+     * The agent name for this document as specified in {@link RootConfig#create(String, String)}.
+     * @return the agent name
+     */
+    public String getAgentName() {
+        return mAgentName;
     }
 
     // Native methods
@@ -1427,7 +1525,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     private static native boolean nHandlePointerEvent(long nativeHandle, int pointerId, int pointerType, int pointerEventType, float x, float y);
 
-    private static native void nHandleConfigurationChange(long nativeHandle, int width, int height, String theme, int viewportMode, float fontScale, int screenMode, boolean screenReaderEnabled);
+    private static native void nHandleConfigurationChange(long nativeHandle, int width, int height, String theme, int viewportMode, float fontScale, int screenMode, boolean screenReaderEnabled, boolean disallowVideo, Map<String, Object> environmentValues);
+
+    private static native void nUpdateDisplayState(long nativeHandle, int displayState);
 
     private static native boolean nUpdateDataSource(long nativeHandle, String type, String payload);
 
@@ -1452,4 +1552,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     private static native boolean nSetFocus(long nativeHandle, int focus_direction, float origin_x, float origin_y, float origin_width, float origin_height, String targetId);
 
     private static native String nGetFocusedComponent(long nativeHandle);
+
+    private static native void nMediaLoaded(long nativeHandle, String url);
+
+    private static native void nMediaLoadFailed(long nativeHandle, String url, int errorCode, String error);
 }

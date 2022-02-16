@@ -5,7 +5,6 @@
 
 package com.amazon.apl.android.image;
 
-import android.graphics.Bitmap;
 import android.graphics.RectF;
 
 import com.amazon.apl.android.primitive.Rect;
@@ -43,7 +42,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignBottom)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -57,7 +56,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignTop)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -71,7 +70,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignBottomLeft)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -85,7 +84,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignBottomRight)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -99,7 +98,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignLeft)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -113,7 +112,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignRight)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -127,7 +126,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignTopLeft)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -141,7 +140,7 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
                 .align(ImageAlign.kImageAlignTopRight)
                 .bounds(mockBounds)
                 .innerBounds(mockInnerBounds)
-                .image(createDummyBitmap())
+                .imageBounds(getImageBounds())
                 .offsetX(20)
                 .offsetY(32)
                 .build()
@@ -149,8 +148,8 @@ public class ImageShadowBoundsCalculatorTest extends ViewhostRobolectricTest {
         verifyShadowBounds(22f, 32f, 218f, 130f, shadowBounds);
     }
 
-    private Bitmap createDummyBitmap() {
-        return Bitmap.createBitmap(196, 98, Bitmap.Config.ARGB_8888);
+    private android.graphics.Rect getImageBounds() {
+        return new android.graphics.Rect(0, 0, 196, 98);
     }
 
     private void verifyShadowBounds(float left, float top, float right, float bottom, RectF shadowBounds) {

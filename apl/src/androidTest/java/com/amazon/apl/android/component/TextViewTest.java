@@ -10,13 +10,17 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
+import android.text.BoringLayout;
+import android.text.Layout;
 import android.text.ParcelableSpan;
 import android.text.Spannable;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.style.StyleSpan;
+import android.view.View;
 
 import com.amazon.apl.android.Text;
+import com.amazon.apl.android.TextLayoutFactory;
 import com.amazon.apl.android.views.APLTextView;
 
 import org.junit.Before;
@@ -29,7 +33,10 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.executeCommands;
+import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
@@ -38,6 +45,8 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
             "\uD83E\uDD80\uD83C\uDF59second?^&*><#$@ \uD83C\uDFBB❤️❤️❤️️line\uD83C\uDFC1\uD83E\uDD26",
             "\uD83C\uDFC1third \uD83C\uDF99line"
     };
+
+    private static final String LONG_TEXT = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam pellentesque ultricies nunc vel consectetur. Curabitur rhoncus orci lacus, id aliquam felis molestie vitae. Proin eget dictum metus. Nam tristique, turpis quis mollis condimentum, enim libero tincidunt ante, et luctus neque felis at nisl. Ut interdum ipsum non mi euismod venenatis. Phasellus egestas sem in fringilla pulvinar. Maecenas venenatis, ante congue elementum mattis, metus ipsum luctus libero, quis ultrices lacus nunc non mi. Quisque pellentesque ex urna, tincidunt cursus dui feugiat sed. Proin in purus erat. Nam aliquet tempus tortor vel bibendum. Donec congue urna velit, a commodo augue porttitor a. Ut in nisl felis. Nullam tincidunt consectetur nisi, gravida malesuada urna volutpat ut. Nulla a risus luctus, aliquam arcu non, facilisis dolor. Sed lacus nibh, suscipit vel ultrices ac, dapibus sit amet magna.";
 
     private static final String[] TEXT = {
             "This is the first line",
@@ -94,7 +103,7 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
     }
 
     interface LineUtil {
-        String GetLine(StaticLayout staticLayout, int line);
+        String GetLine(Layout staticLayout, int line);
     }
 
     /**
@@ -104,11 +113,11 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
      */
     @Override
     void testView_applyProperties(APLTextView view) {
-        StaticLayout staticLayout = view.getLayout();
+        Layout staticLayout = view.getLayout();
         TextPaint paint = staticLayout.getPaint();
 
         // text content
-        LineUtil lineUtil = (StaticLayout layout, int line) -> staticLayout.getText().subSequence(
+        LineUtil lineUtil = (Layout layout, int line) -> staticLayout.getText().subSequence(
                 staticLayout.getLineStart(line), staticLayout.getLineEnd(line)
         ).toString();
         assertEquals(LINES[0] + "\n", lineUtil.GetLine(staticLayout, 0));
@@ -130,6 +139,33 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             assertEquals(700, tf.getWeight());
         }
+    }
+
+    @Test
+    public void testView_EllipsizeLongText() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate(REQUIRED_PROPERTIES, CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout layout = getTestView().getLayout();
+
+        // We need our text to expand beyond the width, so double it.
+        int width = layout.getWidth() * 2;
+
+        assertEquals("", layout.getText().toString());
+
+        StringBuilder longTextBuilder = new StringBuilder();
+
+        for (int i = 0; i < width; i+= LONG_TEXT.length()) {
+            longTextBuilder.append(LONG_TEXT);
+        }
+
+        onView(isRoot())
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("text", longTextBuilder.toString())));
+
+        layout = getTestView().getLayout();
+        final int lineCount = layout.getLineCount();
+        assertTrue(layout.getEllipsisCount(lineCount - 1) > 0);
     }
 
     @Test
@@ -262,5 +298,116 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
                 .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("text", "${String.toLowerCase('TITLE', 'test-TEST')}")));
 
         assertEquals("title", getTestView().getLayout().getText().toString());
+    }
+
+    @Test
+    public void testView_resizingText_larger_reusesLayout() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"Text\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout expectedLayout = getTestView().getLayout();
+        TextLayoutFactory textLayoutFactory = getTestComponent().getRenderingContext().getTextLayoutFactory();
+        TextPaint textPaint = textLayoutFactory.getLayoutCache().getOrCreateTextPaint(getTestComponent().getRenderingContext().getDocVersion(), "key", getTestComponent().getProxy(), 1.0f);
+        CharSequence text = getTestComponent().getText();
+        BoringLayout.Metrics metrics = BoringLayout.isBoring(text, textPaint);
+        assertNotNull(metrics);
+        final int desiredTextWidth = metrics.width;
+        assertTrue(desiredTextWidth < getTestComponent().getInnerBounds().intWidth());
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "" + desiredTextWidth)))
+                .check((view, exception) -> assertEquals(desiredTextWidth, view.getWidth()));
+
+        Layout actualLayout = getTestView().getLayout();
+
+        assertEquals(actualLayout, expectedLayout);
+    }
+
+    @Test
+    public void testView_resizingText_smaller_usesNewLayout() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"Text\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout originalLayout = getTestView().getLayout();
+        TextLayoutFactory textLayoutFactory = getTestComponent().getRenderingContext().getTextLayoutFactory();
+        TextPaint textPaint = textLayoutFactory.getLayoutCache().getOrCreateTextPaint(getTestComponent().getRenderingContext().getDocVersion(), "key", getTestComponent().getProxy(), 1.0f);
+        CharSequence text = getTestComponent().getText();
+        BoringLayout.Metrics metrics = BoringLayout.isBoring(text, textPaint);
+        assertNotNull(metrics);
+        final int desiredTextWidth = metrics.width;
+        assertTrue(desiredTextWidth < getTestComponent().getInnerBounds().intWidth());
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "" + (desiredTextWidth - 1))))
+                .check((view, exception) -> assertEquals(desiredTextWidth - 1, view.getWidth()));
+
+        Layout actualLayout = getTestView().getLayout();
+
+        assertNotEquals(actualLayout, originalLayout);
+    }
+
+    @Test
+    public void testView_resizingText_multipleTimes_reusesLayout() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"Text\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout expectedLayout = getTestView().getLayout();
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "300")))
+                .check((view, exception) -> assertEquals(300, view.getWidth()));
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "500")))
+                .check((view, exception) -> assertEquals(500, view.getWidth()));
+
+        Layout actualLayout = getTestView().getLayout();
+
+        assertEquals(actualLayout, expectedLayout);
+    }
+
+    @Test
+    public void testView_resizingText_smallerThenLarger_usesNewLayout() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"Text\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout initialLayout = getTestView().getLayout();
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "10")))
+                .check((view, exception) -> assertEquals(10, view.getWidth()));
+
+        Layout smallLayout = getTestView().getLayout();
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "500")))
+                .check((view, exception) -> assertEquals(500, view.getWidth()));
+
+        Layout finalLayout = getTestView().getLayout();
+
+        assertNotEquals(initialLayout, smallLayout);
+        assertNotEquals(smallLayout, finalLayout);
+    }
+
+    @Test
+    public void testView_resizingText_RTL_anyWidth_usesNewLayout() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"Text\", \"layoutDirection\": \"RTL\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout originalLayout = getTestView().getLayout();
+        int onePixelSmaller = getTestView().getWidth() - 1;
+
+        onView(withComponent(getTestComponent()))
+                .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("width", "" + onePixelSmaller)))
+                .check((view, exception) -> assertEquals(onePixelSmaller, view.getWidth()));
+
+        Layout actualLayout = getTestView().getLayout();
+
+        assertNotEquals(actualLayout, originalLayout);
     }
 }

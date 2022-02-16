@@ -30,7 +30,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -111,6 +113,12 @@ public class FilterExecutorTest extends ViewhostRobolectricTest {
         assertEquals(mFilters.at(2), noiseFilterOperation.getFilter());
         assertEquals(mFilterResults.get(2), noiseFilterOperation.getSource());
         assertNull(noiseFilterOperation.getDestination());
+
+        // Verify disposal
+        verify(mBitmapFactory, never()).disposeBitmap(filterResult.getBitmap());
+        for (int i = 0; i < mFilterResults.size() - 1; i++) {
+            verify(mBitmapFactory).disposeBitmap(eq(mFilterResults.get(i).getBitmap()));
+        }
     }
     
     void init() {
@@ -118,7 +126,10 @@ public class FilterExecutorTest extends ViewhostRobolectricTest {
         for (int i = 0; i < mSourceBitmaps.size() + mFilters.size(); i++) {
             FilterResult filterResult = mock(FilterResult.class);
             Future<FilterResult> resultFuture = mock(Future.class);
+            when(filterResult.isBitmap()).thenReturn(true);
+            when(filterResult.getBitmap()).thenReturn(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888));
             try {
+                when(resultFuture.isDone()).thenReturn(true);
                 when(resultFuture.get(anyLong(), any())).thenReturn(filterResult);
                 when(resultFuture.get()).thenReturn(filterResult);
             } catch (Exception e) {

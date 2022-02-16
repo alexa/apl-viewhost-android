@@ -15,6 +15,7 @@ import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.VectorGraphic;
 import com.amazon.apl.android.graphic.APLVectorGraphicView;
 import com.amazon.apl.android.graphic.AlexaVectorDrawable;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.enums.PropertyKey;
 
 public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic, APLVectorGraphicView> {
@@ -53,11 +54,11 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
         if (component.hasGraphic()) {
             createVectorDrawable(component, view);
         } else {
-            String source = component.getSource();
-            if (!TextUtils.isEmpty(source)) {
-                component.getContentRetriever().fetch(Uri.parse(source),
+            UrlRequests.UrlRequest source = component.getSourceRequest();
+            if (!TextUtils.isEmpty(source.url())) {
+                component.getContentRetriever().fetchV2(Uri.parse(source.url()), source.headers(),
                         (request, result) -> view.post(() -> component.updateGraphic(result)),
-                        (request, message) -> Log.e(TAG, "Unable to open source: " + source + ". " + message));
+                        (request, message, errorCode) -> Log.e(TAG, "Unable to open source " + message + " with errorCode " + errorCode));
             } else {
                 Log.e(TAG, "Not a proper vector graphic source");
             }

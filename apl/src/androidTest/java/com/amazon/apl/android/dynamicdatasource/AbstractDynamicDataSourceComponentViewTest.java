@@ -28,13 +28,16 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.TestActivity;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
+import com.amazon.apl.enums.RootProperty;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 
 import java.util.Objects;
@@ -56,6 +59,15 @@ abstract class AbstractDynamicDataSourceComponentViewTest {
 
     APLTestContext mTestContext;
     APLController mAplController;
+
+    @After
+    public void finishDocument() {
+        try {
+            activityRule.runOnUiThread(() -> mTestContext.getRootContext().finishDocument());
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
 
     @Rule
     public ActivityTestRule<TestActivity> activityRule = new ActivityTestRule<>(TestActivity.class);
@@ -110,6 +122,7 @@ abstract class AbstractDynamicDataSourceComponentViewTest {
                         .build();
                 final RootConfig testRootConfig = RootConfig.create("Unit Test", "1.0")
                         .registerDataSource(mDynamicDataSourceType)
+                        .set(RootProperty.kTapOrScrollTimeout, 50) // Half of the Fast swipe speed.
                         .pagerChildCache(3)
                         .sequenceChildCache(3);
                 mTestContext = new APLTestContext()
@@ -125,6 +138,44 @@ abstract class AbstractDynamicDataSourceComponentViewTest {
                     Assert.fail(e.getMessage());
                 }
             } catch (Content.ContentException e) {
+                Assert.fail(e.getMessage());
+            }
+        }
+    }
+
+    ViewAction updateDynamicDataSource(final String type, final String payload) {
+        return actionWithAssertions(new UpdateDynamicDataSourceViewAction(
+                type,
+                payload));
+    }
+
+    private class UpdateDynamicDataSourceViewAction implements ViewAction {
+        private final String mType;
+        private final String mPayload;
+
+        UpdateDynamicDataSourceViewAction(
+                final String type,
+                final String payload) {
+            mType = type;
+            mPayload = payload;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            Matcher<View> standardConstraint = isDisplayingAtLeast(90);
+            return standardConstraint;
+        }
+
+        @Override
+        public String getDescription() {
+            return "Updates a dynamic datasource";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            try {
+                mAplController.updateDataSource(mType, mPayload);
+            } catch (Exception e) {
                 Assert.fail(e.getMessage());
             }
         }

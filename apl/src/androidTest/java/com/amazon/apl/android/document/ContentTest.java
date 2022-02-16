@@ -12,7 +12,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.amazon.apl.android.APLJSONData;
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.Content.ImportRequest;
 import com.amazon.apl.android.RootConfig;
@@ -37,15 +39,18 @@ import org.mockito.MockitoAnnotations;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.amazon.apl.android.Content.METRIC_CONTENT_CREATE;
 import static com.amazon.apl.android.Content.METRIC_CONTENT_ERROR;
 import static com.amazon.apl.android.Content.METRIC_CONTENT_IMPORT_REQUESTS;
+import static com.amazon.apl.android.Content.create;
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
@@ -64,13 +69,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 @SmallTest
-public class ContentTest implements BoundObjectDefaultTest {
-
-    // Load the APL library.
-    static {
-        System.loadLibrary("apl-jni");
-    }
-
+public class ContentTest extends APLViewhostTest {
     // Test content
     private final String mTestDoc = "{" +
             "  \"type\": \"APL\"," +
@@ -263,8 +262,7 @@ public class ContentTest implements BoundObjectDefaultTest {
                 .thenReturn(CONTENT_IMPORTS_METRIC_ID);
     }
 
-    @Override
-    public long createBoundObjectHandle() {
+    private long createHandle() {
         Content content = null;
         try {
             content = Content.create(mTestDoc, mAplOptions);
@@ -285,6 +283,12 @@ public class ContentTest implements BoundObjectDefaultTest {
         assertTrue("Content not ready", content.isReady());
         @SuppressWarnings("UnnecessaryLocalVariable") long handle = content.getNativeHandle();
         return handle;
+    }
+
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+       assertNativeHandle(createHandle());
     }
 
     /**
@@ -561,27 +565,38 @@ public class ContentTest implements BoundObjectDefaultTest {
     public void testDocument_multiImportCallback_callbackV2() {
         doAnswer(invocation -> {
             ImportRequest request = invocation.getArgument(0);
-            IContentRetriever.SuccessCallback<ImportRequest, String> successCallback = invocation.getArgument(1);
+            IContentRetriever.SuccessCallback<ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
             if ("test-package".equals(request.getPackageName())) {
-                successCallback.onSuccess(request, mTestPackage);
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
             } else if ("test-package2".equals(request.getPackageName())) {
-                successCallback.onSuccess(request, mTestPackage2);
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage2));
             }
             return null;
         }).when(mPackageLoader).fetch(any(), any(), any());
 
-        AtomicBoolean completeCalled = new AtomicBoolean();
+        CountDownLatch latch = new CountDownLatch(1);
+
         Content content = Content.create(mTestImportDoc, mAplOptions, new Content.CallbackV2() {
             @Override
             public void onComplete(Content content) {
-                completeCalled.set(true);
+                latch.countDown();
                 super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Assert.fail(e.getCause().getMessage());
             }
         });
         assertNotNull("Content should not be null.", content);
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        assertTrue("Expected complete called", completeCalled.get());
+        try {
+            // Give Content a second to complete.
+            latch.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Assert.fail();
+        }
+
         assertTrue("Expected document ready", content.isReady());
         assertFalse("Expected document not waiting.", content.isWaiting());
         assertFalse("Expected document not error.", content.isError());

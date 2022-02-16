@@ -6,16 +6,13 @@
 package com.amazon.apl.android.image;
 
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.os.AsyncTask;
-import android.text.TextUtils;
-import androidx.annotation.Nullable;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.amazon.apl.android.bitmap.BitmapCreationException;
+import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.component.ImageViewAdapter;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
@@ -25,12 +22,10 @@ import com.amazon.apl.android.image.filters.RenderScriptWrapper;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
 import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
-import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.providers.ITelemetryProvider;
-import com.amazon.apl.enums.ImageAlign;
-import com.amazon.apl.enums.ImageScale;
 import com.google.auto.value.AutoValue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -44,23 +39,43 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
     private static final String METRIC_FILTER_SUCCESS = "ImageFilter";
     private static final String METRIC_FILTER_TIMEOUT = METRIC_FILTER_SUCCESS + ".timeout" + ITelemetryProvider.FAIL_SUFFIX;
     private static final String METRIC_FILTER_EXECUTION = METRIC_FILTER_SUCCESS + ".execution" + ITelemetryProvider.FAIL_SUFFIX;
-    private static final String METRIC_FILTER_INTERRUPTED = METRIC_FILTER_SUCCESS + ".interrupted" + ITelemetryProvider.FAIL_SUFFIX;
 
     private static final String TAG = "ImageProcessingTask";
+
+    /**
+     * The result bitmap to show when finished processing.
+     */
+    private Bitmap mResult;
 
     @Override
     protected ImageProcessingAsyncParams doInBackground(ImageProcessingAsyncParams... p) {
         ImageProcessingAsyncParams params = p[0];
         // Set up last bitmap to return in case we're cancelled.
-        params.getOnFinishRunnable().onFailure(params.getBitmaps().get(params.getBitmaps().size() - 1));
+        mResult = params.getBitmaps().get(params.getBitmaps().size() - 1);
         if (isCancelled()) {
             return params;
         }
 
+
+        List<Bitmap> sourceBitmaps = params.getBitmaps();
+        // We make copies here due to not wanting to modify Glide's original bitmaps
+        List<Bitmap> bitmapsToProcess = new ArrayList<>(sourceBitmaps.size());
+        for (int i = 0; i < sourceBitmaps.size(); i++) {
+            Bitmap original = sourceBitmaps.get(i);
+            try {
+                bitmapsToProcess.add(params.getBitmapFactory().createBitmap(original));
+            } catch (BitmapCreationException e) {
+                Log.e(TAG, "Unable to make copy for image processing. Not applying filters.", e);
+                return params;
+            }
+        }
+
         // Send bitmaps to preprocessor first
-        List<Bitmap> preprocessedBitmaps = params.getImageProcessor().preProcessImage(params.getSources(), params.getBitmaps());
-        if (isCancelled()) {
-            return params;
+        if (params.getImageProcessor() != null) {
+            bitmapsToProcess = params.getImageProcessor().preProcessImage(params.getSources(), bitmapsToProcess);
+            if (isCancelled()) {
+                return params;
+            }
         }
 
         // create "ImageProcessing" metric
@@ -68,14 +83,13 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
         int cMetricFilterSuccess = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_FILTER_SUCCESS, ITelemetryProvider.Type.COUNTER);
         int cMetricFilterTimeout = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_FILTER_TIMEOUT, ITelemetryProvider.Type.COUNTER);
         int cMetricFilterExecution = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_FILTER_EXECUTION, ITelemetryProvider.Type.COUNTER);
-        int cMetricFilterInterrupted = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_FILTER_INTERRUPTED, ITelemetryProvider.Type.COUNTER);
         int imageProcessingMetricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, IMAGE_PROCESSING_METRIC_NAME, ITelemetryProvider.Type.TIMER);
 
         // TODO this overall timer metric will only give us one per document and will have a lot of noise
         //  due to variation in size and complexity of filters
         telemetryProvider.startTimer(imageProcessingMetricId);
         // Apply the filters
-        FilterExecutor filterExecutor = FilterExecutor.create(sExecutorService, preprocessedBitmaps, params.getFilters(), params.getBitmapFactory(), params.getRenderScriptWrapper(), params.getExtensionImageFilterCallback());
+        FilterExecutor filterExecutor = FilterExecutor.create(sExecutorService, bitmapsToProcess, params.getFilters(), params.getBitmapFactory(), params.getRenderScriptWrapper(), params.getExtensionImageFilterCallback());
         Bitmap filteredResult;
         try {
             FilterResult result = filterExecutor.apply();
@@ -91,84 +105,24 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
             telemetryProvider.incrementCount(cMetricFilterTimeout);
             Log.e(TAG, String.format("Filter processing took longer than %d seconds. Returning last bitmap.", FilterExecutor.TIMEOUT_SECONDS), e);
             telemetryProvider.fail(imageProcessingMetricId);
-            filteredResult = preprocessedBitmaps.get(preprocessedBitmaps.size() - 1);
+            filteredResult = bitmapsToProcess.get(bitmapsToProcess.size() - 1);
         } catch (InterruptedException e) {
-            telemetryProvider.incrementCount(cMetricFilterInterrupted);
-            Log.e(TAG, "Filter thread interrupted. Returning last bitmap.", e);
-            telemetryProvider.fail(imageProcessingMetricId);
-            filteredResult = preprocessedBitmaps.get(preprocessedBitmaps.size() - 1);
+            Log.i(TAG, "Filter thread interrupted. Returning last bitmap.", e);
+            filteredResult = bitmapsToProcess.get(bitmapsToProcess.size() - 1);
         } catch (ExecutionException e) {
             telemetryProvider.incrementCount(cMetricFilterExecution);
             Log.e(TAG, "Error processing filters. Returning last bitmap.", e);
             telemetryProvider.fail(imageProcessingMetricId);
-            filteredResult = preprocessedBitmaps.get(preprocessedBitmaps.size() - 1);
+            filteredResult = bitmapsToProcess.get(bitmapsToProcess.size() - 1);
         }
 
-        params.getOnFinishRunnable().onFailure(filteredResult);
+        mResult = filteredResult;
         if (isCancelled()) {
             return params;
         }
 
-        // By now we have applied all filters successfully.
-        try {
-            Bitmap scaledBitmap = ImageScaler.getScaledBitmap(
-                    params.getBounds(),
-                    params.getImageScale(),
-                    params.getImageAlign(),
-                    params.getBitmapFactory(),
-                    filteredResult);
-
-            /**
-             * Order is important as per spec:
-             * The overlayColor filter will be applied after any filters defined by the filter property
-             * and before the overlayGradient property.
-             *
-             * Furthermore, this should be done after bitmap scaling to ensure that the gradient is the
-             * correct width and height.
-             */
-            if (scaledBitmap == null) {
-                return params;
-            }
-
-            int overlayColor = params.getOverlayColor();
-            if (overlayColor != Color.TRANSPARENT) {
-                Paint paint = new Paint();
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(overlayColor);
-                paint.setAlpha(Color.alpha(overlayColor));
-                // Passing a bitmap into canvas requires a mutable bitmap so make a mutable copy if this one
-                // is not mutable.
-                if (!scaledBitmap.isMutable()) {
-                    scaledBitmap = params.getBitmapFactory().copy(scaledBitmap, true);
-                }
-                Canvas canvas = new Canvas(scaledBitmap);
-                canvas.drawRect(new Rect(0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight()), paint);
-            }
-            if (isCancelled()) {
-                return params;
-            }
-
-            Gradient overlayGradient = params.getOverlayGradient();
-            if (overlayGradient != null) {
-                Paint paint = new Paint();
-                paint.setStyle(Paint.Style.FILL);
-                paint.setShader(overlayGradient.getShader(scaledBitmap.getWidth(), scaledBitmap.getHeight()));
-                // Passing a bitmap into canvas requires a mutable bitmap so make a mutable copy if this one
-                // is not mutable.
-                if (!scaledBitmap.isMutable()) {
-                    scaledBitmap = params.getBitmapFactory().copy(scaledBitmap, true);
-                }
-                Canvas canvas = new Canvas(scaledBitmap);
-                canvas.drawRect(new Rect(0, 0, scaledBitmap.getWidth(), scaledBitmap.getHeight()), paint);
-            }
-            if (isCancelled()) {
-                return params;
-            }
-
-            params.getOnFinishRunnable().onSuccess(scaledBitmap);
-        } catch (BitmapCreationException e) {
-            params.getOnFinishRunnable().onFailure(filteredResult);
-        }
+        // Store the filtered result in the cache
+        params.getBitmapCache().putBitmap(params.getImageBitmapKey(), filteredResult);
 
         return params;
     }
@@ -183,7 +137,7 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
     @Override
     protected void onPostExecute(ImageProcessingAsyncParams p) {
         p.getRenderScriptWrapper().destroy();
-        p.getOnFinishRunnable().run();
+        p.getOnProcessingFinished().accept(mResult);
     }
 
     @AutoValue
@@ -191,23 +145,20 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
         public abstract List<String> getSources();
         public abstract Filters getFilters();
         public abstract com.amazon.apl.android.primitive.Rect getBounds();
-        public abstract ImageScale getImageScale();
-        public abstract ImageAlign getImageAlign();
         public abstract IBitmapFactory getBitmapFactory();
         public abstract List<Bitmap> getBitmaps();
+        public abstract IBitmapCache getBitmapCache();
+        public abstract ProcessedImageBitmapKey getImageBitmapKey();
+        @Nullable
         public abstract IImageProcessor getImageProcessor();
         public abstract ITelemetryProvider getTelemetryProvider();
-        public abstract ImageViewAdapter.BitmapRunnable getOnFinishRunnable();
+        public abstract ImageViewAdapter.ImageProcessingFinished getOnProcessingFinished();
         public abstract IExtensionImageFilterCallback getExtensionImageFilterCallback();
         public abstract RenderScriptWrapper getRenderScriptWrapper();
-        @Nullable
-        public abstract Gradient getOverlayGradient();
-        public abstract int getOverlayColor();
 
         public static ImageProcessingAsyncParams.Builder builder() {
             return new AutoValue_ImageProcessingAsyncTask_ImageProcessingAsyncParams.Builder()
-                    .filters(Filters.create())
-                    .overlayColor(Color.TRANSPARENT);
+                    .filters(Filters.create());
         }
 
         @AutoValue.Builder
@@ -216,16 +167,14 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
             public abstract ImageProcessingAsyncParams.Builder imageProcessor(IImageProcessor imageProcessor);
             public abstract ImageProcessingAsyncParams.Builder filters(Filters filters);
             public abstract ImageProcessingAsyncParams.Builder bounds(com.amazon.apl.android.primitive.Rect bounds);
-            public abstract ImageProcessingAsyncParams.Builder imageScale(ImageScale imageScale);
-            public abstract ImageProcessingAsyncParams.Builder imageAlign(ImageAlign imageAlign);
             public abstract ImageProcessingAsyncParams.Builder bitmapFactory(IBitmapFactory bitmapFactory);
+            public abstract ImageProcessingAsyncParams.Builder bitmapCache(IBitmapCache cache);
             public abstract ImageProcessingAsyncParams.Builder bitmaps(List<Bitmap> bitmaps);
             public abstract ImageProcessingAsyncParams.Builder telemetryProvider(ITelemetryProvider telemetryProvider);
-            public abstract ImageProcessingAsyncParams.Builder onFinishRunnable(ImageViewAdapter.BitmapRunnable onFinishRunnable);
+            public abstract ImageProcessingAsyncParams.Builder onProcessingFinished(ImageViewAdapter.ImageProcessingFinished onProcessingFinished);
             public abstract ImageProcessingAsyncParams.Builder extensionImageFilterCallback(IExtensionImageFilterCallback callback);
             public abstract ImageProcessingAsyncParams.Builder renderScriptWrapper(RenderScriptWrapper renderScriptWrapper);
-            public abstract ImageProcessingAsyncParams.Builder overlayGradient(Gradient gradient);
-            public abstract ImageProcessingAsyncParams.Builder overlayColor(int color);
+            public abstract ImageProcessingAsyncParams.Builder imageBitmapKey(ProcessedImageBitmapKey bitmapKey);
 
             public abstract ImageProcessingAsyncParams build();
         }

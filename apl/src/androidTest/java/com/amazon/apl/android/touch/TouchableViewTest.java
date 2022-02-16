@@ -17,7 +17,7 @@ import androidx.test.espresso.ViewAction;
 
 import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.APLOptions;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.Component;
 
@@ -240,7 +240,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
             "          ]\n" +
             "      }";
 
-    protected ISendEventCallback mSendEventCallback = mock(ISendEventCallback.class);
+    protected ISendEventCallbackV2 mSendEventCallback = mock(ISendEventCallbackV2.class);
 
     String getComponentProps() { return ""; }
 
@@ -248,7 +248,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
 
     abstract String getComponentType();
 
-    APLOptions getOptions() { return APLOptions.builder().sendEventCallback(mSendEventCallback).build(); }
+    APLOptions getOptions() { return APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build(); }
 
     void inflate() {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
@@ -327,7 +327,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
 
                     @Override
                     public void perform(UiController uiController, View view) {
-                        ((APLLayout) view).setAccessibilityActive(true);
+                        ((APLLayout) view).onAccessibilityStateChanged(true);
                     }
                 });
 
@@ -382,7 +382,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         onView(withComponent(getInnerFrame()))
                 .check(hasBackgroundColor(Color.parseColor(UP_COLOR))); // verify up handler invoked
 
-        verify(mSendEventCallback).onSendEvent(any(), any(), any());
+        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
     }
 
     @Test
@@ -441,6 +441,10 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
     @Test
     public void testView_dpadCenterKeyPress() {
         inflate();
+        // gain initial focus
+        onView(withComponent(getTouchableComponent()))
+                .perform(pressKey(KeyEvent.KEYCODE_DPAD_RIGHT));
+
         verifyClick(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
     }
 
@@ -492,7 +496,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
                 .perform(waitFor(100));
 
         // since "activate" action does not have any command, it will invoke its default event handler (onPress)
-        verify(mSendEventCallback).onSendEvent(any(), any(), any());
+        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
     }
 
     @Test
@@ -549,7 +553,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         onView(isRoot())
                 .perform(waitFor(100));
 
-        verify(mSendEventCallback).onSendEvent(any(), any(), any());
+        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
     }
 
 }

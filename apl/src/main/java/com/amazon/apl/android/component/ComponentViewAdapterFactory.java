@@ -7,9 +7,11 @@ package com.amazon.apl.android.component;
 
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.EditText;
+import com.amazon.apl.android.ExtensionComponent;
 import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.Image;
 import com.amazon.apl.android.MultiChildComponent;
+import com.amazon.apl.android.NoOpComponent;
 import com.amazon.apl.android.Pager;
 import com.amazon.apl.android.Text;
 import com.amazon.apl.android.VectorGraphic;
@@ -29,10 +31,12 @@ public class ComponentViewAdapterFactory {
         sAdapterMap.put(EditText.class, EditTextViewAdapter.getInstance());
         sAdapterMap.put(Image.class, ImageViewAdapter.getInstance());
         sAdapterMap.put(MultiChildComponent.class, MultiChildViewAdapter.getInstance());
+        sAdapterMap.put(NoOpComponent.class, NoOpViewAdapter.getInstance());
         sAdapterMap.put(Pager.class, MultiChildViewAdapter.getInstance());
         sAdapterMap.put(Text.class, TextViewAdapter.getInstance());
         sAdapterMap.put(VectorGraphic.class, VectorGraphicViewAdapter.getInstance());
         sAdapterMap.put(Video.class, VideoViewAdapter.getInstance());
+        sAdapterMap.put(ExtensionComponent.class, ExtensionComponentViewAdapter.getInstance());
     }
 
     /**

@@ -7,20 +7,26 @@ package com.amazon.apl.android.keyboard;
 
 import android.graphics.Color;
 import android.view.KeyEvent;
+import android.view.View;
+
+import androidx.test.espresso.UiController;
+import androidx.test.espresso.ViewAction;
 
 import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.Component;
 
+import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import static androidx.test.espresso.Espresso.onView;
+import static androidx.test.espresso.action.ViewActions.actionWithAssertions;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static androidx.test.espresso.matcher.ViewMatchers.isDisplayingAtLeast;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLMatchers.withBackgroundColor;
-import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.hamcrest.Matchers.not;
 
 public class DocumentKeyHandlerEventView extends AbstractDocViewTest {
@@ -116,12 +122,10 @@ public class DocumentKeyHandlerEventView extends AbstractDocViewTest {
                 .check(matches(withBackgroundColor(Color.BLACK)));
 
         // send two key events
-        sendKeyPressToAPLLayout(KeyEvent.KEYCODE_W);
-        sendKeyPressToAPLLayout(KeyEvent.KEYCODE_S);
-
-        // wait for commands to be triggered
         onView(isRoot())
-                .perform(waitFor(10));
+                .perform(keyEvent(KeyEvent.KEYCODE_W));
+        onView(isRoot())
+                .perform(keyEvent(KeyEvent.KEYCODE_S));
 
         // verify frame is displayed and background color has changed
         onView(withComponent(c1))
@@ -167,16 +171,11 @@ public class DocumentKeyHandlerEventView extends AbstractDocViewTest {
         onView(withComponent(c1))
                 .check(matches(not(isDisplayed())));
 
-
         onView(withComponent(c1))
                 .check(matches(withBackgroundColor(Color.BLACK)));
 
-        // send key event
-        sendKeyPressToAPLLayout(KeyEvent.KEYCODE_W);
-
-        // wait for commands to be triggered
         onView(isRoot())
-                .perform(waitFor(20));
+                .perform(keyEvent(KeyEvent.KEYCODE_W));
 
         // verify frame is displayed and background color has changed
         onView(withComponent(c1))
@@ -195,26 +194,46 @@ public class DocumentKeyHandlerEventView extends AbstractDocViewTest {
         onView(withComponent(c1))
                 .check(matches(not(isDisplayed())));
 
-        // send key event
-        sendKeyPressToAPLLayout(KeyEvent.KEYCODE_W);
-
-        // wait for commands to be triggered
         onView(isRoot())
-                .perform(waitFor(10));
+                .perform(keyEvent(KeyEvent.KEYCODE_W));
 
         // verify frame is displayed
         onView(withComponent(c1))
                 .check(matches(isDisplayed()));
     }
 
-    /**
-     * As APLLayout is not focusable, it simulates calling dispatchKeyEvent directly from the Activity runtime.
-     */
-    private void sendKeyPressToAPLLayout(int keyCode) {
-        activityRule.getActivity().runOnUiThread(() -> {
+    public ViewAction keyEvent(int keyCode) {
+        return actionWithAssertions(new KeyEventAction(keyCode));
+    }
+
+    private class KeyEventAction implements ViewAction {
+        private final int mKeyCode;
+
+        public KeyEventAction(int keyCode) {
+            this.mKeyCode = keyCode;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            Matcher<View> standardConstraint = isDisplayingAtLeast(90);
+            return standardConstraint;
+        }
+
+        @Override
+        public String getDescription() {
+            return "Performs a key press.";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
             APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl); // APLLayout
-            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, keyCode));
-            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, keyCode));
-        });
+            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, mKeyCode));
+            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, mKeyCode));
+
+            // Dispatching the key events will make the root context dirty until it's handled.
+            while (mTestContext.getRootContext().isDirty()) {
+                uiController.loopMainThreadForAtLeast(50);
+            }
+        }
     }
 }

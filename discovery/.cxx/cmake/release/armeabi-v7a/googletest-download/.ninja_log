@@ -1,0 +1,11 @@
+# ninja log v5
+0	80	1644974899927537343	googletest-prefix/src/googletest-stamp/googletest-mkdir	7ba455220b40af62
+81	300	1644974900147405249	googletest-prefix/src/googletest-stamp/googletest-download	d07e02e604213ed1
+300	333	1644974900180276696	googletest-prefix/src/googletest-stamp/googletest-patch	531dbae540e64280
+300	335	1644974900182718905	googletest-prefix/src/googletest-stamp/googletest-update	82a993d43b1f0e6e
+335	364	1644974900211710029	googletest-prefix/src/googletest-stamp/googletest-configure	b21cb0c1eba75f3c
+364	397	1644974900243607832	googletest-prefix/src/googletest-stamp/googletest-build	3852708200758e5e
+398	476	1644974900323493633	googletest-prefix/src/googletest-stamp/googletest-install	2f2f0f0f65409d84
+476	511	1644974900359178773	googletest-prefix/src/googletest-stamp/googletest-test	6e58ebe5a953f212
+511	551	1644974900398909740	CMakeFiles/googletest-complete	e150983d1462344c
+511	551	1644974900398909740	googletest-prefix/src/googletest-stamp/googletest-done	e150983d1462344c

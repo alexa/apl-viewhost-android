@@ -6,9 +6,6 @@
 package com.amazon.apl.android.image;
 
 
-import android.view.Gravity;
-
-import com.amazon.apl.enums.ImageAlign;
 import com.amazon.apl.enums.ImageScale;
 
 /**
@@ -71,39 +68,5 @@ public class ImageScaleCalculator {
         }
 
         return new float[] { scaleX, scaleY };
-    }
-
-    public static int getGravity(ImageAlign align) {
-        int gravity;
-        switch (align) {
-            case kImageAlignBottom:
-                gravity = Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM;
-                break;
-            case kImageAlignBottomLeft:
-                gravity = Gravity.LEFT | Gravity.BOTTOM;
-                break;
-            case kImageAlignBottomRight:
-                gravity = Gravity.RIGHT | Gravity.BOTTOM;
-                break;
-            case kImageAlignLeft:
-                gravity = Gravity.LEFT | Gravity.CENTER_VERTICAL;
-                break;
-            case kImageAlignRight:
-                gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
-                break;
-            case kImageAlignTop:
-                gravity = Gravity.CENTER_HORIZONTAL | Gravity.TOP;
-                break;
-            case kImageAlignTopLeft:
-                gravity = Gravity.LEFT | Gravity.TOP;
-                break;
-            case kImageAlignTopRight:
-                gravity = Gravity.RIGHT | Gravity.TOP;
-                break;
-            case kImageAlignCenter:
-            default:
-                gravity = Gravity.CENTER;
-        }
-        return gravity;
     }
 }

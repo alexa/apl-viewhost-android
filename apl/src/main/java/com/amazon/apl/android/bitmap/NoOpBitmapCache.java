@@ -5,19 +5,21 @@
 
 package com.amazon.apl.android.bitmap;
 
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 
 public class NoOpBitmapCache implements IBitmapCache {
 
     @Override
     public void putBitmap(BitmapKey key, Bitmap bitmap) {
-
     }
 
     @Override
     public Bitmap getBitmap(BitmapKey key) {
         return null;
+    }
+
+    @Override
+    public void removeBitmapFromCache(BitmapKey key) {
     }
 
     @Override
@@ -27,6 +29,5 @@ public class NoOpBitmapCache implements IBitmapCache {
 
     @Override
     public void clear() {
-
     }
 }

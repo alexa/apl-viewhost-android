@@ -6,23 +6,27 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.widget.ImageView;
+import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Base64;
 
+import androidx.core.content.FileProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
+import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Image;
 import com.amazon.apl.android.dependencies.IImageLoader;
-import com.amazon.apl.android.listeners.OnImageAttachStateChangeListener;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLImageView;
 import com.amazon.apl.enums.BlendMode;
 import com.amazon.apl.enums.ComponentType;
@@ -38,19 +42,27 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -60,6 +72,24 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
     private static final String DUMMY_URI = "https://dummy.com/image1.png";
     private static final String DUMMY_URI1 = "custom-scheme://dummy.com/image.png";
     private static final String DUMMY_URI2 = "https://dummy.com/image2.png";
+
+    /**
+     * 10x10 base64 encoded JPG of all red (#FFFF0000) for testing
+     */
+    private static final String JPG_BASE64 = "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/2wBDAQMDAwQDBAgEBAgQCwkLEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBD/wAARCAAKAAoDAREAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAj/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAcJ/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AnRDGqYAAD//Z";
+
+    final static String BASE_DOC_VERSION_1_2 = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.2\"," +
+            "  \"mainTemplate\": {" +
+            "    \"item\":" +
+            "    {" +
+            "      \"id\": \"testcomp\", " +
+            "      \"type\": \"%s\" %s" +
+            "    }" +
+            "  }" +
+            "%s" +
+            "}";
 
     @Before
     public void doBefore() {
@@ -155,7 +185,7 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
      */
     @Override
     void testProperties_optionalDefaultValues(Image component) {
-        assertEquals(Arrays.asList(""), component.getSources());
+        assertEquals(0, component.getSourceUrls().size());
         assertEquals(ImageAlign.kImageAlignCenter, component.getAlign());
         assertEquals(ImageScale.kImageScaleBestFit, component.getScale());
         assertNull(component.getOverlayGradient());
@@ -175,7 +205,7 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
     @Override
     void testProperties_optionalExplicitValues(Image component) {
         OPTIONAL_PROPERTIES = String.format(OPTIONAL_PROPERTIES, "[" + DUMMY_URI + ", " + DUMMY_URI2 + "]");
-        assertEquals(Arrays.asList(DUMMY_URI, DUMMY_URI2), component.getSources());
+        assertEquals(Arrays.asList(DUMMY_URI, DUMMY_URI2), component.getSourceUrls());
         assertEquals(ImageAlign.kImageAlignBottomRight, component.getAlign());
         assertEquals(ImageScale.kImageScaleBestFitDown, component.getScale());
         assertEquals(GradientType.LINEAR, component.getOverlayGradient().getType());
@@ -282,10 +312,78 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
         when(mAPLPresenter.findComponent(view)).thenReturn(component);
         ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
         imageViewAdapter.applyAllProperties(component, view);
-        OnImageAttachStateChangeListener listener = view.getOnImageAttachStateChangeListener();
-        listener.onViewAttachedToWindow(view);
 
-        verify(imageLoader).loadImage(eq(DUMMY_URI), any(ImageView.class), any(IImageLoader.LoadImageCallback2.class), any(boolean.class));
+        verify(imageLoader).loadImage(argThat(load -> DUMMY_URI.equals(load.path())));
+    }
+
+    @Test
+    public void testDependencies_invokeImageLoader_urlRequestObject_withHeaders() {
+        IImageLoaderProvider provider = mock(IImageLoaderProvider.class);
+        IImageLoader imageLoader = mock(IImageLoader.class);
+        when(imageLoader.withTelemetry(any(ITelemetryProvider.class))).thenReturn(imageLoader);
+        when(provider.get(any(Context.class))).thenReturn(imageLoader);
+
+        APLOptions options = APLOptions.builder()
+                .imageProvider(provider)
+                .build();
+        String headerKey1 = "headerKey1";
+        String headerKey2 = "headerKey2";
+        String headerValue1 = "headerValue1";
+        String headerValue2 = "headerValue2";
+
+        String header1 = headerKey1 + ": " + headerValue1;
+        String header2 = headerKey2 + ": " + headerValue2;
+        String doc = buildDocument("\"source\": {\"url\":\"" + DUMMY_URI + "\", \"headers\":[\"" + header1 + "\", \"" + header2 + "\"]}" );
+
+        inflateDocument(doc, null, options);
+
+        Image component = getTestComponent();
+        APLImageView view = (APLImageView) ComponentViewAdapterFactory.getAdapter(component).createView(mContext, mAPLPresenter);
+        when(mAPLPresenter.findComponent(view)).thenReturn(component);
+        ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
+        imageViewAdapter.applyAllProperties(component, view);
+
+        final Map<String, String> expectedHeaders = new HashMap<>();
+        expectedHeaders.put(headerKey1, headerValue1);
+        expectedHeaders.put(headerKey2, headerValue2);
+
+        verify(imageLoader).loadImage(argThat(load ->
+                DUMMY_URI.equals(load.path()) && expectedHeaders.equals(load.headers())));
+    }
+
+    @Test
+    public void testDependencies_invokeImageLoader_urlRequestArray_withHeaders() {
+        IImageLoaderProvider provider = mock(IImageLoaderProvider.class);
+        IImageLoader imageLoader = mock(IImageLoader.class);
+        when(imageLoader.withTelemetry(any(ITelemetryProvider.class))).thenReturn(imageLoader);
+        when(provider.get(any(Context.class))).thenReturn(imageLoader);
+
+        APLOptions options = APLOptions.builder()
+                .imageProvider(provider)
+                .build();
+        String headerKey1 = "headerKey1";
+        String headerKey2 = "headerKey2";
+        String headerValue1 = "headerValue1";
+        String headerValue2 = "headerValue2";
+
+        String header1 = headerKey1 + ": " + headerValue1;
+        String header2 = headerKey2 + ": " + headerValue2;
+        String doc = buildDocument("\"source\": [{\"url\":\"" + DUMMY_URI + "\", \"headers\":[\"" + header1 + "\", \"" + header2 + "\"]}]" );
+
+        inflateDocument(doc, null, options);
+
+        Image component = getTestComponent();
+        APLImageView view = (APLImageView) ComponentViewAdapterFactory.getAdapter(component).createView(mContext, mAPLPresenter);
+        when(mAPLPresenter.findComponent(view)).thenReturn(component);
+        ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
+        imageViewAdapter.applyAllProperties(component, view);
+
+        final Map<String, String> expectedHeaders = new HashMap<>();
+        expectedHeaders.put(headerKey1, headerValue1);
+        expectedHeaders.put(headerKey2, headerValue2);
+
+        verify(imageLoader).loadImage(argThat(load ->
+                DUMMY_URI.equals(load.path()) && expectedHeaders.equals(load.headers())));
     }
 
     @Test
@@ -299,7 +397,7 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
                 .imageProvider(provider)
                 .build();
 
-        String doc = buildDocument("\"source\": \"" + DUMMY_URI1 + "\"");
+        String doc = buildDocument(BASE_DOC_VERSION_1_2, "\"source\": \"" + DUMMY_URI1 + "\"", "", "");
         inflateDocument(doc, null, options);
 
         Image component = getTestComponent();
@@ -308,8 +406,7 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
         ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
         imageViewAdapter.applyAllProperties(component, view);
 
-        verify(imageLoader, never()).loadImage(eq(DUMMY_URI), any(ImageView.class), any(IImageLoader.LoadImageCallback2.class), any(boolean.class));
-        verify(imageLoader, never()).loadImage(eq(DUMMY_URI1), any(ImageView.class), any(IImageLoader.LoadImageCallback2.class), any(boolean.class));
+        verify(imageLoader, never()).loadImage(any(IImageLoader.LoadImageParams.class));
     }
 
     @Test
@@ -318,8 +415,6 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
         IImageLoader imageLoader = mock(IImageLoader.class);
         when(imageLoader.withTelemetry(any(ITelemetryProvider.class))).thenReturn(imageLoader);
         when(provider.get(any(Context.class))).thenReturn(imageLoader);
-        Set<String> uriSchemes = new HashSet<>();
-        uriSchemes.add("custom-scheme");
 
         APLOptions options = APLOptions.builder()
                 .imageProvider(provider)
@@ -334,13 +429,43 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
         when(mAPLPresenter.findComponent(view)).thenReturn(component);
         ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
         imageViewAdapter.applyAllProperties(component, view);
-        OnImageAttachStateChangeListener listener = view.getOnImageAttachStateChangeListener();
-        listener.onViewAttachedToWindow(view);
 
-        verify(imageLoader).loadImage(eq(DUMMY_URI1), any(ImageView.class), any(IImageLoader.LoadImageCallback2.class), any(boolean.class));
+        verify(imageLoader).loadImage(argThat(load -> DUMMY_URI1.equals(load.path())));
     }
 
-    private Bitmap createDummyBitmap() {
-        return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+    @Test
+    public void testImage_contentUri() throws Throwable {
+        // Generate a simple jpg file
+        byte[] decoded = Base64.decode(JPG_BASE64, Base64.DEFAULT);
+        Context androidContext = InstrumentationRegistry.getInstrumentation().getContext();
+        File imagesDirectory = androidContext.getExternalFilesDir("images");
+        imagesDirectory.mkdirs();
+
+        File imageFile = File.createTempFile("test", ".jpg", imagesDirectory);
+        try (FileOutputStream fos = new FileOutputStream(imageFile)) {
+            fos.write(decoded);
+            fos.flush();
+        } catch(IOException e) {
+            fail(e.getMessage());
+        }
+
+        Uri contentUri = FileProvider.getUriForFile(androidContext, "com.amazon.apl.android.test.fileprovider", imageFile);
+
+        APLOptions options = APLOptions.builder()
+                .build();
+        String doc = buildDocument("\"source\": \"" + contentUri + "\", \"scale\":\"none\"");
+        inflateDocument(doc, null, options);
+
+        Image component = getTestComponent();
+        APLImageView view = (APLImageView) ComponentViewAdapterFactory.getAdapter(component).createView(mContext, mAPLPresenter);
+        view.setLayoutParams(new APLAbsoluteLayout.LayoutParams(100, 100, 0, 0));
+        when(mAPLPresenter.findComponent(view)).thenReturn(component);
+        ImageViewAdapter imageViewAdapter = spy((ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component));
+        new Handler(Looper.getMainLooper()).post(() -> imageViewAdapter.applyAllProperties(component, view));
+
+        verify(mAPLPresenter, timeout(30000)).mediaLoaded(contentUri.toString());
+        verify(mAPLPresenter, never()).mediaLoadFailed(anyString(), anyInt(), anyString());
+
+        imageFile.delete();
     }
 }

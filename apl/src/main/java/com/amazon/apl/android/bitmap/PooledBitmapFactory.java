@@ -16,6 +16,8 @@ import com.amazon.apl.android.providers.ITelemetryProvider;
 
 /**
  * Pooled bitmap factory.  Maintains a bitmap pool and uses it to reuse bitmaps.
+ *
+ * This class can be accessed from multiple threads (e.g. FilterProcessing).
  */
 public class PooledBitmapFactory implements IBitmapFactory {
     private static final String TAG = "PooledBitmapFactory";
@@ -49,7 +51,7 @@ public class PooledBitmapFactory implements IBitmapFactory {
      *
      * @throws BitmapCreationException if there's not enough memory to create the bitmap
      */
-    public Bitmap createBitmap(int width, int height) throws BitmapCreationException {
+    public synchronized Bitmap createBitmap(int width, int height) throws BitmapCreationException {
         try {
             Bitmap result = pool.get(width,height, Bitmap.Config.ARGB_8888);
             mTelemetryProvider.incrementCount(cBitmapMetricSuccess);
@@ -65,7 +67,7 @@ public class PooledBitmapFactory implements IBitmapFactory {
      *
      * @throws BitmapCreationException if there's not enough memory to create the bitmap
      */
-    public Bitmap createBitmap(Bitmap sourceBitmap) throws BitmapCreationException {
+    public synchronized Bitmap createBitmap(Bitmap sourceBitmap) throws BitmapCreationException {
         try {
             Bitmap result = pool.get(sourceBitmap.getWidth(), sourceBitmap.getHeight(), sourceBitmap.getConfig());
             copyBitmap(sourceBitmap, result);
@@ -94,7 +96,7 @@ public class PooledBitmapFactory implements IBitmapFactory {
      *
      * @throws BitmapCreationException if there's not enough memory to create the bitmap
      */
-    public Bitmap createScaledBitmap(@NonNull Bitmap src, int dstWidth, int dstHeight, boolean filter) throws BitmapCreationException {
+    public synchronized Bitmap createScaledBitmap(@NonNull Bitmap src, int dstWidth, int dstHeight, boolean filter) throws BitmapCreationException {
         try {
             Bitmap result = pool.get(dstWidth, dstHeight, Bitmap.Config.ARGB_8888);
             Bitmap scaledSource = Bitmap.createScaledBitmap(src, dstWidth, dstHeight, filter);
@@ -113,7 +115,7 @@ public class PooledBitmapFactory implements IBitmapFactory {
      *
      * @throws BitmapCreationException if there's not enough memory to create the bitmap
      */
-    public Bitmap createBitmap(@NonNull Bitmap source, int x, int y, int width, int height, @Nullable Matrix m, boolean filter) throws BitmapCreationException {
+    public synchronized Bitmap createBitmap(@NonNull Bitmap source, int x, int y, int width, int height, @Nullable Matrix m, boolean filter) throws BitmapCreationException {
         try {
             Bitmap trimmedSource = Bitmap.createBitmap(source, x, y, width, height, m, filter);
             Bitmap result = pool.get(trimmedSource.getWidth(), trimmedSource.getHeight(), trimmedSource.getConfig());
@@ -132,10 +134,10 @@ public class PooledBitmapFactory implements IBitmapFactory {
      *
      * @throws BitmapCreationException if there's not enough memory to create the bitmap.
      */
-    public Bitmap copy(@NonNull Bitmap source, boolean isMutable) throws BitmapCreationException {
+    public synchronized Bitmap copy(@NonNull Bitmap source, boolean isMutable) throws BitmapCreationException {
         if (!isMutable) {
             // can't get immutable bitmaps from bitmap pool
-            return source.copy(source.getConfig(), isMutable);
+            return source.copy(source.getConfig(), false);
         } else try {
             Bitmap result = pool.get(source.getWidth(), source.getHeight(), source.getConfig());
             copyBitmap(source, result);
@@ -148,7 +150,7 @@ public class PooledBitmapFactory implements IBitmapFactory {
     }
 
     @Override
-    public void disposeBitmap(@NonNull Bitmap bitmap) {
+    public synchronized void disposeBitmap(@NonNull Bitmap bitmap) {
         pool.put(bitmap);
     }
 

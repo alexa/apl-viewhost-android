@@ -23,7 +23,7 @@ public interface IImageProcessor {
      * A better approach is to use {@link IExtensionImageFilterCallback} and provide
      * filter processing in an extension.
      *
-     * @param sources   a list of sources defined in the document {@link Image#getSources()}
+     * @param sources   a list of sources defined in the document {@link Image#getSourceRequests()}
      * @param bitmaps   a list of bitmaps before filters have been applied.
      * @return          the processed bitmaps (must have the same order and size as {@param bitmaps}).
      */

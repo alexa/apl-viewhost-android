@@ -7,31 +7,30 @@ package com.amazon.apl.android.component;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
+import android.os.Looper;
+import android.renderscript.RenderScript;
+
 import androidx.annotation.NonNull;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
-import android.util.Log;
-import android.view.View;
-import android.widget.ImageView;
+import androidx.annotation.UiThread;
 
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.Image;
-import com.amazon.apl.android.RenderingContext;
-import com.amazon.apl.android.bitmap.BitmapCreationException;
-import com.amazon.apl.android.bitmap.IBitmapCache;
-import com.amazon.apl.android.bitmap.IBitmapFactory;
-import com.amazon.apl.android.image.ImageBitmapKey;
+import com.amazon.apl.android.functional.Consumer;
 import com.amazon.apl.android.image.ImageProcessingAsyncTask;
-import com.amazon.apl.android.image.ImageScaleCalculator;
+import com.amazon.apl.android.image.ProcessedImageBitmapKey;
+import com.amazon.apl.android.image.filters.RenderScriptProvider;
 import com.amazon.apl.android.image.filters.RenderScriptWrapper;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.LazyImageLoader;
+import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.enums.ImageScale;
 import com.amazon.apl.enums.PropertyKey;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> {
@@ -43,12 +42,12 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
 
     private ImageViewAdapter() {
         super();
-        // TODO update refine applying properties for Image
-        putPropertyFunction(PropertyKey.kPropertyOverlayColor, this::initImageLoading);
+        putPropertyFunction(PropertyKey.kPropertyOverlayGradient, this::applyOverlayGradient);
+        putPropertyFunction(PropertyKey.kPropertyOverlayColor, this::applyOverlayColor);
         putPropertyFunction(PropertyKey.kPropertySource, this::initImageLoading);
-        putPropertyFunction(PropertyKey.kPropertyAlign, this::initImageLoading);
-        putPropertyFunction(PropertyKey.kPropertyBorderRadius, this::initImageLoading);
-        putPropertyFunction(PropertyKey.kPropertyScale, this::initImageLoading);
+        putPropertyFunction(PropertyKey.kPropertyBorderRadius, this::applyBorderRadius);
+        putPropertyFunction(PropertyKey.kPropertyAlign, this::applyAlign);
+        putPropertyFunction(PropertyKey.kPropertyScale, this::applyScale);
     }
 
     public static ImageViewAdapter getInstance() {
@@ -72,13 +71,44 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
     @Override
     public void applyAllProperties(Image component, APLImageView view) {
         super.applyAllProperties(component, view);
+        applyAlign(component, view);
+        applyScale(component, view);
+        applyBorderRadius(component, view);
+        applyOverlayGradient(component, view);
+        applyOverlayColor(component, view);
         initImageLoading(component, view);
     }
 
-    @Override
-    public void requestLayout(Image component, APLImageView view) {
-        super.requestLayout(component, view);
-        initImageLoading(component, view);
+    private void applyAlign(Image component, APLImageView view) {
+        view.setImageAlign(component.getAlign());
+    }
+
+    private void applyScale(Image component, APLImageView view) {
+        ImageScale newScale = component.getScale();
+        ImageScale currentScale = view.getImageScale();
+        // When changing scale to/from none we need to do a fresh load
+        if (view.getDrawable() != null &&
+                newScale != currentScale &&
+                (newScale == ImageScale.kImageScaleNone || currentScale == ImageScale.kImageScaleNone)) {
+            initImageLoading(component, view);
+        }
+
+        view.setImageScale(component.getScale());
+    }
+
+    private void applyBorderRadius(Image component, APLImageView view) {
+        Dimension borderRadius = component.getBorderRadius();
+        if (borderRadius != null) {
+            view.setBorderRadius(borderRadius.value());
+        }
+    }
+
+    private void applyOverlayColor(Image component, APLImageView view) {
+        view.setOverlayColor(component.getOverlayColor());
+    }
+
+    private void applyOverlayGradient(Image component, APLImageView view) {
+        view.setOverlayGradient(component.getOverlayGradient());
     }
 
     /**
@@ -87,23 +117,24 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
      * @param view
      */
     private void initImageLoading(Image image, @NonNull APLImageView view) {
-        final RenderingContext renderingContext = image.getRenderingContext();
-        final ITelemetryProvider telemetryProvider = renderingContext.getTelemetryProvider();
-        final IBitmapCache bitmapCache = renderingContext.getBitmapCache();
+        APLTrace trace = image.getViewPresenter().getAPLTrace();
+        trace.startTrace(TracePoint.IMAGE_INIT_IMAGE_LOAD);
+        final ProcessedImageBitmapKey imageBitmapKey = ProcessedImageBitmapKey.create(image);
+        final Bitmap cachedResult = image.getRenderingContext().getBitmapCache().getBitmap(imageBitmapKey);
 
+        final ITelemetryProvider telemetryProvider = image.getRenderingContext().getTelemetryProvider();
         final int metricBitmapCacheHitCounter = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_COUNTER_BITMAP_CACHE_HIT, ITelemetryProvider.Type.COUNTER);
         final int metricBitmapCacheMissCounter = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_COUNTER_BITMAP_CACHE_MISS, ITelemetryProvider.Type.COUNTER);
-
-        final Bitmap cachedBitmap = bitmapCache.getBitmap(ImageBitmapKey.create(image));
-
-        if(cachedBitmap != null) {
-            setDrawableToImageView(view, image, cachedBitmap, true);
+        if (cachedResult != null) {
+            createAndSetDrawableToImageView(view, image, cachedResult);
             telemetryProvider.incrementCount(metricBitmapCacheHitCounter);
+            trace.endTrace();
             return;
         }
 
         telemetryProvider.incrementCount(metricBitmapCacheMissCounter);
-        LazyImageLoader.lazyLoadImage(this, image, view);
+        LazyImageLoader.initImageLoad(this, image, view);
+        trace.endTrace();
     }
 
     /**
@@ -111,7 +142,7 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
      * @param view       the view to draw into
      * @param sourceBmps the source bitmaps
      */
-    public void onImageLoad(@NonNull APLImageView view, @NonNull List<Bitmap> sourceBmps, boolean skipCache) {
+    public void onImageLoad(@NonNull APLImageView view, @NonNull List<Bitmap> sourceBmps) {
         if (sourceBmps.isEmpty()) {
             return;
         }
@@ -121,136 +152,72 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
             return;
         }
 
-        boolean shouldApplyFilters = true;
-        IBitmapFactory bitmapFactory = image.getBitmapFactory();
-        final List<Bitmap> sourceCopy = new ArrayList<>(sourceBmps.size());
-        for (int i = 0; i < sourceBmps.size(); i++) {
-            Bitmap original = sourceBmps.get(i);
-            try {
-                sourceCopy.add(bitmapFactory.createBitmap(original));
-            } catch (BitmapCreationException e) {
-                Log.e(TAG, "Unable to make copy for image processing. Not applying filters.", e);
-                // Don't apply filters to the original
-                shouldApplyFilters = false;
-                sourceCopy.add(original);
-            }
-        }
-
-        drawBitmapOnCanvas(view, sourceCopy, shouldApplyFilters, skipCache);
+        final boolean needsProcessing = image.getFilters().size() > 0 || image.getImageProcessor() != null;
+        drawBitmapOnCanvas(image, view, sourceBmps, needsProcessing);
     }
 
-    private void drawBitmapOnCanvas(@NonNull APLImageView view, @NonNull List<Bitmap> sourceBmps, boolean shouldApplyFilters, boolean skipCache) {
-        // Process image in an async task.
-        Image image = (Image) view.getPresenter().findComponent(view);
-        if (image == null) {
-            return;
+    private void drawBitmapOnCanvas(Image image, @NonNull APLImageView view, @NonNull List<Bitmap> sourceBmps, boolean needsProcessing) {
+        if (needsProcessing) {
+            ImageProcessingAsyncTask.ImageProcessingAsyncParams.Builder builder = ImageProcessingAsyncTask.ImageProcessingAsyncParams.builder()
+                    .sources(image.getSourceUrls())
+                    .bounds(image.getInnerBounds())
+                    .bitmapFactory(image.getBitmapFactory())
+                    .bitmaps(sourceBmps)
+                    .imageProcessor(image.getImageProcessor())
+                    .telemetryProvider(image.getRenderingContext().getTelemetryProvider())
+                    .onProcessingFinished((Bitmap result) -> createAndSetDrawableToImageView(view, image, result))
+                    .extensionImageFilterCallback(image.getExtensionImageFilterCallback())
+                    .filters(image.getFilters())
+                    .imageBitmapKey(ProcessedImageBitmapKey.create(image))
+                    .bitmapCache(image.getRenderingContext().getBitmapCache())
+                    .renderScriptWrapper(new RenderScriptWrapper(new RenderScriptProvider(RenderScript::create, view.getContext())));
+
+            ImageProcessingAsyncTask.ImageProcessingAsyncParams params = builder.build();
+
+            clearAsyncTask(view);
+            ImageProcessingAsyncTask asyncTask = new ImageProcessingAsyncTask();
+            view.setImageProcessingAsyncTask(asyncTask);
+            asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
+        } else {
+            final Bitmap result = sourceBmps.get(sourceBmps.size() - 1);
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                createAndSetDrawableToImageView(view, image, result);
+            } else {
+                view.post(() -> createAndSetDrawableToImageView(view, image, result));
+            }
         }
-
-        // Do not proceed if the list is empty.
-        if (sourceBmps.isEmpty()) {
-            return;
-        }
-
-        ImageProcessingAsyncTask.ImageProcessingAsyncParams.Builder builder = ImageProcessingAsyncTask.ImageProcessingAsyncParams.builder()
-                .sources(image.getSources())
-                .bounds(image.getInnerBounds())
-                .imageScale(image.getScale())
-                .imageAlign(image.getAlign())
-                .bitmapFactory(image.getBitmapFactory())
-                .bitmaps(sourceBmps)
-                .imageProcessor(image.getImageProcessor())
-                .telemetryProvider(image.getRenderingContext().getTelemetryProvider())
-                .onFinishRunnable(new BitmapRunnable(this, view, image, skipCache))
-                .extensionImageFilterCallback(image.getExtensionImageFilterCallback())
-                .renderScriptWrapper(new RenderScriptWrapper(view.getContext()));
-        if (shouldApplyFilters) {
-            // These can impact the original bitmaps, so in a situation near OOM we don't apply them.
-            builder.overlayColor(image.getOverlayColor())
-                    .overlayGradient(image.getOverlayGradient())
-                    .filters(image.getFilters());
-        }
-
-        ImageProcessingAsyncTask.ImageProcessingAsyncParams params = builder.build();
-
-        clearAsyncTask(true, view);
-        ImageProcessingAsyncTask asyncTask = new ImageProcessingAsyncTask();
-        view.setImageProcessingAsyncTask(asyncTask);
-        asyncTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, params);
     }
 
     /**
      * Cancel pending or running async tasks and clear them.
      */
-    public synchronized void clearAsyncTask(boolean mayInterruptIfRunning, APLImageView imageView) {
+    public synchronized void clearAsyncTask(APLImageView imageView) {
         AsyncTask asyncTask = imageView.getImageProcessingAsyncTask();
         if (asyncTask != null) {
-            asyncTask.cancel(mayInterruptIfRunning);
+            asyncTask.cancel(true);
             imageView.setImageProcessingAsyncTask(null);
         }
     }
 
-    private void setDrawableToImageView(@NonNull APLImageView view, @NonNull Image image, @NonNull Bitmap scaledBitmap, boolean skipCache) {
-        if (!skipCache) {
-            image.getRenderingContext().getBitmapCache().putBitmap(ImageBitmapKey.create(image), scaledBitmap);
-        }
+    @UiThread
+    private void createAndSetDrawableToImageView(@NonNull APLImageView view, @NonNull Image image, @NonNull Bitmap bitmap) {
+        // Setting the drawable on the ImageView triggers a requestLayout() call
+        // because it thinks the width/height of the ImageView are changing.
+        //
+        // For APL Image (without a shadow) the bounds are fixed and don't depend on the Drawable,
+        // meaning the layout pass is not necessary.
+        //
+        // To avoid it we temporarily ignore layout requests.
+        view.setLayoutRequestsEnabled(image.shouldDrawBoxShadow());
 
-        view.setImageDrawable(getBitmapDrawable(scaledBitmap, image, view));
+        view.setImageDrawable(new BitmapDrawable(view.getResources(), bitmap));
         view.setImageProcessingAsyncTask(null);
+
+        view.setLayoutRequestsEnabled(true);
     }
 
-    private RoundedBitmapDrawable getBitmapDrawable(Bitmap bitmap, Image image, ImageView view) {
-        // Create a drawable to contain the bitmap.
-        RoundedBitmapDrawable rbd = RoundedBitmapDrawableFactory.create(view.getResources(), bitmap);
-        rbd.setGravity(ImageScaleCalculator.getGravity(image.getAlign()));
-
-        Dimension borderRadius = image.getBorderRadius();
-        if (borderRadius != null) {
-            rbd.setCornerRadius(borderRadius.value());
-        }
-
-        // Now that the bitmap has been loaded, we can draw the shadow bitmap
-        if (image.hasShadow()) {
-            image.setShouldDrawBoxShadow(true);
-            image.setShadowBounds(rbd.getBitmap(), image.getAlign());
-            ((View) view.getParent()).invalidate();
-        }
-        return rbd;
-    }
-
-    public static class BitmapRunnable implements Runnable {
-
-        private final ImageViewAdapter mAdapter;
-        private final APLImageView mView;
-        private final Image mImage;
-        private Bitmap mBitmap;
-        private final boolean mSkipCache;
-        private boolean mProcessingSuccessful;
-
-        public void onSuccess(Bitmap bitmap) {
-            mBitmap = bitmap;
-            mProcessingSuccessful = true;
-        }
-
-        public void onFailure(Bitmap bitmap) {
-            mBitmap = bitmap;
-            mProcessingSuccessful = false;
-        }
-
-        public BitmapRunnable(ImageViewAdapter adapter, APLImageView view, Image image, boolean skipCache) {
-            mAdapter = adapter;
-            mView = view;
-            mImage = image;
-            mSkipCache = skipCache;
-        }
-
-        @Override
-        public void run() {
-            // Skip caching result if we're in error state
-            mAdapter.setDrawableToImageView(mView, mImage, mBitmap, shouldSkipCache());
-        }
-        
-        private boolean shouldSkipCache() {
-            return mSkipCache || !mProcessingSuccessful;
-        }
-    }
+    /**
+     * Function to execute on result of Bitmap processing.
+     */
+    public interface ImageProcessingFinished extends Consumer<Bitmap> { }
 }

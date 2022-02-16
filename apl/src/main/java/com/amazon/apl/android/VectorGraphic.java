@@ -10,8 +10,10 @@ import androidx.annotation.Nullable;
 import android.net.Uri;
 import android.util.Log;
 
+import com.amazon.apl.android.content.MediaCallbackContentRetrieverDecorator;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.VectorGraphicAlign;
 import com.amazon.apl.enums.VectorGraphicScale;
@@ -43,15 +45,18 @@ public class VectorGraphic extends Component{
      * @return
      */
     public IContentRetriever<Uri, String> getContentRetriever() {
-        return mContentRetriever;
+        return MediaCallbackContentRetrieverDecorator.create(this.getViewPresenter(), mContentRetriever);
     }
 
     /**
      * @return The URL to download the image from.
      */
     @Nullable
-    public final String getSource() {
-        return mProperties.getString(PropertyKey.kPropertySource);
+    public final UrlRequests.UrlRequest getSourceRequest() {
+        UrlRequests requests = mProperties.getUrlRequests(PropertyKey.kPropertySource);
+        if (requests.size() == 0) return null;
+        return requests.at(0);
+
     }
 
     public void updateGraphic(String content) {

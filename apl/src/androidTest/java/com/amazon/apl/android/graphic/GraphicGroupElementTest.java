@@ -284,7 +284,7 @@ public class GraphicGroupElementTest extends AbstractDocUnitTest {
         // Run draw method
         Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         PathRenderer pathRenderer = new PathRenderer(graphicContainerElement);
-        pathRenderer.applyProperties();
+        pathRenderer.applyBaseAndViewportDimensions();
         pathElement1.applyProperties();  // update paint objects (for patterns)
         pathRenderer.draw(new Canvas(bitmap), bitmap.getWidth(), bitmap.getHeight(), component.getRenderingContext().getBitmapFactory());
 

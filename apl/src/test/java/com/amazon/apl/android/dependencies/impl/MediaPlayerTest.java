@@ -6,8 +6,10 @@
 package com.amazon.apl.android.dependencies.impl;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
+import android.net.Uri;
 import android.util.Log;
 import android.view.TextureView;
 
@@ -21,6 +23,7 @@ import com.amazon.apl.enums.VideoScale;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
 import org.robolectric.Robolectric;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowAudioManager;
@@ -33,6 +36,7 @@ import org.robolectric.util.Scheduler;
 
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 
@@ -44,8 +48,10 @@ import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.Me
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.RELEASED;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.TRACK_UPDATE;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Robolectric.buildActivity;
 import static org.robolectric.Shadows.shadowOf;
@@ -63,6 +69,8 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     private Scheduler mScheduler;
     private Queue<MediaState> mExpectedStates;
     private MediaSources mMediaSources;
+    @Mock
+    private Context mContext;
 
     @Before
     public void setup() {
@@ -80,7 +88,7 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         android.media.MediaPlayer mMediaPlayer = Shadow.newInstanceOf(android.media.MediaPlayer.class);
         mShadowMediaPlayer = shadowOf(mMediaPlayer);
         MediaInfo mInfo = new MediaInfo(TRACK_TOTAL_DURATION_MS, PREPARATION_DELAY_MS);
-        mAplMediaPlayer = new MediaPlayer(mMediaPlayer, mTextureView, mAudioManager);
+        mAplMediaPlayer = new MediaPlayer(mMediaPlayer, mTextureView, mContext, mAudioManager);
         mAplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackForeground);
         mAplMediaPlayer.setVideoScale(VideoScale.kVideoScaleBestFit);
         mAplMediaPlayer.addMediaStateListener(mListener);
@@ -138,6 +146,16 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     }
 
     @Test
+    public void testPlay_singleTrack_withHeaders() {
+        Log.d(TAG, "Testing play_singleTrack");
+        Map<String, String> headers = Collections.singletonMap("headerKey", "headerValue");
+        setupMediaSources(1, 0, 0, 0, headers);
+        initExpectedStatesForPlay();
+        mAplMediaPlayer.setMediaSources(mMediaSources);
+        testPlayInternal();
+    }
+
+    @Test
     public void testPlay_multipleTracks() {
         Log.d(TAG, "Testing play_multipleTracks");
         setupMediaSources(10, 0, 0, 0);
@@ -172,6 +190,7 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         mAplMediaPlayer.setMediaSources(mMediaSources);
         testPlayInternal();
     }
+
 
     @Test
     public void testPause() {
@@ -390,13 +409,18 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     }
 
     private void setupMediaSources(int count, int duration, int repeatCount, int offset) {
+        setupMediaSources(count, duration, repeatCount, offset, Collections.emptyMap());
+    }
+
+    private void setupMediaSources(int count, int duration, int repeatCount, int offset, Map<String, String> headers) {
         mMediaSources = mock(MediaSources.class);
         MediaSources.MediaSource mediaSource = mock(MediaSources.MediaSource.class);
         when(mediaSource.url()).thenReturn(VIDEO_URL);
         when(mediaSource.duration()).thenReturn(duration);
         when(mediaSource.repeatCount()).thenReturn(repeatCount);
         when(mediaSource.offset()).thenReturn(offset);
-        
+        when(mediaSource.headers()).thenReturn(headers);
+
         when(mMediaSources.size()).thenReturn(count);
         when(mMediaSources.at(anyInt())).thenReturn(mediaSource);
     }

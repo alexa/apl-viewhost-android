@@ -45,11 +45,11 @@ public class CompatFontResolver implements IFontResolver {
 
     @Override
     public void initialize() {
-          // heavy initialization
-          boolean result = FontListParser.initialize();
+        // heavy initialization
+        boolean result = FontListParser.initialize();
 
-          if (!result) {
-              Log.e(TAG, "Failed to load system fonts");
-          }
+        if (!result) {
+            Log.e(TAG, "Failed to load system fonts");
+        }
     }
 }

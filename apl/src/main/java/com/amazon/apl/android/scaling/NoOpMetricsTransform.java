@@ -49,4 +49,9 @@ public class NoOpMetricsTransform implements IMetricsTransform {
     public int getViewportOffsetY() {
         return 0;
     }
+
+    @Override
+    public ViewportMetrics getUnscaledMetrics() {
+        return null;
+    }
 }

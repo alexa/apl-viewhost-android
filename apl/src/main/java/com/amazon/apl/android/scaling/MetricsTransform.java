@@ -5,7 +5,7 @@
 
 package com.amazon.apl.android.scaling;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.ViewportMode;
 
 /**
@@ -37,6 +37,7 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
      * @return the viewport metrics after scaling
      */
     public ViewportMetrics getScaledMetrics() {
+        // TODO this getter is repeatedly called per metrics property, optimize!
         return ViewportMetrics.builder()
                 .width(Math.round(nPixelWidth(getNativeHandle())))
                 .height(Math.round(nPixelHeight(getNativeHandle())))
@@ -49,10 +50,21 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
     }
 
     /**
+     * @return The unscaled viewport metrics.
+     */
+    @Override
+    public ViewportMetrics getUnscaledMetrics() {
+        return mMetrics;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public float toCore(float value) {
+        if (value == 0f) {
+            return 0f;
+        }
         return nToCore(getNativeHandle(), value);
     }
 
@@ -61,6 +73,9 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
      */
     @Override
     public float toViewhost(float value) {
+        if (value == 0f) {
+            return 0f;
+        }
         return nToViewhost(getNativeHandle(), value);
     }
 

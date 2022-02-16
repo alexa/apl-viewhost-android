@@ -8,7 +8,7 @@ package com.amazon.apl.android.primitive;
 import android.graphics.Color;
 import androidx.annotation.Nullable;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.image.filters.BlurFilterOperation;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.ColorUtils;

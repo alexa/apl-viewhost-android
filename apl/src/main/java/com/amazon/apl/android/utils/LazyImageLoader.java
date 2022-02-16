@@ -6,14 +6,12 @@
 package com.amazon.apl.android.utils;
 
 import android.graphics.Bitmap;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import com.amazon.apl.android.Image;
 import com.amazon.apl.android.component.ImageViewAdapter;
 import com.amazon.apl.android.dependencies.IImageLoader;
-import com.amazon.apl.android.listeners.OnImageAttachStateChangeListener;
+import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.views.APLImageView;
 import com.amazon.apl.enums.ImageScale;
 
@@ -24,18 +22,6 @@ import java.util.List;
 public class LazyImageLoader {
 
     private static final String TAG = "LazyImageLoader";
-    /**
-     * The method triggers the load of the image when the view becomes part of the view tree.
-     *
-     * @param view The view to display the image.
-     */
-    public static void lazyLoadImage(ImageViewAdapter adapter, Image image, APLImageView view) {
-        if (view.isAttachedToWindow()) {
-            initImageLoad(adapter, image, view);
-        } else {
-            view.setOnImageAttachStateChangeListener(new OnImageAttachStateChangeListener(adapter, image, view));
-        }
-    }
 
     /**
      * Starts the image load.
@@ -43,16 +29,18 @@ public class LazyImageLoader {
      * @param view The view to display the image.
      */
     public static void initImageLoad(ImageViewAdapter adapter, Image image, APLImageView view) {
+        if (view.getDrawable() != null) {
+            view.setImageDrawable(null);
+            // Clear the resources for this view if we're loading a new bitmap
+            LazyImageLoader.clearImageResources(adapter, image, view);
+        }
+
         boolean needsScaling = (image.getScale() != ImageScale.kImageScaleNone);
 
         IImageLoader provider = image.getImageLoader(view.getContext());
-        List<String> sources = image.getSources();
+        List<UrlRequests.UrlRequest> sources = image.getSourceRequests();
         if (sources.size() > 0) {
-            // TODO
-            //  Provide generic Targets instead of ViewTargets to enable simultaneous loading of source URLs
-            //  Glide internally uses the View to clear loads if called more than once before a load finishes.
-            //  See https://github.com/bumptech/glide/issues/514
-            LoadImage loadImage = new LoadImage(adapter, view, sources, provider, needsScaling);
+            ImageLoad loadImage = new ImageLoad(adapter, view, sources, provider, needsScaling);
             loadImage.load();
         }
     }
@@ -65,67 +53,118 @@ public class LazyImageLoader {
      */
     public static void clearImageResources(ImageViewAdapter imageViewAdapter, Image image, APLImageView imageView) {
         IImageLoader provider = image.getImageLoader(imageView.getContext());
-        imageViewAdapter.clearAsyncTask(true, imageView);
+        imageViewAdapter.clearAsyncTask(imageView);
         if(provider != null) {
             provider.clear(imageView);
         }
     }
 
     /**
-     * Loads an image into the array of bitmaps.
+     * Iteratively loads a list of {@link com.amazon.apl.android.primitive.UrlRequests.UrlRequest}
+     * into an array of Bitmaps.
      */
-    private static class LoadImage implements IImageLoader.LoadImageCallback2 {
+    private static class ImageLoad {
         private final ImageViewAdapter mImageViewAdapter;
         private final APLImageView mImageView;
         private final IImageLoader mImageLoader;
-        private final List<String> mSources = new ArrayList<>();
-        private final List<String> mPendingSources = new ArrayList<>();
+        private final List<UrlRequests.UrlRequest> mSources = new ArrayList<>();
         private final Bitmap[] mBitmaps;
         private final boolean mNeedsScaling;
-        private boolean mSkipCache = false;
 
-        LoadImage(ImageViewAdapter imageViewAdapter, APLImageView imageView, List<String> sources, IImageLoader loader, boolean needsScaling) {
+        ImageLoad(ImageViewAdapter imageViewAdapter, APLImageView imageView, List<UrlRequests.UrlRequest> sources, IImageLoader loader, boolean needsScaling) {
             mImageViewAdapter = imageViewAdapter;
             mImageView = imageView;
             mImageLoader = loader;
             mNeedsScaling = needsScaling;
-            mSources.addAll(sources);
-            mPendingSources.addAll(sources);
             mBitmaps = new Bitmap[sources.size()];
+            mSources.addAll(sources);
         }
 
-        /**
-         * Starts the image load.
-         */
         public void load() {
-            mImageLoader.loadImage(mSources.get(0), mImageView, this, mNeedsScaling);
+            for (int i = 0; i < mSources.size(); i++) {
+                final int index = i;
+                IImageLoader.LoadImageCallback2 callback = new LoadImageCallback(mImageView, (bitmap) -> {
+                    mBitmaps[index] = bitmap;
+                    boolean allLoaded = true;
+                    for (Bitmap loaded : mBitmaps) {
+                        if (loaded == null) {
+                            allLoaded = false;
+                            break;
+                        }
+                    }
+
+                    if (allLoaded) {
+                        mImageViewAdapter.onImageLoad(mImageView, Arrays.asList(mBitmaps));
+                    }
+                });
+
+                IImageLoader.LoadImageParams load = IImageLoader.LoadImageParams.builder()
+                        .path(mSources.get(index).url())
+                        .imageView(mImageView)
+                        .needsScaling(mNeedsScaling)
+                        // TODO [ISSUE-22804] upscaling should never be allowed, but we need to preserve
+                        //  existing behavior where both bitmaps are scaled to fill the target view
+                        //  prior to Filters.
+                        .allowUpscaling(mSources.size() > 1)
+                        .headers(mSources.get(index).headers())
+                        .callback(callback)
+                        .build();
+                mImageLoader.loadImage(load);
+            }
+        }
+    }
+
+    /**
+     * Handles the callback from loading a single source, and notifies the APLViewPresenter
+     * that the media has loaded, as well as returns the Bitmap result to the given {@link BitmapAcceptor}
+     */
+    private static class LoadImageCallback implements IImageLoader.LoadImageCallback2 {
+        private final APLImageView mImageView;
+        private final BitmapAcceptor mResult;
+        private boolean mHasReturned = false;
+
+        LoadImageCallback(APLImageView imageView, BitmapAcceptor result) {
+            mImageView = imageView;
+            mResult = result;
         }
 
         @Override
         public synchronized void onSuccess(Bitmap bitmap, String source) {
-            mPendingSources.remove(source);
-            mBitmaps[mSources.indexOf(source)] = bitmap;
-            if (mPendingSources.isEmpty()) {
-                mImageViewAdapter.onImageLoad(mImageView, Arrays.asList(mBitmaps), mSkipCache);
-            } else {
-                final String nextSource = mPendingSources.get(0);
-                // TODO
-                //  Provide generic Targets instead of ViewTargets to enable simultaneous loading of source URLs
-                //  Glide internally uses the View to clear loads if called more than once before a load finishes.
-                //  See https://github.com/bumptech/glide/issues/514
-                // Load next source
-                Handler handler = new Handler(Looper.myLooper());
-                handler.post(() -> mImageLoader.loadImage(nextSource, mImageView, this, mNeedsScaling));
-            }
+            mImageView.getPresenter().mediaLoaded(source);
+            setBitmap(bitmap);
         }
 
         @Override
         public synchronized void onError(Exception exception, String source) {
-            // Call onImageLoad call with a black image as per the spec:
+            onError(exception, 0, source);
+        }
+
+        @Override
+        public synchronized void onError(Exception exception, int errorCode, String source) {
+            String errorMessage = "";
+            if (exception != null) {
+                errorMessage = exception.getMessage();
+            }
+            mImageView.getPresenter().mediaLoadFailed(source, errorCode, errorMessage);
             Log.e(TAG, "error loading image", exception);
-            mSkipCache = true;
+            renderErrorBitmap(source);
+        }
+
+        private synchronized void renderErrorBitmap(String source) {
+            // Call onImageLoad call with a black image as per the spec:
             Bitmap errorBitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-            onSuccess(errorBitmap, source);
+            this.setBitmap(errorBitmap);
+        }
+
+        private synchronized void setBitmap(Bitmap bitmap) {
+            // Callbacks should not be invoked more than once
+            if (mHasReturned) return;
+            this.mResult.accept(bitmap);
+            mHasReturned = true;
+        }
+
+        interface BitmapAcceptor {
+            void accept(Bitmap bitmap);
         }
     }
 }

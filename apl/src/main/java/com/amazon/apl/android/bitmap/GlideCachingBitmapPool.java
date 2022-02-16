@@ -5,28 +5,41 @@
 
 package com.amazon.apl.android.bitmap;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 
+import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
-import com.bumptech.glide.load.engine.bitmap_recycle.LruBitmapPool;
 
 /**
  * Caching bitmap pool.
  *
- * This implementation uses LruBitmapPool from Glide, a third party library.
+ * This is a wrapper around Glide's BitmapPool.  Glide is a fast and efficient image loading
+ * library for Android focused on smooth scrolling.
  *
  * See more: https://bumptech.github.io/glide/
  */
 public class GlideCachingBitmapPool implements IBitmapPool {
-    BitmapPool pool;
+    private final BitmapPool pool;
+    private static final String TAG = "GlideCachingBitmapPool";
 
     /**
-     * Create a bitmap pool with a given maximum pool size.
+     * Create a caching bitmap pool from a given Android context.
      *
-     * @param maxPoolSize maximum pool size
+     * @param context Android context
+     * @return new GlideCachingBitmapPool instance
      */
-    public GlideCachingBitmapPool(long maxPoolSize) {
-        pool = new LruBitmapPool(maxPoolSize);
+    public static GlideCachingBitmapPool fromContext(Context context) {
+        return new GlideCachingBitmapPool(Glide.get(context).getBitmapPool());
+    }
+
+    /**
+     * Create a new instance from a given Glide bitmap pool.
+     *
+     * @param bitmapPool bitmap pool
+     */
+    public GlideCachingBitmapPool(BitmapPool bitmapPool) {
+        this.pool = bitmapPool;
     }
 
     @Override

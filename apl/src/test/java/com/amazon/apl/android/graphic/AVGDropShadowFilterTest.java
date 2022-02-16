@@ -6,6 +6,7 @@
 package com.amazon.apl.android.graphic;
 
 import android.graphics.Bitmap;
+import android.graphics.Paint;
 
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
@@ -14,6 +15,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.robolectric.annotation.Config;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -28,7 +30,7 @@ public class AVGDropShadowFilterTest extends ViewhostRobolectricTest {
     public void before() {
         // Bitmap.extractAlpha() should return a bitmap Config.ALPHA_8 (which is 1 byte per pixel),
         // but Robolectric's Canvas implementation can only work on bitmaps of 4 bytes per pixel.
-        when(mMockBitmap.extractAlpha()).thenReturn(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888));
+        when(mMockBitmap.extractAlpha(any(Paint.class), any())).thenReturn(Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888));
     }
 
     @Test
@@ -46,7 +48,7 @@ public class AVGDropShadowFilterTest extends ViewhostRobolectricTest {
 
         dropShadowFilter.apply(mMockBitmap, 1, 1);
 
-        verify(mMockBitmap).extractAlpha();
+        verify(mMockBitmap).extractAlpha(any(Paint.class), any());
     }
 
     @Test
@@ -55,7 +57,7 @@ public class AVGDropShadowFilterTest extends ViewhostRobolectricTest {
 
         dropShadowFilter.apply(mMockBitmap, 0, 0);
 
-        verify(mMockBitmap).extractAlpha();
+        verify(mMockBitmap).extractAlpha(any(Paint.class), any());
     }
 
     @Test
@@ -64,7 +66,7 @@ public class AVGDropShadowFilterTest extends ViewhostRobolectricTest {
 
         dropShadowFilter.apply(mMockBitmap, 1, 1);
 
-        verify(mMockBitmap).extractAlpha();
+        verify(mMockBitmap).extractAlpha(any(Paint.class), any());
     }
 
 }

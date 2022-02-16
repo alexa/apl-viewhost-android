@@ -7,13 +7,9 @@ package com.amazon.apl.android;
 
 import android.net.Uri;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.amazon.apl.android.bitmap.GlideCachingBitmapPool;
-import com.amazon.apl.android.bitmap.IBitmapPool;
-import com.amazon.apl.android.bitmap.LruBitmapCache;
-import com.amazon.apl.android.bitmap.IBitmapCache;
-import com.amazon.apl.android.bitmap.LruBitmapCache;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IContentDataRetriever;
 import com.amazon.apl.android.dependencies.IDataSourceContextListener;
@@ -28,8 +24,10 @@ import com.amazon.apl.android.dependencies.IOpenUrlCallback;
 import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.IScreenLockListener;
 import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
+import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
@@ -37,7 +35,6 @@ import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.providers.impl.GlideImageLoaderProvider;
-import com.amazon.apl.android.providers.impl.HttpRetrieverProvider;
 import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
@@ -59,7 +56,7 @@ import java.util.LinkedList;
  * Some examples of callbacks are:
  *  1) Finish callback for responding to Finish events (see {@link IOnAplFinishCallback})
  *  2) SendEvent callback for responding to Send events (see {@link ISendEventCallback})
- *  3) DataSourceFetch callbacck for responding to data source fetch requests (see {@link IDataSourceFetchCallback})
+ *  3) DataSourceFetch callback for responding to data source fetch requests (see {@link IDataSourceFetchCallback})
  *
  * Some examples of listeners are:
  *  1) VisualContext listener for updating the Alexa visual context (see {@link IVisualContextListener})
@@ -67,22 +64,38 @@ import java.util.LinkedList;
  */
 @AutoValue
 public abstract class APLOptions {
+
     // Providers
     public abstract ITelemetryProvider getTelemetryProvider();
     public abstract IImageLoaderProvider getImageProvider();
     public abstract AbstractMediaPlayerProvider getMediaPlayerProvider();
     public abstract ITtsPlayerProvider getTtsPlayerProvider();
 
+    @Nullable
     public abstract IImageProcessor getImageProcessor();
 
     // Callbacks
     public abstract IOnAplFinishCallback getOnAplFinishCallback();
     public abstract IOpenUrlCallback getOpenUrlCallback();
-    public abstract ISendEventCallback getSendEventCallback();
-    public abstract IExtensionEventCallback getExtensionEventCallback();
+    public abstract ISendEventCallbackV2 getSendEventCallbackV2();
     public abstract IDataSourceFetchCallback getDataSourceFetchCallback();
     public abstract IDataSourceErrorCallback getDataSourceErrorCallback();
+
+    /**
+     * @deprecated Use {@link com.amazon.alexaext.ExtensionRegistrar}
+     */
+    @Deprecated
+    public abstract IExtensionEventCallback getExtensionEventCallback();
+
+    /**
+     * @deprecated Use {@link com.amazon.alexaext.ExtensionRegistrar}
+     */
+    @Deprecated
     public abstract IExtensionImageFilterCallback getExtensionImageFilterCallback();
+
+    public abstract ExtensionMediator.IExtensionGrantRequestCallback getExtensionGrantRequestCallback();
+
+    public abstract IExtensionRegistration getExtensionRegistration();
 
     // Content Retrievers
     public abstract IPackageLoader getPackageLoader();
@@ -93,10 +106,9 @@ public abstract class APLOptions {
     public abstract IVisualContextListener getVisualContextListener();
     public abstract IScreenLockListener getScreenLockListener();
     public abstract IDataSourceContextListener getDataSourceContextListener();
+
     // Other
     public abstract IImageUriSchemeValidator getImageUriSchemeValidator();
-    public abstract IBitmapCache getBitmapCache();
-    public abstract IBitmapPool getBitmapPool();
 
     /**
      * @return options that are {@link IDocumentLifecycleListener}s.
@@ -118,25 +130,28 @@ public abstract class APLOptions {
         return new AutoValue_APLOptions.Builder()
                 .dataSourceErrorCallback(errors -> {})
                 .dataSourceFetchCallback((type, payload) -> {})
-                .extensionEventCallback((name, uri, source, custom, resultCallback) -> {})
-                .imageProcessor((sources, bitmaps) -> bitmaps)
+                .imageProcessor(null)
                 .imageProvider(new GlideImageLoaderProvider())
                 .imageUriSchemeValidator(new DefaultUriSchemeValidator())
                 .mediaPlayerProvider(new MediaPlayerProvider())
                 .onAplFinishCallback(() -> {})
-                .extensionImageFilterCallback((sourceBitmap, destinationBitmap, params) -> sourceBitmap)
                 .openUrlCallback((url, result)-> result.onResult(false))
+                .extensionEventCallback((name, uri, source, custom, resultCallback) -> {})
+                .extensionGrantRequestCallback((uri) -> true)
+                .extensionImageFilterCallback((sourceBitmap, destinationBitmap, params) -> sourceBitmap)
+                .extensionRegistration(new IExtensionRegistration() {
+                    @Override
+                    public void registerExtensions(@NonNull Content content, @NonNull RootConfig rootConfig) {}
+                })
                 .screenLockListener(status -> {})
-                .sendEventCallback((args, components, sources) -> {})
+                .sendEventCallbackV2((args, components, sources, flags) -> {})
                 .telemetryProvider(NoOpTelemetryProvider.getInstance())
                 .ttsPlayerProvider(new NoOpTtsPlayerProvider())
                 .visualContextListener(visualContext -> {})
                 .dataSourceContextListener(dataSourceContext -> {})
                 .packageLoader((importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented."))
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
-                .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."))
-                .bitmapCache(new LruBitmapCache())
-                .bitmapPool(new GlideCachingBitmapPool(Runtime.getRuntime().maxMemory() / 32));
+                .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."));
     }
 
     @AutoValue.Builder
@@ -202,7 +217,18 @@ public abstract class APLOptions {
          * @param callback a callback for {@link com.amazon.apl.android.events.SendEvent}
          * @return this builder
          */
-        public abstract Builder sendEventCallback(ISendEventCallback callback);
+        public abstract Builder sendEventCallbackV2(ISendEventCallbackV2 callback);
+
+        /**
+         * Required to support SendEvents.
+         * Defaults to no-op
+         *
+         * @param callback a callback for {@link com.amazon.apl.android.events.SendEvent}
+         * @return this builder
+         */
+        public Builder sendEventCallback(ISendEventCallback callback) {
+            return sendEventCallbackV2((args, components, sources, flags) -> callback.onSendEvent(args, components, sources));
+        }
 
         /**
          * Required to support ExtensionEvents.
@@ -210,15 +236,29 @@ public abstract class APLOptions {
          *
          * @param callback a callback for {@link com.amazon.apl.android.events.ExtensionEvent}
          * @return this builder
+         *
+         * @deprecated use {@link com.amazon.alexaext.ExtensionRegistrar}
          */
+        @Deprecated
         public abstract Builder extensionEventCallback(IExtensionEventCallback callback);
+
+        /**
+         * Required to support granted extensions.
+         * Defaults to true meaning by default all extensions are granted.
+         * @param callback a callback for {@link com.amazon.apl.android.ExtensionMediator.IExtensionGrantRequestCallback}
+         * @return this builder
+         */
+        public abstract Builder extensionGrantRequestCallback(ExtensionMediator.IExtensionGrantRequestCallback callback);
 
         /**
          * Required to support {@link ExtensionFilterDefinition} registered with the {@link RootConfig}.
          *
          * @param callback a callback for ExtensionFilters.
          * @return this builder
+         *
+         * @deprecated use {@link com.amazon.alexaext.ExtensionRegistrar}
          */
+        @Deprecated
         public abstract Builder extensionImageFilterCallback(IExtensionImageFilterCallback callback);
 
         /**
@@ -275,17 +315,6 @@ public abstract class APLOptions {
         public abstract Builder imageUriSchemeValidator(IImageUriSchemeValidator validator);
 
         /**
-         * Defaults to {@link LruBitmapCache}.
-         *
-         * Any instance of IBitmapCache that implements {@link android.content.ComponentCallbacks2}
-         * will automatically get registered in onDocumentRender and onDocumentFinish
-         *
-         * @param bitmapCache the cache used to store image bitmaps in
-         * @return this builder.
-         */
-        public abstract Builder bitmapCache(IBitmapCache bitmapCache);
-
-        /**
          * Retriever for document imports.
          * @param packageLoader the package downloader
          * @return this builder.
@@ -306,15 +335,7 @@ public abstract class APLOptions {
          */
         public abstract Builder avgRetriever(IContentRetriever<Uri, String> avgRetriever);
 
-        /**
-         * Defaults to {@link GlideCachingBitmapPool}.
-         *
-         * @param bitmapPool the pool used to get bitmaps from
-         * @return this builder.
-         */
-        public abstract Builder bitmapPool(IBitmapPool bitmapPool);
-
-
+        public abstract Builder extensionRegistration(IExtensionRegistration registration);
 
         /**
          * Builds the options for this document.
@@ -338,7 +359,7 @@ public abstract class APLOptions {
 
                 @Override
                 public void error() {
-                    failureCallback.onFailure(source, "Error fetching avg source: " + source);
+                    failureCallback.onFailure(source, "Error fetching avg source");
                 }
             }));
             return this;

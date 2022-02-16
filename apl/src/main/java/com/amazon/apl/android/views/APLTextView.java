@@ -8,6 +8,7 @@ package com.amazon.apl.android.views;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.text.Layout;
 import android.text.StaticLayout;
 import android.view.Gravity;
 import android.view.View;
@@ -18,15 +19,14 @@ import androidx.annotation.UiThread;
 import com.amazon.apl.android.IAPLViewPresenter;
 
 /**
- * TextView extension that uses a StaticLayout for measureTextContent, layout, and rendering.
+ * TextView extension that uses a Text Layout for measureTextContent, layout, and rendering.
  */
 @SuppressLint("AppCompatCustomView")
 public class APLTextView extends View {
 
-    private final float mDensity;
 
-    // The StaticLayout that drives measurement and drawing for text.
-    private StaticLayout mLayout;
+    // The Layout that drives measurement and drawing for text.
+    private Layout mLayout;
 
     // The horizontal positional offset within the parent
     private int mDrawLeft = 0;
@@ -39,18 +39,13 @@ public class APLTextView extends View {
 
     public APLTextView(Context context, IAPLViewPresenter presenter) {
         super(context);
-        mDensity = presenter.getDensity();
     }
 
     /**
-     * @return The view StaticLayout.
+     * @return The view Layout.
      */
-    public StaticLayout getLayout() {
+    public Layout getLayout() {
         return mLayout;
-    }
-
-    public float getDensity() {
-        return mDensity;
     }
 
     /**
@@ -59,7 +54,7 @@ public class APLTextView extends View {
      * @param layout The layout.
      */
     @UiThread
-    public void setLayout(StaticLayout layout) {
+    public void setLayout(Layout layout) {
         mLayout = layout;
         invalidate();
     }
@@ -76,7 +71,7 @@ public class APLTextView extends View {
 
     /**
      * {@inheritDoc}
-     * Uses the StaticLayout to draw text.
+     * Uses the Layout to draw text.
      */
     @Override
     public void onDraw(@NonNull Canvas canvas) {

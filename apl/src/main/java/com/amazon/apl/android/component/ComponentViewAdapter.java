@@ -6,14 +6,15 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
-import androidx.annotation.CallSuper;
-import androidx.annotation.NonNull;
-import androidx.annotation.VisibleForTesting;
-import androidx.core.view.ViewCompat;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+import androidx.core.view.ViewCompat;
 
 import com.amazon.apl.android.APLAccessibilityDelegate;
 import com.amazon.apl.android.BuildConfig;
@@ -21,7 +22,9 @@ import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.functional.BiConsumer;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
+import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.enums.PropertyKey;
 
 import java.util.HashMap;
@@ -209,10 +212,11 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
      */
     @CallSuper
     public void requestLayout(C component, V view) {
+        APLTrace trace = component.getViewPresenter().getAPLTrace();
+        trace.startTrace(TracePoint.COMPONENT_REQUEST_LAYOUT);
         component.getViewPresenter().updateViewInLayout(component, view);
         applyPadding(component, view);
-        view.invalidate();
-        view.requestLayout();
+        trace.endTrace();
     }
 
     /**

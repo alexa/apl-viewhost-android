@@ -7,6 +7,8 @@ package com.amazon.apl.android.document;
 
 import android.graphics.Rect;
 
+import androidx.test.filters.SmallTest;
+
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.LiveMap;
 import com.amazon.apl.android.RootConfig;
@@ -26,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.amazon.apl.enums.PropertyKey.kPropertyText;
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -36,10 +38,12 @@ public class LiveMapTest extends LiveObjectTest {
     private LiveMap mLiveMap;
     private Text mText;
 
-    @Override
-    public long createBoundObjectHandle() {
-        LiveMap liveMap = LiveMap.create();
-        return liveMap.getNativeHandle();
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = LiveMap.create().getNativeHandle();
+
+        assertNativeHandle(handle);
     }
 
     @Override
@@ -71,7 +75,7 @@ public class LiveMapTest extends LiveObjectTest {
     }
 
     private String getText() {
-        return mText.getText(mText.mProperties.getStyledText(kPropertyText)).toString();
+        return mText.getText();
     }
 
     /**

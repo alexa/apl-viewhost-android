@@ -29,7 +29,6 @@ import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.primitive.Gradient;
-import com.amazon.apl.android.bitmap.LruBitmapCache;
 import com.amazon.apl.enums.GraphicPropertyKey;
 import com.amazon.apl.enums.ObjectType;
 
@@ -55,8 +54,6 @@ final class PathRenderer {
     private static final float SCALE_X_100_PCT = 1f;
     private static final float SCALE_Y_100_PCT = 1f;
 
-    private static IBitmapCache mBitmapCache = new LruBitmapCache();
-
     // Variables that only used temporarily inside the draw() call, so there
     // is no need for deep copying.
     @NonNull
@@ -65,11 +62,6 @@ final class PathRenderer {
     private final Path mRenderPath;
     private float mScaledWidth;
     private float mScaledHeight;
-
-    @Nullable
-    private transient Paint mFillPaint;
-    @Nullable
-    private transient PathMeasure mPathMeasure;
 
     /////////////////////////////////////////////////////
     // Variables below need to be copied (deep copy if applicable) for mutation.
@@ -107,12 +99,12 @@ final class PathRenderer {
         mRootAlpha = copy.mRootAlpha;
     }
 
-    void applyProperties() {
+    void applyBaseAndViewportDimensions() {
         applyBaseDimensions();
         applyViewportDimensions();
     }
 
-    void applyBaseDimensions() {
+    private void applyBaseDimensions() {
         mBaseWidth = mRootGroup.getWidthActual();
         mBaseHeight = mRootGroup.getHeightActual();
     }
@@ -373,7 +365,8 @@ final class PathRenderer {
         }
 
         FilterBitmapKey key = FilterBitmapKey.create(width, height, groupElement == null ? 0 : groupElement.hashCode());
-        Bitmap bitmap = mBitmapCache.getBitmap(key);
+        IBitmapCache bitmapCache = graphicElement.getRenderingContext().getBitmapCache();
+        Bitmap bitmap = bitmapCache.getBitmap(key);
 
         if(bitmap != null) {
             bitmap.eraseColor(Color.TRANSPARENT);
@@ -388,7 +381,7 @@ final class PathRenderer {
             return null;
         }
 
-        mBitmapCache.putBitmap(key, bitmap);
+        bitmapCache.putBitmap(key, bitmap);
         return bitmap;
     }
 

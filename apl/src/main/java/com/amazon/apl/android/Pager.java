@@ -33,7 +33,10 @@ public class Pager extends MultiChildComponent {
                 // Some documents use opacity of zero to indicate a page is not displayed
                 // Core interprets this item as not in the list of displayedChildren
                 // so we add it in here.
-                displayedChildren.add(getChildAt(getCurrentPage()));
+                Component currentPage = getChildAt(getCurrentPage());
+                if (currentPage != null) {
+                    displayedChildren.add(currentPage);
+                }
             }
         }
 
@@ -44,9 +47,6 @@ public class Pager extends MultiChildComponent {
         }
 
         final Navigation navigation = getNavigation();
-        if (navigation == Navigation.kNavigationNone) {
-            return displayedChildren;
-        }
 
         final int currentPage = getCurrentPage();
         if (navigation == Navigation.kNavigationForwardOnly && currentPage < getChildCount() - 1) {

@@ -26,10 +26,15 @@ import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.primitive.Radii;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScrollDirection;
+
+import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
+import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
+import static com.amazon.apl.android.providers.ITelemetryProvider.UNKNOWN_METRIC_ID;
 
 /**
  * Simple absolute layout.
@@ -38,10 +43,13 @@ import com.amazon.apl.enums.ScrollDirection;
 public class APLAbsoluteLayout extends ViewGroup {
     private static final String TAG = "APLAbsoluteLayout";
 
+    private final static String METRIC_INCORRECTLY_CLIPPED_COMPONENTS = TAG + ".incorrectlyClippedComponents";
+
     final IAPLViewPresenter mPresenter;
 
     private final ShadowBitmapRenderer mShadowRenderer;
     private Path mPath = new Path();
+    private int cIncorrectlyClippedComponents;
 
     /**
      * Construct an absolute layout for a Component.
@@ -54,6 +62,8 @@ public class APLAbsoluteLayout extends ViewGroup {
         setStaticTransformationsEnabled(true);
         mPresenter = presenter;
         mShadowRenderer = presenter.getShadowRenderer();
+        setOnHierarchyChangeListener(mPresenter);
+        cIncorrectlyClippedComponents = ITelemetryProvider.UNKNOWN_METRIC_ID;
     }
 
     /**
@@ -136,7 +146,9 @@ public class APLAbsoluteLayout extends ViewGroup {
             if (viewChild.getVisibility() != GONE) {
                 Component childComponent = mPresenter.findComponent(viewChild);
                 LayoutParams lp = (LayoutParams) viewChild.getLayoutParams();
-                viewChild.layout(lp.x, lp.y, lp.x + lp.width, lp.y + lp.height);
+                int scrolledX =  lp.x - mScrollOffsetX;
+                int scrolledY = lp.y - mScrollOffsetY;
+                viewChild.layout(scrolledX, scrolledY, scrolledX + lp.width, scrolledY + lp.height);
                 // There are situations when Core's component children count can
                 // be different than Viewhost's viewgroup children count for a
                 // moment. This is possible in the following cases:
@@ -147,9 +159,6 @@ public class APLAbsoluteLayout extends ViewGroup {
                     mShadowRenderer.prepareShadow(childComponent);
                 }
             }
-        }
-        if (component.hasProperty(PropertyKey.kPropertyScrollPosition)) {
-            updateScrollPosition(mScrollPosition, mScrollDirection);
         }
     }
 
@@ -178,8 +187,8 @@ public class APLAbsoluteLayout extends ViewGroup {
             this.setClipChildren(true);
 
             resetPath();
-            Radii radii = component.getProperties().getRadii(PropertyKey.kPropertyBorderRadii);
-            if (radii != null) {
+            if (component.getProperties().hasProperty(PropertyKey.kPropertyBorderRadii)) {
+                Radii radii = component.getProperties().getRadii(PropertyKey.kPropertyBorderRadii);
                 mPath.addRoundRect(new RectF(0, 0, width, height), radii.toFloatArray(), Path.Direction.CW);
             } else {
                 mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
@@ -189,6 +198,20 @@ public class APLAbsoluteLayout extends ViewGroup {
             resetPath();
             mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
         } else {
+            // This is APL <= 1.5, which is subject to the clipping quirk mentioned above.
+            // Check to see if the quirk is potentially impacting this component
+            int totalChildren = component.getChildCount();
+            int displayedChildren = component.getDisplayedChildCount();
+            if (displayedChildren < totalChildren) {
+                // The component has some non-visible children, this template will likely render
+                // differently before and after APL 1.6
+                ITelemetryProvider telemetryProvider = component.getRenderingContext().getTelemetryProvider();
+                if (cIncorrectlyClippedComponents == ITelemetryProvider.UNKNOWN_METRIC_ID) {
+                    cIncorrectlyClippedComponents = telemetryProvider.createMetricId(APL_DOMAIN, METRIC_INCORRECTLY_CLIPPED_COMPONENTS, COUNTER);
+                    telemetryProvider.incrementCount(cIncorrectlyClippedComponents, totalChildren - displayedChildren);
+                }
+            }
+
             mPath = null;
         }
     }
@@ -201,25 +224,31 @@ public class APLAbsoluteLayout extends ViewGroup {
         }
     }
 
-    private int mScrollPosition = 0;
+    private int mScrollOffsetX = 0;
+    private int mScrollOffsetY = 0;
     private ScrollDirection mScrollDirection;
 
-    public void updateScrollPosition(int scrollPosition, ScrollDirection scrollDirection) {
-        // TODO consider a different approach for handling scroll position.
-        //  This positions the views in the correct position post layout.
-        //  We cannot simply move the canvas in draw because Accessibility and Video rely on the
-        //  view's location on screen.
-
-        mScrollPosition = scrollPosition;
-        mScrollDirection = scrollDirection;
-        for (int i = 0; i < getChildCount(); i++) {
-            View child = getChildAt(i);
-            if (mScrollDirection == ScrollDirection.kScrollDirectionHorizontal) {
-                child.setTranslationX(-mScrollPosition);
-            } else {
-                child.setTranslationY(-mScrollPosition);
-            }
+    public void updateScrollDirection(ScrollDirection scrollDirection) {
+        if (mScrollDirection != scrollDirection) {
+            final int temp = mScrollOffsetX;
+            mScrollOffsetX = mScrollOffsetY;
+            mScrollOffsetY = temp;
+            mScrollDirection = scrollDirection;
         }
+    }
+
+    public void updateScrollPosition(int scrollPosition) {
+        if (mScrollDirection == ScrollDirection.kScrollDirectionHorizontal) {
+            mScrollOffsetX = scrollPosition;
+        } else {
+            mScrollOffsetY = scrollPosition;
+        }
+        requestLayout();
+    }
+
+    public void updateScrollPosition(int scrollPosition, ScrollDirection scrollDirection) {
+        updateScrollDirection(scrollDirection);
+        updateScrollPosition(scrollPosition);
     }
 
     @Override
@@ -288,15 +317,6 @@ public class APLAbsoluteLayout extends ViewGroup {
 
     public void attachView(View child) {
         attachViewToParent(child, -1, child.getLayoutParams());
-    }
-
-    @Override
-    public void onViewRemoved(View child) {
-        super.onViewRemoved(child);
-        Component childComponent = mPresenter.findComponent(child);
-        if (childComponent != null) {
-            APLLayout.traverseComponentHierarchy(childComponent, mPresenter::disassociateView);
-        }
     }
 
     @Override

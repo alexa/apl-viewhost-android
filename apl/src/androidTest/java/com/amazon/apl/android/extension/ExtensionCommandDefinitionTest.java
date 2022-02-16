@@ -8,39 +8,28 @@ package com.amazon.apl.android.extension;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.ExtensionCommandDefinition;
-import com.amazon.apl.android.document.BoundObjectDefaultTest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class ExtensionCommandDefinitionTest extends APLViewhostTest implements BoundObjectDefaultTest {
+public class ExtensionCommandDefinitionTest extends APLViewhostTest {
 
-    /**
-     * Create a handle to the bound object under test.  The tests should not hold
-     * a reference to the bound object to allow for gc and unbinding tests.
-     * Recommended pattern for this method:
-     * <p>
-     * Foo foo =  Foo.create();
-     * long handle = foo.getNativeHandle(); // do not in-line with return
-     * return handle;
-     *
-     * @return The handle BoundObject under test.
-     */
-    @Override
-    public long createBoundObjectHandle() {
-        ExtensionCommandDefinition extensionCommandDefinition = new ExtensionCommandDefinition("aplext:Test","MyDef");
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        long handle = extensionCommandDefinition.getNativeHandle();
-        return handle;
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = new ExtensionCommandDefinition("aplext:Test", "MyDef").getNativeHandle();
+
+        assertNativeHandle(handle);
     }
-
 
     @Test
     @SmallTest

@@ -30,6 +30,8 @@ public interface IBitmapCache {
     @Nullable
     Bitmap getBitmap(BitmapKey key);
 
+    void removeBitmapFromCache(BitmapKey key);
+
     /**
      * Get cache size. This could be the number of entries in the cache but should
      * preferably be the total size in bytes for better memory tracking

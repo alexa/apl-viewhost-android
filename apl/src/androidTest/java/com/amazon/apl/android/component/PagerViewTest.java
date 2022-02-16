@@ -9,6 +9,7 @@ import android.view.View;
 
 import androidx.test.espresso.IdlingRegistry;
 import androidx.test.espresso.IdlingResource;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -16,11 +17,11 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.MultiChildComponent;
-import com.amazon.apl.android.Text;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLTextView;
 
+import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,13 +32,16 @@ import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.swipeLeft;
 import static androidx.test.espresso.action.ViewActions.swipeRight;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
+import static androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
+import static org.hamcrest.Matchers.anything;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class PagerViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, MultiChildComponent> {
@@ -283,11 +287,14 @@ public class PagerViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, 
                 .perform(inflate(REQUIRED_PROPERTIES, componentProps))
                 .check(hasRootContext());
         APLAbsoluteLayout pager = mTestContext.getTestView();
-        View initialChild = pager.getChildAt(0);
-        assertNotNull(initialChild);
-        assertEquals(0f, initialChild.getAlpha(), 0.1f);
 
+        mIdlingResource = new APLViewIdlingResource(pager);
+        IdlingRegistry.getInstance().register(mIdlingResource);
+
+        // The animation length is 1000 ms, so we need to wait at least that long.
         onView(isRoot()).perform(waitFor(1000));
+
+        View initialChild = pager.getChildAt(0);
         assertEquals(initialChild, pager.getChildAt(0));
         assertEquals(1f, initialChild.getAlpha(), 0.01f);
     }
@@ -343,7 +350,32 @@ public class PagerViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, 
         wrapNavigation(nItems, nIterations);
     }
 
-    // TODO: Missing tests for 'none' & 'forward-only' nav modes
+    @Test
+    @LargeTest
+    public void testView_layout_withNoneNavigation() {
+        // this is overriding the super layout because not all pager children are on the screen
+        // at the same time.
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate(REQUIRED_PROPERTIES, " \"navigation\": \"none\", " + CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Component component = mTestContext.getTestComponent();
+        mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
+        IdlingRegistry.getInstance().register(mIdlingResource);
+
+        Component child = component.getChildAt(0);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
+
+        // Right child is displayed on the view, but invisible
+        Component rightChild = component.getChildAt(1);
+        assertTrue(rightChild.isInvisibleOverride());
+        onView(Matchers.allOf(withComponent(rightChild), withEffectiveVisibility(ViewMatchers.Visibility.INVISIBLE)))
+                .check(matches(anything()));
+    }
+
+    // TODO: Missing tests for 'forward-only' nav modes
+
     // TODO: Missing tests for gestures boundaries in each nav modes. For example, in 'forward-only',
     //  make sure that it does not allow to move a previous page.
     // TODO: Missing tests for all nav modes using keys (specially for Fire TV) rather than finger gestures (swipes)

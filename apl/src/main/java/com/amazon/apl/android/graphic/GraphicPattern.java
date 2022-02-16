@@ -6,7 +6,7 @@ package com.amazon.apl.android.graphic;
 
 import androidx.annotation.NonNull;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.enums.GraphicPropertyKey;
 

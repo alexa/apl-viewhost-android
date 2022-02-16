@@ -8,18 +8,22 @@ package com.amazon.apl.android.focus;
 import android.graphics.Color;
 import android.view.KeyEvent;
 
+import androidx.test.espresso.IdlingRegistry;
+import androidx.test.espresso.IdlingResource;
 import androidx.test.espresso.action.ViewActions;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Text;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.espresso.APLMatchers;
+import com.amazon.apl.android.espresso.APLViewIdlingResource;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.After;
 import org.junit.Before;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -41,7 +45,7 @@ import static org.mockito.Mockito.verify;
  */
 public abstract class ComponentFocusTest extends AbstractDocViewTest {
     @Mock
-    ISendEventCallback mSendEventCallback;
+    ISendEventCallbackV2 mSendEventCallback;
 
     static final String DOC_PROPS =
             "\"styles\": {\n" +
@@ -83,11 +87,14 @@ public abstract class ComponentFocusTest extends AbstractDocViewTest {
     }
 
     @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
+    public void setupView() {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(actionWithAssertions(inflateWithOptions(componentProps(), DOC_PROPS, APLOptions.builder().sendEventCallback(mSendEventCallback).build())))
+                .perform(actionWithAssertions(inflateWithOptions(componentProps(), DOC_PROPS, APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build())))
                 .check(hasRootContext());
+
+
+        mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
+        IdlingRegistry.getInstance().register(mIdlingResource);
     }
 
     void pressKey(int keyCode) {
@@ -100,7 +107,7 @@ public abstract class ComponentFocusTest extends AbstractDocViewTest {
         Component gridSequence = mTestContext.getRootContext().findComponentById("comp");
         for (int i = 0; i < gridSequence.getChildCount(); i++) {
             Component child = gridSequence.getChildAt(i);
-            String textString = ((Text) child.getChildAt(0)).getStyledText().getUnprocessedText();
+            String textString = ((Text) child.getChildAt(0)).getText();
             if (i == focusedComponentIndex) {
                 onView(APLMatchers.withText(textString))
                         .check(matches(APLMatchers.withTextColor(Color.RED)))
@@ -118,11 +125,11 @@ public abstract class ComponentFocusTest extends AbstractDocViewTest {
 
     private void testKeyEvents(int focusedComponentIndex) {
         pressKey(KeyEvent.KEYCODE_W);
-        verify(mSendEventCallback).onSendEvent(eq(new String[]{data[focusedComponentIndex]}), any(), any());
+        verify(mSendEventCallback).onSendEvent(eq(new String[]{data[focusedComponentIndex]}), any(), any(), any());
         clearInvocations(mSendEventCallback);
 
         pressKey(KeyEvent.KEYCODE_S);
-        verify(mSendEventCallback).onSendEvent(eq(new String[] {"parent"}), any(), any());
+        verify(mSendEventCallback).onSendEvent(eq(new String[] {"parent"}), any(), any(), any());
         clearInvocations(mSendEventCallback);
     }
 }

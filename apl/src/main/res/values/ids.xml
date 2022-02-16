@@ -1,3 +1,8 @@
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
 <resources>
     <!-- Used for custom accessibility actions in the Drag-and-Drop locale list -->
     <item type="id" name="action_double_tap" />

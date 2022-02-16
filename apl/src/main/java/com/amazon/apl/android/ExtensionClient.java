@@ -8,19 +8,23 @@ package com.amazon.apl.android;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.amazon.common.BoundObject;
+
 import java.util.Map;
 
 /**
  * Class for creating extension registration requests, event requests, and handling extension messages.
  */
+@Deprecated
 public class ExtensionClient extends BoundObject {
 
     /**
      * Create an ExtensionClient for creating registration requests, event request, and processing
      * extension messages.
-     * @param rootConfig    the rootconfig
-     * @param uri           the extension uri
-     * @return              an ExtensionClient
+     *
+     * @param rootConfig the rootconfig
+     * @param uri        the extension uri
+     * @return an ExtensionClient
      */
     public static ExtensionClient create(@NonNull RootConfig rootConfig, @NonNull final String uri) {
         return new ExtensionClient(rootConfig, uri);
@@ -28,8 +32,9 @@ public class ExtensionClient extends BoundObject {
 
     /**
      * Create a Registration request for the extension.
-     * @param content   the content
-     * @return          the registration request
+     *
+     * @param content the content
+     * @return the registration request
      */
     public String createRegistrationRequest(final Content content) {
         return nCreateRegistrationRequestFromContent(getNativeHandle(), content.getNativeHandle());
@@ -37,12 +42,25 @@ public class ExtensionClient extends BoundObject {
 
     /**
      * Create a Registration request for the extension.
-     * @param uri       the uri
-     * @param settings  a Map of settings
-     * @return          the registration request
+     *
+     * @param uri      the uri
+     * @param settings a Map of settings
+     * @return the registration request
      */
-    public static String createRegistrationRequest(final String uri, final Map<String,Object> settings) {
-        return nCreateRegistrationRequestFromMap(uri, settings);
+    public static String createRegistrationRequest(final String uri, final Map<String, Object> settings) {
+        return createRegistrationRequest(uri, settings, null);
+    }
+
+    /**
+     * Create a Registration request for the extension.
+     *
+     * @param uri      the uri
+     * @param settings a Map of settings
+     * @param flags
+     * @return the registration request
+     */
+    public static String createRegistrationRequest(final String uri, final Map<String, Object> settings, @Nullable Object flags) {
+        return nCreateRegistrationRequestFromMap(uri, settings, flags);
     }
 
     /**
@@ -61,18 +79,28 @@ public class ExtensionClient extends BoundObject {
 
     /**
      * Process the message received from an Extension.
-     * @param rootContext   the RootContext (may be null
-     * @param message       the message from the Extension.
-     * @return              true if the message is processed.
+     *
+     * @param rootContext the RootContext (may be null
+     * @param message     the message from the Extension.
+     * @return true if the message is processed.
      */
     public boolean processMessage(@Nullable final RootContext rootContext, @NonNull final String message) {
         return nProcessMessage(getNativeHandle(), rootContext == null ? 0 : rootContext.getNativeHandle(), message);
     }
 
+    public String processComponentResourceState(@NonNull final ExtensionComponent component) {
+        return nProcessComponentUpdate(getNativeHandle(), component.getNativeHandle());
+    }
+
+    public boolean handleDisconnection(@NonNull final RootContext rootContext, int errorCode, final String message) {
+        return nHandleDisconnection(getNativeHandle(), rootContext.getNativeHandle(), errorCode, message);
+    }
+
     /**
      * Create a message for an Extension from an event.
+     *
      * @param event the extension event.
-     * @return      the message to send to the Extension.
+     * @return the message to send to the Extension.
      */
     public String processCommand(@NonNull final Event event) {
         return nProcessCommand(getNativeHandle(), event.getNativeHandle());
@@ -84,10 +112,20 @@ public class ExtensionClient extends BoundObject {
     }
 
     private static native long nCreate(long rootConfig_, String uri_);
+
     private static native String nCreateRegistrationRequestFromContent(long handle, long content_);
-    private static native String nCreateRegistrationRequestFromMap(String uri, Map<String, Object> settings);
+
+    private static native String nCreateRegistrationRequestFromMap(String uri, Map<String, Object> settings, Object flags);
+
     private static native boolean nRegistrationMessageProcessed(long handle);
+
     private static native boolean nRegistered(long handle);
+
     private static native boolean nProcessMessage(long handle, long rootContext_, String message);
+
     private static native String nProcessCommand(long handle, long event_);
+
+    private static native String nProcessComponentUpdate(long handle, long component_);
+
+    private static native boolean nHandleDisconnection(long handle, long rootContext_, int errorCode, String message);
 }

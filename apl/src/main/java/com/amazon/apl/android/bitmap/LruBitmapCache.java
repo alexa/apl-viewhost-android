@@ -8,13 +8,9 @@ package com.amazon.apl.android.bitmap;
 import android.content.ComponentCallbacks2;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import androidx.annotation.Nullable;
 import android.util.LruCache;
 
-import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import androidx.annotation.Nullable;
 
 /**
  * Bitmap drawable manager. LruCache stores { key: Bitmap }, return existing Bitmap
@@ -26,10 +22,7 @@ import java.util.Set;
 public class LruBitmapCache implements IBitmapCache, ComponentCallbacks2 {
 
     private static final String TAG = "LruBitmapCache";
-    // 1/32 of runtime available memory
-    private static final int MEMORY_ALLOCATION = (int)(Runtime.getRuntime().maxMemory() / 1024 / 32);
-    private static final Set<WeakReference<Bitmap>> mReusableBitmaps =
-            Collections.synchronizedSet(new HashSet<>());
+    private static final int MEMORY_ALLOCATION = (int)(Runtime.getRuntime().maxMemory() / 16);
 
     private final LruCache<BitmapKey, Bitmap> mMemoryCache;
 
@@ -46,16 +39,14 @@ public class LruBitmapCache implements IBitmapCache, ComponentCallbacks2 {
     /**
      * Create a new {@link LruBitmapCache} with specific maximum memory size.
      *
-     * @param size Max memory that can be used by the cache
+     * @param size Max memory that can be used by the cache, in bytes.
      */
     public LruBitmapCache(int size) {
         mMemoryCache = new LruCache<BitmapKey, Bitmap>(size) {
 
             @Override
             protected int sizeOf(BitmapKey key, Bitmap bitmap) {
-                // The cache size will be measured in kilobytes rather than
-                // number of items.
-                return bitmap.getByteCount() / 1024;
+                return bitmap.getByteCount();
             }
 
             @Override
@@ -64,7 +55,6 @@ public class LruBitmapCache implements IBitmapCache, ComponentCallbacks2 {
                     BitmapKey key,
                     Bitmap oldValue,
                     Bitmap newValue) {
-                mReusableBitmaps.add(new WeakReference<>(oldValue));
             }
         };
     }
@@ -86,6 +76,11 @@ public class LruBitmapCache implements IBitmapCache, ComponentCallbacks2 {
     @Override
     public Bitmap getBitmap(BitmapKey key) {
         return mMemoryCache.get(key);
+    }
+
+    @Override
+    public void removeBitmapFromCache(BitmapKey key) {
+        mMemoryCache.remove(key);
     }
 
     /**

@@ -11,7 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.configuration.ConfigurationChange;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 @RunWith(AndroidJUnit4.class)
 public class ReinflateEventTest extends AbstractDocUnitTest {
     @Mock
-    private ISendEventCallback mMockSendEventCallback;
+    private ISendEventCallbackV2 mMockSendEventCallback;
     @Mock
     private AbstractMediaPlayerProvider<View> mMockMediaPlayerProvider;
 
@@ -90,7 +90,7 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
         inOrder.verify(mMockMediaPlayerProvider).releasePlayers();
         inOrder.verify(mRootContext).pauseDocument();
         inOrder.verify(mAPLPresenter).onDocumentPaused();
-        inOrder.verify(mAPLPresenter).onDocumentRender(mRootContext);
+        inOrder.verify(mAPLPresenter).reinflate();
         // Verify that repeated calls to pauseDocument() and resumeDocument() are ignored until initTime() is called.
         reset(mAPLPresenter);
         verifyPauseAndResumeIgnored();

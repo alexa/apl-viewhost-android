@@ -36,5 +36,7 @@ public class APLOptionsTest {
         assertTrue(options.getMediaPlayerProvider() instanceof MediaPlayerProvider);
         assertTrue(options.getImageUriSchemeValidator() instanceof DefaultUriSchemeValidator);
         assertTrue(options.getTtsPlayerProvider() instanceof NoOpTtsPlayerProvider);
+        assertTrue(options.getExtensionGrantRequestCallback().isExtensionGranted(""));
     }
+
 }

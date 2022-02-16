@@ -51,6 +51,9 @@ public class Frame extends MultiChildComponent {
      */
     @Nullable
     public Radii getBorderRadii() {
+        // border radii is not a defaulted property, check if it is set
+        if (!mProperties.hasProperty(kPropertyBorderRadii))
+            return null;
         return mProperties.getRadii(kPropertyBorderRadii);
     }
 

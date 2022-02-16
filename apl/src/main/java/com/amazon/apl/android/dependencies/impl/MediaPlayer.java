@@ -16,6 +16,7 @@ import android.media.MediaPlayer.OnErrorListener;
 import android.media.MediaPlayer.OnPreparedListener;
 import android.media.MediaPlayer.OnSeekCompleteListener;
 import android.media.MediaPlayer.OnVideoSizeChangedListener;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -36,8 +37,10 @@ import com.amazon.apl.enums.VideoScale;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Default media player for APL.
@@ -90,6 +93,7 @@ public class MediaPlayer implements IMediaPlayer {
     private Action mAction = Action.NONE;
     @NonNull
     private VideoScale mScale = VideoScale.kVideoScaleBestFit;
+    private Context mContext;
     private boolean mHasAudioFocus = false;
     private boolean mShouldNotifyProgress = false;
     private boolean mWasPlaying = false;
@@ -104,17 +108,18 @@ public class MediaPlayer implements IMediaPlayer {
      * @param textureView The view required to display the video.
      */
     public MediaPlayer(@NonNull Context context, @NonNull TextureView textureView) {
-        this(new android.media.MediaPlayer(), textureView,
+        this(new android.media.MediaPlayer(), textureView, context,
                 (AudioManager) context.getSystemService(Context.AUDIO_SERVICE));
     }
 
     /* Package private for testing */
     @VisibleForTesting
     MediaPlayer(@NonNull android.media.MediaPlayer mediaPlayer, @NonNull TextureView textureView,
-                @NonNull AudioManager audioManager) {
+                @NonNull Context context, @NonNull AudioManager audioManager) {
         mMediaPlayer = mediaPlayer;
         mTextureView = textureView;
         mAudioManager = audioManager;
+        mContext = context;
         mHandler = new Handler(Looper.getMainLooper());
         mListeners = new LinkedList<>();
         try {
@@ -464,8 +469,13 @@ public class MediaPlayer implements IMediaPlayer {
         } else if (mCurrentState != MediaState.PREPARING && mMediaPlayer != null) {
             stopInternal();
             MediaSource mediaSource = mSources.at(mCurrentTrackIndex);
+            Map<String, String> headers = mediaSource.headers();
             setCompletionListener(mediaSource);
-            mMediaPlayer.setDataSource(mediaSource.url());
+            if (headers.size() > 0) {
+                mMediaPlayer.setDataSource(mContext, Uri.parse(mediaSource.url()), mediaSource.headers());
+            } else {
+                mMediaPlayer.setDataSource(mediaSource.url());
+            }
             mMediaPlayer.setSurface(mSurface);
             mMediaPlayer.setLooping(mediaSource.repeatCount() == MediaSources.REPEAT_FOREVER);
             mMediaPlayer.prepareAsync();

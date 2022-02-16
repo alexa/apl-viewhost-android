@@ -21,9 +21,9 @@ public interface ITelemetryProvider extends IDocumentLifecycleListener {
             ? "APL-Android-Debug" : "APL-Android";
 
     String RENDER_DOCUMENT = "renderDocument";
-    String RESTORE_DOCUMENT = "restoreDocument";
     String LIBRARY_INITIALIZATION_FAILED = "libraryInitializationFailed";
     String FAIL_SUFFIX = ".fail";
+    String METRIC_TIMER_EXTENSION_REGISTRATION = "Extensions.register";
 
     int UNKNOWN_METRIC_ID = -1;
 

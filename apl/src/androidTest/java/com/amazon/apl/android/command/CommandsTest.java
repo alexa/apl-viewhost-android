@@ -9,7 +9,6 @@ package com.amazon.apl.android.command;
 import com.amazon.apl.android.Action;
 import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
-import com.amazon.apl.android.document.BoundObjectDefaultTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -20,13 +19,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 
 @RunWith(AndroidJUnit4.class)
-public class CommandsTest extends AbstractDocUnitTest implements BoundObjectDefaultTest {
+public class CommandsTest extends AbstractDocUnitTest {
 
     // Test content
     private final String DOC = "{\n" +
@@ -147,15 +147,18 @@ public class CommandsTest extends AbstractDocUnitTest implements BoundObjectDefa
         assertTrue(terminated.get());
     }
 
-    /**
-     * @return The BoundObject under test.
-     */
-    @Override
-    public long createBoundObjectHandle() {
+    private long getHandle() {
         Action action = mRootContext.executeCommands(COMMANDS);
         mRootContext.cancelExecution();
-        long handle = action.getNativeHandle();
-        return handle;
+        return action.getNativeHandle();
+    }
+
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = getHandle();
+
+        assertNativeHandle(handle);
     }
 
 }

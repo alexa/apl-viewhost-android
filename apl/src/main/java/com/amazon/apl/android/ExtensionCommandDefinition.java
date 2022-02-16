@@ -8,6 +8,11 @@ package com.amazon.apl.android;
 
 import android.util.Log;
 
+import com.amazon.common.BoundObject;
+
+import java.util.HashSet;
+import java.util.Set;
+
 
 /**
  * Define a custom document-level command.  The name of the command should be
@@ -49,6 +54,8 @@ import android.util.Log;
 public class ExtensionCommandDefinition extends BoundObject {
 
     private static final String TAG = "ExtCommandDef";
+
+    private Set<String> mProperties = new HashSet<>();
 
     /**
      * Standard constructor
@@ -100,8 +107,10 @@ public class ExtensionCommandDefinition extends BoundObject {
         if (property.equalsIgnoreCase("when") || property.equalsIgnoreCase("type"))
             Log.w(TAG, "Unable to register property '" + property
                     + "' in custom command " + getName());
-        else
+        else {
+            mProperties.add(property);
             nProperty(getNativeHandle(), property, defvalue, required);
+        }
         return this;
     }
 
@@ -119,8 +128,10 @@ public class ExtensionCommandDefinition extends BoundObject {
         if (property.equalsIgnoreCase("when") || property.equalsIgnoreCase("type"))
             Log.w(TAG, "Unable to register array-ified property '" + property
                     + "' in custom command " + getName());
-        else
+        else {
+            mProperties.add(property);
             nArrayProperty(getNativeHandle(), property, required);
+        }
         return this;
     }
 
@@ -137,6 +148,13 @@ public class ExtensionCommandDefinition extends BoundObject {
      */
     public String getName() {
         return nGetName(getNativeHandle());
+    }
+
+    /**
+     * @return Set of properties command requires.
+     */
+    Set<String> getProperties() {
+        return mProperties;
     }
 
 

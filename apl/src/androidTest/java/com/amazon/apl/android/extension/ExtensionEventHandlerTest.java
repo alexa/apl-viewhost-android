@@ -10,14 +10,15 @@ import androidx.test.filters.SmallTest;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.ExtensionEventHandler;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.Text;
-import com.amazon.apl.android.document.BoundObjectDefaultTest;
 import com.amazon.apl.enums.ComponentType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,6 +27,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -33,7 +35,7 @@ import static org.mockito.Mockito.mock;
 
 
 @RunWith(AndroidJUnit4.class)
-public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundObjectDefaultTest {
+public class ExtensionEventHandlerTest extends APLViewhostTest {
     private APLTestContext mTestContext;
     private APLOptions.Builder mOptionsBuilder;
     private RootConfig mRootConfig;
@@ -49,6 +51,12 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootConfig = RootConfig.create("Test", "1.3");
     }
 
+    @After
+    public void cleanup() {
+        // Remove the mock
+        RootContext.APLChoreographer.setInstance(null);
+    }
+
     private void setExtensionEventHandler(String uri, String name) {
         mRootConfig.registerExtensionEventHandler(new ExtensionEventHandler(uri, name));
     }
@@ -62,24 +70,16 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
     }
 
     /**
-     * Create a handle to the bound object under test.  The tests should not hold
-     * a reference to the bound object to allow for gc and unbinding tests.
-     * Recommended pattern for this method:
-     * <p>
-     * Foo foo =  Foo.create();
-     * long handle = foo.getNativeHandle(); // do not in-line with return
-     * return handle;
-     *
-     * @return The handle BoundObject under test.
+     * Test the allocation and free of an APL RootContext memory..
      */
-    @Override
-    public long createBoundObjectHandle() {
-        ExtensionEventHandler extHandler = new ExtensionEventHandler("aplext:Test", "Test");
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        long handle = extHandler.getNativeHandle();
-        return handle;
-    }
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = new ExtensionEventHandler("aplext:Test", "Test")
+                .getNativeHandle();
 
+        assertNativeHandle(handle);
+    }
 
     @Test
     @SmallTest
@@ -136,7 +136,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         // Advance Time
         mRootContext.doFrame(1);
 
-        assertEquals("", text.getStyledText().getUnprocessedText());
+        assertEquals("", text.getProxy().getStyledText().getUnprocessedText());
 
     }
 
@@ -161,7 +161,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("Hello", text.getStyledText().getUnprocessedText());
+        assertEquals("Hello", text.getProxy().getStyledText().getUnprocessedText());
     }
 
 
@@ -219,7 +219,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("Hello 2 Hello", text.getStyledText().getUnprocessedText());
+        assertEquals("Hello 2 Hello", text.getProxy().getStyledText().getUnprocessedText());
     }
 
 
@@ -281,7 +281,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("FromImport", text.getStyledText().getUnprocessedText());
+        assertEquals("FromImport", text.getProxy().getStyledText().getUnprocessedText());
     }
 
 
@@ -338,7 +338,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("FromMain", text.getStyledText().getUnprocessedText());
+        assertEquals("FromMain", text.getProxy().getStyledText().getUnprocessedText());
     }
 
 
@@ -378,7 +378,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
     @SmallTest
     public void testExtension_FastMode() {
         boolean[] sendResult = new boolean[1];
-        mOptionsBuilder.sendEventCallback((args, components, sources) -> {
+        mOptionsBuilder.sendEventCallbackV2((args, components, sources, flags) -> {
             sendResult[0] = true; // the callback ran
         });
 
@@ -401,7 +401,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
 
         // Check the handler event fired in fast-mode
         assertFalse(sendResult[0]);
-        assertEquals("FromMain", text.getStyledText().getUnprocessedText());
+        assertEquals("FromMain", text.getProxy().getStyledText().getUnprocessedText());
     }
 
     private static final String DUPLICATE_EXTENSION_NAME =
@@ -460,7 +460,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("FromB", text.getStyledText().getUnprocessedText());
+        assertEquals("FromB", text.getProxy().getStyledText().getUnprocessedText());
     }
 
     private static final String EXTENSION_ACCESSING_PAYLOAD =
@@ -516,7 +516,7 @@ public class ExtensionEventHandlerTest extends APLViewhostTest implements BoundO
         mRootContext.doFrame(1);
 
         // Check the handler event fired
-        assertEquals("END", text.getStyledText().getUnprocessedText());
+        assertEquals("END", text.getProxy().getStyledText().getUnprocessedText());
     }
 
 

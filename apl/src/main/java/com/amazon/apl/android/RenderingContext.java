@@ -7,11 +7,13 @@ package com.amazon.apl.android;
 
 import android.net.Uri;
 
-import com.amazon.apl.android.bitmap.BitmapFactory;
+import com.amazon.alexaext.ExtensionResourceProvider;
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.bitmap.NoOpBitmapCache;
+import com.amazon.apl.android.bitmap.SimpleBitmapFactory;
 import com.amazon.apl.android.dependencies.IContentRetriever;
+import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.dependencies.IImageProcessor;
 import com.amazon.apl.android.dependencies.IImageUriSchemeValidator;
@@ -23,6 +25,7 @@ import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.scaling.NoOpMetricsTransform;
+import com.amazon.apl.android.utils.APLTrace;
 
 /**
  * Contains context needed to render a document. This class serves as a convenient way to pass
@@ -32,9 +35,10 @@ public class RenderingContext {
 
     private final int docVersion;
     private IMetricsTransform metricsTransform;
-    private final ITextMeasurementCache textMeasurementCache;
+    private final TextLayoutFactory textLayoutFactory;
     private final ITelemetryProvider telemetryProvider;
-    private final AbstractMediaPlayerProvider mediaPlayerProvider;
+    private final ExtensionResourceProvider resourceProvider;
+    private AbstractMediaPlayerProvider mediaPlayerProvider;
     private final IImageLoaderProvider imageLoaderProvider;
     private final IImageProcessor imageProcessor;
     private final IImageUriSchemeValidator imageUriSchemeValidator;
@@ -42,12 +46,15 @@ public class RenderingContext {
     private final IBitmapFactory bitmapFactory;
     private final IBitmapCache bitmapCache;
     private final IContentRetriever<Uri, String> avgRetriever;
+    private final IExtensionEventCallback extensionEventCallback;
+    private final APLTrace aplTrace;
 
     private RenderingContext(
             int docVersion,
             IMetricsTransform metricsTransform,
-            ITextMeasurementCache textMeasurementCache,
+            TextLayoutFactory textLayoutFactory,
             ITelemetryProvider telemetryProvider,
+            ExtensionResourceProvider resourceProvider,
             AbstractMediaPlayerProvider mediaPlayerProvider,
             IImageLoaderProvider imageLoaderProvider,
             IImageProcessor imageProcessor,
@@ -55,11 +62,14 @@ public class RenderingContext {
             IExtensionImageFilterCallback extensionImageFilterCallback,
             IBitmapFactory bitmapFactory,
             IBitmapCache bitmapCache,
-            IContentRetriever<Uri, String> avgRetriever) {
+            IContentRetriever<Uri, String> avgRetriever,
+            IExtensionEventCallback extensionEventCallback,
+            APLTrace aplTrace) {
         this.docVersion = docVersion;
         this.metricsTransform = metricsTransform;
-        this.textMeasurementCache = textMeasurementCache;
+        this.textLayoutFactory = textLayoutFactory;
         this.telemetryProvider = telemetryProvider;
+        this.resourceProvider = resourceProvider;
         this.mediaPlayerProvider = mediaPlayerProvider;
         this.imageLoaderProvider = imageLoaderProvider;
         this.imageProcessor = imageProcessor;
@@ -68,6 +78,8 @@ public class RenderingContext {
         this.bitmapFactory = bitmapFactory;
         this.bitmapCache = bitmapCache;
         this.avgRetriever = avgRetriever;
+        this.extensionEventCallback = extensionEventCallback;
+        this.aplTrace = aplTrace;
     }
 
     public int getDocVersion() {
@@ -82,16 +94,24 @@ public class RenderingContext {
         this.metricsTransform = metricsTransform;
     }
 
-    public ITextMeasurementCache getTextMeasurementCache() {
-        return textMeasurementCache;
+    public TextLayoutFactory getTextLayoutFactory() {
+        return textLayoutFactory;
     }
 
     public ITelemetryProvider getTelemetryProvider() {
         return telemetryProvider;
     }
 
+    public ExtensionResourceProvider getResourceProvider() {
+        return resourceProvider;
+    }
+
     public AbstractMediaPlayerProvider getMediaPlayerProvider() {
         return mediaPlayerProvider;
+    }
+
+    public void setMediaPlayerProvider(AbstractMediaPlayerProvider mediaPlayerProvider) {
+        this.mediaPlayerProvider = mediaPlayerProvider;
     }
 
     public IImageLoaderProvider getImageLoaderProvider() {
@@ -122,27 +142,33 @@ public class RenderingContext {
         return avgRetriever;
     }
 
+    public IExtensionEventCallback getExtensionEventCallback() { return extensionEventCallback; }
+
+    public APLTrace getAplTrace() { return aplTrace; }
+
     // Defaults are no-ops
     public static Builder builder() {
-        return new RenderingContext.Builder()
+        return new Builder()
                 .docVersion(APLVersionCodes.APL_1_0)
                 .metricsTransform(NoOpMetricsTransform.getInstance())
-                .textMeasurementCache(NoOpTextMeasurementCache.getInstance())
+                .textLayoutFactory(TextLayoutFactory.defaultFactory())
                 .telemetryProvider(NoOpTelemetryProvider.getInstance())
+                .extensionResourceProvider(ExtensionResourceProvider.noOpInstance())
                 .mediaPlayerProvider(NoOpMediaPlayerProvider.getInstance())
                 .imageLoaderProvider(NoOpImageLoaderProvider.getInstance())
-                .imageProcessor(((sources, bitmaps) -> bitmaps))
+                .imageProcessor(null)
                 .imageUriSchemeValidator((scheme, version) -> true)
                 .extensionImageFilterCallback(((sourceBitmap, destinationBitmap, params) -> sourceBitmap))
-                .bitmapFactory(BitmapFactory.create(NoOpTelemetryProvider.getInstance()))
+                .bitmapFactory(new SimpleBitmapFactory())
                 .bitmapCache(new NoOpBitmapCache());
     }
 
     public static final class Builder {
         private Integer docVersion;
         private IMetricsTransform metricsTransform;
-        private ITextMeasurementCache textMeasurementCache;
+        private TextLayoutFactory textLayoutFactory;
         private ITelemetryProvider telemetryProvider;
+        private ExtensionResourceProvider resourceProvider;
         private AbstractMediaPlayerProvider mediaPlayerProvider;
         private IImageLoaderProvider imageLoaderProvider;
         private IImageProcessor imageProcessor;
@@ -151,6 +177,8 @@ public class RenderingContext {
         private IBitmapFactory bitmapFactory;
         private IBitmapCache bitmapCache;
         private IContentRetriever<Uri, String> avgRetriever;
+        private IExtensionEventCallback extensionEventCallback;
+        private APLTrace aplTrace;
 
         Builder() {
         }
@@ -165,13 +193,19 @@ public class RenderingContext {
             return this;
         }
 
-        public RenderingContext.Builder textMeasurementCache(ITextMeasurementCache textMeasurementCache) {
-            this.textMeasurementCache = textMeasurementCache;
+        public RenderingContext.Builder textLayoutFactory(TextLayoutFactory textLayoutFactory) {
+            this.textLayoutFactory = textLayoutFactory;
             return this;
         }
 
+
         public RenderingContext.Builder telemetryProvider(ITelemetryProvider telemetryProvider) {
             this.telemetryProvider = telemetryProvider;
+            return this;
+        }
+
+        public RenderingContext.Builder extensionResourceProvider(ExtensionResourceProvider resourceProvider) {
+            this.resourceProvider = resourceProvider;
             return this;
         }
 
@@ -215,12 +249,23 @@ public class RenderingContext {
             return this;
         }
 
+        public RenderingContext.Builder extensionEventCallback(IExtensionEventCallback extensionEventCallback) {
+            this.extensionEventCallback = extensionEventCallback;
+            return this;
+        }
+
+        public RenderingContext.Builder aplTrace(APLTrace aplTrace) {
+            this.aplTrace = aplTrace;
+            return this;
+        }
+
         public RenderingContext build() {
             return new RenderingContext(
                     this.docVersion,
                     this.metricsTransform,
-                    this.textMeasurementCache,
+                    this.textLayoutFactory,
                     this.telemetryProvider,
+                    this.resourceProvider,
                     this.mediaPlayerProvider,
                     this.imageLoaderProvider,
                     this.imageProcessor,
@@ -228,7 +273,9 @@ public class RenderingContext {
                     this.extensionImageFilterCallback,
                     this.bitmapFactory,
                     this.bitmapCache,
-                    this.avgRetriever);
+                    this.avgRetriever,
+                    this.extensionEventCallback,
+                    this.aplTrace);
         }
     }
 }

@@ -13,7 +13,7 @@ import android.view.WindowManager;
 
 public class TestActivity extends Activity {
 
-    private APLLayout mAplLayout;
+    public APLLayout aplLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +25,11 @@ public class TestActivity extends Activity {
                 | WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
                 | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
         );
-        mAplLayout = findViewById(R.id.apl);
+        aplLayout = findViewById(R.id.apl);
     }
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        return mAplLayout.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
+        return aplLayout.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 }

@@ -7,21 +7,30 @@ package com.amazon.apl.android.document;
 
 import android.view.Choreographer;
 
-import com.amazon.apl.android.APLBinding;
-import com.amazon.apl.android.APLTestContext;
-import com.amazon.apl.android.BuildConfig;
-import com.amazon.apl.android.NotOnUiThreadError;
-import com.amazon.apl.android.RootContext;
+import androidx.test.annotation.UiThreadTest;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.filters.SmallTest;
 
+import com.amazon.apl.android.APLTestContext;
+import com.amazon.apl.android.APLViewhostTest;
+import com.amazon.apl.android.BuildConfig;
+import com.amazon.apl.android.EditText;
+import com.amazon.apl.android.NoOpComponent;
+import com.amazon.apl.android.NotOnUiThreadError;
+import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
+import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
+import com.amazon.apl.enums.RootProperty;
+import com.amazon.common.NativeBinding;
+import com.amazon.common.test.Asserts;
+
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import androidx.test.annotation.UiThreadTest;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.filters.SmallTest;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -29,13 +38,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
-public class RootContextTest implements BoundObjectDefaultTest {
-
-    // Load the APL library.
-    static {
-        System.loadLibrary("apl-jni");
-    }
-
+public class RootContextTest extends APLViewhostTest {
     private static String DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"1.0\"," +
@@ -43,6 +46,16 @@ public class RootContextTest implements BoundObjectDefaultTest {
             "    \"item\": {" +
             "      \"type\": \"Frame\"," +
             "      \"backgroundColor\": \"orange\"" +
+            "    }" +
+            "  }" +
+            "}";
+
+    private static String DOC_EDIT_TEXT = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.0\"," +
+            "  \"mainTemplate\": {" +
+            "    \"item\": {" +
+            "      \"type\": \"EditText\"" +
             "    }" +
             "  }" +
             "}";
@@ -90,28 +103,10 @@ public class RootContextTest implements BoundObjectDefaultTest {
         }
     }
 
-    /**
-     * Create a handle to the bound object under test.  The tests should not hold
-     * a reference to the bound object to allow for gc and unbinding tests.
-     * Recommended pattern for this method:
-     * <p>
-     * Foo foo =  Foo.create();
-     * long handle = foo.getNativeHandle();
-     * return handle;
-     *
-     * @return The handle BoundObject under test.
-     */
-    @Override
-    public long createBoundObjectHandle() {
-        // create a RootContext
-        RootContext rootContext = new APLTestContext()
-                .setDocument(DOC)
-                .buildRootContext();
-
-        long handle = rootContext.getNativeHandle();
-        return handle;
+    @After
+    public void resetChoreographer() {
+        RootContext.APLChoreographer.setInstance(null);
     }
-
 
     @Test(expected = IllegalStateException.class)
     @SmallTest
@@ -133,8 +128,6 @@ public class RootContextTest implements BoundObjectDefaultTest {
                 .buildRootContext();
 
         rootContext.finishDocument();
-
-        RootContext.APLChoreographer.setInstance(null);
     }
 
     @Test(expected = NotOnUiThreadError.class)
@@ -147,11 +140,8 @@ public class RootContextTest implements BoundObjectDefaultTest {
                 .buildRootContext();
 
         rootContext.finishDocument();
-
-        RootContext.APLChoreographer.setInstance(null);
     }
 
-    @Override
     @Test
     @UiThreadTest
     public void testMemory_binding() {
@@ -165,25 +155,12 @@ public class RootContextTest implements BoundObjectDefaultTest {
         // The object has a native handle
         assertTrue("Expected object to have native handle", handle != 0);
         // The object is registered with the PhantomReference queue
-        assertTrue("Expected bound object to be registered", APLBinding.testBound(handle));
+        assertTrue("Expected bound object to be registered", NativeBinding.testBound(handle));
 
         // Null out explicit references
         rootContext = null;
 
-        System.runFinalization();
-        System.gc();
-        try {
-            // sleep to allow gc to keep pace with short lived test cases
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        APLBinding.doDeletes();
-
-        assertFalse("expected unbound object", APLBinding.testBound(handle));
-
-        // unset mocked variable
-        RootContext.APLChoreographer.setInstance(null);
+        Asserts.assertNativeHandle(handle);
     }
 
     @Test
@@ -222,9 +199,82 @@ public class RootContextTest implements BoundObjectDefaultTest {
 
         String[] cases = {"test-abc", "?????" , "", null};
 
+        // test that the methods don't throw with special, and utf-8 4byte characters
         for(String testcase : cases) {
-            rootContext.callbackToLowerCase("Üä¨ßÍ", testcase);
-            rootContext.callbackToUpperCase("Üä¨ßÍ", testcase);
+            rootContext.callbackToLowerCase("Üä¨ßÍ\uD83E\uDD86", testcase);
+            rootContext.callbackToUpperCase("Üä¨ßÍ\uD83E\uDD86", testcase);
         }
+    }
+
+    private static String DOC_LOCALE_OVERFLOW = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"1.5\",\n" +
+            "  \"theme\": \"dark\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"items\": [\n" +
+            "      {\n" +
+            "        \"type\": \"Container\",\n" +
+            "        \"data\": [\n" +
+            "          \"${Array.range(0, 512)}\"\n" +
+            "        ],\n" +
+            "        \"items\": {\n" +
+            "          \"type\": \"Frame\",\n" +
+            "          \"when\": \"${String.toUpperCase('foo')} == 'FOO'\"\n" +
+            "        }\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}";
+
+    // There's no Java exception to catch as this just crashes the process in JNI. A passing test should not crash.
+    @Test
+    public void test_localeMethods_doNotOverflowJNI() {
+        RootContext rootContext = new APLTestContext()
+                .setDocument(DOC_LOCALE_OVERFLOW)
+                .buildRootContext();
+    }
+
+    @Test
+    @SmallTest
+    public void test_enabledVideo() {
+        RootConfig rootConfig = RootConfig.create().set(RootProperty.kDisallowVideo, Boolean.FALSE);
+        RootContext rootContext = new APLTestContext()
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_SETTINGS)
+                .buildRootContext();
+        assertTrue(rootContext.getRenderingContext().getMediaPlayerProvider() instanceof MediaPlayerProvider);
+    }
+
+    @Test
+    @SmallTest
+    public void test_disabledVideo() {
+        RootConfig rootConfig = RootConfig.create().set(RootProperty.kDisallowVideo, Boolean.TRUE);
+        RootContext rootContext = new APLTestContext()
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_SETTINGS)
+                .buildRootContext();
+        assertTrue(rootContext.getRenderingContext().getMediaPlayerProvider() instanceof NoOpMediaPlayerProvider);
+    }
+
+    @Test
+    @SmallTest
+    public void test_disabledEditText() {
+        RootConfig rootConfig = RootConfig.create();
+        RootContext rootContext = new APLTestContext()
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_EDIT_TEXT)
+                .buildRootContext();
+
+        assertEquals(1, rootContext.getComponentCount());
+        assertTrue(rootContext.getTopComponent() instanceof EditText);
+
+        rootConfig.set(RootProperty.kDisallowEditText, Boolean.TRUE);
+        rootContext = new APLTestContext()
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_EDIT_TEXT)
+                .buildRootContext();
+
+        assertEquals(1, rootContext.getComponentCount());
+        assertTrue(rootContext.getTopComponent() instanceof NoOpComponent);
     }
 }

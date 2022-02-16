@@ -8,18 +8,23 @@ package com.amazon.apl.android;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.amazon.common.BoundObject;
+
+import java.lang.ref.WeakReference;
 import java.util.Vector;
 
 public class Action extends BoundObject {
-    private static final String TAG = "Action";
     @NonNull
     final private Vector<Runnable> terminateCallbacks = new Vector<>();
     @Nullable
     private Runnable thenCallback;
+    private final WeakReference<RootContext> mWeakRootContext;
 
-    public Action(long handle) {
+    public Action(long handle, RootContext rootContext) {
         bind(handle);
         nInit(getNativeHandle());
+        mWeakRootContext = new WeakReference<>(rootContext);
+        rootContext.addPending(this);
     }
 
     /**
@@ -48,8 +53,7 @@ public class Action extends BoundObject {
         for (Runnable terminateCallback : terminateCallbacks) {
             terminateCallback.run();
         }
-        terminateCallbacks.clear();
-        thenCallback = null;
+        destroy();
     }
 
     /**
@@ -59,8 +63,17 @@ public class Action extends BoundObject {
         if (thenCallback != null) {
             thenCallback.run();
         }
+        destroy();
+    }
+
+    private void destroy() {
         terminateCallbacks.clear();
         thenCallback = null;
+        RootContext rootContext = mWeakRootContext.get();
+        if (rootContext != null) {
+            rootContext.removePending(this);
+        }
+        mWeakRootContext.clear();
     }
 
     /**

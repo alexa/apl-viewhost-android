@@ -19,6 +19,7 @@ import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.Display;
 import com.amazon.apl.enums.LayoutDirection;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
+import static com.amazon.apl.android.providers.ITelemetryProvider.UNKNOWN_METRIC_ID;
 
 /**
  * APL logical representation of a View.
@@ -81,7 +83,11 @@ public abstract class Component extends BoundObject {
         bind(nativeHandle);
         mComponentId = componentId;
         mRenderingContext = renderingContext;
-        mProperties = new PropertyMap<Component, PropertyKey>() {
+        mProperties = createPropertyMap();
+    }
+
+    protected PropertyMap createPropertyMap() {
+        return new PropertyMap<Component, PropertyKey>() {
             @NonNull
             @Override
             public Component getMapOwner() {
@@ -165,7 +171,12 @@ public abstract class Component extends BoundObject {
      */
     public Component getChildById(String componentId) {
         //  TODO cache children in this class
-        return mRootContext.getComponent(componentId);
+        Component child = mRootContext.getOrInflateComponentWithUniqueId(componentId);
+        if (child != null) {
+            return child;
+        }
+        Log.wtf(TAG, this + ". getChildById returned null for id: " + componentId);
+        return null;
     }
 
     /**
@@ -175,7 +186,7 @@ public abstract class Component extends BoundObject {
      */
     @Nullable
     public Component getParent() {
-        return mRootContext.getComponent(getParentId());
+        return mRootContext.getOrInflateComponentWithUniqueId(getParentId());
     }
 
 
@@ -319,12 +330,41 @@ public abstract class Component extends BoundObject {
     }
 
     /**
+     * Returns a list of all children, whether visible or not.
+     *
+     * @return a list of all children of this component
+     */
+    public List<Component> getAllChildren() {
+        int count = getChildCount();
+        List<Component> children = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            Component component = getChildAt(i);
+            if (component != null) {
+                children.add(component);
+            }
+        }
+        return children;
+    }
+
+    /**
      * Gets the count of children for an APL component.
      *
      * @return number of direct children.
      */
     final public int getChildCount() {
         return nGetChildCount(getNativeHandle());
+    }
+
+
+    /**
+     * Gets the id of a child component based on the child index.
+     *
+     * @param index the index of the child.
+     * @return The identifier of the component child.
+     */
+    @NonNull
+    final public String getChildId(int index) {
+        return nGetChildId(getNativeHandle(), index);
     }
 
     /**
@@ -336,15 +376,8 @@ public abstract class Component extends BoundObject {
         List<Component> children = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             Component component = getDisplayedChildAt(i);
-            // in a rare racecondition the call to cores nGetDisplayChildAt can return a componentID
-            // which hasn't been inflated yet. In this case, just drop the information.
             if (component != null) {
                 children.add(component);
-            } else {
-                // prefer measuring here instead of #getChildAt so we only get one count per occurence
-                ITelemetryProvider telemetryProvider = getRenderingContext().getTelemetryProvider();
-                int cCounter = telemetryProvider.createMetricId(APL_DOMAIN, METRIC_COMPONENT_NULL, COUNTER);
-                telemetryProvider.incrementCount(cCounter);
             }
         }
         return children;
@@ -360,17 +393,6 @@ public abstract class Component extends BoundObject {
 
     public Component getDisplayedChildAt(int index) {
         return getChildById(getDisplayedChildId(index));
-    }
-
-    /**
-     * Gets the id of a child component based on the child index.
-     *
-     * @param index the index of the child.
-     * @return The identifier of the component child.
-     */
-    @NonNull
-    final public String getChildId(int index) {
-        return nGetChildId(getNativeHandle(), index);
     }
 
     /**
@@ -474,7 +496,9 @@ public abstract class Component extends BoundObject {
      * @return true if the standard box shadow should be drawn around Component, else false
      */
     public boolean shouldDrawBoxShadow() {
-        return true;
+        return getShadowOffsetHorizontal() != 0
+                || getShadowOffsetVertical() != 0
+                || getShadowRadius() != 0;
     }
 
     /**
@@ -564,4 +588,8 @@ public abstract class Component extends BoundObject {
     private static native boolean nCheckDirtyProperty(long nativeHandle, int propIndex);
 
     private static native boolean nCheckDirty(long nativeHandle);
+
+    public String toString() {
+        return "{type: " + getComponentType() + ", uid: " + getComponentId() + ", id: " + getId() + ", parent: " + getParentId() + "}";
+    }
 }

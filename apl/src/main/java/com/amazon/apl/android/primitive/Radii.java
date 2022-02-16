@@ -7,7 +7,7 @@ package com.amazon.apl.android.primitive;
 
 import androidx.annotation.NonNull;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.enums.APLEnum;
 import com.google.auto.value.AutoValue;

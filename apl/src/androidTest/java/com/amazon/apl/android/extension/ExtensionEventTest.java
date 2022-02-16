@@ -12,6 +12,7 @@ import androidx.test.filters.SmallTest;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.ExtensionCommandDefinition;
@@ -25,6 +26,7 @@ import com.amazon.apl.enums.PointerEventType;
 import com.amazon.apl.enums.PointerType;
 import com.amazon.apl.enums.UpdateType;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -75,6 +77,12 @@ public class ExtensionEventTest extends APLViewhostTest {
                             count[0]++;
                         }).build());
         mRootConfig = mTestContext.buildRootConfig();
+    }
+
+    @After
+    public void cleanup() {
+        // Remove the mock
+        RootContext.APLChoreographer.setInstance(null);
     }
 
     private void loadDocument(String document) {
@@ -795,7 +803,41 @@ public class ExtensionEventTest extends APLViewhostTest {
         loadDocument(WITH_CONFIG);
 
         Text text = (Text) mRootContext.getTopComponent();
-        assertEquals("true|dog|65", text.getStyledText().getUnprocessedText());
+        assertEquals("true|dog|65", text.getProxy().getStyledText().getUnprocessedText());
+    }
+
+    /**
+     * Register an extension with simple Object configuration and pass opaque data using flags.
+     */
+    @Test
+    @SmallTest
+    public void testExtension_WithSimpleConfigAndFlags() {
+        testFlagsOfString();
+        testFlagsOfMap();
+    }
+
+    private void testFlagsOfString() {
+        mRootConfig = mTestContext.buildRootConfig()
+                .registerExtensionFlags("_URIXdefault", "simpleFlagString");
+
+        loadDocument(WITH_CONFIG);
+        assertTrue(mRootConfig.getExtensionFlags("_URIXdefault") instanceof String);
+        assertEquals("simpleFlagString", mRootConfig.getExtensionFlags("_URIXdefault"));
+    }
+
+
+    private void testFlagsOfMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("key1", 1);
+        map.put("key2", true);
+        map.put("key3", "three");
+
+        mRootConfig = mTestContext.buildRootConfig()
+                .registerExtensionFlags("_URIXdefault", map);
+
+        loadDocument(WITH_CONFIG);
+        assertTrue(mRootConfig.getExtensionFlags("_URIXdefault") instanceof HashMap);
+        assertEquals(map, mRootConfig.getExtensionFlags("_URIXdefault"));
     }
 
     static private final String WITH_CONFIG_MAP = "{ \n" +
@@ -835,7 +877,7 @@ public class ExtensionEventTest extends APLViewhostTest {
 
         Text text = (Text) mRootContext.getTopComponent();
         // verify the environment has configuration values for the extension name
-        assertEquals("true|dog|65", text.getStyledText().getUnprocessedText());
+        assertEquals("true|dog|65", text.getProxy().getStyledText().getUnprocessedText());
     }
 
     void tap(float x, float y) {

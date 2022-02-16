@@ -8,7 +8,8 @@ package com.amazon.apl.android;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import android.util.AndroidRuntimeException;
+
+import com.amazon.common.BoundObject;
 
 import java.util.AbstractList;
 import java.util.ArrayList;

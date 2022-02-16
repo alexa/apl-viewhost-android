@@ -6,10 +6,13 @@
 package com.amazon.apl.android.component;
 
 import com.amazon.apl.android.APLTestContext;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.VectorGraphic;
 import com.amazon.apl.enums.ComponentType;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,18 +28,18 @@ import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
-public class VectorGraphicTimeTest {
-
-    // Load the APL library.
-    static {
-        System.loadLibrary("apl-jni");
-    }
-
+public class VectorGraphicTimeTest extends APLViewhostTest {
     @Before
     public void initChoreographer() {
         MockitoAnnotations.initMocks(this);
         RootContext.APLChoreographer choreographer = mock(RootContext.APLChoreographer.class);
         RootContext.APLChoreographer.setInstance(choreographer);
+    }
+
+    @After
+    public void cleanup() {
+        // Remove the mock
+        RootContext.APLChoreographer.setInstance(null);
     }
 
 

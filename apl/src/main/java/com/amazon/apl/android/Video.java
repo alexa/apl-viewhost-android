@@ -44,7 +44,8 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
 
     private static native void nUpdateMediaState(long nativeHandle, int trackIndex, int trackCount,
                                                  int currentTime, int duration, boolean paused,
-                                                 boolean ended, boolean fromEvent);
+                                                 boolean ended, boolean fromEvent, int trackState,
+                                                 int errorCode);
 
     /**
      * @return True if the video should begin playback by itself as soon as it is ready. Defaults to
@@ -69,7 +70,6 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
         return VideoScale.valueOf(mProperties.getEnum(PropertyKey.kPropertyScale));
     }
 
-    @Nullable
     public MediaSources getMediaSources() {
         return mProperties.getMediaSources(PropertyKey.kPropertySource);
     }
@@ -130,10 +130,14 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
                 player.getDuration(),
                 !player.isPlaying(),
                 state == MediaState.END,
-                mFromEvent);
+                mFromEvent,
+                player.getTrackState(),
+                player.getCurrentError());
         // Reset the fromEvent flag after a PlayMedia or ControlMedia command have been applied
         if (state == MediaState.PLAYING) {
             mFromEvent = false;
         }
     }
+
+
 }

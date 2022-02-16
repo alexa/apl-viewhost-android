@@ -5,11 +5,16 @@
 
 package com.amazon.apl.android.primitive;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
+import com.amazon.apl.android.utils.HttpUtils;
 import com.amazon.apl.enums.APLEnum;
 import com.google.auto.value.AutoValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * MediaSource Property
@@ -29,6 +34,7 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
         public abstract int duration();
         public abstract int repeatCount();
         public abstract int offset();
+        public abstract Map<String, String> headers();
         public static Builder builder() {
             return new AutoValue_MediaSources_MediaSource.Builder();
         }
@@ -39,6 +45,7 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
             abstract Builder duration(int duration);
             abstract Builder repeatCount(int repeatCount);
             abstract Builder offset(int offset);
+            abstract Builder headers(Map<String, String> headers);
             abstract MediaSource build();
         }
     }
@@ -60,11 +67,13 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
                     .duration(nGetMediaSourceDurationAt(getNativeHandle(), getIndex(), index))
                     .offset(nGetMediaSourceOffsetAt(getNativeHandle(), getIndex(), index))
                     .repeatCount(nGetMediaSourceRepeatCountAt(getNativeHandle(), getIndex(), index))
+                    .headers(HttpUtils.listToHeadersMap(nGetMediaSourceHeadersAt(getNativeHandle(), getIndex(), index)))
                     .build();
         }
     }
 
     private static native String nGetMediaSourceUrlAt(long componentHandle, int propertyKey, int index);
+    private static native String[] nGetMediaSourceHeadersAt(long componentHandle, int propertyKey, int index);
     private static native int nGetMediaSourceDurationAt(long componentHandle, int propertyKey, int index);
     private static native int nGetMediaSourceRepeatCountAt(long componentHandle, int propertyKey, int index);
     private static native int nGetMediaSourceOffsetAt(long componentHandle, int propertyKey, int index);

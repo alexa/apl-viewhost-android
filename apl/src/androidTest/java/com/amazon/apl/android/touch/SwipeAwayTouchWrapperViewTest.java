@@ -6,8 +6,10 @@
 package com.amazon.apl.android.touch;
 
 
+import androidx.test.espresso.IdlingRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.apl.android.espresso.APLViewIdlingResource;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.Component;
@@ -86,6 +88,9 @@ public class SwipeAwayTouchWrapperViewTest extends AbstractDocViewTest {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(inflate(String.format(SWIPE_AWAY_TOUCH_WRAPPER, action), ""))
                 .check(hasRootContext());
+
+        mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
+        IdlingRegistry.getInstance().register(mIdlingResource);
 
         final Component touchWrapper = mTestContext.getTestComponent();
         final APLAbsoluteLayout absoluteLayout = mTestContext.getTestView();

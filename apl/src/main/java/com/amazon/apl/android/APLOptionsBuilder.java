@@ -19,6 +19,7 @@ import com.amazon.apl.android.dependencies.IOnAplFinishCallback;
 import com.amazon.apl.android.dependencies.IOpenUrlCallback;
 import com.amazon.apl.android.dependencies.IScreenLockListener;
 import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;

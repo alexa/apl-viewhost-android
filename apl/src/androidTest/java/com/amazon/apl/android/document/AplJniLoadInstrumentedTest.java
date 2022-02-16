@@ -34,7 +34,9 @@ public class AplJniLoadInstrumentedTest {
     @SmallTest
     public void libraryLoad() {
         try {
+            System.loadLibrary("common-jni");
             System.loadLibrary("apl-jni");
+            System.loadLibrary("discovery-jni");
         } catch (Exception e) {
             fail("APL JNI library could not be loaded");
         }

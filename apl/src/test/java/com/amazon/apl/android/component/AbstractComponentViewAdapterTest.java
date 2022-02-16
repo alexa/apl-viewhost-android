@@ -5,9 +5,10 @@
 
 package com.amazon.apl.android.component;
 
+import android.view.View;
+
 import androidx.core.view.ViewCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
-import android.view.View;
 
 import com.amazon.apl.android.APLAccessibilityDelegate;
 import com.amazon.apl.android.Component;
@@ -16,6 +17,7 @@ import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.enums.Display;
 import com.amazon.apl.enums.PropertyKey;
@@ -25,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,11 +38,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -72,7 +70,7 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
 
     abstract void componentSetup() throws Exception;
 
-    private ComponentViewAdapter<C,V> getAdapter() {
+    protected ComponentViewAdapter<C,V> getAdapter() {
         //noinspection unchecked
         return ComponentViewAdapterFactory.getAdapter(component());
     }
@@ -80,6 +78,7 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
     @Before
     public void setup() throws Exception {
         mView = createView();
+        when(mMockPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         setupMockComponent(component());
 
         setScreenReaderEnabled(false);

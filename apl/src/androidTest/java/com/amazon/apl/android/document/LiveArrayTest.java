@@ -16,7 +16,6 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.Text;
 import com.amazon.apl.android.component.ComponentViewAdapter;
 import com.amazon.apl.android.component.ComponentViewAdapterFactory;
-import com.amazon.apl.android.views.APLImageView;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.PropertyKey;
 
@@ -32,7 +31,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
-import static com.amazon.apl.enums.PropertyKey.kPropertyText;
+import static com.amazon.common.test.Asserts.assertNativeHandle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
@@ -46,13 +45,12 @@ public class LiveArrayTest extends LiveObjectTest {
     private LiveArray mLiveArray;
     private Text mText;
 
-    /**
-     * @return The BoundObject under test.
-     */
-    @Override
-    public long createBoundObjectHandle() {
-        LiveArray array = LiveArray.create();
-        return array.getNativeHandle();
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = LiveArray.create().getNativeHandle();
+
+        assertNativeHandle(handle);
     }
 
     void registerLiveData(RootConfig rootConfig) {
@@ -60,7 +58,7 @@ public class LiveArrayTest extends LiveObjectTest {
     }
 
     private String getText() {
-        return mText.getText(mText.mProperties.getStyledText(kPropertyText)).toString();
+        return mText.getText();
     }
 
     /**
@@ -685,6 +683,11 @@ public class LiveArrayTest extends LiveObjectTest {
         Assert.assertEquals(2, c.getChildCount());
 
         // Set up the mock presenter to pass dirty properties over to the Sequence.
+        doAnswer(invocation -> {
+            Component component = invocation.getArgument(0);
+            ComponentViewAdapter viewAdapter = ComponentViewAdapterFactory.getAdapter(component);
+            return viewAdapter.createView(mContext, mAPLPresenter);
+        }).when(mAPLPresenter).inflateComponentHierarchy(any());
         final View view = ComponentViewAdapterFactory.getAdapter(c).createView(mContext, mAPLPresenter);
         ComponentViewAdapter viewAdapter = ComponentViewAdapterFactory.getAdapter(c);
         viewAdapter.applyAllProperties(c, view);
@@ -698,12 +701,9 @@ public class LiveArrayTest extends LiveObjectTest {
         advance();
         assertArrayMatches("alpha", "bravo", "foxtrot");
         Assert.assertEquals(3, c.getChildCount());
-        assertEquals("alpha", getText((Text) c.getChildAt(0)));
-        assertEquals("bravo", getText((Text) c.getChildAt(1)));
-        assertEquals("foxtrot", getText((Text) c.getChildAt(2)));
+        assertEquals("alpha", ((Text) c.getChildAt(0)).getText());
+        assertEquals("bravo", ((Text) c.getChildAt(1)).getText());
+        assertEquals("foxtrot", ((Text) c.getChildAt(2)).getText());
     }
 
-    private String getText(Text text) {
-        return text.getText(text.mProperties.getStyledText(kPropertyText)).toString();
-    }
 }

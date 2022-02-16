@@ -8,11 +8,14 @@ package com.amazon.apl.android.dependencies.impl;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Build;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
-import android.widget.ImageView;
 
 import com.amazon.apl.android.dependencies.IImageLoader;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -21,16 +24,27 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.DecodeFormat;
+import com.bumptech.glide.load.HttpException;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.BitmapImageViewTarget;
-import com.bumptech.glide.request.target.SizeReadyCallback;
+import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
+import com.bumptech.glide.signature.ObjectKey;
 
+import java.io.FileNotFoundException;
+import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 /**
  * Implementation of IImageLoader interface.
@@ -42,14 +56,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class GlideImageLoader implements IImageLoader {
     private static final String TAG = "GlideImageLoader";
+    /**
+     * Any valid scheme return by {@link Uri#getScheme()} that specifies a HTTP request.
+     * null represents an HTTP URL without any scheme specified, which is supported in APL <= 1.1
+     */
+    private static final Set<String> VALID_URL_SCHEMES = new HashSet<>(Arrays.asList("https", "http", null));
 
     static final String METRIC_IMAGE_SUCCESS  = TAG + ".loadImage.success";
     static final String METRIC_IMAGE_FAIL = TAG + ".loadImage.fail";
 
-    private final RequestManager mGlideClient;
-    private final Glide mGlide;
-    private final Map<ImageView, Target<?>> mTargets = new ConcurrentHashMap<>();
-    private final Map<ImageView, Target<?>> mPendingTargets = new ConcurrentHashMap<>();
+    private final RequestManager mGlideRequestManager;
+    private final Map<ImageView, List<Target<?>>> mTargets = new HashMap<>();
     private ITelemetryProvider mTelemetryProvider;
 
     private int cImageSuccess = ITelemetryProvider.UNKNOWN_METRIC_ID;
@@ -59,8 +76,12 @@ public class GlideImageLoader implements IImageLoader {
      * GlideImageDownloader constructor.
      */
     public GlideImageLoader(@NonNull final Context context) {
-        mGlideClient = Glide.with(context);
-        mGlide = Glide.get(context);
+        mGlideRequestManager = Glide.with(context); // will init glide if not done before
+    }
+
+    @VisibleForTesting
+    GlideImageLoader(RequestManager requestManager) {
+        mGlideRequestManager = requestManager;
     }
 
     @Override
@@ -75,22 +96,33 @@ public class GlideImageLoader implements IImageLoader {
     }
 
     @Override
-    public void loadImage(@NonNull String path, @NonNull ImageView imageView,
-                          @NonNull LoadImageCallback2 callback, boolean needsScaling) {
-        loadImageInternal(path, imageView, callback, needsScaling, new ImageLoaderRequestOptions(), new RequestOptions().format(DecodeFormat.PREFER_ARGB_8888));
+    public void loadImage(LoadImageParams load) {
+        loadImageInternal(load);
     }
 
-    private void loadImageInternal(@NonNull String path, @NonNull ImageView imageView,
-                           @NonNull LoadImageCallback2 callback, boolean needsScaling,
-                           @NonNull ImageLoaderRequestOptions options,
-                           @NonNull RequestOptions requestOptions) {
+    private void loadImageInternal(@NonNull LoadImageParams load) {
+        final ImageView imageView = load.imageView();
+        final boolean needsScaling = load.needsScaling();
+        final IImageLoader.LoadImageCallback2 callback = load.callback();
+        final String url = load.path();
+        final boolean allowUpscaling = load.allowUpscaling();
+        final Map<String, String> headers = load.headers();
+
+        ImageLoaderRequestOptions options = new ImageLoaderRequestOptions();
+        RequestOptions requestOptions = new RequestOptions().format(DecodeFormat.PREFER_ARGB_8888);
         Drawable placeholderDrawable = options.getPlaceholderDrawable();
         Drawable errorDrawable = options.getErrorDrawable();
 
-        BitmapImageViewTargetWithCallback target = new BitmapImageViewTargetWithCallback(path, imageView,
-                callback, this, needsScaling);
-        mTargets.put(imageView, target);
-        mPendingTargets.put(imageView, target);
+        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+        int targetWidth = layoutParams != null ? layoutParams.width : 0;
+        int targetHeight = layoutParams != null ? layoutParams.height : 0;
+        // Get original size if the target view has zero size or we need to scale it
+        if (!needsScaling || targetWidth == 0 || targetHeight == 0) {
+            targetWidth = SimpleTarget.SIZE_ORIGINAL;
+            targetHeight = SimpleTarget.SIZE_ORIGINAL;
+        }
+
+        BitmapTarget target = createTarget(imageView, callback, url, targetWidth, targetHeight);
 
         if (placeholderDrawable != null) {
             requestOptions = requestOptions.placeholder(placeholderDrawable);
@@ -104,150 +136,197 @@ public class GlideImageLoader implements IImageLoader {
             requestOptions = requestOptions.disallowHardwareConfig();
         }
 
-        // TODO we should be able to use a combination of Filter signature and path to
-        //  cache the processed bitmap in Glide's cache and avoid reprocessing the image
-        //  requestOptions = requestOptions.signature(new ObjectKey(image uuid, filters));
-        RequestBuilder<Bitmap> requestBuilder = mGlideClient
-                .setDefaultRequestOptions(requestOptions)
-                .asBitmap()
-                .load(path)
-                .listener(target);
+        // This is the same behavior as the default downsample strategy we were using previously
+        // CenterOutside except it doesn't allow for the bitmap to be upscaled.
+        // This makes sense for us because we will scale the bitmap using a Matrix in our draw
+        // phase. There is a functional discrepancy with image filters when the source/dest bitmaps are not
+        // the same aspect ratio. Previously we would've scaled both bitmaps to fill the target view
+        // and then applied filters. This isn't correct per the apl spec, but we will quirk this behavior
+        // to older document versions and capture metrics around it.
+        if (!allowUpscaling) {
+            requestOptions = requestOptions.downsample(new NoUpscalingDownsampleStrategy());
+        }
 
-        requestBuilder.into(target);
+        // resume requests if Glide client being paused by other app (eg. mmsdk)
+        if (mGlideRequestManager.isPaused()) {
+            mGlideRequestManager.resumeRequests();
+        }
+
+        if (headers.size() > 0) {
+            requestOptions.signature(new ObjectKey(headers));
+        }
+
+        RequestBuilder<Bitmap> requestBuilder = mGlideRequestManager
+                .setDefaultRequestOptions(requestOptions)
+                .asBitmap();
+
+        // GlideUrl class only works for loading HTTP urls
+        if (isUrlRequest(url)) {
+           requestBuilder = requestBuilder
+                    .load(new GlideUrl(url, () -> headers));
+        } else {
+            requestBuilder = requestBuilder
+                    .load(url);
+        }
+
+        requestBuilder.listener(target)
+            .into(target);
+    }
+
+    /**
+     * Determines if this URI is an http/https url by parsing the scheme. If no
+     * scheme is provided, it is assumed this will be a url request.
+     * @param path The URI to get the scheme from
+     * @return True if the path is an http/https url, or if no scheme is provided
+     */
+    private boolean isUrlRequest(String path) {
+        String scheme = Uri.parse(path).getScheme();
+        if (scheme == null) {
+            return true;
+        }
+        return VALID_URL_SCHEMES.contains(scheme.toLowerCase());
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public void clear(ImageView imageView) {
-        mGlideClient.clear(mTargets.get(imageView));
-        mTargets.remove(imageView);
-        mPendingTargets.remove(imageView);
-    }
-
-    /**
-     * Cancel pending image requests.
-     *
-     * TODO provide caching/recycling mechanism for bitmaps and avoid needing to cancel pending
-     *  requests.
-     */
-    @VisibleForTesting
-    void cancelPending() {
-        for (ImageView imageView : mPendingTargets.keySet()) {
-            if (mTelemetryProvider != null) {
-                mTelemetryProvider.incrementCount(cImageFail);
+    public synchronized void clear(ImageView imageView) {
+        List<Target<?>> targets = mTargets.get(imageView);
+        if (targets != null) {
+            for (Target<?> target : targets) {
+                mGlideRequestManager.clear(target);
             }
-            clear(imageView);
         }
-        mPendingTargets.clear();
+        mTargets.remove(imageView);
     }
 
     /**
      * {@inheritDoc}
      */
-    public void clearResources() {
-        cancelPending();
-        for(ImageView imageView : mTargets.keySet()) {
-            clear(imageView);
+    public synchronized void clearResources() {
+        for (Map.Entry<ImageView, List<Target<?>>> entry : mTargets.entrySet()) {
+            List<Target<?>> targets = entry.getValue();
+            if (targets != null) {
+                for (Target<?> target : targets) {
+                    mGlideRequestManager.clear(target);
+                }
+            }
         }
-
-        mGlide.clearMemory();
-    }
-
-    public void cancel() {
-        // unused
-    }
-
-    /**
-     * Remove a pending target from the set when finished.
-     * @param view the target imageview to remove.
-     */
-    private void removePendingTarget(ImageView view) {
-        mPendingTargets.remove(view);
+        mTargets.clear();
     }
 
     @VisibleForTesting
-    Map<ImageView, Target<?>> getTargets() {
+    Map<ImageView, List<Target<?>>> getTargets() {
         return mTargets;
     }
 
-    @VisibleForTesting
-    Map<ImageView, Target<?>> getPendingTargets() {
-        return mPendingTargets;
+    /**
+     * Does a best attempt to get a status/error code from the glide exception,
+     * however glide exceptions do not easily expose the status.
+     * @param glideException
+     * @return
+     */
+    private int parseErrorCodeFromException(@Nullable GlideException glideException) {
+        int errorCode = 0;
+        if (glideException == null) return errorCode;
+        // Parse the HttpStatusCode, if one exists
+        for (Throwable cause : glideException.getRootCauses()) {
+            if (cause instanceof HttpException) {
+                return ((HttpException) cause).getStatusCode();
+            } else if (cause instanceof FileNotFoundException) {
+                return HttpURLConnection.HTTP_NOT_FOUND;
+            } else if (cause instanceof SocketTimeoutException) {
+                return HttpURLConnection.HTTP_CLIENT_TIMEOUT;
+            }
+        }
+        return errorCode;
     }
 
     /**
-     * BitmapSimple target that provides a Bitmap to the callback.  Glide manages a cache and download retries.
+     * Creates a target for Glide to load a Bitmap into. It is expected that you eventually call
+     * {@link #clear(ImageView)} on the ImageView you supply to avoid memory leaks in Glide.
+     *
+     * @param imageView the ImageView that this bitmap is going to load into.
+     * @param callback  the callback for finishing the load
+     * @param url       the path to the source
+     * @param width     the width of the target
+     * @param height    the height of the target
+     * @return          a BitmapTarget.
      */
-    static class BitmapImageViewTargetWithCallback extends BitmapImageViewTarget implements RequestListener<Bitmap> {
-        private final String mPath;
+    @VisibleForTesting
+    synchronized BitmapTarget createTarget(@NonNull ImageView imageView, @NonNull LoadImageCallback2 callback, @NonNull String url, int width, int height) {
+        BitmapTarget target = new BitmapTarget(callback, url, width, height);
+        List<Target<?>> targets = mTargets.get(imageView);
+        if (targets == null) {
+            targets = new LinkedList<>();
+            if (!mTargets.containsKey(imageView)) {
+                mTargets.put(imageView, targets);
+            }
+        }
+        targets.add(target);
+        return target;
+    }
+
+    /**
+     * A {@link SimpleTarget} that loads a bitmap with the requested width and height according
+     * to the {@link DownsampleStrategy}. Glide internally won't clear the resource for this target
+     * so we have to do so manually in {@link #clear(ImageView)} or {@link #clearResources()}.
+     */
+    class BitmapTarget extends SimpleTarget<Bitmap> implements RequestListener<Bitmap> {
         @NonNull
         private final LoadImageCallback2 mCallback;
-        private final boolean mNeedsScaling;
-        private final GlideImageLoader mGlideImageLoader;
+        @NonNull
+        private final String mUrl;
 
-        BitmapImageViewTargetWithCallback(String path, @NonNull ImageView imageView, @NonNull LoadImageCallback2 callback, GlideImageLoader glideImageLoader,
-                                          boolean needsScaling) {
-            super(imageView);
-            mPath = path;
+        BitmapTarget(@NonNull LoadImageCallback2 callback, @NonNull String url, int width, int height) {
+            super(width, height);
             mCallback = callback;
-            mNeedsScaling = needsScaling;
-            mGlideImageLoader = glideImageLoader;
+            mUrl = url;
         }
 
         @Override
         public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Bitmap> target, boolean isFirstResource) {
-            mGlideImageLoader.removePendingTarget(getView());
-            if (mGlideImageLoader.mTelemetryProvider != null) {
-                mGlideImageLoader.mTelemetryProvider.incrementCount(mGlideImageLoader.cImageFail);
+            if (mTelemetryProvider != null) {
+                mTelemetryProvider.incrementCount(cImageFail);
             }
+            int errorCode = parseErrorCodeFromException(e);
 
-            mCallback.onError(e, mPath);
+            mCallback.onError(e, errorCode, mUrl);
             return false;
         }
 
         @Override
-        public boolean onResourceReady(Bitmap resource, @NonNull Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
+        public boolean onResourceReady(Bitmap resource, Object model, Target<Bitmap> target, DataSource dataSource, boolean isFirstResource) {
             return false;
         }
 
         @Override
         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-            if (mGlideImageLoader.mTelemetryProvider != null) {
-                mGlideImageLoader.mTelemetryProvider.incrementCount(mGlideImageLoader.cImageSuccess);
+            if (mTelemetryProvider != null) {
+                mTelemetryProvider.incrementCount(cImageSuccess);
             }
 
-            mGlideImageLoader.removePendingTarget(getView());
-            mCallback.onSuccess(resource, mPath);
+            mCallback.onSuccess(resource, mUrl);
+        }
+    }
+
+    /**
+     * A {@link DownsampleStrategy} that is the same as the default strategy {@link DownsampleStrategy#CENTER_OUTSIDE}
+     * except that it doesn't allow the bitmap to be scaled up. This avoids allocating potentially large
+     * bitmaps if the target view is large enough.
+     */
+    static class NoUpscalingDownsampleStrategy extends DownsampleStrategy {
+        @Override
+        public float getScaleFactor(int sourceWidth, int sourceHeight, int requestedWidth, int requestedHeight) {
+            float widthPercentage = requestedWidth / (float) sourceWidth;
+            float heightPercentage = requestedHeight / (float) sourceHeight;
+            return Math.min(1f, Math.max(widthPercentage, heightPercentage));
         }
 
-        /**
-         * Defines the size of the bitmap to download.
-         * <p>
-         * NOTE: When a bitmap is downloaded, Glide will resize the bitmap to fit into the view where will be displayed in.
-         * Here explains the default behavior: https://bumptech.github.io/glide/doc/targets.html#sizes-and-dimensions
-         * <p>
-         * However, there is a case when we do not need to resize the bitmap, especially when:
-         * - the image size is smaller than view size and
-         * - no scaling is needed.
-         * <p>
-         * For example, let's say a bitmap size is 100x100 px and a view size is 500x500 px. Glide (by default) would resize the bitmap to 500x500 px.
-         * This is unacceptable behavior when "scale"="none" is defined in the component.
-         * <p>
-         * To override this, we require to call:
-         * `cb.onSizeReady(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);`
-         *
-         * @param cb Callback to tell the final size of the bitmap.
-         */
         @Override
-        public void getSize(@NonNull SizeReadyCallback cb) {
-            if (!mNeedsScaling) {
-                // TODO large bitmaps can fail to load (or generally take up too much memory)
-                //  when using original size.
-                cb.onSizeReady(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL);
-            }
-            super.getSize(cb);
+        public SampleSizeRounding getSampleSizeRounding(int sourceWidth, int sourceHeight, int requestedWidth, int requestedHeight) {
+            return SampleSizeRounding.QUALITY;
         }
     }
 }

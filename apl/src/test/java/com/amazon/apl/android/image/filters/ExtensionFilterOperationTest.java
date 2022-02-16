@@ -9,7 +9,7 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 
 import com.amazon.apl.android.bitmap.BitmapCreationException;
-import com.amazon.apl.android.bitmap.BitmapFactory;
+import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.ExtensionFilterParameters;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.ColorFilterResult;
@@ -92,7 +92,7 @@ public class ExtensionFilterOperationTest extends FilterOperationTest<ExtensionF
     public void testExtensionFilter_scalesNonBitmap() throws BitmapCreationException {
         Bitmap blue = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         Bitmap img = Bitmap.createBitmap(10, 10, Bitmap.Config.ARGB_8888);
-        BitmapFactory mockFactory = mock(BitmapFactory.class);
+        IBitmapFactory mockFactory = mock(IBitmapFactory.class);
         when(mockFactory.createBitmap(10, 10)).thenReturn(blue);
         FilterResult color = new ColorFilterResult(Color.BLUE, mockFactory);
         FilterResult source = new BitmapFilterResult(img, mBitmapFactory);

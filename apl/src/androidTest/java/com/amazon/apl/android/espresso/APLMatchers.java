@@ -5,13 +5,13 @@
 
 package com.amazon.apl.android.espresso;
 
-import android.text.StaticLayout;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.view.View;
 
-import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.APLGradientDrawable;
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLTextView;
 
 import org.hamcrest.Description;
@@ -62,7 +62,7 @@ public class APLMatchers {
             @Override
             protected boolean matchesSafely(View view) {
                 boolean isStringEqual = false;
-                StaticLayout layout = ((APLTextView) view).getLayout();
+                Layout layout = ((APLTextView) view).getLayout();
                 if(layout != null) {
                     String real_text = ((APLTextView) view).getLayout().getText().toString();
                     isStringEqual = TextUtils.equals(text, real_text);
@@ -85,7 +85,7 @@ public class APLMatchers {
             @Override
             protected boolean matchesSafely(View view) {
                 boolean isColorEqual = false;
-                StaticLayout layout = ((APLTextView) view).getLayout();
+                Layout layout = ((APLTextView) view).getLayout();
                 if(layout != null) {
                     int layoutTextColor = layout.getPaint().getColor();
                     isColorEqual = textColor == layoutTextColor;

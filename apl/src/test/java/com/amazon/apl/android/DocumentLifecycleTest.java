@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android;
 
+import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
@@ -24,6 +25,8 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
     private RootContext mRootContext;
     @Mock
     RenderingContext mRenderingContext;
+    @Mock
+    private IBitmapCache mBitmapCache;
 
     private IAPLViewPresenter mPresenter;
 
@@ -31,6 +34,8 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
     public void setUp() {
         when(mRootContext.getOptions()).thenReturn(APLOptions.builder().build());
         when(mRootContext.getRenderingContext()).thenReturn(mRenderingContext);
+        when(mRenderingContext.getBitmapCache()).thenReturn(mBitmapCache);
+        APLController.setRuntimeConfig(RuntimeConfig.builder().build());
         APLLayout aplLayout = new APLLayout(getApplication(), false);
         mPresenter = aplLayout.getPresenter();
         mPresenter.addDocumentLifecycleListener(mListenerA);

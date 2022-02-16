@@ -5,7 +5,7 @@
 
 package com.amazon.apl.android.primitive;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
 
 /**

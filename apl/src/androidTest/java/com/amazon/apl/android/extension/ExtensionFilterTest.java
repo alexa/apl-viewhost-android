@@ -14,6 +14,7 @@ import androidx.test.filters.SmallTest;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.ExtensionFilterDefinition;
 import com.amazon.apl.android.Image;
@@ -21,12 +22,12 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.dependencies.ExtensionFilterParameters;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
-import com.amazon.apl.android.document.BoundObjectDefaultTest;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FilterType;
 import com.amazon.apl.enums.ImageCount;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,13 +36,16 @@ import org.mockito.MockitoAnnotations;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static com.amazon.common.test.Asserts.assertNativeHandle;
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.mockito.Mockito.mock;
 
 @RunWith(AndroidJUnit4.class)
-public class ExtensionFilterTest extends APLViewhostTest implements BoundObjectDefaultTest {
+public class ExtensionFilterTest extends APLViewhostTest {
 
 
     private APLTestContext mTestContext;
@@ -73,6 +77,11 @@ public class ExtensionFilterTest extends APLViewhostTest implements BoundObjectD
         mRootConfig = RootConfig.create("Test", "1.3");
     }
 
+    @After
+    public void cleanup() {
+        // Remove the mock
+        RootContext.APLChoreographer.setInstance(null);
+    }
 
     private void loadDocument(String document) {
         mRootContext = mTestContext
@@ -83,12 +92,16 @@ public class ExtensionFilterTest extends APLViewhostTest implements BoundObjectD
                 .buildRootContext();
     }
 
-    @Override
-    public long createBoundObjectHandle() {
-        ExtensionFilterDefinition extensionFilterDefinition = new ExtensionFilterDefinition("aplext:edgedetectorfilters:11", "Edges", ImageCount.ONE);
-        @SuppressWarnings("UnnecessaryLocalVariable")
-        long handle = extensionFilterDefinition.getNativeHandle();
-        return handle;
+    /**
+     * Test the allocation and free of an APL RootContext memory..
+     */
+    @Test
+    @SmallTest
+    public void testMemory_binding() {
+        long handle = new ExtensionFilterDefinition("aplext:edgedetectorfilters:11", "Edges", ImageCount.ONE)
+                .getNativeHandle();
+
+        assertNativeHandle(handle);
     }
 
     @Test

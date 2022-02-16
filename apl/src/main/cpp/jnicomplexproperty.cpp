@@ -38,6 +38,8 @@ namespace apl {
                 return JNI_FALSE;
             }
 
+            JAVA_LANG_STRING = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/lang/String")));
+
             return JNI_TRUE;
         }
 
@@ -59,52 +61,33 @@ namespace apl {
         JNIEXPORT jdouble JNICALL
         Java_com_amazon_apl_android_primitive_Dimension_nGetValue(JNIEnv *env, jclass clazz,
                                                                   jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto d = value.asDimension(*lookup->getContext(handle));
             return static_cast<jdouble>(d.getValue());
         }
 
-        JNIEXPORT jfloat JNICALL
-        Java_com_amazon_apl_android_primitive_Rect_nGetLeft(JNIEnv *env, jclass clazz,
-                                                            jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
-            auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto rect = value.getRect();
-            return static_cast<jfloat>(rect.getLeft());
-        }
-
-        JNIEXPORT jfloat JNICALL
-        Java_com_amazon_apl_android_primitive_Rect_nGetTop(JNIEnv *env, jclass clazz,
-                                                           jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
-            auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto rect = value.getRect();
-            return static_cast<jfloat>(rect.getTop());
-        }
-
-        JNIEXPORT jfloat JNICALL
-        Java_com_amazon_apl_android_primitive_Rect_nGetWidth(JNIEnv *env, jclass clazz,
-                                                             jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
-            auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto rect = value.getRect();
-            return static_cast<jfloat>(rect.getWidth());
-        }
-
-        JNIEXPORT jfloat JNICALL
-        Java_com_amazon_apl_android_primitive_Rect_nGetHeight(JNIEnv *env, jclass clazz,
+        JNIEXPORT jfloatArray JNICALL
+        Java_com_amazon_apl_android_primitive_Rect_nGetRect(JNIEnv *env, jclass clazz,
                                                               jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto rect = value.getRect();
-            return static_cast<jfloat>(rect.getHeight());
+            const auto& rect = value.getRect();
+            float buffer[4] = { rect.getLeft(),
+                                rect.getTop(),
+                                rect.getWidth(),
+                                rect.getHeight()};
+
+            jfloatArray jrect = env->NewFloatArray(4);
+            env->SetFloatArrayRegion(jrect, 0, 4, buffer);
+
+            return jrect;
         }
 
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_Radii_nGetTopLeft(JNIEnv *env, jclass clazz,
                                                                 jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto radii = value.getRadii();
             return static_cast<jfloat>(radii.topLeft());
@@ -113,7 +96,7 @@ namespace apl {
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_Radii_nGetTopRight(JNIEnv *env, jclass clazz,
                                                                  jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto radii = value.getRadii();
             return static_cast<jfloat>(radii.topRight());
@@ -122,7 +105,7 @@ namespace apl {
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_Radii_nGetBottomRight(JNIEnv *env, jclass clazz,
                                                                     jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto radii = value.getRadii();
             return static_cast<jfloat>(radii.bottomRight());
@@ -131,7 +114,7 @@ namespace apl {
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_Radii_nGetBottomLeft(JNIEnv *env, jclass clazz,
                                                                    jlong handle, jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto radii = value.getRadii();
             return static_cast<jfloat>(radii.bottomLeft());
@@ -141,7 +124,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_StyledText_nGetText(JNIEnv *env, jclass clazz,
                                                                   jlong handle, jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
 
             // for emoji characters, rapidjson stores in 4-byte format
@@ -159,7 +142,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_StyledText_nGetSpanCount(JNIEnv *env, jclass clazz,
                                                                        jlong handle,
                                                                        jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
             auto spans = styledText.getSpans();
             return static_cast<jint>(spans.size());
@@ -170,7 +153,7 @@ namespace apl {
                                                                         jlong handle,
                                                                         jint propertyId,
                                                                         jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
@@ -182,7 +165,7 @@ namespace apl {
                                                                          jlong handle,
                                                                          jint propertyId,
                                                                          jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
@@ -194,7 +177,7 @@ namespace apl {
                                                                        jlong handle,
                                                                        jint propertyId,
                                                                        jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
@@ -206,7 +189,7 @@ namespace apl {
                                                                        JNIEnv *env, jclass clazz,
                                                                        jlong handle,
                                                                        jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &styledText = value.getStyledText();
             auto spans = styledText.getSpans();
             return (jlong) new StyledText::Iterator(styledText);
@@ -290,7 +273,7 @@ namespace apl {
                                                                       jlong handle,
                                                                       jint propertyId,
                                                                       jint graphicPropertyKey) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGradient();
 
             auto gradientArray = g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).getArray();
@@ -310,7 +293,7 @@ namespace apl {
                                                                       jlong handle,
                                                                       jint propertyId,
                                                                       jint graphicPropertyKey) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGradient();
 
             auto gradientArray = g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).getArray();
@@ -329,7 +312,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Gradient_nGetFloat(JNIEnv *env, jclass clazz, jlong handle,
                                                                  jint propertyId, jint graphicPropertyKey) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGradient();
             return static_cast<jfloat>(g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).asNumber());
         }
@@ -338,7 +321,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Gradient_nGetInt(JNIEnv *env, jclass clazz, jlong handle,
                                                                  jint propertyId, jint graphicPropertyKey) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &g = value.getGradient();
             return static_cast<jint>(g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).asInt());
         }
@@ -347,7 +330,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nGetFilterTypeAt(JNIEnv *env, jclass clazz,
                                                                        jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             return static_cast<jint>(f.getType());
@@ -357,7 +340,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nGetNoiseKindAt(JNIEnv *env, jclass clazz,
                                                                       jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(kFilterPropertyKind).getInteger();
@@ -367,7 +350,7 @@ namespace apl {
         JNIEXPORT jboolean JNICALL
         Java_com_amazon_apl_android_primitive_Filters_nGetNoiseUseColorAt(JNIEnv *env, jclass clazz,
                                                                           jlong handle, jint propertyId, jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(kFilterPropertyUseColor).getBoolean();
@@ -378,7 +361,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nGetNoiseSigmaAt(JNIEnv *env, jclass clazz,
                                                                        jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(kFilterPropertySigma).getDouble();
@@ -389,7 +372,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nGetColorAt(JNIEnv *env, jclass clazz,
                                                                    jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             apl::Color color = f.getValue(kFilterPropertyColor).asColor();
@@ -400,7 +383,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nHasPropertyAt(JNIEnv *env, jclass clazz, jlong handle,
                                                                      jint propertyId, jint filterPropertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             const auto &g = f.getValue(static_cast<FilterProperty>(filterPropertyId));
@@ -411,7 +394,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_Filters_nGetGradientTypeAt(JNIEnv *env, jclass clazz,
                                                                          jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
@@ -421,7 +404,7 @@ namespace apl {
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_Filters_nGetGradientFloatAt(JNIEnv *env, jclass clazz,
                                                                          jlong handle, jint propertyId, jint gradientPropertyId, jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
@@ -434,7 +417,7 @@ namespace apl {
                                                                                jint propertyId,
                                                                                jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
@@ -457,7 +440,7 @@ namespace apl {
                                                                                jlong handle,
                                                                                jint propertyId,
                                                                                jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
@@ -481,7 +464,7 @@ namespace apl {
                                                                     jint propertyId,
                                                                     jint filterPropertyKey,
                                                                     jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asBoolean();
@@ -494,7 +477,7 @@ namespace apl {
                                                                    jint propertyId,
                                                                    jint filterPropertyKey,
                                                                    jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asString();
@@ -506,7 +489,7 @@ namespace apl {
                                             jint propertyId,
                                             jint filterPropertyKey,
                                             jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey));
@@ -539,7 +522,7 @@ namespace apl {
                                                                   jint filterPropertyKey,
                                                                   jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asNumber();
@@ -551,7 +534,7 @@ namespace apl {
                                                                   jint propertyId, jint filterPropertyKey,
                                                                   jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getFilter();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asInt();
@@ -563,7 +546,7 @@ namespace apl {
                                                                                      jlong handle,
                                                                                      jint propertyId,
                                                                                      jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto source = array[index].getMediaSource();
             return static_cast<jint>(source.getDuration());
@@ -574,7 +557,7 @@ namespace apl {
                                                                                    jlong handle,
                                                                                    jint propertyId,
                                                                                    jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto source = array[index].getMediaSource();
             return static_cast<jint>(source.getOffset());
@@ -585,7 +568,7 @@ namespace apl {
                                                                                         jlong handle,
                                                                                         jint propertyId,
                                                                                         jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto source = array[index].getMediaSource();
             return static_cast<jint>(source.getRepeatCount());
@@ -596,17 +579,88 @@ namespace apl {
                                                                                 jlong handle,
                                                                                 jint propertyId,
                                                                                 jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto source = array[index].getMediaSource();
             return env->NewStringUTF(source.getUrl().c_str());
+        }
+
+        jobjectArray getStringArray(JNIEnv *env, std::vector<std::basic_string<char, std::char_traits<char>, std::allocator<char>>> array) {
+            jobjectArray stringArray = env->NewObjectArray(array.size(), JAVA_LANG_STRING, nullptr);
+            if (stringArray == NULL) {
+                return NULL; /* out of memory error thrown */
+            }
+            for (int i = 0; i < array.size(); ++i) {
+                jobject object = getJObject(env, array[i]);
+                if (env->IsInstanceOf(object, JAVA_LANG_STRING)) {
+                    env->SetObjectArrayElement(stringArray, i, object);
+                }
+                env->DeleteLocalRef(object);
+            }
+            return stringArray;
+        }
+
+        JNIEXPORT jobjectArray JNICALL
+        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceHeadersAt(JNIEnv *env, jclass clazz,
+                                                                                jlong handle,
+                                                                                jint propertyId,
+                                                                                jint index) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            const auto& array = value.getArray();
+            const auto& source = array[index].getMediaSource();
+            const auto& headers = source.getHeaders();
+            return getStringArray(env, headers);
+        }
+
+        JNIEXPORT jint JNICALL
+        Java_com_amazon_apl_android_primitive_UrlRequestGetter_nSize(JNIEnv *env, jclass clazz,
+                                                                     jlong handle,
+                                                                     jint propertyId) {
+            const auto& value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            if (!value.isArray()) return 1;
+            const auto& array = value.getArray();
+            return static_cast<jint>(array.size());
+        }
+
+        JNIEXPORT jobjectArray JNICALL
+        Java_com_amazon_apl_android_primitive_UrlRequestGetter_nGetUrlRequestHeadersAt(JNIEnv *env, jclass clazz,
+                                                                                    jlong handle,
+                                                                                    jint propertyId,
+                                                                                    jint index) {
+            const auto& value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            if (value.isArray()) {
+                const auto& array = value.getArray();
+                const auto& source = array[index].asURLRequest();
+                const auto& headers = source.getHeaders();
+                return getStringArray(env, headers);
+            } else {
+                const auto& source = value.asURLRequest();
+                const auto& headers = source.getHeaders();
+                return getStringArray(env, headers);
+            }
+        }
+
+        JNIEXPORT jstring JNICALL
+        Java_com_amazon_apl_android_primitive_UrlRequestGetter_nGetUrlRequestSourceAt(JNIEnv *env, jclass clazz,
+                                                                                    jlong handle,
+                                                                                    jint propertyId,
+                                                                                    jint index) {
+            const auto& value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            if (value.isArray()) {
+                const auto& array = value.getArray();
+                const auto& urlRequest = array[index].asURLRequest();
+                return env->NewStringUTF(urlRequest.getUrl().c_str());
+            } else {
+                const auto& urlRequest = value.asURLRequest();
+                return env->NewStringUTF(urlRequest.getUrl().c_str());
+            }
         }
 
         JNIEXPORT jint JNICALL
         Java_com_amazon_apl_android_primitive_ArrayGetter_nSize(JNIEnv *env, jclass clazz,
                                                                      jlong handle,
                                                                      jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             return static_cast<jint>(array.size());
         }
@@ -616,7 +670,7 @@ namespace apl {
                                                                                 jlong handle,
                                                                                 jint propertyId,
                                                                                 jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto action = array[index].getAccessibilityAction();
             return env->NewStringUTF(action->getName().c_str());
@@ -627,7 +681,7 @@ namespace apl {
                                                                                                  jlong handle,
                                                                                                  jint propertyId,
                                                                                                  jint index) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto action = array[index].getAccessibilityAction();
             return env->NewStringUTF(action->getLabel().c_str());
@@ -637,7 +691,7 @@ namespace apl {
         Java_com_amazon_apl_android_primitive_GraphicFilters_nGetGraphicFilterTypeAt(JNIEnv *env, jclass clazz,
                                                                                      jlong handle, jint propertyId, jint index) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
             auto &f = array[index].getGraphicFilter();
 
@@ -647,7 +701,7 @@ namespace apl {
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_primitive_GraphicFilters_nGetColorAt(JNIEnv *env, jclass clazz,
                                                                          jlong handle, jint propertyId, jint index) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getGraphicFilter();
@@ -659,7 +713,7 @@ namespace apl {
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_primitive_GraphicFilters_nGetFloatAt(JNIEnv *env, jclass clazz,
                                                                           jlong handle, jint propertyId, jint graphicFilterPropertykey, jint index) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
             auto &f = array[index].getGraphicFilter();
@@ -675,4 +729,3 @@ namespace apl {
 
     } //namespace jni
 } //namespace apl
-

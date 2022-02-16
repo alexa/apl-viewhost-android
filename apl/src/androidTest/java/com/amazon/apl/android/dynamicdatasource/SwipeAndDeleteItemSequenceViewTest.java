@@ -14,7 +14,7 @@ import androidx.test.espresso.IdlingResource;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.MultiChildComponent;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.espresso.APLMatchers;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
@@ -50,7 +50,7 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
     private static final String DELETE_ITEM = "DeleteItem";
     private static final String INSERT_ITEM = "InsertItem";
 
-    private ISendEventCallback mSendEventCallback = (args, components, sources) -> {
+    private ISendEventCallbackV2 mSendEventCallback = (args, components, sources, flags) -> {
         try {
             JSONObject payload = new JSONObject();
             payload.put("listId", "vQdpOESlok");
@@ -199,7 +199,7 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
     @Before
     public void setup() {
-        mOptions = APLOptions.builder().sendEventCallback(mSendEventCallback).build();
+        mOptions = APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build();
         try {
             JSONArray jsonArray = new JSONArray();
             for (Pair<String, String> pair : ITEMS) {
@@ -374,6 +374,9 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(actionWithAssertions(inflate(COMPONENT_PROPS, createDocumentPropsWithOnPress("[\"InsertItem\", \"${index + 1}\", {\"color\": \"orange\", \"text\": \"Item 100\"}]"), PAYLOAD_ID, DATA, mOptions)))
                 .check(hasRootContext());
+
+        mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
+        IdlingRegistry.getInstance().register(mIdlingResource);
 
         // Delete second item in list
         onView(APLMatchers.withText("Item 1"))

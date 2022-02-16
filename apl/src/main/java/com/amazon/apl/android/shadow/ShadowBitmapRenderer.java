@@ -44,11 +44,7 @@ public class ShadowBitmapRenderer {
     private final IBitmapCache mCache;
     private final IBitmapFactory mBitmapFactory;
 
-    public ShadowBitmapRenderer(IBitmapFactory bitmapFactory) {
-        this(new LruBitmapCache(), bitmapFactory);
-    }
-
-    ShadowBitmapRenderer(IBitmapCache cache, IBitmapFactory bitmapFactory) {
+    public ShadowBitmapRenderer(IBitmapCache cache, IBitmapFactory bitmapFactory) {
         mCache = cache;
         mBitmapFactory = bitmapFactory;
     }
@@ -78,12 +74,18 @@ public class ShadowBitmapRenderer {
         final ShadowBitmapKey key = new ShadowBitmapKey(component);
         final RectF shadowRect = component.getShadowRect();
         final int shadowBlurRadius = component.getShadowRadius();
+        // if width or height of bitmap is zero, then return
+        final int shadowBitmapWidth = Math.round(shadowRect.width() + 2 * shadowBlurRadius);
+        final int shadowBitmapHeight = Math.round(shadowRect.height() + 2 * shadowBlurRadius);
+        if (shadowBitmapWidth == 0 || shadowBitmapHeight == 0) {
+            return;
+        }
 
         final Bitmap shadowBitmap;
         try {
             shadowBitmap = mBitmapFactory.createBitmap(
-                    Math.round(shadowRect.width() + 2 * shadowBlurRadius),
-                    Math.round(shadowRect.height() + 2 * shadowBlurRadius));
+                    shadowBitmapWidth,
+                    shadowBitmapHeight);
         } catch (BitmapCreationException e) {
             if (BuildConfig.DEBUG) {
                 Log.e(TAG, "Error preparing shadow bitmap.", e);
@@ -223,7 +225,6 @@ public class ShadowBitmapRenderer {
 
     // Clears cache and releases unused resources
     public void cleanUp() {
-        mCache.clear();
         for(BlurAsyncTask async : mAsyncTasks.values()) {
             if(async != null && !async.isCancelled()) {
                 async.cancel(true);

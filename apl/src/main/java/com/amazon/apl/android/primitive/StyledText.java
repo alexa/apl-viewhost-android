@@ -8,8 +8,7 @@ package com.amazon.apl.android.primitive;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.amazon.apl.android.BoundObject;
-import com.amazon.apl.android.Text;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.ColorUtils;
 import com.amazon.apl.enums.APLEnum;
@@ -41,7 +40,7 @@ public class StyledText {
 
     /**
      * Get the text string of the styled text BEFORE the spans have been processed. This text can
-     * differ from the styled text calculated by {@link Text#getText(StyledText)}
+     * differ from the styled text calculated by {@link com.amazon.apl.android.TextProxy#getText(StyledText)}
      */
     public String getUnprocessedText() {
         return mText;

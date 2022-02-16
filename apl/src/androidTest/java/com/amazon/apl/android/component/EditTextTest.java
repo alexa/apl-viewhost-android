@@ -7,8 +7,10 @@ package com.amazon.apl.android.component;
 
 import android.graphics.Color;
 
+import androidx.test.filters.SmallTest;
+
 import com.amazon.apl.android.EditText;
-import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.views.APLEditText;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FontStyle;
@@ -17,8 +19,6 @@ import com.amazon.apl.enums.SubmitKeyType;
 
 import org.junit.Before;
 import org.junit.Test;
-
-import androidx.test.filters.SmallTest;
 
 import static org.junit.Assert.assertEquals;
 
@@ -73,27 +73,28 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
      */
     @Override
     void testProperties_optionalDefaultValues(EditText component) {
-        assertEquals(Color.TRANSPARENT, component.getBorderColor());
-        assertEquals(component.getBorderWidth(), component.getDrawnBorderWidth());
-        assertEquals(0, component.getBorderWidth());
-        assertEquals(Color.argb(255, 250, 250, 250), component.getColor()); // #fafafaff (dark theme)
-        assertEquals("sans-serif", component.getFontFamily());
-        assertEquals(40, component.getFontSize());
-        assertEquals(FontStyle.kFontStyleNormal, component.getFontStyle());
-        assertEquals(400, component.getFontWeight());
-        assertEquals(Color.argb(77, 0, 202, 255), component.getHighlightColor()); // #00caff4d (dark theme)
-        assertEquals("", component.getHint());
-        assertEquals(Color.argb(255, 250, 250, 250), component.getHintColor()); // #fafafaff (dark theme)
-        assertEquals(FontStyle.kFontStyleNormal, component.getHintFontStyle());
-        assertEquals(400, component.getHintFontWeight());
-        assertEquals(KeyboardType.kKeyboardTypeNormal, component.getKeyboardType());
-        assertEquals(0, component.getMaxLength());
-        assertEquals(false, component.isSecureInput());
-        assertEquals(false, component.isSelectOnFocus());
-        assertEquals(8, component.getSize());
-        assertEquals(SubmitKeyType.kSubmitKeyTypeDone, component.getSubmitKeyType());
-        assertEquals("", component.getText());
-        assertEquals("", component.getValidCharacters());
+        EditTextProxy proxy = component.getProxy();
+        assertEquals(Color.TRANSPARENT, proxy.getBorderColor());
+        assertEquals(proxy.getBorderWidth(), proxy.getDrawnBorderWidth());
+        assertEquals(0, proxy.getBorderWidth());
+        assertEquals(Color.argb(255, 250, 250, 250), proxy.getColor()); // #fafafaff (dark theme)
+        assertEquals("sans-serif", proxy.getFontFamily());
+        assertEquals(40, proxy.getFontSize());
+        assertEquals(FontStyle.kFontStyleNormal, proxy.getFontStyle());
+        assertEquals(400, proxy.getFontWeight());
+        assertEquals(Color.argb(77, 0, 202, 255), proxy.getHighlightColor()); // #00caff4d (dark theme)
+        assertEquals("", proxy.getHint());
+        assertEquals(Color.argb(255, 250, 250, 250), proxy.getHintColor()); // #fafafaff (dark theme)
+        assertEquals(FontStyle.kFontStyleNormal, proxy.getHintFontStyle());
+        assertEquals(400, proxy.getHintFontWeight());
+        assertEquals(KeyboardType.kKeyboardTypeNormal, proxy.getKeyboardType());
+        assertEquals(0, proxy.getMaxLength());
+        assertEquals(false, proxy.isSecureInput());
+        assertEquals(false, proxy.isSelectOnFocus());
+        assertEquals(8, proxy.getSize());
+        assertEquals(SubmitKeyType.kSubmitKeyTypeDone, proxy.getSubmitKeyType());
+        assertEquals("", proxy.getText());
+        assertEquals("", proxy.getValidCharacters());
     }
 
     /**
@@ -105,76 +106,27 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
      */
     @Override
     void testProperties_optionalExplicitValues(EditText component) {
-        assertEquals(Color.BLACK, component.getBorderColor());
-        assertEquals(20, component.getDrawnBorderWidth()); // Minimum of border width and border stroke width
-        assertEquals(Color.RED, component.getColor());
-        assertEquals("times new roman, times, georgia, serif", component.getFontFamily());
-        assertEquals(18, component.getFontSize());
-        assertEquals(FontStyle.kFontStyleItalic, component.getFontStyle());
-        assertEquals(500, component.getFontWeight());
-        assertEquals(Color.YELLOW, component.getHighlightColor());
-        assertEquals("This is a hint", component.getHint());
-        assertEquals(Color.BLUE, component.getHintColor());
-        assertEquals(FontStyle.kFontStyleItalic, component.getHintFontStyle());
-        assertEquals(300, component.getHintFontWeight());
-        assertEquals(KeyboardType.kKeyboardTypeEmailAddress, component.getKeyboardType());
-        assertEquals(2, component.getMaxLength()); // Viewhost enforces max length on the text
-        assertEquals(true, component.isSecureInput());
-        assertEquals(true, component.isSelectOnFocus());
-        assertEquals(10, component.getSize()); // Viewhost enforces size on the text
-        assertEquals(SubmitKeyType.kSubmitKeyTypeSend, component.getSubmitKeyType());
-        assertEquals("This is a text", component.getText());
-        assertEquals("0-9", component.getValidCharacters()); // Viewhost enforces restriction of characters on the text
+        EditTextProxy proxy = component.getProxy();
+        assertEquals(Color.BLACK, proxy.getBorderColor());
+        assertEquals(20, proxy.getDrawnBorderWidth()); // Minimum of border width and border stroke width
+        assertEquals(Color.RED, proxy.getColor());
+        assertEquals("times new roman, times, georgia, serif", proxy.getFontFamily());
+        assertEquals(18, proxy.getFontSize());
+        assertEquals(FontStyle.kFontStyleItalic, proxy.getFontStyle());
+        assertEquals(500, proxy.getFontWeight());
+        assertEquals(Color.YELLOW, proxy.getHighlightColor());
+        assertEquals("This is a hint", proxy.getHint());
+        assertEquals(Color.BLUE, proxy.getHintColor());
+        assertEquals(FontStyle.kFontStyleItalic, proxy.getHintFontStyle());
+        assertEquals(300, proxy.getHintFontWeight());
+        assertEquals(KeyboardType.kKeyboardTypeEmailAddress, proxy.getKeyboardType());
+        assertEquals(2, proxy.getMaxLength()); // Viewhost enforces max length on the text
+        assertEquals(true, proxy.isSecureInput());
+        assertEquals(true, proxy.isSelectOnFocus());
+        assertEquals(10, proxy.getSize()); // Viewhost enforces size on the text
+        assertEquals(SubmitKeyType.kSubmitKeyTypeSend, proxy.getSubmitKeyType());
+        assertEquals("This is a text", proxy.getText());
+        assertEquals("0-9", proxy.getValidCharacters()); // Viewhost enforces restriction of characters on the text
     }
 
-    /**
-     * Verify that component width is calculated based on size.
-     */
-    @Test
-    @SmallTest
-    public void testMeasure_modeAtMostBoring_width_depends_on_size() {
-
-        // Use a document where text has a parent, otherwise measurement isn't needed
-
-        // MeasureMode.AT_MOST
-        inflateDocument(buildDocument(PARENT_DOC, "",
-                " \"text\": \"Hello APL!\"", ""));
-        EditText text = getTestComponent();
-        text.measureTextContent(160, 960, RootContext.MeasureMode.AtMost, 480, RootContext.MeasureMode.AtMost);
-        int widthPx = text.getMeasuredWidthPx();
-        int heightPx = text.getMeasuredHeightPx();
-
-        inflateDocument(buildDocument(PARENT_DOC, "",
-                " \"text\": \"Hello APL!\", \"size\": 4", ""));
-        text = getTestComponent();
-        text.measureTextContent(160, 960, RootContext.MeasureMode.AtMost, 480, RootContext.MeasureMode.AtMost);
-        assertEquals(widthPx/2, text.getMeasuredWidthPx());
-        assertEquals(heightPx, text.getMeasuredHeightPx());
-    }
-
-    /**
-     * Verify that component height is calculated based on fontSize.
-     */
-    @Test
-    @SmallTest
-    public void testMeasure_modeAtMostBoring_specified_fontSize() {
-
-        // Use a document where text has a parent, otherwise measurement isn't needed
-
-        // MeasureMode.AT_MOST
-        inflateDocument(buildDocument(PARENT_DOC, "",
-                " \"text\": \"Hello APL!\"", ""));
-        EditText text = getTestComponent();
-        text.measureTextContent(160, 960, RootContext.MeasureMode.AtMost, 480, RootContext.MeasureMode.AtMost);
-        int widthPx = text.getMeasuredWidthPx();
-        int heightPx = text.getMeasuredHeightPx();
-
-        inflateDocument(buildDocument(PARENT_DOC, "",
-                " \"text\": \"Hello APL!\", \"size\": 4, \"fontSize\": \"80dp\"", ""));
-        text = getTestComponent();
-        text.measureTextContent(160, 960, RootContext.MeasureMode.AtMost, 480, RootContext.MeasureMode.AtMost);
-        // size reduced to half and fontSize doubled from default should approximately result in same width.
-        assertEquals(widthPx, text.getMeasuredWidthPx(), 10);
-        assertEquals(2 * heightPx - 1, text.getMeasuredHeightPx());
-    }
 }

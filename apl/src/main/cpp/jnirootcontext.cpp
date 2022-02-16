@@ -11,9 +11,11 @@
 
 #include "jniutil.h"
 #include "jnimetricstransform.h"
+#include "jnitextmeasurecallback.h"
 #include "loggingbridge.h"
 #include "scaling.h"
 #include "touch/pointerevent.h"
+#include <codecvt>
 
 namespace apl {
     namespace jni {
@@ -26,11 +28,12 @@ namespace apl {
 
         const bool DEBUG_JNI = true;
 
+        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+
         // Access APL view host RootContext class.
         static jclass ROOTCONTEXT_CLASS;
         static jmethodID ROOTCONTEXT_BUILD_COMPONENT;
         static jmethodID ROOTCONTEXT_UPDATE_COMPONENT;
-        static jmethodID ROOTCONTEXT_MEASURE;
         static jmethodID ROOTCONTEXT_HANDLE_EVENT;
         static jmethodID ROOTCONTEXT_COMPONENT_HANDLE;
         static jmethodID ROOTCONTEXT_TO_UPPER;
@@ -38,7 +41,8 @@ namespace apl {
         static jclass JAVA_UTIL_LINKEDHASHMAP;
         static jmethodID JAVA_UTIL_LINKEDHASHMAP_CONSTRUCTOR;
         static jmethodID JAVA_UTIL_LINKEDHASHMAP_PUT;
-        const static float FLOAT_MAX = std::numeric_limits<float>::max();
+
+        static JavaVM* JAVA_VM;
 
         /**
          * Initialize and cache java class and method handles for callback to the rendering layer.
@@ -51,6 +55,7 @@ namespace apl {
 
             LOG(apl::LogLevel::DEBUG) << "Loading View Host RootContext JNI environment.";
 
+            JAVA_VM = vm;
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                 return JNI_FALSE;
@@ -65,8 +70,6 @@ namespace apl {
             ROOTCONTEXT_UPDATE_COMPONENT = env->GetMethodID(ROOTCONTEXT_CLASS,
                                                             "callbackUpdateComponent",
                                                             "(Ljava/lang/String;[I)V");
-            ROOTCONTEXT_MEASURE = env->GetMethodID(ROOTCONTEXT_CLASS, "callbackMeasure",
-                                                   "(Ljava/lang/String;JIFIFI)[F");
             ROOTCONTEXT_HANDLE_EVENT = env->GetMethodID(ROOTCONTEXT_CLASS,
                                                         "callbackHandleEvent",
                                                         "(JI)V");
@@ -81,7 +84,6 @@ namespace apl {
 
             if (nullptr == ROOTCONTEXT_BUILD_COMPONENT
                 || nullptr == ROOTCONTEXT_UPDATE_COMPONENT
-                || nullptr == ROOTCONTEXT_MEASURE
                 || nullptr == ROOTCONTEXT_HANDLE_EVENT
                 || nullptr == ROOTCONTEXT_COMPONENT_HANDLE
                 ) {
@@ -110,73 +112,10 @@ namespace apl {
                 return;
             }
 
+            JAVA_VM = nullptr;
+
             env->DeleteGlobalRef(ROOTCONTEXT_CLASS);
         }
-
-        /**
-         * TextMeasurement delegate for JNI.
-         */
-        class JniTextMeasurement : public TextMeasurement {
-        public:
-            JniTextMeasurement() {}
-            LayoutSize measure(Component *textPtr,
-                           float width,
-                           MeasureMode widthMode,
-                           float height,
-                           MeasureMode heightMode) override {
-                if (mEnv->IsSameObject(mContext, NULL)) {
-                    LOG(apl::LogLevel::ERROR) << "Attempt to measure after RootContext is finished.";
-                    return {.width = 0, .height = 0};
-                }
-
-                auto component = textPtr->shared_from_this();
-                auto id = mEnv->NewStringUTF(component->getUniqueId().c_str());
-                //Reuse the handle if we have already created this component before, otherwise
-                //create a new handle.
-                auto handle = mEnv->CallLongMethod(mContext, ROOTCONTEXT_COMPONENT_HANDLE, id);
-                if(handle == 0) {
-                    handle = createHandle<Component, ComponentPropertyLookup>(component);
-                }
-                auto m = (jfloatArray) mEnv->CallObjectMethod(mContext, ROOTCONTEXT_MEASURE,
-                                                              id,
-                                                              handle,
-                                                              static_cast<int>(component->getType()),
-                                                              static_cast<jfloat>(isnan(width)
-                                                                                  ? FLOAT_MAX :
-                                                                                  width),
-                                                              static_cast<jint>(widthMode),
-                                                              static_cast<jfloat>(isnan(height)
-                                                                                  ? FLOAT_MAX :
-                                                                                  height),
-                                                              static_cast<jint>(heightMode));
-                mEnv->DeleteLocalRef(id);
-                auto array = mEnv->GetFloatArrayElements(m, 0);
-                auto measureWidth = static_cast<float>(array[0]);
-                auto measureHeight = static_cast<float>(array[1]);
-                mEnv->ReleaseFloatArrayElements(m, array, 0);
-                mEnv->DeleteLocalRef(m);
-                return {.width = measureWidth, .height = measureHeight};
-            }
-
-            virtual float baseline(Component *component,
-                                   float width,
-                                   float height) override {
-                return height * 0.5;
-            }
-
-            void setEnv(JNIEnv *env, jobject instance) {
-                mEnv = env;
-                mContext = mEnv->NewWeakGlobalRef(instance);
-            }
-
-            ~JniTextMeasurement() {
-                mEnv = nullptr;
-            }
-
-        private:
-            jobject mContext;
-            JNIEnv *mEnv;
-        };
 
         /**
          * LocaleMethods delegate for JNI.
@@ -186,45 +125,34 @@ namespace apl {
             JniLocaleMethods() {}
 
             std::string toUpperCase( const std::string& value, const std::string& locale ) {
-                jstring stringParam = mEnv->NewStringUTF(value.c_str());
-                jstring localeParam = mEnv->NewStringUTF(locale.c_str());
-
-                jstring upperCase = (jstring)mEnv->CallStaticObjectMethod(ROOTCONTEXT_CLASS, ROOTCONTEXT_TO_UPPER, stringParam, localeParam);
-                jboolean isCopy;
-                const char* chars = mEnv->GetStringUTFChars(upperCase, &isCopy);
-                std::string result = std::string(chars);
-
-                mEnv->DeleteLocalRef(stringParam);
-                mEnv->DeleteLocalRef(localeParam);
-                mEnv->ReleaseStringUTFChars(upperCase, chars);
-                return result;
+                return callJavaMethod(value, locale, ROOTCONTEXT_TO_UPPER);
             }
 
             std::string toLowerCase( const std::string& value, const std::string& locale ) {
-                jstring stringParam = mEnv->NewStringUTF(value.c_str());
-                jstring localeParam = mEnv->NewStringUTF(locale.c_str());
-                jstring upperCase = (jstring)mEnv->CallStaticObjectMethod(ROOTCONTEXT_CLASS, ROOTCONTEXT_TO_LOWER, stringParam, localeParam);
-                jboolean isCopy;
-                const char* chars = mEnv->GetStringUTFChars(upperCase, &isCopy);
-                std::string result = std::string(chars);
-
-                mEnv->DeleteLocalRef(stringParam);
-                mEnv->DeleteLocalRef(localeParam);
-                mEnv->ReleaseStringUTFChars(upperCase, chars);
-                return result;
-            }
-
-            void setEnv(JNIEnv *env) {
-                mEnv = env;
-            }
-
-            ~JniLocaleMethods() {
-                mEnv = nullptr;
+                return callJavaMethod(value, locale, ROOTCONTEXT_TO_LOWER);
             }
 
         private:
-            jobject mContext;
-            JNIEnv *mEnv;
+            std::string callJavaMethod(const std::string& value, const std::string& locale, jmethodID java_method) {
+                JNIEnv *env;
+                if (JAVA_VM->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+                    // environment failure, can't proceed.
+                    return "";
+                }
+
+                std::u16string u16 = converter.from_bytes(value.c_str());
+                jstring stringParam = env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
+                jstring localeParam = env->NewStringUTF(locale.c_str());
+                jstring resultString = (jstring)env->CallStaticObjectMethod(ROOTCONTEXT_CLASS, java_method, stringParam, localeParam);
+                const char* chars = env->GetStringUTFChars(resultString, nullptr);
+                std::string result = std::string(chars);
+
+                env->DeleteLocalRef(stringParam);
+                env->DeleteLocalRef(localeParam);
+                env->ReleaseStringUTFChars(resultString, chars);
+                env->DeleteLocalRef(resultString);
+                return result;
+            }
         };
 
 
@@ -236,6 +164,7 @@ namespace apl {
         Java_com_amazon_apl_android_RootContext_nCreate(JNIEnv *env, jobject instance,
                                                                   jlong contentHandle,
                                                                   jlong rootConfigHandle,
+                                                                  jlong textMeasureHandle,
                                                                   jint width,
                                                                   jint height,
                                                                   jint dpi,
@@ -244,6 +173,7 @@ namespace apl {
                                                                   jint mode) {
             auto content = get<Content>(contentHandle);
             auto rootConfig = get<RootConfig>(rootConfigHandle);
+            auto measure = get<JniTextMeasurement>(textMeasureHandle);
 
             // If the document states version 1.0, then set the old defaults
             // for backwards compatibility
@@ -255,12 +185,9 @@ namespace apl {
                 rootConfig->defaultComponentSize(kComponentTypePager, _100p, _100p);
             }
 
-            auto measure = std::make_shared<JniTextMeasurement>();
-            measure->setEnv(env, instance);
             rootConfig->measure(measure);
 
             auto localeMethods = std::make_shared<JniLocaleMethods>();
-            localeMethods->setEnv(env);
             rootConfig->localeMethods(localeMethods);
 
             // TODO: Ignore for now.To be changed when imports versions fixed.
@@ -273,7 +200,7 @@ namespace apl {
                     .theme(theme)
                     .dpi(static_cast<int>(dpi))
                     .mode(static_cast<ViewportMode>(mode));
-
+            env->ReleaseStringUTFChars(theme_, theme);
             RootContextPtr context = RootContext::create(metrics, content, *rootConfig);
 
             if(!context) {
@@ -355,11 +282,6 @@ namespace apl {
                                                                     jlong nativeHandle) {
             auto rootContext = get<RootContext>(nativeHandle);
 
-            // We update the JniTextMeasurement's reference to the Java RootContext instance here
-            // since we call this method with a new Java RootContext instance.
-            auto measure = dynamic_cast<JniTextMeasurement*>(rootContext->measure().get());
-            measure->setEnv(env, instance);
-
             inflateComponentHierarchy(
                     env,
                     instance,
@@ -395,11 +317,13 @@ namespace apl {
             const char *uid = env->GetStringUTFChars(uid_, nullptr);
             auto component = rootContext->findComponentById(uid);
 
-            inflateComponentHierarchy(
-                    env,
-                    instance,
-                    rootContext,
-                    component);
+            if (component) {
+                inflateComponentHierarchy(
+                        env,
+                        instance,
+                        rootContext,
+                        component);
+            }
 
             env->ReleaseStringUTFChars(uid_, uid);
         }
@@ -475,10 +399,6 @@ namespace apl {
 
             auto data = getAPLObject(env, data_);
 
-            LOG(LogLevel::DEBUG) << "InvokeExtensionEventHandler - uri:" << uri
-                                 << " name:" << name << " data:" << data << " fastmode:"
-                                 << fastmode;
-
             auto obj = getAPLObject(env, data_);
             auto map = obj.isNull() ? *std::make_shared<ObjectMap>() : obj.getMap();
 
@@ -486,6 +406,9 @@ namespace apl {
 
             env->ReleaseStringUTFChars(uri_, uri);
             env->ReleaseStringUTFChars(name_, name);
+            if (action == nullptr) {
+                return 0;
+            }
 
             return createHandle<Action>(action);
 
@@ -549,7 +472,6 @@ namespace apl {
             auto rc = get<RootContext>(handle);
             while (rc->hasEvent()) {
                 auto evt = rc->popEvent();
-                LOG(apl::LogLevel::DEBUG) << "Attempt to handle event. Type: " << evt.getType();
                 handleEvent(env, instance, evt);
 
                 /* If an unexpected error occurs during the execution of the event,
@@ -560,8 +482,6 @@ namespace apl {
                             << " Failed to handle event. Type:" << evt.getType();
                     env->ExceptionDescribe();
                     env->ExceptionClear();
-                } else {
-                    LOG(apl::LogLevel::DEBUG) << "Event handled. Type: " << evt.getType();
                 }
                 // Stop processing events if Reinflate event is just handled.
                 if (evt.getType() == kEventTypeReinflate) {
@@ -712,7 +632,14 @@ namespace apl {
         Java_com_amazon_apl_android_RootContext_nHandleConfigurationChange(JNIEnv *env,
                                                                            jclass clazz,
                                                                            jlong handle,
-                                                                           jint width, jint height, jstring theme_, jint viewportMode, jfloat fontScale, jint screenMode, jboolean screenReader) {
+                                                                           jint width, jint height,
+                                                                           jstring theme_,
+                                                                           jint viewportMode,
+                                                                           jfloat fontScale,
+                                                                           jint screenMode,
+                                                                           jboolean screenReader,
+                                                                           jboolean disallowVideo,
+                                                                           jobject environmentValues) {
             auto rc = get<RootContext>(handle);
             const char* theme = env->GetStringUTFChars(theme_, nullptr);
             auto configurationChange = ConfigurationChange(width, height)
@@ -720,9 +647,26 @@ namespace apl {
                     .mode(static_cast<ViewportMode>(viewportMode))
                     .fontScale(fontScale)
                     .screenMode(static_cast<RootConfig::ScreenMode>(screenMode))
-                    .screenReader(screenReader);
+                    .screenReader(screenReader)
+                    .disallowVideo(disallowVideo);
+            auto envValues = getAPLObject(env, environmentValues);
+            if (!envValues.isNull()) {
+                const auto &envMap = envValues.getMap();
+                for (auto &item: envMap) {
+                    configurationChange.environmentValue(item.first, item.second);
+                }
+            }
             env->ReleaseStringUTFChars(theme_, theme);
             rc->configurationChange(configurationChange);
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootContext_nUpdateDisplayState(JNIEnv *env,
+                                                                    jclass clazz,
+                                                                    jlong handle,
+                                                                    jint displayState) {
+            auto rc = get<RootContext>(handle);
+            rc->updateDisplayState(static_cast<DisplayState>(displayState));
         }
 
         JNIEXPORT jboolean JNICALL
@@ -807,7 +751,8 @@ namespace apl {
             rapidjson::StringBuffer buffer;
             rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
             context.Accept(writer);
-            return env->NewStringUTF(buffer.GetString());
+            std::u16string u16 = converter.from_bytes(buffer.GetString());
+            return env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
         }
 
         JNIEXPORT jstring JNICALL
@@ -902,6 +847,38 @@ namespace apl {
             return env->NewStringUTF(focusedComponent.c_str());
         }
 
+        /**
+         * Notifies core when media is loaded.
+         */
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootContext_nMediaLoaded(JNIEnv *env, jclass clazz,
+                                                             jlong handle,
+                                                             jstring url_) {
+            const char* url = env->GetStringUTFChars(url_, nullptr);
+
+            auto rc = get<RootContext>(handle);
+            rc->mediaLoaded(url);
+            env->ReleaseStringUTFChars(url_, url);
+        }
+
+        /**
+         * Notifies core when a media load has failed
+         */
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootContext_nMediaLoadFailed(JNIEnv *env,
+                                                                 jclass clazz,
+                                                                 jlong handle,
+                                                                 jstring url_,
+                                                                 jint errorCode,
+                                                                 jstring error_) {
+            const char* url = env->GetStringUTFChars(url_, nullptr);
+            const char* error = env->GetStringUTFChars(error_, nullptr);
+
+            auto rc = get<RootContext>(handle);
+            rc->mediaLoadFailed(url, errorCode, error);
+            env->ReleaseStringUTFChars(url_, url);
+            env->ReleaseStringUTFChars(error_, error);
+        }
 
 #pragma clang diagnostic pop
 

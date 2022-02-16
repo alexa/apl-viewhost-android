@@ -89,7 +89,11 @@ namespace apl {
          JNIEXPORT jlong JNICALL
          Java_com_amazon_apl_android_RootConfig_nCreate(JNIEnv *env, jclass clazz) {
              // TODO remove when Core has this enabled by default.
-             auto rc = RootConfig().enableExperimentalFeature(RootConfig::kExperimentalFeatureRequestKeyboard);
+             auto rc = RootConfig()
+                     .enableExperimentalFeature(RootConfig::kExperimentalFeatureRequestKeyboard)
+                     .enableExperimentalFeature(RootConfig::kExperimentalFeatureExtensionProvider);
+             // Enable by default to support mediaLoad/mediaLoadFailed callbacks.
+             rc.enableExperimentalFeature(RootConfig::kExperimentalFeatureManageMediaRequests);
              auto rc_ = std::make_shared<apl::RootConfig>(rc);
              return createHandle<RootConfig>(rc_);
          }
@@ -329,6 +333,21 @@ namespace apl {
             env->ReleaseStringUTFChars(uri_, uri);
         }
 
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nSetEnvironmentValue(JNIEnv *env,
+                                                                    jclass clazz,
+                                                                    jlong nativeHandle,
+                                                                    jstring name_,
+                                                                    jobject value) {
+
+            const char *name = env->GetStringUTFChars(name_, nullptr);
+            auto val = getAPLObject(env, value);
+
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->setEnvironmentValue(name, val);
+
+            env->ReleaseStringUTFChars(name_, name);
+        }
 
         JNIEXPORT void JNICALL
         Java_com_amazon_apl_android_RootConfig_nRegisterExtensionEventHandler(JNIEnv *env,
@@ -340,6 +359,35 @@ namespace apl {
             rc->registerExtensionEventHandler(*eeh);
         }
 
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nRegisterExtensionFlags(JNIEnv *env, jclass clazz,
+                                                                       jlong nativeHandle,
+                                                                       jstring uri_,
+                                                                       jobject flags) {
+
+            const char * uri = env->GetStringUTFChars(uri_, nullptr);
+            auto obj = getAPLObject(env, flags);
+
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->registerExtensionFlags(uri, obj);
+
+            env->ReleaseStringUTFChars(uri_, uri);
+        }
+
+        JNIEXPORT jobject JNICALL
+        Java_com_amazon_apl_android_RootConfig_nGetExtensionFlags(JNIEnv *env, jclass clazz,
+                                                                  jlong nativeHandle,
+                                                                  jstring uri_) {
+            const char * uri = env->GetStringUTFChars(uri_, nullptr);
+            auto rc = get<RootConfig>(nativeHandle);
+            auto flags = rc->getExtensionFlags(uri);
+
+            jobject obj = getJObject(env, flags);
+
+            env->ReleaseStringUTFChars(uri_, uri);
+
+            return obj;
+        }
 
         JNIEXPORT void JNICALL
         Java_com_amazon_apl_android_RootConfig_nRegisterExtensionCommand(JNIEnv *env, jclass clazz,

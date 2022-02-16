@@ -9,6 +9,8 @@ import android.content.Context;
 import android.view.View;
 
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
@@ -114,6 +116,10 @@ public class APLTestContext {
         if (mRootConfig == null)
             mRootConfig = RootConfig.create("Unit Test", "1.0")
                     .registerDataSource("dynamicIndexList")
+                    // On heavy load, the speed of the Espresso `swipeLeft` and `swipeRight` actions
+                    // can fall below the threshold and not register as swipes to core.
+                    // We need to lower the threshold so that the swipes get detected properly.
+                    .set(RootProperty.kTapOrScrollTimeout, 50) // Half of the Fast swipe speed.
                     .pagerChildCache(3)
                     .sequenceChildCache(3);
         return mRootConfig;
@@ -122,8 +128,8 @@ public class APLTestContext {
 
     public IAPLViewPresenter buildPresenter() {
         when(mPresenter.getContext()).thenReturn(InstrumentationRegistry.getInstrumentation().getContext());
-        when(mPresenter.getDensity()).thenReturn(mMetrics.density());
-        when(mPresenter.createViewportMetrics()).thenReturn(mMetrics);
+        when(mPresenter.getOrCreateViewportMetrics()).thenReturn(mMetrics);
+        when(mPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         return mPresenter;
     }
 
@@ -140,6 +146,7 @@ public class APLTestContext {
 
     public RootContext buildRootContext() {
 
+        APLController.setRuntimeConfig(RuntimeConfig.builder().build());
         buildRootContextDependencies();
 
         if (mRootContext == null)

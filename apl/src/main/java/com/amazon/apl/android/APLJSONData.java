@@ -5,13 +5,15 @@
 
 package com.amazon.apl.android;
 
-import java.nio.charset.StandardCharsets;
+import com.amazon.common.BoundObject;
 
 /**
- * The JSONData class is a wrapper class that indicates the content is UTF8-encoded JSON,
+ * The JSONData class is a wrapper class that indicates the content is JSON,
  * instead of a standard Android string.
  */
-public class APLJSONData {
+public class APLJSONData extends BoundObject {
+
+    private final int mSize;
 
     /**
      * Construct JSONData from a Java string
@@ -19,17 +21,24 @@ public class APLJSONData {
      * @return The JSONData
      */
     static public APLJSONData create(String inString) {
-        return new APLJSONData(inString.getBytes(StandardCharsets.UTF_8));
+        return new APLJSONData(inString);
     }
 
     /**
-     * Construct JSONData from a byte array of raw UTF8 data.  No verification is performed.
-     * @param utf8 The raw data
+     * Construct JSONData from a String.
      */
-    private APLJSONData(byte[] utf8) {
-        mBytes = utf8;
+    private APLJSONData(String data) {
+        long handle = nCreate(data);
+        bind(handle);
+        mSize = data.length();
     }
 
-    @SuppressWarnings("UnusedDeclaration")
-    private byte[] mBytes;
+    /**
+     * @return the size of the String used to create this JsonData.
+     */
+    public int getSize() {
+        return mSize;
+    }
+
+    private static native long nCreate(String data);
 }

@@ -1,14 +1,16 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #ifndef ANDROID_JNIUTIL_H
 #define ANDROID_JNIUTIL_H
 
+#include "alexaext/alexaext.h"
+#include "apl/apl.h"
+#include "jninativeowner.h"
 
 #include <jni.h>
 #include <jnimetricstransform.h>
-#include "apl/apl.h"
 #include <utility>
 
 #ifdef __cplusplus
@@ -74,7 +76,8 @@ namespace apl {
         static jmethodID JAVA_UTIL_MAP_ENTRY_SET;
         static jmethodID JAVA_UTIL_SET_ITERATOR;
 
-        static jfieldID APL_JSON_DATA_MBYTES;
+        static jclass BOUND_OBJECT;
+        static jmethodID BOUND_OBJECT_GET_NATIVE_HANDLE;
 
         static jlong JAVA_INTEGER_MAX_VALUE = 2147483647;
         static jlong JAVA_INTEGER_MIN_VALUE = -2147483648;
@@ -119,142 +122,12 @@ namespace apl {
          * that is  native managed object (for example Component, Event) rather than
          * be a managed object themselves.
          */
-        class PropertyLookup {
+        class PropertyLookup : public Lookup {
         public:
             virtual apl::Object getObject(int propertyId, jlong handle) = 0;
 
             virtual std::shared_ptr<Context> getContext(jlong handle) = 0;
         };
-
-
-        /**
-         * Owner object for JNI use with Shared Pointers.  The shared pointer is wrapped by this owner
-         * object, and Java peer receives a handle to the owner, rather than the target object.
-         * This keeps the shared pointer reference count intact so that the object
-         * contained in the shared pointer isn't freed when the shared pointer goes out of scope.
-         */
-        template<class T = void>
-        class NativeOwner {
-
-        public:
-            /**
-             * Initializes the NativeOwner and binds with the specified object.
-             * @param obj The core object.
-             */
-            explicit NativeOwner(const std::shared_ptr<T> &obj) {
-                objPtr = obj;
-                lookup = nullptr;
-            }
-
-            virtual ~NativeOwner() noexcept = default;
-
-            /**
-             * Set the native object.
-             * @param obj
-             */
-            void set(const std::shared_ptr<T> &obj) {
-                objPtr = obj;
-            }
-
-            /**
-             * @return the handle to this object.
-             */
-            jlong instance() const {
-                return reinterpret_cast<jlong>(this);
-            }
-
-            /**
-             * @return The bounded object.
-             */
-            std::shared_ptr<T> getBoundObject() const {
-                return objPtr;
-            }
-
-            /**
-             * @return pointer use count for tis object.  A single instance of an object is likely
-             * to have a value of 2, pointer used by core to create, and the pointer in this NativeOwner.
-             */
-            int getPointerCount() {
-                return objPtr.use_count();
-            }
-
-
-            /**
-             * Unbinds from the object.
-             */
-            static void unbind(jlong handle) {
-                auto nativeOwner = NativeOwner<>::getNativeOwner(handle);
-                nativeOwner->objPtr = nullptr;
-                nativeOwner->lookup = nullptr;
-                delete nativeOwner;
-            }
-
-
-            /**
-              * Gets the NativeOwner reference from the specified handle.
-              * @param handle The handle of the NativeOwner reference.
-              * @return The NativeOwner reference.
-              */
-            static NativeOwner<T> *getNativeOwner(jlong handle) {
-                return reinterpret_cast<NativeOwner<T> *>(handle);
-            }
-
-            std::shared_ptr<PropertyLookup> lookup;
-            
-        private:
-            std::shared_ptr<T> objPtr;
-        };
-
-
-        /**
-        * Gets the native peer to a view host Metrics object;
-        */
-        template<class T>
-        inline std::shared_ptr<T>
-        get(jlong handle) {
-            auto owner = NativeOwner<T>::getNativeOwner(handle);
-            if(!owner) {
-                LOG(LogLevel::ERROR) << "Could not find owner for handle " << handle;
-                return nullptr;
-            }
-            return owner->getBoundObject();
-        }
-
-        /**
-        * Gets the native peer to a view host Metrics object;
-        */
-        template<class T>
-        void
-        set(jlong handle, const std::shared_ptr<T> &obj) {
-            NativeOwner<T>::getNativeOwner(handle)->set(obj);
-        }
-
-
-        /**
-         * Creates a NativeOwner for an object and returns the handle.
-         */
-        template<class T>
-        inline jlong createHandle(const std::shared_ptr<T> &ptr) {
-            auto owner = new NativeOwner<T>(ptr);
-            return owner->instance();
-        }
-
-
-        /**
-        * Creates a NativeOwner for an object and returns the handle.
-        */
-        template<class T, class L>
-        inline jlong createHandle(const std::shared_ptr<T> &ptr) {
-            auto owner = new NativeOwner<T>(ptr);
-            owner->lookup = L::getInstance();
-            return owner->instance();
-        }
-
-
-        inline std::shared_ptr<PropertyLookup> getLookup(jlong handle) {
-            auto nativeOwner = NativeOwner<>::getNativeOwner(handle);
-            return nativeOwner->lookup;
-        }
 
         /**
          * Property lookup for Component properties.
@@ -348,11 +221,8 @@ namespace apl {
         private:
             static std::shared_ptr<GraphicPropertyLookup> instance;
         };
-
-
-//
-#endif //ANDROID_JNIUTIL_H
-
     } //namespace jni
 } //namespace apl
+
+#endif //ANDROID_JNIUTIL_H
 

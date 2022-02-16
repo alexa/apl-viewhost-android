@@ -7,7 +7,7 @@ package com.amazon.apl.android.primitive;
 
 import androidx.annotation.NonNull;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.enums.APLEnum;
 import com.google.auto.value.AutoValue;
@@ -56,11 +56,12 @@ public abstract class Rect {
     }
 
     public static Rect create(BoundObject boundObject, APLEnum propertyKey, @NonNull IMetricsTransform transform) {
+        float[] bounds = nGetRect(boundObject.getNativeHandle(), propertyKey.getIndex());
         return builder()
-                .left(transform.toViewhost(nGetLeft(boundObject.getNativeHandle(), propertyKey.getIndex())))
-                .top(transform.toViewhost(nGetTop(boundObject.getNativeHandle(), propertyKey.getIndex())))
-                .width(transform.toViewhost(nGetWidth(boundObject.getNativeHandle(), propertyKey.getIndex())))
-                .height(transform.toViewhost(nGetHeight(boundObject.getNativeHandle(), propertyKey.getIndex())))
+                .left(transform.toViewhost(bounds[0]))
+                .top(transform.toViewhost(bounds[1]))
+                .width(transform.toViewhost(bounds[2]))
+                .height(transform.toViewhost(bounds[3]))
                 .build();
     }
 
@@ -77,8 +78,6 @@ public abstract class Rect {
         public abstract Rect build();
     }
 
-    private static native float nGetLeft(long componentHandle, int componentPropertyKey);
-    private static native float nGetTop(long componentHandle, int componentPropertyKey);
-    private static native float nGetWidth(long componentHandle, int componentPropertyKey);
-    private static native float nGetHeight(long componentHandle, int componentPropertyKey);
+    private static native float[] nGetRect(long componentHandle, int componentPropertyKey);
+
 }

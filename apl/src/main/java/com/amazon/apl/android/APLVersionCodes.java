@@ -31,6 +31,8 @@ public class APLVersionCodes {
 
     public static final int APL_1_7 = 7;
 
+    public static final int APL_1_8 = 8;
+
     public static final int APL_LATEST = Integer.MAX_VALUE;
 
     private static final Map<String, Integer> sVersionCodes = new HashMap<>();
@@ -43,6 +45,7 @@ public class APLVersionCodes {
         sVersionCodes.put("1.5", APL_1_5);
         sVersionCodes.put("1.6", APL_1_6);
         sVersionCodes.put("1.7", APL_1_7);
+        sVersionCodes.put("1.8", APL_1_8);
     }
 
     /**

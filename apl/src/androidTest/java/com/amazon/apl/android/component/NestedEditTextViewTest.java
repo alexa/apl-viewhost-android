@@ -5,36 +5,39 @@
 
 package com.amazon.apl.android.component;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.view.inputmethod.InputMethodManager;
 
 import androidx.test.espresso.Espresso;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.APLOptions;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 
 import org.junit.AfterClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import java.util.Map;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.action.ViewActions.pressImeActionButton;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewAssertions.hasBackgroundColor;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static com.amazon.apl.android.utils.KeyboardHelper.isKeyboardOpen;
+import static com.amazon.apl.android.utils.KeyboardHelper.getInputMethodManager;
 
 public class NestedEditTextViewTest extends AbstractDocViewTest {
     private static final String INITIAL_FRAME_COLOR = "blue";
     private static final String FINAL_FRAME_COLOR = "white";
-    private ISendEventCallback mSendEventCallback = mock(ISendEventCallback.class);
+    private ISendEventCallbackV2 mSendEventCallback = mock(ISendEventCallbackV2.class);
     private static final String DOC =
             "      \"type\": \"Frame\",\n" +
             "      \"width\": \"100vw\",\n" +
@@ -98,7 +101,30 @@ public class NestedEditTextViewTest extends AbstractDocViewTest {
 
     @AfterClass
     public static void closeKeyboard() {
-        Espresso.closeSoftKeyboard();
+        // Try to close the keyboard if open.
+        try {
+            Espresso.closeSoftKeyboard();
+        } catch (RuntimeException ex) {
+            // Do nothing.
+        }
+    }
+
+    /**
+     * Test the keyboard opens when EditText inside a TouchWrapper is clicked.
+     */
+    @Test
+    public void testView_click_on_EditText_opens_keyboard() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflateWithOptions(DOC, "", getOptions()))
+                .check(hasRootContext());
+        onView(withComponent(mTestContext.getRootContext().findComponentById("editText-1")))
+                .perform(click());
+
+        assertTrue(isKeyboardOpen());
+        ArgumentCaptor<Object[]> argumentCaptor = ArgumentCaptor.forClass(Object[].class);
+        ArgumentCaptor<Map<String, Object>> sourcesArgumentCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(mSendEventCallback).onSendEvent(argumentCaptor.capture(), any(), sourcesArgumentCaptor.capture(), any());
+        verifyEventArguments(argumentCaptor.getValue(), sourcesArgumentCaptor.getValue());
     }
 
     /**
@@ -119,8 +145,8 @@ public class NestedEditTextViewTest extends AbstractDocViewTest {
         // Verify final state
         onView(withComponent(mTestContext.getRootContext().findComponentById("testcomp")))
                 .check(hasBackgroundColor(Color.parseColor(FINAL_FRAME_COLOR)));
-        assertFalse(isKeyboardOpened());
-        verify(mSendEventCallback).onSendEvent(any(), any(), any());
+        assertFalse(isKeyboardOpen());
+        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
     }
     
     @Test
@@ -130,10 +156,11 @@ public class NestedEditTextViewTest extends AbstractDocViewTest {
                 .check(hasRootContext());
         onView(withComponent(mTestContext.getRootContext().findComponentById("editText-1")))
                 .perform(click());
+        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
 
         InputMethodManager inputMethodManager = getInputMethodManager();
 
-        assertTrue(isKeyboardOpened());
+        assertTrue(isKeyboardOpen());
         onView(withComponent(mTestContext.getRootContext().findComponentById("editText-1")))
                 .check((view, noViewFoundException) -> inputMethodManager.isActive(view))
                 .perform(pressImeActionButton());
@@ -142,20 +169,14 @@ public class NestedEditTextViewTest extends AbstractDocViewTest {
                 .check((view, noViewFoundException) -> inputMethodManager.isActive(view));
     }
 
-    /**
-     * Reference: https://stackoverflow.com/questions/33970956/test-if-soft-keyboard-is-visible-using-espresso
-     * @return true if soft keyboard is open, else false.
-     */
-    private boolean isKeyboardOpened() {
-        return getInputMethodManager().isAcceptingText();
-    }
-
     private APLOptions getOptions() {
-        return APLOptions.builder().sendEventCallback(mSendEventCallback).build();
+        return APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build();
     }
 
-    private InputMethodManager getInputMethodManager() {
-        return (InputMethodManager)InstrumentationRegistry.getInstrumentation().getTargetContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+    private void verifyEventArguments(Object[] args, Map<String, Object> sources) {
+        assertEquals(1, args.length);
+        assertEquals("pressed", args[0].toString());
+        assertEquals("TouchWrapper", sources.get("type"));
     }
 
 }

@@ -12,7 +12,7 @@ import androidx.test.espresso.IdlingResource;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
-import com.amazon.apl.android.dependencies.ISendEventCallback;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
 
@@ -28,7 +28,6 @@ import static androidx.test.espresso.action.ViewActions.pressKey;
 import static androidx.test.espresso.action.ViewActions.swipeLeft;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
-import static com.amazon.apl.android.espresso.APLViewActions.requestFocus;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -97,14 +96,9 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
             "    }";
 
     @Mock
-    private ISendEventCallback mSendEventCallback;
+    private ISendEventCallbackV2 mSendEventCallback;
 
     private IdlingResource mIdlingResource;
-
-    @Before
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-    }
 
     @After
     public void teardown() {
@@ -115,7 +109,7 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
 
     private void loadDocumentWithNavigation(String navigation) {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(inflateWithOptions(String.format(DOC, navigation), "", APLOptions.builder().sendEventCallback(mSendEventCallback).build()))
+                .perform(inflateWithOptions(String.format(DOC, navigation), "", APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build()))
                 .check(hasRootContext());
         mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
         IdlingRegistry.getInstance().register(mIdlingResource);
@@ -129,7 +123,7 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
         onView(withComponent(frame))
                 .perform(click());
 
-        verify(mSendEventCallback).onSendEvent(eq(new String[] { "inner" }), any(), any());
+        verify(mSendEventCallback).onSendEvent(eq(new String[] { "inner" }), any(), any(), any());
     }
 
     @Test
@@ -146,7 +140,22 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
         onView(withComponent(frame))
                 .perform(click());
 
-        verify(mSendEventCallback).onSendEvent(eq(new String[] { "outer" }), any(), any());
+        verify(mSendEventCallback).onSendEvent(eq(new String[] { "outer" }), any(), any(), any());
     }
 
+    @Test
+    public void testView_innerTouchWrapperReceivesKeyEventWithNoneNavigation() {
+        loadDocumentWithNavigation("none");
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(pressKey(KeyEvent.KEYCODE_DPAD_DOWN))
+                .perform(pressKey(KeyEvent.KEYCODE_ENTER))
+                .perform(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+
+        onView(isRoot())
+                .perform(waitFor(100));
+
+        // the expectation is that core's focus doesn't recursively search in TW
+        verify(mSendEventCallback, times(2)).onSendEvent(eq(new String[] { "outer" }), any(), any(), any());
+    }
 }

@@ -17,6 +17,7 @@ import android.view.inputmethod.EditorInfo;
 
 import com.amazon.apl.android.APLGradientDrawable;
 import com.amazon.apl.android.EditText;
+import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.views.APLEditText;
@@ -68,7 +69,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     private APLGradientDrawable mockGradientDrawable;
     @Mock
     private EditText mEditText;
-
+    @Mock
+    EditTextProxy mEditTextProxy;
     @Mock
     private Typeface mockDefaultTypeface;
     @Mock
@@ -85,31 +87,36 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         return mEditText;
     }
 
+    EditTextProxy proxy() {
+        return mEditTextProxy;
+    }
+
     void componentSetup() {
         when(mMockPresenter.findComponent(getView())).thenReturn(mEditText);
+        when(mEditText.getProxy()).thenReturn(proxy());
         when(mockTypefaceResolver.getTypeface(DEFAULT_FONT_FAMILY, 0, false, TEXT_FONT_LANGUAGE, false)).thenReturn(mockDefaultTypeface);
         when(mockTypefaceResolver.getTypeface(DEFAULT_FONT_FAMILY, 0, false, "", false)).thenReturn(mockDefaultLangTypeface);
 
         // TODO: add remaining props.
-        when(component().getHint()).thenReturn("");
-        when(component().getText()).thenReturn("");
-        when(component().getBorderWidth()).thenReturn(0);
-        when(component().getDrawnBorderWidth()).thenReturn(0);
-        when(component().getSubmitKeyType()).thenReturn(kSubmitKeyTypeDone);
-        when(component().getKeyboardType()).thenReturn(KeyboardType.kKeyboardTypeNormal);
-        when(component().isSecureInput()).thenReturn(false);
-        when(component().isSelectOnFocus()).thenReturn(false);
+        when(proxy().getHint()).thenReturn("");
+        when(proxy().getText()).thenReturn("");
+        when(proxy().getBorderWidth()).thenReturn(0);
+        when(proxy().getDrawnBorderWidth()).thenReturn(0);
+        when(proxy().getSubmitKeyType()).thenReturn(kSubmitKeyTypeDone);
+        when(proxy().getKeyboardType()).thenReturn(KeyboardType.kKeyboardTypeNormal);
+        when(proxy().isSecureInput()).thenReturn(false);
+        when(proxy().isSelectOnFocus()).thenReturn(false);
         when(component().isFocusable()).thenReturn(true);
-        when(component().getFontWeight()).thenReturn(0);
+        when(proxy().getFontWeight()).thenReturn(0);
         when(component().isFocusableInTouchMode()).thenCallRealMethod();
-        when(component().getColor()).thenReturn(Color.WHITE);
-        when(component().getFontFamily()).thenReturn(DEFAULT_FONT_FAMILY);
-        when(component().getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
-        when(component().getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
-        when(component().getHintFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
-        when(component().getHintFontWeight()).thenReturn(0);
-        when(component().getHintFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
-        when(component().getTypefaceResolver()).thenReturn(mockTypefaceResolver);
+        when(proxy().getColor()).thenReturn(Color.WHITE);
+        when(proxy().getFontFamily()).thenReturn(DEFAULT_FONT_FAMILY);
+        when(proxy().getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
+        when(proxy().getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
+        when(proxy().getHintFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
+        when(proxy().getHintFontWeight()).thenReturn(0);
+        when(proxy().getHintFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
+        when(proxy().getTypefaceResolver()).thenReturn(mockTypefaceResolver);
         when(component().getLayoutDirection()).thenReturn(LayoutDirection.kLayoutDirectionLTR);
     }
 
@@ -139,12 +146,12 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         APLEditText editText = spy(getView());
         doReturn(mockGradientDrawable).when(editText).getGradientDrawable();
 
-        when(component().getBorderWidth()).thenReturn(4);
-        when(component().getDrawnBorderWidth()).thenReturn(4);
+        when(proxy().getBorderWidth()).thenReturn(4);
+        when(proxy().getDrawnBorderWidth()).thenReturn(4);
         applyAllProperties(editText);
         verify(mockGradientDrawable).setStroke(4, 0);
-        when(component().getBorderWidth()).thenReturn(6);
-        when(component().getDrawnBorderWidth()).thenReturn(2);
+        when(proxy().getBorderWidth()).thenReturn(6);
+        when(proxy().getDrawnBorderWidth()).thenReturn(2);
         refreshProperties(editText, kPropertyBorderStrokeWidth);
         verify(mockGradientDrawable).setStroke(2, 0);
     }
@@ -188,9 +195,9 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     public void testApplyProperties_textStyleProperties_textNotEmpty() {
         setupComponentForTextAndHintStyleTests();
         when(mockTypefaceResolver.getTypeface(TEXT_FONT_FAMILY, TEXT_FONT_WEIGHT, false, TEXT_FONT_LANGUAGE, false)).thenReturn(mockTextTypeface);
-        when(component().getHint()).thenReturn("hint");
-        when(component().getText()).thenReturn("text");
-        when(component().getFontFamily()).thenReturn(TEXT_FONT_FAMILY);
+        when(proxy().getHint()).thenReturn("hint");
+        when(proxy().getText()).thenReturn("text");
+        when(proxy().getFontFamily()).thenReturn(TEXT_FONT_FAMILY);
         applyAllProperties();
         assertEquals("hint", getView().getHint());
         assertEquals(Color.GRAY, getView().getCurrentHintTextColor());
@@ -202,9 +209,9 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     public void testApplyProperties_hintStyleProperties_textEmpty() {
         setupComponentForTextAndHintStyleTests();
         when(mockTypefaceResolver.getTypeface(HINT_FONT_FAMILY, HINT_FONT_WEIGHT, true, TEXT_FONT_LANGUAGE,  false)).thenReturn(mockHintTypeface);
-        when(component().getHint()).thenReturn("hint");
-        when(component().getText()).thenReturn("");
-        when(component().getFontFamily()).thenReturn(HINT_FONT_FAMILY);
+        when(proxy().getHint()).thenReturn("hint");
+        when(proxy().getText()).thenReturn("");
+        when(proxy().getFontFamily()).thenReturn(HINT_FONT_FAMILY);
         applyAllProperties();
         assertEquals("hint", getView().getHint());
         assertEquals(Color.GRAY, getView().getCurrentHintTextColor());
@@ -215,9 +222,9 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     public void testApplyProperties_hintAndTextStyleTransitions() {
         setupComponentForTextAndHintStyleTests();
         when(mockTypefaceResolver.getTypeface(TEXT_FONT_FAMILY, TEXT_FONT_WEIGHT, false, TEXT_FONT_LANGUAGE,  false)).thenReturn(mockTextTypeface);
-        when(component().getHint()).thenReturn("hint");
-        when(component().getText()).thenReturn("");
-        when(component().getFontFamily()).thenReturn(TEXT_FONT_FAMILY);
+        when(proxy().getHint()).thenReturn("hint");
+        when(proxy().getText()).thenReturn("");
+        when(proxy().getFontFamily()).thenReturn(TEXT_FONT_FAMILY);
         applyAllProperties();
         getView().getText().append("a");
         assertEquals("hint", getView().getHint());
@@ -231,7 +238,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         assertEquals("a", getView().getText().toString());
 
         when(mockTypefaceResolver.getTypeface(HINT_FONT_FAMILY, HINT_FONT_WEIGHT, true, TEXT_FONT_LANGUAGE,  false)).thenReturn(mockHintTypeface);
-        when(component().getFontFamily()).thenReturn(HINT_FONT_FAMILY);
+        when(proxy().getFontFamily()).thenReturn(HINT_FONT_FAMILY);
         getView().getText().delete(0, 1);
         assertEquals("", getView().getText().toString());
         verifyHintStyleApplied();
@@ -249,7 +256,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         for(Pair<SubmitKeyType, Integer> testCase : testCases) {
             SubmitKeyType keyType = testCase.first;
             int actionId = testCase.second;
-            when(component().getSubmitKeyType()).thenReturn(keyType);
+            when(proxy().getSubmitKeyType()).thenReturn(keyType);
             applyAllProperties();
             verifySubmitButton(actionId, getView());
         }
@@ -257,7 +264,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_maxLength_initializing_text() {
-        when(component().getMaxLength()).thenReturn(4);
+        when(proxy().getMaxLength()).thenReturn(4);
         applyAllProperties();
         List<Pair<String, String>> testCases = new ArrayList<>();
         testCases.add(Pair.create("", ""));
@@ -272,7 +279,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_maxLength_user_event() {
-        when(component().getMaxLength()).thenReturn(4);
+        when(proxy().getMaxLength()).thenReturn(4);
         applyAllProperties();
         // Simulate user events.
         getView().setText("abc");
@@ -287,7 +294,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_maxLength_zero() {
-        when(component().getMaxLength()).thenReturn(0);
+        when(proxy().getMaxLength()).thenReturn(0);
         applyAllProperties();
         assertEquals(0, getView().getFilters().length);
         getView().setText("abcd");
@@ -296,7 +303,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_validCharacters() {
-        when(component().getValidCharacters()).thenReturn("0-9a-f");
+        when(proxy().getValidCharacters()).thenReturn("0-9a-f");
         applyAllProperties();
         InputFilter[] actualFiltersArray = getView().getFilters();
         assertEquals(1, actualFiltersArray.length);
@@ -305,7 +312,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_validCharacters_empty() {
-        when(component().getValidCharacters()).thenReturn("");
+        when(proxy().getValidCharacters()).thenReturn("");
         applyAllProperties();
         assertEquals(0, getView().getFilters().length);
         getView().setText("abcd");
@@ -314,7 +321,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testValidCharactersFilter_initializing_text() {
-        when(component().getValidCharacters()).thenReturn("ac");
+        when(proxy().getValidCharacters()).thenReturn("ac");
         when(component().isValidCharacter('a')).thenReturn(true);
         when(component().isValidCharacter('b')).thenReturn(false);
         when(component().isValidCharacter('c')).thenReturn(true);
@@ -375,7 +382,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testValidCharactersFilter_user_event() {
-        when(component().getValidCharacters()).thenReturn("ac");
+        when(proxy().getValidCharacters()).thenReturn("ac");
         when(component().isValidCharacter('a')).thenReturn(true);
         when(component().isValidCharacter('b')).thenReturn(false);
         when(component().isValidCharacter('c')).thenReturn(true);
@@ -397,8 +404,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_multiple_inputFilters() {
-        when(component().getMaxLength()).thenReturn(4);
-        when(component().getValidCharacters()).thenReturn("0-9a-f");
+        when(proxy().getMaxLength()).thenReturn(4);
+        when(proxy().getValidCharacters()).thenReturn("0-9a-f");
 
         applyAllProperties();
 
@@ -424,7 +431,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
             KeyboardType type = t.first;
             int expected = t.second;
 
-            when(component().getKeyboardType()).thenReturn(type);
+            when(proxy().getKeyboardType()).thenReturn(type);
             applyAllProperties();
             assertEquals(expected, getView().getInputType());
         }
@@ -432,7 +439,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_secureInput() {
-        when(component().isSecureInput()).thenReturn(true);
+        when(proxy().isSecureInput()).thenReturn(true);
 
         List<Pair<KeyboardType, Integer>> testCases = Arrays.asList(
                 new Pair(KeyboardType.kKeyboardTypeDecimalPad, InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED | InputType.TYPE_NUMBER_VARIATION_PASSWORD),
@@ -447,7 +454,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
             KeyboardType type = t.first;
             int expected = t.second;
 
-            when(component().getKeyboardType()).thenReturn(type);
+            when(proxy().getKeyboardType()).thenReturn(type);
             applyAllProperties();
             assertEquals(expected, getView().getInputType());
         }
@@ -456,8 +463,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_selectOnFocus_disabled() {
-        when(component().getText()).thenReturn("abcd");
-        when(component().isSelectOnFocus()).thenReturn(false);
+        when(proxy().getText()).thenReturn("abcd");
+        when(proxy().isSelectOnFocus()).thenReturn(false);
 
         applyAllProperties();
         getView().requestFocus();
@@ -469,8 +476,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testTypeface_withDefaultLanguage() {
-        when(component().getText()).thenReturn("abcd");
-        when(component().getFontLanguage()).thenReturn(null);
+        when(proxy().getText()).thenReturn("abcd");
+        when(proxy().getFontLanguage()).thenReturn(null);
         when(mockTypefaceResolver.getTypeface(DEFAULT_FONT_FAMILY, 0, false, null, false)).thenReturn(mockDefaultTypeface);
         applyAllProperties();
         assertEquals(mockDefaultTypeface, getView().getTypeface());
@@ -478,8 +485,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testApplyProperties_selectOnFocus() {
-        when(component().getText()).thenReturn("abcd");
-        when(component().isSelectOnFocus()).thenReturn(true);
+        when(proxy().getText()).thenReturn("abcd");
+        when(proxy().isSelectOnFocus()).thenReturn(true);
 
         applyAllProperties();
         getView().requestFocus();
@@ -502,7 +509,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
 
     @Test
     public void testUpdate_UpdateTextChangeMessage_VerifyInvoke_secureInput() {
-        when(component().isSecureInput()).thenReturn(true);
+        when(proxy().isSecureInput()).thenReturn(true);
         applyAllProperties();
 
         getView().getText().append("a");
@@ -543,9 +550,9 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     @Test
     public void test_refresh_text() {
         final String newText = "newText";
-        when(component().getText()).thenReturn(newText);
+        when(proxy().getText()).thenReturn(newText);
         refreshProperties(PropertyKey.kPropertyText);
-        verify(component()).getText();
+        verify(proxy()).getText();
         assertEquals(newText, getView().getText().toString());
         verify(mMockPresenter).updateComponent(getView(), kUpdateTextChange, newText);
     }
@@ -556,27 +563,27 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         doReturn(mockGradientDrawable).when(editText).getGradientDrawable();
 
         final int newColor = Color.RED;
-        when(component().getBorderColor()).thenReturn(newColor);
+        when(proxy().getBorderColor()).thenReturn(newColor);
         refreshProperties(editText, PropertyKey.kPropertyBorderColor);
-        verify(component()).getBorderColor();
-        verify(component()).getDrawnBorderWidth();
+        verify(proxy()).getBorderColor();
+        verify(proxy()).getDrawnBorderWidth();
         verify(mockGradientDrawable).setStroke(0, newColor);
-        verifyNoMoreInteractions(component());
+        verifyNoMoreInteractions(proxy());
     }
 
     @Test
     public void testRefreshProperties_fontLanguage() {
-        when(component().getFontLanguage()).thenReturn("");
+        when(proxy().getFontLanguage()).thenReturn("");
         refreshProperties(PropertyKey.kPropertyLang);
 
         //Test that only methods related to font language are called when kPropertyLang is dirty
-        verify(component()).getTypefaceResolver();
-        verify(component()).getFontLanguage();
-        verify(component()).getFontWeight();
-        verify(component()).getFontStyle();
-        verify(component()).getFontFamily();
+        verify(proxy()).getTypefaceResolver();
+        verify(proxy()).getFontLanguage();
+        verify(proxy()).getFontWeight();
+        verify(proxy()).getFontStyle();
+        verify(proxy()).getFontFamily();
         assertEquals(mockDefaultLangTypeface, getView().getTypeface());
-        verifyNoMoreInteractions(component());
+        verifyNoMoreInteractions(proxy());
     }
 
     @Test
@@ -614,14 +621,15 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     }
 
     private void setupComponentForTextAndHintStyleTests() {
-        when(component().getHintColor()).thenReturn(Color.GRAY);
-        when(component().getHintFontStyle()).thenReturn(FontStyle.kFontStyleItalic);
-        when(component().getHintFontWeight()).thenReturn(HINT_FONT_WEIGHT);
+        when(proxy().getHintColor()).thenReturn(Color.GRAY);
+        when(proxy().getHintFontStyle()).thenReturn(FontStyle.kFontStyleItalic);
+        when(proxy().getHintFontWeight()).thenReturn(HINT_FONT_WEIGHT);
 
-        when(component().getColor()).thenReturn(Color.WHITE);
-        when(component().getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
-        when(component().getFontWeight()).thenReturn(TEXT_FONT_WEIGHT);
-        when(component().getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
+        when(proxy().getColor()).thenReturn(Color.WHITE);
+        when(proxy().getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
+        when(proxy().getFontWeight()).thenReturn(TEXT_FONT_WEIGHT);
+        when(proxy().getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
+        verifyNoMoreInteractions(proxy());
     }
 
     private void verifyTextStyleApplied() {

@@ -1,0 +1,43 @@
+{
+  "stringTable": {
+    "0": "/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86",
+    "1": "--target=i686-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcommon_jni_EXPORTS -I../../../../src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
+  },
+  "buildFiles": [
+    "/Users/pranavsu/Documents/apl-viewhost-android/common/CMakeLists.txt",
+    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake",
+    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86\" clean"
+  ],
+  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "common-jni-Debug-x86": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/common/.cxx/cmake/debug/x86\" common-jni",
+      "buildType": "debug",
+      "toolchain": "1622668227",
+      "abi": "x86",
+      "artifactName": "common-jni",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "/Users/pranavsu/Documents/apl-viewhost-android/common/build/intermediates/cmake/debug/obj/x86/libcommon-jni.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {
+    "1622668227": {
+      "cppCompilerExecutable": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

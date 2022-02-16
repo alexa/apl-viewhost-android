@@ -8,6 +8,7 @@ package com.amazon.apl.android;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.views.APLEditText;
 import com.amazon.apl.enums.KeyboardType;
+
 import org.mockito.Mock;
 
 import static com.amazon.apl.enums.SubmitKeyType.kSubmitKeyTypeDone;
@@ -17,7 +18,8 @@ public class EditTextActionableViewAdapterTest extends AbstractActionableCompone
 
     @Mock
     private EditText mEditText;
-
+    @Mock
+    private EditTextProxy mEditTextProxy;
     @Mock
     private TypefaceResolver mockTypefaceResolver;
 
@@ -26,12 +28,17 @@ public class EditTextActionableViewAdapterTest extends AbstractActionableCompone
         return mEditText;
     }
 
+    EditTextProxy proxy() {
+        return mEditTextProxy;
+    }
+
     void componentSetup() {
         when(component().getViewPresenter()).thenReturn(mMockPresenter);
+        when(component().getProxy()).thenReturn(proxy());
 
-        when(component().getTypefaceResolver()).thenReturn(mockTypefaceResolver);
-        when(component().getSubmitKeyType()).thenReturn(kSubmitKeyTypeDone);
-        when(component().getKeyboardType()).thenReturn(KeyboardType.kKeyboardTypeNormal);
-        when(component().getText()).thenReturn("");
+        when(proxy().getTypefaceResolver()).thenReturn(mockTypefaceResolver);
+        when(proxy().getSubmitKeyType()).thenReturn(kSubmitKeyTypeDone);
+        when(proxy().getKeyboardType()).thenReturn(KeyboardType.kKeyboardTypeNormal);
+        when(proxy().getText()).thenReturn("");
     }
 }

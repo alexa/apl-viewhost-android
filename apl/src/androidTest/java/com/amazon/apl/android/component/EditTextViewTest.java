@@ -107,6 +107,6 @@ public class EditTextViewTest extends AbstractComponentViewTest<APLEditText, Edi
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(inflate(REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
                 .check(hasRootContext());
-        assertEquals("aaa", getTestView().getText().toString());
+        assertEquals("aa", getTestView().getText().toString());
     }
 }

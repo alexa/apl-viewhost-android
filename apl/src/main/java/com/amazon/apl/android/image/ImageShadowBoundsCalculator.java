@@ -5,7 +5,6 @@
 
 package com.amazon.apl.android.image;
 
-import android.graphics.Bitmap;
 import android.graphics.RectF;
 
 import com.amazon.apl.android.primitive.Rect;
@@ -27,47 +26,47 @@ public abstract class ImageShadowBoundsCalculator {
 
         switch (align()) {
             case kImageAlignBottom:
-                top = bottom - image().getHeight();
-                left += ImagePositionUtil.center(innerBounds.intWidth(), image().getWidth());
-                right = left + image().getWidth();
+                top = bottom - imageBounds().height();
+                left += ImagePositionUtil.center(innerBounds.intWidth(), (int) imageBounds().width());
+                right = left + imageBounds().width();
                 break;
             case kImageAlignTop:
-                bottom = top + image().getHeight();
-                left += ImagePositionUtil.center(innerBounds.intWidth(), image().getWidth());
-                right = left + image().getWidth();
+                bottom = top + imageBounds().height();
+                left += ImagePositionUtil.center(innerBounds.intWidth(), (int) imageBounds().width());
+                right = left + imageBounds().width();
                 break;
             case kImageAlignBottomLeft:
-                top = bottom - image().getHeight();
-                right = left + image().getWidth();
+                top = bottom - imageBounds().height();
+                right = left + imageBounds().width();
                 break;
             case kImageAlignBottomRight:
-                top = bottom - image().getHeight();
-                left = right - image().getWidth();
+                top = bottom - imageBounds().height();
+                left = right - imageBounds().width();
                 break;
             case kImageAlignLeft:
-                right = left + image().getWidth();
-                top += ImagePositionUtil.center(innerBounds.intHeight(), image().getHeight());
-                bottom = top + image().getHeight();
+                right = left + imageBounds().width();
+                top += ImagePositionUtil.center(innerBounds.intHeight(), imageBounds().height());
+                bottom = top + imageBounds().height();
                 break;
             case kImageAlignRight:
-                left = right - image().getWidth();
-                top += ImagePositionUtil.center(innerBounds.intHeight(), image().getHeight());
-                bottom = top + image().getHeight();
+                left = right - imageBounds().width();
+                top += ImagePositionUtil.center(innerBounds.intHeight(), imageBounds().height());
+                bottom = top + imageBounds().height();
                 break;
             case kImageAlignTopLeft:
-                right = left + image().getWidth();
-                bottom = top + image().getHeight();
+                right = left + imageBounds().width();
+                bottom = top + imageBounds().height();
                 break;
             case kImageAlignTopRight:
-                left = right - image().getWidth();
-                bottom = top + image().getHeight();
+                left = right - imageBounds().width();
+                bottom = top + imageBounds().height();
                 break;
             default:
                 // same default case as image gravity
-                top += ImagePositionUtil.center(innerBounds.intHeight(), image().getHeight());
-                left += ImagePositionUtil.center(innerBounds.intWidth(), image().getWidth());
-                right = left + image().getWidth();
-                bottom = top + image().getHeight();
+                top += ImagePositionUtil.center(innerBounds.intHeight(), imageBounds().height());
+                left += ImagePositionUtil.center(innerBounds.intWidth(), imageBounds().width());
+                right = left + imageBounds().width();
+                bottom = top + imageBounds().height();
                 break;
         }
 
@@ -75,7 +74,7 @@ public abstract class ImageShadowBoundsCalculator {
         return shadowBounds;
     }
 
-    public abstract Bitmap image();
+    public abstract android.graphics.Rect imageBounds();
     public abstract ImageAlign align();
     public abstract Rect bounds();
     public abstract Rect innerBounds();
@@ -88,7 +87,7 @@ public abstract class ImageShadowBoundsCalculator {
 
     @AutoValue.Builder
     public abstract static class Builder {
-        public abstract ImageShadowBoundsCalculator.Builder image(Bitmap image);
+        public abstract ImageShadowBoundsCalculator.Builder imageBounds(android.graphics.Rect bounds);
         public abstract ImageShadowBoundsCalculator.Builder align(ImageAlign align);
         public abstract ImageShadowBoundsCalculator.Builder bounds(Rect bounds);
         public abstract ImageShadowBoundsCalculator.Builder innerBounds(Rect innerBounds);

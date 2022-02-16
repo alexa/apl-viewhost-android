@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
-import com.amazon.apl.android.BoundObject;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.android.AVGFilter;
 import com.amazon.apl.android.primitive.GraphicFilters;
 import com.amazon.apl.android.scaling.IMetricsTransform;

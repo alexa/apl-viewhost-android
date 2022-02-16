@@ -14,7 +14,9 @@ import com.amazon.apl.android.image.filters.bitmap.FilterResult;
 import com.amazon.apl.android.primitive.Filters;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -87,24 +89,26 @@ public class FilterExecutor {
                             mExtensionImageFilterCallback));
             mFilterResultFutures.add(result);
         }
-        // Free up any bitmaps not needed.
+
         FilterResult ret = result.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        mExecutorService.submit(() -> {
-            for (Future<FilterResult> future : mFilterResultFutures) {
-                if (future.isDone()) {
-                    Bitmap b = null;
-                    try {
-                        b = future.get().getBitmap();
-                    } catch (ExecutionException | InterruptedException e) {
-                        // do nothing
-                    }
-                    if (b != ret.getBitmap() && !b.isRecycled()) {
-                        mBitmapFactory.disposeBitmap(b);
-                    }
+        Bitmap resultBitmap = ret.isBitmap() ? ret.getBitmap() : null;
+
+        // Free up any used bitmaps here
+        Set<Bitmap> alreadyDisposedBitmaps = new HashSet<>();
+        for (Future<FilterResult> future : mFilterResultFutures) {
+            if (future.isDone()) {
+                FilterResult filterResult = future.get();
+                Bitmap toRecycle = filterResult.isBitmap() ? filterResult.getBitmap() : null;
+
+                if (toRecycle != null &&
+                        toRecycle != resultBitmap &&
+                        !alreadyDisposedBitmaps.contains(toRecycle)) {
+                    mBitmapFactory.disposeBitmap(toRecycle);
+                    alreadyDisposedBitmaps.add(toRecycle);
                 }
             }
-            mFilterResultFutures.clear();
-        });
+        }
+        mFilterResultFutures.clear();
         return ret;
     }
 

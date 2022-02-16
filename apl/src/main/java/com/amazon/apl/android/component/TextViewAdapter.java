@@ -6,20 +6,25 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
-import android.text.StaticLayout;
+import android.text.Layout;
 import android.view.Gravity;
 import android.view.View;
 
 import com.amazon.apl.android.IAPLViewPresenter;
-import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.Text;
+import com.amazon.apl.android.TextLayoutFactory;
+import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLTextView;
 import com.amazon.apl.enums.LayoutDirection;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.TextAlignVertical;
 
 public class TextViewAdapter extends ComponentViewAdapter<Text, APLTextView> {
+    private static final String TAG = "TextViewAdapter";
     private static TextViewAdapter INSTANCE;
 
     private TextViewAdapter() {
@@ -29,7 +34,6 @@ public class TextViewAdapter extends ComponentViewAdapter<Text, APLTextView> {
         putPropertyFunction(PropertyKey.kPropertyColor, this::applyLayout);
         putPropertyFunction(PropertyKey.kPropertyColorKaraokeTarget, this::applyLayout);
         putPropertyFunction(PropertyKey.kPropertyColorNonKaraoke, this::applyLayout);
-        putPropertyFunction(PropertyKey.kPropertyInnerBounds, this::applyProperties);
         putPropertyFunction(PropertyKey.kPropertyLayoutDirection, this::applyTextLayoutDirection);
     }
 
@@ -62,7 +66,7 @@ public class TextViewAdapter extends ComponentViewAdapter<Text, APLTextView> {
     @Override
     public void requestLayout(Text component, APLTextView view) {
         super.requestLayout(component, view);
-        applyProperties(component, view);
+        applyLayout(component, view);
     }
 
     private void applyTextLayoutDirection(Text component, APLTextView view) {
@@ -82,23 +86,26 @@ public class TextViewAdapter extends ComponentViewAdapter<Text, APLTextView> {
     }
 
     private void applyLayout(Text component, APLTextView view) {
-        // If the text was never measured, build the layout now
-        final Rect bounds = component.getInnerBounds();
-
-        component.measureTextContent(
-                view.getDensity(),
-                bounds.getWidth(), RootContext.MeasureMode.Exactly,
-                bounds.getHeight(), RootContext.MeasureMode.Exactly
+        APLTrace trace = component.getViewPresenter().getAPLTrace();
+        trace.startTrace(TracePoint.TEXT_APPLY_LAYOUT);
+        RenderingContext ctx = component.getRenderingContext();
+        TextLayoutFactory factory = ctx.getTextLayoutFactory();
+        int versionCode = ctx.getDocVersion();
+        final Rect bounds = component.getProxy().getInnerBounds();
+        Layout textLayout = factory.getOrCreateTextLayout(
+                versionCode,
+                component.getProxy(),
+                bounds.intWidth(),
+                TextMeasure.MeasureMode.Exactly,
+                bounds.intHeight(),
+                component.getKaraokeLineSpan()
         );
-
-        // Besides measuring in measureTextContent a new layout might be created due to input
-        // changes (ex. karaoke). So getting layout from cache has to be done always after measureTextContent.
-        final StaticLayout textLayout = component.getTextMeasurementCache().getStaticLayout(component.getComponentId());
         view.setLayout(textLayout);
+        trace.endTrace();
     }
 
     private void applyGravity(Text component, APLTextView view) {
-        final TextAlignVertical textAlignVertical = component.getTextAlignVertical();
+        final TextAlignVertical textAlignVertical = component.getProxy().getTextAlignVertical();
         int gravityVertical = view.getVerticalGravity() & Gravity.VERTICAL_GRAVITY_MASK;
         switch (textAlignVertical) {
             case kTextAlignVerticalTop:

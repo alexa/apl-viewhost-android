@@ -29,12 +29,12 @@ import static org.mockito.Mockito.verify;
 
 public class VideoViewTest extends AbstractComponentViewTest<View, Video> {
     private static final String DUMMY_URL =
-            "http://mirrors.standaloneinstaller.com/video-sample/DLP_PART_2_768k.mp4";
+            "http://videoviewtest.invalid/video-sample.mp4";
     private static final String DUMMY_DESCRIPTION = "Testing video component";
 
     private static final String[] SOURCES = {
-            "http://mirrors.standaloneinstaller.com/video-sample/DLP_PART_2_768k.mp4",
-            "https://delivery.vidible.tv/video/redirect/5b634e2dbf488517fc64fbb4.mp4?bcid=5593271909eab110d8f43789&w=852&h=480&enc=mp4&domain=cdn.vidible.tv",
+            "http://videoviewtest.invalid/video-sample.mp4",
+            "http://videoviewtest.invalid/video-sample2.mp4",
     };
 
     @Before

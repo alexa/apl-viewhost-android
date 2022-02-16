@@ -19,6 +19,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
 import android.util.Log;
@@ -61,7 +62,8 @@ public class AlexaVectorDrawable extends Drawable {
         mVectorState = new VectorDrawableCompatState(element);
     }
 
-    private AlexaVectorDrawable(@NonNull VectorDrawableCompatState state) {
+    @VisibleForTesting
+    AlexaVectorDrawable(@NonNull VectorDrawableCompatState state) {
         mVectorState = state;
         updateTintFilter(state.mTint, state.mTintMode);
     }
@@ -87,7 +89,7 @@ public class AlexaVectorDrawable extends Drawable {
      */
     public void inflate(@NonNull GraphicContainerElement element) {
         final PathRenderer pathRenderer = new PathRenderer(element);
-        pathRenderer.applyProperties();
+        pathRenderer.applyBaseAndViewportDimensions();
         mVectorState.mPathRenderer = pathRenderer;
         mVectorState.mTint = null;
         mVectorState.mAutoMirrored = true;
@@ -100,7 +102,7 @@ public class AlexaVectorDrawable extends Drawable {
      */
     public void updateDirtyGraphics(@NonNull Set<Integer> dirtyGraphicUniqueIds) {
         mVectorState.setDirty(true);
-        mVectorState.mPathRenderer.applyBaseDimensions();
+        mVectorState.mPathRenderer.applyBaseAndViewportDimensions();
         mVectorState.mPathRenderer.getRootGroup().applyDirtyProperties(dirtyGraphicUniqueIds);
         invalidateSelf();
     }
@@ -291,7 +293,7 @@ public class AlexaVectorDrawable extends Drawable {
         mTintFilter = new PorterDuffColorFilter(color, tintMode);
     }
 
-    private static class VectorDrawableCompatState extends Drawable.ConstantState {
+    static class VectorDrawableCompatState extends Drawable.ConstantState {
         PathRenderer mPathRenderer;
         @Nullable
         ColorStateList mTint = null;
@@ -305,6 +307,12 @@ public class AlexaVectorDrawable extends Drawable {
          * Temporary mPaint object used to draw cached bitmaps.
          */
         transient Paint mTempPaint;
+
+        @VisibleForTesting
+        VectorDrawableCompatState(PathRenderer pathRenderer, IBitmapFactory bitmapFactory) {
+            mPathRenderer = pathRenderer;
+            mBitmapFactory = bitmapFactory;
+        }
 
         VectorDrawableCompatState(GraphicContainerElement element) {
             mPathRenderer = new PathRenderer(element);

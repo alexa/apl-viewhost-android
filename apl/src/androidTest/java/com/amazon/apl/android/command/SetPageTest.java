@@ -5,15 +5,11 @@
 
 package com.amazon.apl.android.command;
 
-import androidx.test.espresso.IdlingRegistry;
-import androidx.test.espresso.IdlingResource;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.amazon.apl.android.Component;
 import com.amazon.apl.android.document.AbstractDocViewTest;
-import com.amazon.apl.android.espresso.APLViewIdlingResource;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,68 +63,63 @@ public class SetPageTest extends AbstractDocViewTest {
             "    \"duration\": %s" +
             "}]";
 
-    private IdlingResource mIdlingResource;
-
     @Before
     public void setup() {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(inflate(COMPONENT_PROPS, ""))
                 .check(hasRootContext());
         onView(withText("2")).check(matches(isDisplayed()));
-
-        mIdlingResource = new APLViewIdlingResource(mTestContext.getTestView());
-        IdlingRegistry.getInstance().register(mIdlingResource);
-    }
-
-    @After
-    public void teardown() {
-        if (mIdlingResource != null) {
-            IdlingRegistry.getInstance().unregister(mIdlingResource);
-        }
     }
 
     @Test
     public void testSetPageCommand_ForwardOnePageUsingRelativePositionCase() {
         onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), createSetPageDoc("relative", 1)));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        onView(withText("3")).check(matches(isDisplayed()));
+        Component component = mTestContext.getTestComponent();
+        Component child = component.getChildAt(2);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
     }
 
     @Test
     public void testSetPageCommand_BackwardOnePageUsingRelativePositionCase() {
         onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), createSetPageDoc("relative", -1)));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        onView(withText("1")).check(matches(isDisplayed()));
+        Component component = mTestContext.getTestComponent();
+        Component child = component.getChildAt(0);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
     }
 
     @Test
     public void testSetPageCommand_MovePageUsingAbsolutePositionCase() {
         onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), createSetPageDoc("absolute", 2)));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        onView(withText("3")).check(matches(isDisplayed()));
+        Component component = mTestContext.getTestComponent();
+        Component child = component.getChildAt(2);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
     }
 
     @Test
     public void testSetPageCommand_MoveToLastPageUsingAbsolutePositionCase() {
         onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), createSetPageDoc("absolute", -1)));
-        InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
-        onView(withText("4")).check(matches(isDisplayed()));
+        Component component = mTestContext.getTestComponent();
+        Component child = component.getChildAt(3);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
     }
 
     @Test
     public void testAutoPageCommand_NavigateToLastPageCase() {
-        int waitTime = 500;
-        onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), createAutoPage(waitTime)))
-                .perform(waitFor(100));
+        onView(isRoot())
+                .perform(executeCommands(mTestContext.getRootContext(), createAutoPage(500)));
 
-        onView(withText("3")).check(matches(isDisplayed()));
-
-        onView(isRoot()).perform(waitFor(waitTime));
-        onView(withText("4")).check(matches(isDisplayed()));
+        Component component = mTestContext.getTestComponent();
+        Component child = component.getChildAt(3);
+        onView(withComponent(child))
+                .check(matches(isDisplayed()));
     }
 
     private String createSetPageDoc(String position, int value) {

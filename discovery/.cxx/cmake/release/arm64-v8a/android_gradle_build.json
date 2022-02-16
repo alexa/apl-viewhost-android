@@ -1,0 +1,421 @@
+{
+  "stringTable": {
+    "0": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a",
+    "1": "--target=aarch64-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -I/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG -fPIC -Werror -std=gnu++11",
+    "2": "null"
+  },
+  "buildFiles": [
+    "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/CMakeLists.txt",
+    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake",
+    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/platforms.cmake",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/thirdparty/thirdparty.cmake",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/thirdparty/googletest-CMakeLists.txt.in",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/options.cmake",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/aplcore/include/apl/apl_config.h.in",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/tools.cmake",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/CMakeLists.txt",
+    "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/CMakeLists.txt"
+  ],
+  "cleanCommands": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" clean"
+  ],
+  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "yoga-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" yoga",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "yoga",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/yoga",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/yoga.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/yoga-complete.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-install.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    },
+    "alexaext-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" alexaext",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "alexaext",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/src/executor.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/src/extensionmessage.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/src/extensionregistrar.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-core-library/extensions/alexaext/src/localextensionproxy.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext/libalexaext.a"
+    },
+    "discovery-jni-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" discovery-jni",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "discovery-jni",
+      "files": [],
+      "headers": [],
+      "output": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/build/intermediates/cmake/release/obj/arm64-v8a/libdiscovery-jni.so",
+      "runtimeFiles": []
+    },
+    "pegtl-build-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" pegtl-build",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "pegtl-build",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl-build",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    },
+    "rapidjson-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" rapidjson",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "rapidjson",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson-complete.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    },
+    "rapidjson-build-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" rapidjson-build",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "rapidjson-build",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson-build",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    },
+    "enumgen-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" enumgen",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "enumgen",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/enumgen",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/enumgen.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/enumgen-complete.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    },
+    "pegtl-Release-arm64-v8a": {
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a\" pegtl",
+      "buildType": "release",
+      "toolchain": "1622668227",
+      "abi": "arm64-v8a",
+      "artifactName": "pegtl",
+      "files": [
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl-complete.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        },
+        {
+          "src": "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",
+          "flagsOrdinal": 2,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": []
+    }
+  },
+  "toolchains": {
+    "1622668227": {
+      "cppCompilerExecutable": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

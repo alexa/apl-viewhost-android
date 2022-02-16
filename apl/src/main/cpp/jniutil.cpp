@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #include <jni.h>
@@ -8,9 +8,11 @@
 #include "jniutil.h"
 #include "apl/apl.h"
 #include "loggingbridge.h"
+#include "codecvt"
 
 namespace apl {
     namespace jni {
+        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 
         /**
          * Convert a Java string into a std::string in UTF-8 encoding
@@ -106,22 +108,9 @@ namespace apl {
 
             // APLJSONData is a custom class for wrapping raw JSON data objects
             if (env->IsInstanceOf(object, APL_JSON_DATA) == JNI_TRUE) {
-                auto byteArray = reinterpret_cast<jbyteArray>(env->GetObjectField(object,
-                                                                                  APL_JSON_DATA_MBYTES));
-                auto elements = env->GetByteArrayElements(byteArray, nullptr);
-                auto length = static_cast<std::string::size_type>(env->GetArrayLength(byteArray));
-
-                rapidjson::Document doc;
-                rapidjson::ParseResult ok = doc.Parse<
-                        rapidjson::kParseValidateEncodingFlag | rapidjson::kParseStopWhenDoneFlag>(
-                        reinterpret_cast<const char *>(elements), length);
-                env->ReleaseByteArrayElements(byteArray, elements, JNI_ABORT);
-                if (ok.IsError()) {
-                    LOG(apl::LogLevel::ERROR)
-                            << "Parsing error: " << rapidjson::GetParseError_En(ok.Code());
-                    return Object::NULL_OBJECT();
-                }
-                return Object(std::move(doc));
+                auto handle = env->CallLongMethod(object, BOUND_OBJECT_GET_NATIVE_HANDLE);
+                auto jsonData = get<JsonData>(handle);
+                return jsonData->get();
             }
 
             // Primitive arrays are a bit of a nuisance - we have to handle each type of primitive array separately
@@ -200,6 +189,8 @@ namespace apl {
                 return JNI_FALSE;
             }
 
+            LOG(apl::LogLevel::DEBUG) << "Loading View Host Utils JNI environment.";
+
             // For reading Integer and Boolean types
             JAVA_LANG_BOOLEAN = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/lang/Boolean")));
             JAVA_LANG_BOOLEAN_CONSTRUCTOR = env->GetMethodID(JAVA_LANG_BOOLEAN, "<init>", "(Z)V");
@@ -251,7 +242,8 @@ namespace apl {
             JAVA_UTIL_HASHMAP_PUT = env->GetMethodID(JAVA_UTIL_HASHMAP, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
 
             APL_JSON_DATA = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("com/amazon/apl/android/APLJSONData")));
-            APL_JSON_DATA_MBYTES = env->GetFieldID(APL_JSON_DATA, "mBytes", "[B");
+            BOUND_OBJECT = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("com/amazon/common/BoundObject")));
+            BOUND_OBJECT_GET_NATIVE_HANDLE = env->GetMethodID(BOUND_OBJECT, "getNativeHandle", "()J");
 
             jfieldID type_field = env->GetStaticFieldID(JAVA_LANG_INTEGER, "TYPE", "Ljava/lang/Class;");
             JAVA_LANG_INT_TYPE = reinterpret_cast<jclass>(env->NewGlobalRef(env->GetStaticObjectField(JAVA_LANG_INTEGER, type_field)));
@@ -367,53 +359,22 @@ namespace apl {
         JNIEXPORT jobject JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGet(JNIEnv *env, jclass clazz, jlong handle,
                                                      jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return getJObject(env, value);
         }
 
         JNIEXPORT jint JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGetType(JNIEnv *env, jclass clazz, jlong handle,
                                                      jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jint>(value.getType());
-        }
-
-        /**
-         * Unbind a native object.
-         */
-        JNIEXPORT void JNICALL
-        Java_com_amazon_apl_android_APLBinding_nUnbind(JNIEnv *env, jclass clazz, jlong handle) {
-            NativeOwner<>::unbind(handle);
-        }
-
-
-        /**
-         * Test if a native object exists.
-         */
-        JNIEXPORT jboolean JNICALL
-        Java_com_amazon_apl_android_APLBinding_nTestNativePeer(JNIEnv *env, jclass clazz,
-                                                               jlong handle) {
-            auto owner = NativeOwner<>::getNativeOwner(handle);
-            auto hasPeer = owner->getBoundObject() != nullptr;
-            return static_cast<jboolean >(hasPeer);
-        }
-
-        /**
-         * Test if a native object exists.
-         */
-        JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_APLBinding_nTestPointerCount(JNIEnv *env, jclass clazz,
-                                                                 jlong handle) {
-
-            auto owner = NativeOwner<>::getNativeOwner(handle);
-            return static_cast<jint>(owner->getPointerCount());
         }
 
         JNIEXPORT jboolean JNICALL
         Java_com_amazon_apl_android_PropertyMap_nHasProperty(JNIEnv *env, jclass clazz, jlong handle,
                                                            jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jboolean>(!value.isNull());
         }
 
@@ -421,7 +382,7 @@ namespace apl {
         Java_com_amazon_apl_android_PropertyMap_nGetInt(JNIEnv *env, jclass clazz, jlong handle,
                                                       jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jint>(value.asNumber());
         }
 
@@ -430,14 +391,17 @@ namespace apl {
         Java_com_amazon_apl_android_PropertyMap_nGetEnum(JNIEnv *env, jclass clazz, jlong handle,
                                                        jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            // unlikely that enum doesn't have a default value, or possibly the propertyId was wrong
+            if (value.isNull())
+                return -1;
             return static_cast<jint>(value.asNumber());
         }
 
         JNIEXPORT jfloatArray JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGetTransform(JNIEnv *env, jclass clazz, jlong handle,
                                                               jint propertyId) {
-            auto lookup = getLookup(handle);
+            auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             auto transform = value.getTransform2D().get();
             jfloatArray ret = env->NewFloatArray(6);
@@ -449,14 +413,14 @@ namespace apl {
         Java_com_amazon_apl_android_PropertyMap_nGetFloat(JNIEnv *env, jclass clazz, jlong handle,
                                                         jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jfloat>(value.asNumber());
         }
 
         JNIEXPORT jboolean JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGetBoolean(JNIEnv *env, jclass clazz, jlong handle,
                                                           jint propertyId) {
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jboolean>(value.asBoolean());
         }
 
@@ -464,47 +428,27 @@ namespace apl {
         Java_com_amazon_apl_android_PropertyMap_nGetString(JNIEnv *env, jclass clazz, jlong handle,
                                                          jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
-            return env->NewStringUTF(value.asString().c_str());
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            if (value.isNull())
+                return NULL;
+
+            std::u16string u16 = converter.from_bytes(value.asString().c_str());
+            return env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
         }
 
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGetColor(JNIEnv *env, jclass clazz, jlong handle,
                                                         jint propertyId) {
 
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             return static_cast<jlong>(value.asColor().get());
-        }
-
-        JNIEXPORT jobjectArray JNICALL
-        Java_com_amazon_apl_android_PropertyMap_nGetStringArray(JNIEnv *env, jclass clazz, jlong handle,
-                                                                jint propertyId) {
-
-            auto value = getLookup(handle)->getObject(static_cast<int>(propertyId), handle);
-            if (value.isArray()) {
-                auto valueArray = value.getArray();
-                jobjectArray stringArray = env->NewObjectArray(valueArray.size(), JAVA_LANG_STRING, nullptr);
-                for (int i = 0; i < valueArray.size(); ++i) {
-                    jobject object = getJObject(env, valueArray[i]);
-                    if (env->IsInstanceOf(object, JAVA_LANG_STRING)) {
-                        env->SetObjectArrayElement(stringArray, i, object);
-                    }
-                }
-                return stringArray;
-            } else if (value.isString()) {
-                jobjectArray stringArray = env->NewObjectArray(1, JAVA_LANG_STRING, nullptr);
-                auto string = env->NewStringUTF(value.asString().c_str());
-                env->SetObjectArrayElement(stringArray, 0, string);
-                return stringArray;
-            }
-            return NULL;
         }
 
         JNIEXPORT jfloatArray JNICALL
         Java_com_amazon_apl_android_PropertyMap_nGetFloatArray(JNIEnv *env, jclass clazz, jlong handle,
                                                             jint propertyId) {
             auto data =
-                    getLookup(handle)->getObject(static_cast<int>(propertyId), handle).getArray();
+                    getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle).getArray();
             int inputCount = data.size();
             jfloat range[inputCount];
             for (int i = 0; i < inputCount; i++) {
@@ -519,7 +463,7 @@ namespace apl {
         Java_com_amazon_apl_android_PropertyMap_nGetIntArray(JNIEnv *env, jclass clazz, jlong handle,
                                                              jint propertyId) {
             auto data =
-                    getLookup(handle)->getObject(static_cast<int>(propertyId), handle).getArray();
+                    getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle).getArray();
             int inputCount = data.size();
             jint range[inputCount];
             for (int i = 0; i < inputCount; i++) {
@@ -528,6 +472,14 @@ namespace apl {
             jintArray inputRange = env->NewIntArray(inputCount);
             env->SetIntArrayRegion(inputRange, 0, inputCount, range);
             return inputRange;
+        }
+
+        JNIEXPORT jlong JNICALL
+        Java_com_amazon_apl_android_APLJSONData_nCreate(JNIEnv *env, jclass clazz, jstring data_) {
+            const char* data = env->GetStringUTFChars(data_, nullptr);
+            auto jsonData = JsonData(data);
+            env->ReleaseStringUTFChars(data_, data);
+            return createHandle(std::make_shared<JsonData>(std::move(jsonData)));
         }
 
 

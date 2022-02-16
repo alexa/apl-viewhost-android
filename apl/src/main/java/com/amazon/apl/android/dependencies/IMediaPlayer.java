@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import com.amazon.apl.android.IDocumentLifecycleListener;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.enums.AudioTrack;
+import com.amazon.apl.enums.TrackState;
 import com.amazon.apl.enums.VideoScale;
 
 /**
@@ -130,6 +131,14 @@ public interface IMediaPlayer {
     int getTrackCount();
 
     /**
+     * Returns current error code.
+     * @return non negative error code if current media state is error, -1 otherwise.
+     */
+    default int getCurrentError() {
+        return getCurrentMediaState() == IMediaListener.MediaState.ERROR ? 0 : -1;
+    }
+
+    /**
      * Interface definition for a callback to playback updates.
      */
     interface IMediaListener {
@@ -202,4 +211,21 @@ public interface IMediaPlayer {
      * Releases the request to receive {@link android.media.AudioManager} callbacks.
      */
     default void releaseAudioFocus() {};
+
+    default int getTrackState() {
+        TrackState trackState;
+        switch (getCurrentMediaState()) {
+            case READY:
+            case PLAYING:
+            case PAUSED:
+                trackState = TrackState.kTrackReady;
+                break;
+            case ERROR:
+                trackState = TrackState.kTrackFailed;
+                break;
+            default:
+                trackState = TrackState.kTrackNotReady;
+        }
+        return trackState.getIndex();
+    }
 }

@@ -12,17 +12,20 @@ import android.text.TextUtils;
 import android.view.View;
 
 
+import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.RuntimeConfig;
 import com.amazon.apl.android.font.CompatFontResolver;
-import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.LayoutDirection;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
@@ -45,6 +48,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This abstract test class provides a basic framework for testing an APL
@@ -53,14 +58,11 @@ import static org.junit.Assert.assertTrue;
  * call into base classes for Component specific features.
  */
 @RunWith(AndroidJUnit4.class)
-public abstract class AbstractComponentUnitTest<V extends View, C extends Component> {
+public abstract class AbstractComponentUnitTest<V extends View, C extends Component> extends APLViewhostTest {
 
-    // Load the APL library.
     static {
-        System.loadLibrary("apl-jni");
         RuntimeConfig runtimeConfig = RuntimeConfig.builder().fontResolver(new CompatFontResolver()).build();
-        TypefaceResolver.getInstance().initialize(InstrumentationRegistry.getInstrumentation().getContext(),
-                runtimeConfig);
+        APLController.initializeAPL(InstrumentationRegistry.getInstrumentation().getContext(), runtimeConfig);
     }
 
     // Base document has a instance of the test Component as the top Component. The component
@@ -158,6 +160,7 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
 
     // RootContext - detached from APLLayout
     RootContext mRootContext;
+    RenderingContext mRenderingContext;
 
     // RootConfig
     RootConfig mRootConfig;
@@ -193,8 +196,8 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
 
 
         MockitoAnnotations.initMocks(this);
-
-
+        mRootConfig = RootConfig.create("Unit Test", "1.0");
+        when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
     }
 
     /**
@@ -257,9 +260,10 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
                 .theme("dark")
                 .mode(ViewportMode.kViewportModeHub)
                 .build();
-        RootConfig rootConfig = RootConfig.create("Unit Test", "1.0");
 
-        mRootContext = RootContext.create(mMetrics, content, rootConfig, mAplOptions, mAPLPresenter);
+
+        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter);
+        mRenderingContext = mRootContext.getRenderingContext();
 
         if (mRootContext.getNativeHandle() == 0) {
             Assert.fail("The document failed to load.");

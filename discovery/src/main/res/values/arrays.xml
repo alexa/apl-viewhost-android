@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+  ~ SPDX-License-Identifier: Apache-2.0
+  -->
+
+<resources>
+    <array name="extensionURI">
+        <item>alexatest:multi:10</item>
+        <item>alexatest:multi:20</item>
+        <item>alexatest:multi:30</item>
+    </array>
+    <array name="extensionLatchURI">
+        <item>alexatest:multilatch:10</item>
+        <item>alexatest:multilatch:20</item>
+        <item>alexatest:multilatch:30</item>
+    </array>
+    <array name="extensionDeferredMulti">
+        <item>alexatest:deferredmulti:10</item>
+        <item>alexatest:deferredmulti:20</item>
+        <item>alexatest:deferredmulti:30</item>
+    </array>
+    <array name="extensionDeferredDefinitionMulti">
+        <item>multidefinition1</item>
+        <item>multidefinition2</item>
+        <item>multidefinition3</item>
+    </array>
+    <array name="extensionDeferredMultiMismatch">
+        <item>alexatest:deferredmismatch:10</item>
+        <item>alexatest:deferredmismatch:20</item>
+        <item>alexatest:deferredmismatch:30</item>
+    </array>
+    <array name="extensionDeferredMultiDefinitionMismatch">
+        <item>mismatchdefinition1</item>
+        <item>mismatchdefinition2</item>
+    </array>
+</resources>
+

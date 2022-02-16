@@ -4,6 +4,8 @@
  */
 package com.amazon.apl.android;
 
+import com.amazon.common.BoundObject;
+
 public class ExtensionEventHandler extends BoundObject {
 
     public ExtensionEventHandler(String uri, String name) {

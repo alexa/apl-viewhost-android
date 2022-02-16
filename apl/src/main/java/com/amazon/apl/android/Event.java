@@ -8,6 +8,7 @@ package com.amazon.apl.android;
 import androidx.annotation.NonNull;
 
 import com.amazon.apl.android.scaling.IMetricsTransform;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.EventProperty;
 import com.amazon.apl.enums.EventType;
 
@@ -37,7 +38,7 @@ public abstract class Event extends BoundObject {
         // init to listen for terminate callback
         nInit(getNativeHandle());
         mRootContext = rootContext;
-        mRootContext.addPendingEvent(this);
+        mRootContext.addPending(this);
         mMetricsTransform = mRootContext.getMetricsTransform();
         mProperties = new PropertyMap<Event, EventProperty>() {
             @NonNull
@@ -105,7 +106,7 @@ public abstract class Event extends BoundObject {
      * @return The component associated with this event.
      */
     final public Component getComponent() {
-        return mRootContext.getComponent(nGetComponentId(getNativeHandle()));
+        return mRootContext.getOrInflateComponentWithUniqueId(nGetComponentId(getNativeHandle()));
     }
 
     /**
@@ -158,7 +159,7 @@ public abstract class Event extends BoundObject {
      * Remove reference to the event from the RootContext.
      */
     private void destroy() {
-        mRootContext.removePendingEvent(this);
+        mRootContext.removePending(this);
     }
 
     private native void nInit(long nativeHandle);

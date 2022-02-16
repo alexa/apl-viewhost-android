@@ -1,0 +1,37 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/pegtl-build"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/pegtl-build.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule"
+		},
+		{
+			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"pegtl"
+		],
+		"name" : "pegtl-build"
+	}
+}

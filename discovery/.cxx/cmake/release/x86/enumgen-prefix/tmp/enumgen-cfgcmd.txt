@@ -1,0 +1,1 @@
+cmd='/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake;-DCMAKE_INSTALL_PREFIX=/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/tools;-GNinja;<SOURCE_DIR><SOURCE_SUBDIR>'

@@ -18,7 +18,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 public class APLTextViewTest extends ViewhostRobolectricTest {
@@ -33,9 +32,7 @@ public class APLTextViewTest extends ViewhostRobolectricTest {
 
     @Before
     public void setup() {
-        when(mockPresenter.getDensity()).thenReturn(1.0f);
         mAplTextView = new APLTextView(getApplication(), mockPresenter);
-        assertEquals(mockPresenter.getDensity(), mAplTextView.getDensity(), 0.01f);
     }
 
     @Test

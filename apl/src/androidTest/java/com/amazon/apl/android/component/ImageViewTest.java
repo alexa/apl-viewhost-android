@@ -7,11 +7,9 @@ package com.amazon.apl.android.component;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Image;
-import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.dependencies.IImageLoader;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -20,19 +18,16 @@ import com.amazon.apl.android.views.APLImageView;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.applyProperties;
 import static com.amazon.apl.android.espresso.APLViewActions.executeCommands;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -47,15 +42,6 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
             "https://via.placeholder.com/400",
             "https://via.placeholder.com/500",
     };
-
-    private static final Map<String, Integer> COLORS = new HashMap<>();
-    static {
-        COLORS.put("blue", Color.BLUE);
-        COLORS.put("red", Color.RED);
-        COLORS.put("black", Color.BLACK);
-        COLORS.put("yellow", Color.YELLOW);
-        COLORS.put("white", Color.WHITE);
-    }
 
     @Before
     public void doBefore() {
@@ -78,14 +64,13 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
         when(mImageLoader.withTelemetry(any(ITelemetryProvider.class))).thenReturn(mImageLoader);
         when(provider.get(any(Context.class))).thenReturn(mImageLoader);
         doAnswer(invocation -> {
-            IImageLoader.LoadImageCallback2 callback = invocation.getArgument(2);
-            callback.onSuccess(dummyBitmap, invocation.getArgument(0));
+            IImageLoader.LoadImageParams load = invocation.getArgument(0);
+            load.callback().onSuccess(dummyBitmap, load.path());
             return null;
-        }).when(mImageLoader).loadImage(anyString(), any(APLImageView.class), any(IImageLoader.LoadImageCallback2.class), anyBoolean());
+        }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         APLOptions options = APLOptions.builder()
                 .imageProvider(provider)
-                .bitmapCache(mock(IBitmapCache.class))
                 .build();
         return options;
     }
@@ -111,11 +96,10 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
                 .perform(inflateWithOptions(getOptions(), REQUIRED_PROPERTIES))
                 .check(hasRootContext());
 
-        APLImageView view = getTestView();
         for (String expectedSource : SOURCES) {
             onView(isRoot())
                     .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("source", expectedSource)));
-            verify(mImageLoader).loadImage(eq(expectedSource), eq(view), any(IImageLoader.LoadImageCallback2.class), anyBoolean());
+            verify(mImageLoader).loadImage(argThat(load -> expectedSource.equals(load.path())));
         }
     }
 
@@ -126,14 +110,14 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
                 .check(hasRootContext());
 
         // Inflation should trigger call to load image
-        verify(mImageLoader).loadImage(eq("https://via.placeholder.com/300"), eq(getTestView()), any(IImageLoader.LoadImageCallback2.class), anyBoolean());
+        verify(mImageLoader).loadImage(argThat(load -> "https://via.placeholder.com/300".equals(load.path())));
 
         // Reapply properties
         onView(withComponent(getTestComponent()))
                 .perform(applyProperties(mTestContext.getPresenter(), getTestComponent()));
 
         // Apply properties should trigger another call to load image
-        verify(mImageLoader, times(2)).loadImage(eq("https://via.placeholder.com/300"), eq(getTestView()), any(IImageLoader.LoadImageCallback2.class), anyBoolean());
+        verify(mImageLoader, times(2)).loadImage(argThat(load -> "https://via.placeholder.com/300".equals(load.path())));
     }
 
 
@@ -151,30 +135,33 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
         verify(mImageLoader, times(1)).clear(testView);
     }
 
+    @Test
+    public void testView_layoutRequestsEnabledByDefault() throws Throwable {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflateWithOptions(getOptions(), REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
+                .check(hasRootContext());
 
-    // TODO verify overlayColor changing.
-    //  this is hard because we have two asynchronous methods that are being called when images are
-    //  loaded:
-    //      1) IImageLoader.loadImage()
-    //      2) ImageProcessingAsyncTask
-    //  To test overlayColor, we need to wait for both tasks to finish and then get the color from the
-    //  ImageView drawable.
-//    @Test
-//    public void testView_dynamicOverlayColor() {
-//        onView(withId(com.amazon.apl.android.test.R.id.apl))
-//                .perform(inflate(REQUIRED_PROPERTIES, "\"source\": \"https://via.placeholder.com/100\""))
-//                .check(hasRootContext());
-//
-//        onView(isRoot())
-//                .perform(waitFor(1000));
-//
-//        for (String expectedColor : COLORS.keySet()) {
-//            onView(withComponent(getTestComponent()))
-//                    .perform(executeCommands(mTestContext.getRootContext(), setValueCommand("overlayColor", expectedColor)))
-//                    .check((view, exception) -> {
-//                            Bitmap bitmap = drawableToBitmap(((APLImageView)view).getDrawable());
-//                            assertEquals((int)COLORS.get(expectedColor), bitmap.getPixel(0,0));
-//                    });
-//        }
-//    }
+        APLImageView testView = getTestView();
+
+        activityRule.runOnUiThread(() -> {
+            testView.requestLayout();
+            assertTrue(testView.isLayoutRequested());
+        });
+    }
+
+    @Test
+    public void testView_layoutRequestsDisabled() throws Throwable {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflateWithOptions(getOptions(), REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
+                .check(hasRootContext());
+
+        APLImageView testView = getTestView();
+
+        activityRule.runOnUiThread(() -> {
+            testView.setLayoutRequestsEnabled(false);
+            testView.requestLayout();
+
+            assertFalse(testView.isLayoutRequested());
+        });
+    }
 }

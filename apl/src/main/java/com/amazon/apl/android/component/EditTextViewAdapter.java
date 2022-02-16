@@ -23,6 +23,7 @@ import android.widget.TextView;
 
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.EditText;
+import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Rect;
@@ -103,7 +104,7 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
 
     private void applySubmitButtonType(EditText component, APLEditText view) {
         view.setSingleLine(true);
-        switch(component.getSubmitKeyType()) {
+        switch(component.getProxy().getSubmitKeyType()) {
             case kSubmitKeyTypeGo:
                 view.setImeOptions(EditorInfo.IME_ACTION_GO);
                 break;
@@ -123,7 +124,8 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
     }
 
     private void applyBackgroundBorder(EditText component, APLEditText view) {
-        view.getGradientDrawable().setStroke(component.getDrawnBorderWidth(), component.getBorderColor());
+        EditTextProxy proxy = component.getProxy();
+        view.getGradientDrawable().setStroke(proxy.getDrawnBorderWidth(), proxy.getBorderColor());
     }
 
     private void applyBackgroundPadding(EditText component, APLEditText view) {
@@ -136,12 +138,13 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
     }
 
     private void applyCharacterFilter(EditText component, APLEditText view) {
+        EditTextProxy proxy = component.getProxy();
         List<InputFilter> filtersList = new ArrayList<>();
-        final int maxLength = component.getMaxLength();
+        final int maxLength = proxy.getMaxLength();
         if(maxLength > 0) {
             filtersList.add(new InputFilter.LengthFilter(maxLength));
         }
-        final String validCharacters = component.getValidCharacters();
+        final String validCharacters = proxy.getValidCharacters();
         if(!TextUtils.isEmpty(validCharacters)) {
             filtersList.add(new ValidCharactersFilter(component));
         }
@@ -151,9 +154,10 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
 
     private void applyKeyboardType(EditText component, APLEditText view) {
         int inputType;
+        EditTextProxy proxy = component.getProxy();
 
         // configure keyboard input
-        switch (component.getKeyboardType()) {
+        switch (proxy.getKeyboardType()) {
             case kKeyboardTypeDecimalPad:
                 inputType = InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_NUMBER_FLAG_SIGNED;
                 break;
@@ -175,7 +179,7 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
         }
 
         // password mask based on keyboard input
-        if (component.isSecureInput()) {
+        if (proxy.isSecureInput()) {
             view.setTransformationMethod(PasswordTransformationMethod.getInstance());
             switch (inputType & InputType.TYPE_MASK_CLASS) {
                 case InputType.TYPE_CLASS_NUMBER:
@@ -194,25 +198,27 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
     }
 
     private void applyHint(EditText component, APLEditText view) {
-        view.setHint(component.getHint());
-        view.setHintTextColor(component.getHintColor());
+        EditTextProxy proxy = component.getProxy();
+        view.setHint(proxy.getHint());
+        view.setHintTextColor(proxy.getHintColor());
     }
 
     private void applyText(EditText component, APLEditText view) {
-        view.setText(component.getText());
+        view.setText(component.getProxy().getText());
     }
 
     private void applySelectOnFocus(EditText component, APLEditText view) {
-        if (component.isSelectOnFocus()) {
+        if (component.getProxy().isSelectOnFocus()) {
             view.setSelectAllOnFocus(true);
         }
     }
 
     private void applyTextStyle(EditText component, APLEditText view) {
-        view.setTextSize(component.getFontSize());
-        view.setHighlightColor(component.getHighlightColor());;
-        view.setTextColor(component.getColor());
-        if(component.getText().length() == 0) {
+        EditTextProxy proxy = component.getProxy();
+        view.setTextSize(proxy.getFontSize());
+        view.setHighlightColor(proxy.getHighlightColor());;
+        view.setTextColor(proxy.getColor());
+        if(proxy.getText().length() == 0) {
             applyHintTypeface(component, view);
         } else {
             applyTextTypeface(component, view);
@@ -220,12 +226,13 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
     }
 
     private void applyTextTypeface(EditText component, APLEditText view) {
-        final FontStyle fontStyle = component.getFontStyle();
-        final int fontWeight = component.getFontWeight();
+        EditTextProxy proxy = component.getProxy();
+        final FontStyle fontStyle = proxy.getFontStyle();
+        final int fontWeight = proxy.getFontWeight();
         final boolean italic = fontStyle == FontStyle.kFontStyleItalic;
-        final String fontLanguage = component.getFontLanguage();
-        TypefaceResolver typefaceResolver = component.getTypefaceResolver();
-        view.setTypeface(typefaceResolver.getTypeface(component.getFontFamily(),
+        final String fontLanguage = proxy.getFontLanguage();
+        TypefaceResolver typefaceResolver = proxy.getTypefaceResolver();
+        view.setTypeface(typefaceResolver.getTypeface(proxy.getFontFamily(),
                 fontWeight,
                 italic,
                 fontLanguage,
@@ -233,14 +240,15 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
     }
 
     private void applyHintTypeface(EditText component, APLEditText view) {
-        final FontStyle fontStyle = component.getHintFontStyle();
-        final int fontWeight = component.getHintFontWeight();
+        EditTextProxy proxy = component.getProxy();
+        final FontStyle fontStyle = proxy.getHintFontStyle();
+        final int fontWeight = proxy.getHintFontWeight();
         final boolean italic = fontStyle == FontStyle.kFontStyleItalic;
-        TypefaceResolver typefaceResolver = component.getTypefaceResolver();
-        view.setTypeface(typefaceResolver.getTypeface(component.getFontFamily(),
+        TypefaceResolver typefaceResolver = proxy.getTypefaceResolver();
+        view.setTypeface(typefaceResolver.getTypeface(proxy.getFontFamily(),
                 fontWeight,
                 italic,
-                component.getFontLanguage(),
+                proxy.getFontLanguage(),
                 false));
     }
 

@@ -6,11 +6,13 @@
 package com.amazon.apl.android;
 
 import android.content.Context;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
+import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
+import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
 import com.amazon.apl.enums.AnimationQuality;
 import com.amazon.apl.enums.RootProperty;
@@ -24,6 +26,18 @@ import java.util.Map;
  */
 @SuppressWarnings("WeakerAccess")
 public class RootConfig extends BoundObject {
+
+    /**
+     * @deprecated ExtensionProvider references to support transitional API {@link #getExtensionProvider()}
+     */
+    @Deprecated
+    private ExtensionRegistrar mExtensionProvider;
+    /**
+     * @deprecated ExtensionMediator references to support transitional API {@link #getExtensionMediator()}
+     */
+    @Deprecated
+    private ExtensionMediator mExtensionMediator;
+
     /**
      * Creates a default RootConfig.
      */
@@ -403,6 +417,30 @@ public class RootConfig extends BoundObject {
     }
 
     /**
+     * Register flags for an extension.  Flags are opaque data provided by the execution environment
+     * (not the document) and passed to the extension at the beginning of the document session.
+     *
+     * @param uri The URI of the extension
+     * @param flags The extension flags
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig registerExtensionFlags(@NonNull String uri, @NonNull Object flags) {
+        nRegisterExtensionFlags(getNativeHandle(), uri, flags);
+        return this;
+    }
+
+    /**
+     *
+     * @param uri The URI of the extension.
+     * @return The registered extension flags, NULL_OBJECT if no flags are registered.
+     */
+    @Nullable
+    public Object getExtensionFlags(@NonNull String uri) {
+        return nGetExtensionFlags(getNativeHandle(), uri);
+    }
+
+    /**
      * Register an environment for an extension.  The document may access the extension environment by
      * the extension name in the “environment.extension” environment property.
      * Any previously registered environment is overwritten.
@@ -416,6 +454,76 @@ public class RootConfig extends BoundObject {
     public RootConfig registerExtensionEnvironment(@NonNull String uri, @NonNull Object environment) {
         nRegisterExtensionEnvironment(getNativeHandle(), uri, environment);
         return this;
+    }
+
+    /**
+     * Register a value to be reported in the data-binding "environment" context.
+     * @param name The name of the value.
+     * @param value The value to report.  This will be read-only.
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig setEnvironmentValue(@NonNull String name, @NonNull Object value) {
+        nSetEnvironmentValue(getNativeHandle(), name, value);
+        return this;
+    }
+
+    /**
+     * Assign a Alexa Extension provider.
+     * Requires kExperimentalExtensionProvider feature be enabled.
+     *
+     * @param extensionProvider Enables access to the system available extensions.
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig extensionProvider(@NonNull ExtensionRegistrar extensionProvider) {
+        mExtensionProvider = extensionProvider;
+        nExtensionProvider(getNativeHandle(), extensionProvider.getNativeHandle());
+        extensionMediator(ExtensionMediator.create(extensionProvider));
+        return this;
+    }
+
+    /**
+     * @deprecated Protected API! This is a transitional API.
+     * Gets the ExtensionProvider associated with this configuration.
+     *
+     * @return The extension mediator, may be null;
+     */
+    @Deprecated
+    ExtensionRegistrar getExtensionProvider() {
+        return mExtensionProvider;
+    }
+
+    /**
+     * @deprecated Protected API! This is a transitional API.
+     * Assign a Alexa Extension mediator.
+     * Requires kExperimentalFeatureExtensionProvider feature be enabled.
+     *
+     * IMPORTANT: ExtensionMediator is a class that is expected to be eliminated.  It
+     * can only be used with a single document/RootContext.  It is expected the viewhost call
+     * ExtensionMediator.loadExtensions() prior to calling RootContext::create(). RootContext will
+     * bind to the mediator obtained from this assignment.
+     *
+     * @param extensionMediator Message mediator manages messages between Extension and APL engine.
+     * and the APL engine.
+     * @return This object for chaining
+     */
+    @NonNull
+    @Deprecated
+    RootConfig extensionMediator(@NonNull ExtensionMediator extensionMediator) {
+        mExtensionMediator = extensionMediator;
+        nExtensionMediator(getNativeHandle(), extensionMediator.getNativeHandle());
+        return this;
+    }
+
+    /**
+     * @deprecated Protected API! This is a transitional API.
+     * Gets the ExtensionMediator associated with this configuration.
+     * @return The extension mediator, may be null;
+     */
+    @Deprecated
+    ExtensionMediator getExtensionMediator() {
+        return mExtensionMediator;
     }
 
     /**
@@ -516,6 +624,8 @@ public class RootConfig extends BoundObject {
         nScreenMode(getNativeHandle(), screenMode.getIndex());
         return this;
     }
+
+
 
     /**
      * Set double press timeout.
@@ -655,7 +765,17 @@ public class RootConfig extends BoundObject {
 
     private static native void nRegisterExtension(long nativeHandle, String uri);
 
+    private static native void nRegisterExtensionFlags(long nativeHandle, String uri, Object flags);
+
+    private static native Object nGetExtensionFlags(long nativeHandle, String uri);
+
     private static native void nRegisterExtensionEnvironment(long nativeHandle, String uri, Object environment);
+
+    private static native void nSetEnvironmentValue(long nativeHandle, String name, Object value);
+
+    private static native void nExtensionProvider(long nativeHandle, long providerNativeHandle);
+
+    private static native void nExtensionMediator(long nativeHandle, long mediatorNativeHandle);
 
     private static native void nRegisterExtensionEventHandler(long nativeHandle, long handlerNativeHandle);
 

@@ -14,6 +14,8 @@
 #include "jniutil.h"
 #include "jnigraphic.h"
 #include "jniscaling.h"
+#include "jnitextmeasurecallback.h"
+#include "jniextensionmediator.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,10 +43,11 @@ namespace apl {
             jboolean actionLoaded = action_OnLoad(vm, reserved);
             jboolean graphicLoaded = graphic_OnLoad(vm, reserved);
             jboolean jniscalingLoaded = jniscaling_OnLoad(vm, reserved);
+            jboolean textmeasureLoaded = textmeasurecallback_OnLoad(vm, reserved);
 
             if (!driverLoaded || !contentLoaded || !rootconfigLoaded
                 || !complexpropertyLoaded || !eventLoaded || !actionLoaded || !graphicLoaded
-                || !jniutilLoaded || !jniscalingLoaded)  {
+                || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded)  {
                 return JNI_ERR;
             }
 
@@ -67,6 +70,7 @@ namespace apl {
             action_OnUnload(vm, reserved);
             graphic_OnUnload(vm, reserved);
             jniutil_OnUnload(vm, reserved);
+            textmeasurecallback_OnUnload(vm, reserved);
         }
 
     } //namespace jni
