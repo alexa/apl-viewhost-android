@@ -44,10 +44,12 @@ namespace apl {
             jboolean graphicLoaded = graphic_OnLoad(vm, reserved);
             jboolean jniscalingLoaded = jniscaling_OnLoad(vm, reserved);
             jboolean textmeasureLoaded = textmeasurecallback_OnLoad(vm, reserved);
+            jboolean localExtensionMediatorLoaded = extensionmediator_OnLoad(vm, reserved);
 
             if (!driverLoaded || !contentLoaded || !rootconfigLoaded
                 || !complexpropertyLoaded || !eventLoaded || !actionLoaded || !graphicLoaded
-                || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded)  {
+                || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded
+                || !localExtensionMediatorLoaded)  {
                 return JNI_ERR;
             }
 
@@ -71,6 +73,7 @@ namespace apl {
             graphic_OnUnload(vm, reserved);
             jniutil_OnUnload(vm, reserved);
             textmeasurecallback_OnUnload(vm, reserved);
+            extensionmediator_OnUnload(vm, reserved);
         }
 
     } //namespace jni

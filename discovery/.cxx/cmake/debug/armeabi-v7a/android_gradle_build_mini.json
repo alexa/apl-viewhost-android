@@ -1,69 +1,71 @@
 {
   "buildFiles": [
-    "/Users/pranavsu/Documents/apl-viewhost-android/discovery/CMakeLists.txt",
-    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/platforms.cmake",
-    "/Users/pranavsu/Documents/apl-core-library/thirdparty/thirdparty.cmake",
-    "/Users/pranavsu/Documents/apl-core-library/thirdparty/googletest-CMakeLists.txt.in",
-    "/Users/pranavsu/Documents/apl-core-library/options.cmake",
-    "/Users/pranavsu/Documents/apl-core-library/aplcore/include/apl/apl_config.h.in",
-    "/Users/pranavsu/Documents/apl-core-library/tools.cmake",
-    "/Users/pranavsu/Documents/apl-core-library/extensions/CMakeLists.txt",
-    "/Users/pranavsu/Documents/apl-core-library/extensions/alexaext/CMakeLists.txt"
+    "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/CMakeLists.txt",
+    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
+    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
+    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
+    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/thirdparty/thirdparty.cmake",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/thirdparty/googletest-CMakeLists.txt.in",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/options.cmake",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/aplcore/include/apl/apl_config.h.in",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/tools.cmake",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/CMakeLists.txt",
+    "/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/CMakeLists.txt"
   ],
   "cleanCommands": [
-    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" clean"
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" clean"
   ],
-  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" {LIST_OF_TARGETS_TO_BUILD}",
   "libraries": {
     "enumgen-Debug-armeabi-v7a": {
       "artifactName": "enumgen",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" enumgen",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" enumgen",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "yoga-Debug-armeabi-v7a": {
       "artifactName": "yoga",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" yoga",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" yoga",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "rapidjson-build-Debug-armeabi-v7a": {
       "artifactName": "rapidjson-build",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" rapidjson-build",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" rapidjson-build",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "rapidjson-Debug-armeabi-v7a": {
       "artifactName": "rapidjson",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" rapidjson",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" rapidjson",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "discovery-jni-Debug-armeabi-v7a": {
       "artifactName": "discovery-jni",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" discovery-jni",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" discovery-jni",
       "abi": "armeabi-v7a",
-      "output": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/armeabi-v7a/libdiscovery-jni.so",
+      "output": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/armeabi-v7a/libdiscovery-jni.so",
       "runtimeFiles": []
     },
     "pegtl-build-Debug-armeabi-v7a": {
       "artifactName": "pegtl-build",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" pegtl-build",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" pegtl-build",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "pegtl-Debug-armeabi-v7a": {
       "artifactName": "pegtl",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" pegtl",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" pegtl",
       "abi": "armeabi-v7a",
       "runtimeFiles": []
     },
     "alexaext-Debug-armeabi-v7a": {
       "artifactName": "alexaext",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" alexaext",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a\" alexaext",
       "abi": "armeabi-v7a",
-      "output": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/libalexaext.a",
+      "output": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/libalexaext.a",
       "runtimeFiles": []
     }
   }

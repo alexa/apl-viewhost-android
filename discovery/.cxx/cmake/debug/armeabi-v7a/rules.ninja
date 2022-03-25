@@ -20,10 +20,20 @@ rule CUSTOM_COMMAND
 
 
 #############################################
+# Rule for compiling CXX files.
+
+rule CXX_COMPILER__discovery-jni
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building CXX object $out
+
+
+#############################################
 # Rule for linking CXX shared library.
 
 rule CXX_SHARED_LIBRARY_LINKER__discovery-jni
-  command = $PRE_LINK && /Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -fPIC $LANGUAGE_COMPILE_FLAGS $ARCH_FLAGS $LINK_FLAGS -shared $SONAME_FLAG$SONAME -o $TARGET_FILE $in $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
+  command = $PRE_LINK && /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -fPIC $LANGUAGE_COMPILE_FLAGS $ARCH_FLAGS $LINK_FLAGS -shared $SONAME_FLAG$SONAME -o $TARGET_FILE $in $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
   description = Linking CXX shared library $TARGET_FILE
   restat = $RESTAT
 
@@ -34,7 +44,7 @@ rule CXX_SHARED_LIBRARY_LINKER__discovery-jni
 rule CXX_COMPILER__alexaext
   depfile = $DEP_FILE
   deps = gcc
-  command = /Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  command = /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
   description = Building CXX object $out
 
 
@@ -42,7 +52,7 @@ rule CXX_COMPILER__alexaext
 # Rule for linking CXX static library.
 
 rule CXX_STATIC_LIBRARY_LINKER__alexaext
-  command = $PRE_LINK && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E remove $TARGET_FILE && /Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
+  command = $PRE_LINK && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E remove $TARGET_FILE && /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar qc $TARGET_FILE $LINK_FLAGS $in && /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
   restat = $RESTAT
 
@@ -51,7 +61,7 @@ rule CXX_STATIC_LIBRARY_LINKER__alexaext
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a
+  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a
   description = Re-running CMake...
   generator = 1
 

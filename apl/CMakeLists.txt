@@ -51,6 +51,7 @@ add_library(
         src/main/cpp/jniextensioncomponent.cpp
         src/main/cpp/jniextensioneventhandler.cpp
         src/main/cpp/jniextensionfilter.cpp
+        src/main/cpp/jniextensionmediator.cpp
         src/main/cpp/jnirootcontext.cpp
         src/main/cpp/jnirootconfig.cpp
         src/main/cpp/jnicomponent.cpp

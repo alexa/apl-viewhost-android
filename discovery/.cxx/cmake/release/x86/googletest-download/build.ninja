@@ -34,7 +34,7 @@ include rules.ninja
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download -B/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -44,7 +44,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 build edit_cache: phony CMakeFiles/edit_cache.util
@@ -63,7 +63,7 @@ build CMakeFiles/googletest: phony CMakeFiles/googletest-complete
 # Custom command for CMakeFiles/googletest-complete
 
 build CMakeFiles/googletest-complete googletest-prefix/src/googletest-stamp/googletest-done: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-install googletest-prefix/src/googletest-stamp/googletest-mkdir googletest-prefix/src/googletest-stamp/googletest-download googletest-prefix/src/googletest-stamp/googletest-update googletest-prefix/src/googletest-stamp/googletest-patch googletest-prefix/src/googletest-stamp/googletest-configure googletest-prefix/src/googletest-stamp/googletest-build googletest-prefix/src/googletest-stamp/googletest-install googletest-prefix/src/googletest-stamp/googletest-test
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/CMakeFiles/googletest-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-done
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/CMakeFiles/googletest-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-done
   DESC = Completed 'googletest'
   restat = 1
 
@@ -71,7 +71,7 @@ build CMakeFiles/googletest-complete googletest-prefix/src/googletest-stamp/goog
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-install
 
 build googletest-prefix/src/googletest-stamp/googletest-install: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-build
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install
   DESC = No install step for 'googletest'
   restat = 1
 
@@ -79,7 +79,7 @@ build googletest-prefix/src/googletest-stamp/googletest-install: CUSTOM_COMMAND 
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-mkdir
 
 build googletest-prefix/src/googletest-stamp/googletest-mkdir: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir
   DESC = Creating directories for 'googletest'
   restat = 1
 
@@ -87,7 +87,7 @@ build googletest-prefix/src/googletest-stamp/googletest-mkdir: CUSTOM_COMMAND
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-download
 
 build googletest-prefix/src/googletest-stamp/googletest-download: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-urlinfo.txt googletest-prefix/src/googletest-stamp/googletest-mkdir
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86 && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/verify-googletest.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/extract-googletest.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86 && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/verify-googletest.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/extract-googletest.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download
   DESC = Performing download step (verify and extract) for 'googletest'
   restat = 1
 
@@ -95,7 +95,7 @@ build googletest-prefix/src/googletest-stamp/googletest-download: CUSTOM_COMMAND
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-update
 
 build googletest-prefix/src/googletest-stamp/googletest-update: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-download
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update
   DESC = No update step for 'googletest'
   restat = 1
 
@@ -103,7 +103,7 @@ build googletest-prefix/src/googletest-stamp/googletest-update: CUSTOM_COMMAND g
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-patch
 
 build googletest-prefix/src/googletest-stamp/googletest-patch: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-download
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch
   DESC = No patch step for 'googletest'
   restat = 1
 
@@ -111,7 +111,7 @@ build googletest-prefix/src/googletest-stamp/googletest-patch: CUSTOM_COMMAND go
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-configure
 
 build googletest-prefix/src/googletest-stamp/googletest-configure: CUSTOM_COMMAND googletest-prefix/tmp/googletest-cfgcmd.txt googletest-prefix/src/googletest-stamp/googletest-update googletest-prefix/src/googletest-stamp/googletest-patch
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure
   DESC = No configure step for 'googletest'
   restat = 1
 
@@ -119,7 +119,7 @@ build googletest-prefix/src/googletest-stamp/googletest-configure: CUSTOM_COMMAN
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-build
 
 build googletest-prefix/src/googletest-stamp/googletest-build: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-configure
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build
   DESC = No build step for 'googletest'
   restat = 1
 
@@ -127,7 +127,7 @@ build googletest-prefix/src/googletest-stamp/googletest-build: CUSTOM_COMMAND go
 # Custom command for googletest-prefix/src/googletest-stamp/googletest-test
 
 build googletest-prefix/src/googletest-stamp/googletest-test: CUSTOM_COMMAND googletest-prefix/src/googletest-stamp/googletest-install
-  COMMAND = cd /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test
+  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test
   DESC = No test step for 'googletest'
   restat = 1
 # =============================================================================

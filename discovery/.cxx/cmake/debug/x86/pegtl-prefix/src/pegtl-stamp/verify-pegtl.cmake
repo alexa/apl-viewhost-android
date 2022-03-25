@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" STREQUAL "")
+if("/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
-  message(FATAL_ERROR "File not found: /Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
+if(NOT EXISTS "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
+  message(FATAL_ERROR "File not found: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -21,13 +21,13 @@ if("28b3c455d9ec392dd4230402383a8c6f" STREQUAL "")
 endif()
 
 message(STATUS "verifying file...
-     file='/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz'")
+     file='/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz'")
 
-file("MD5" "/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" actual_value)
+file("MD5" "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" actual_value)
 
 if(NOT "${actual_value}" STREQUAL "28b3c455d9ec392dd4230402383a8c6f")
   message(FATAL_ERROR "error: MD5 hash of
-  /Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz
+  /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz
 does not match expected value
   expected: '28b3c455d9ec392dd4230402383a8c6f'
     actual: '${actual_value}'

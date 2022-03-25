@@ -5,9 +5,9 @@
     "environmentVariables": []
   },
   "cmake": {
-    "cmakeArtifactsBaseFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
-    "cmakeServerLogFile": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/cmake_server_log.txt",
-    "cmakeWrappingBaseFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cxx/debug/x86",
+    "cmakeArtifactsBaseFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
+    "cmakeServerLogFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/cmake_server_log.txt",
+    "cmakeWrappingBaseFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cxx/debug/x86",
     "effectiveConfiguration": {
       "name": "traditional-android-studio-cmake-environment",
       "description": "Composite reified CMakeSettings configuration",
@@ -15,8 +15,8 @@
       "inheritEnvironments": [
         "ndk"
       ],
-      "buildRoot": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
-      "cmakeToolchain": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake",
+      "buildRoot": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
+      "cmakeToolchain": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
       "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
       "variables": [
         {
@@ -25,7 +25,7 @@
         },
         {
           "name": "CMAKE_FIND_ROOT_PATH",
-          "value": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/x86/prefab"
+          "value": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/x86/prefab"
         },
         {
           "name": "CMAKE_BUILD_TYPE",
@@ -33,7 +33,7 @@
         },
         {
           "name": "CMAKE_TOOLCHAIN_FILE",
-          "value": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake"
+          "value": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake"
         },
         {
           "name": "ANDROID_ABI",
@@ -41,7 +41,7 @@
         },
         {
           "name": "ANDROID_NDK",
-          "value": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061"
+          "value": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858"
         },
         {
           "name": "ANDROID_PLATFORM",
@@ -53,7 +53,7 @@
         },
         {
           "name": "CMAKE_ANDROID_NDK",
-          "value": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061"
+          "value": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858"
         },
         {
           "name": "CMAKE_EXPORT_COMPILE_COMMANDS",
@@ -61,7 +61,7 @@
         },
         {
           "name": "CMAKE_LIBRARY_OUTPUT_DIRECTORY",
-          "value": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/x86"
+          "value": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/x86"
         },
         {
           "name": "CMAKE_MAKE_PROGRAM",
@@ -77,22 +77,22 @@
         },
         {
           "name": "APL_CORE_DIR",
-          "value": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library"
+          "value": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library"
         }
       ]
     }
   },
-  "cxxBuildFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
+  "cxxBuildFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
   "info": {
     "abi": "X86",
     "bitness": 32,
     "deprecated": false,
     "default": true
   },
-  "originalCxxBuildFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
+  "originalCxxBuildFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/x86",
   "variant": {
     "buildSystemArgumentList": [
-      "-DAPL_CORE_DIR\u003d/Users/pranavsu/Documents/apl-viewhost-android/discovery/../../apl-core-library",
+      "-DAPL_CORE_DIR\u003d/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library",
       " -DCMAKE_VERBOSE_MAKEFILE\u003dON"
     ],
     "buildTargetSet": [
@@ -117,20 +117,20 @@
         "minimumCmakeVersion": "3.10.2",
         "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja"
       },
-      "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/build/cmake/android.toolchain.cmake",
-      "cxxFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx",
+      "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
+      "cxxFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx",
       "gradleModulePathName": ":discovery",
-      "intermediatesFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/build/intermediates",
-      "makeFile": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/CMakeLists.txt",
-      "moduleBuildFile": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/build.gradle",
-      "moduleRootFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery",
+      "intermediatesFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build/intermediates",
+      "makeFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/CMakeLists.txt",
+      "moduleBuildFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build.gradle",
+      "moduleRootFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery",
       "ndkDefaultAbiList": [
         "ARMEABI_V7A",
         "ARM64_V8A",
         "X86",
         "X86_64"
       ],
-      "ndkFolder": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061",
+      "ndkFolder": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858",
       "ndkMetaAbiList": [
         {
           "abi": "ARMEABI_V7A",
@@ -159,7 +159,7 @@
       ],
       "ndkMetaPlatforms": {
         "min": 16,
-        "max": 30,
+        "max": 31,
         "aliases": {
           "20": 19,
           "25": 24,
@@ -176,7 +176,8 @@
           "O-MR1": 27,
           "P": 28,
           "Q": 29,
-          "R": 30
+          "R": 30,
+          "S": 31
         }
       },
       "ndkSupportedAbiList": [
@@ -186,39 +187,39 @@
         "X86_64"
       ],
       "ndkDefaultStl": "LIBCXX_STATIC",
-      "ndkVersion": "22.0.7026061",
+      "ndkVersion": "23.0.7599858",
       "project": {
-        "compilerSettingsCacheFolder": "/Users/pranavsu/Documents/apl-viewhost-android/.cxx",
-        "cxxFolder": "/Users/pranavsu/Documents/apl-viewhost-android/.cxx",
+        "compilerSettingsCacheFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/.cxx",
+        "cxxFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/.cxx",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
-        "rootBuildGradleFolder": "/Users/pranavsu/Documents/apl-viewhost-android",
+        "rootBuildGradleFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android",
         "sdkFolder": "/Users/pranavsu/Library/Android/sdk",
         "isPrefabEnabled": false
       },
       "splitsAbiFilterSet": [],
       "stlSharedObjectMap": {
         "LIBCXX_SHARED": {
-          "ARMEABI_V7A": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so",
-          "ARM64_V8A": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so",
-          "X86": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so",
-          "X86_64": "/Users/pranavsu/Library/Android/sdk/ndk/22.0.7026061/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so"
+          "ARMEABI_V7A": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so",
+          "ARM64_V8A": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so",
+          "X86": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/i686-linux-android/libc++_shared.so",
+          "X86_64": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so"
         },
         "LIBCXX_STATIC": {},
         "NONE": {},
         "SYSTEM": {}
       }
     },
-    "objFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj",
+    "objFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj",
     "variantName": "debug",
     "validAbiList": [
       "ARMEABI_V7A",
       "ARM64_V8A",
       "X86"
     ],
-    "prefabDirectory": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab",
+    "prefabDirectory": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab",
     "prefabPackageDirectoryList": []
   },
-  "prefabFolder": "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/x86"
+  "prefabFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/x86"
 }

@@ -1,0 +1,41 @@
+# -*-perl-*-
+
+package.APLViewhostAndroid = {
+    interfaces = (1.9);
+
+    deploy = {
+        generic = true;
+    };
+
+    build-environment = {
+        chroot = basic;
+        network-access = open;
+    };
+
+    build-system = custom-build;
+    build-tools = {
+        1.9 = {
+            BrazilPath = 1.1;
+            ContainerBuild = 1.2;
+            ContainerBuildServerAPLKeys = 1.0;
+        };
+    };
+
+    dependencies = {
+        1.9 = {
+            APLCoreEngine = 1.9;
+        };
+    };
+
+    test-dependencies = {
+      1.9 = {
+          # build-tools defined here will be mapped to /opt/build-tools/PackageName inside the build container and added to PATH
+      };
+    };
+
+    runtime-dependencies = {
+        1.9 = {
+        };
+    };
+
+};

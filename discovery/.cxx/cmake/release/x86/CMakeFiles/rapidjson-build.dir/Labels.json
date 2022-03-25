@@ -2,28 +2,28 @@
 	"sources" : 
 	[
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson-build"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson-build"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson-build.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/rapidjson-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"
 		}
 	],
 	"target" : 

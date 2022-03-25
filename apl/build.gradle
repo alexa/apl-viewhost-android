@@ -5,6 +5,7 @@
 
 apply plugin: 'com.android.library'
 apply plugin: 'jacoco'
+apply plugin: 'maven-publish'
 
 jacoco {
     toolVersion = '0.8.2'
@@ -12,15 +13,14 @@ jacoco {
 
 tasks.withType(Test) {
     jacoco.includeNoLocationClasses = true
-    jacoco.excludes = ['jdk.internal.ff*']
+    jacoco.excludes = ['jdk.internal.*']
 }
-
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
     def mainSrc = "$project.projectDir/src/main/java"
 
-    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*']
-    def debugTree = fileTree(dir: "$project.buildDir/intermediates/javac/debugUnitTest/", excludes: fileFilter)
+    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', '**/AutoValue_*.*']
+    def debugTree = fileTree(dir: "$project.buildDir/intermediates/javac/release/", excludes: fileFilter)
 
     sourceDirectories.from(files([mainSrc]))
     classDirectories.from(files(debugTree))
@@ -30,8 +30,7 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
     ]))
     reports {
         xml.enabled = true
-        xml.destination file("${buildDir}/../documentation/coverage.xml")
-        html.enabled = false
+        html.enabled = true
     }
 }
 
@@ -47,7 +46,8 @@ ext {
 
 android {
     compileSdkVersion 28
-    ndkVersion "22.0.7026061"
+    ndkVersion "23.0.7599858"
+    buildToolsVersion "30.0.2"
     defaultConfig {
         minSdkVersion 22
         targetSdkVersion 28
@@ -60,7 +60,7 @@ android {
             cmake {
                 // Sets optional flags for the C++ compiler.
                 // Enables RTTI (RunTime Type Information) support and C++ exceptions.
-                cppFlags "-std=c++11 -frtti -fexceptions"
+                cppFlags "-std=c++11", "-frtti", "-fexceptions", "-DBUILD_ALEXAEXTENSIONS=On", "-DALEXAEXTENSIONS=1"
                 // Build the APL Core JNI library (excludes all other targets)
                 targets "apl", "apl-jni"
                 // Enable APL Core JNI build, and be verbose.

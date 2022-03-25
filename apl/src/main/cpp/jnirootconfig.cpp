@@ -350,6 +350,26 @@ namespace apl {
         }
 
         JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nExtensionProvider(JNIEnv *env,
+                                                                  jclass clazz,
+                                                                  jlong nativeHandle,
+                                                                  jlong providerNativeHandle) {
+            auto rc = get<RootConfig>(nativeHandle);
+            auto ep = get<alexaext::ExtensionProvider>(providerNativeHandle);
+            rc->extensionProvider(ep);
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nExtensionMediator(JNIEnv *env,
+                                                                  jclass clazz,
+                                                                  jlong nativeHandle,
+                                                                  jlong mediatorNativeHandle) {
+            auto rc = get<RootConfig>(nativeHandle);
+            auto em = get<ExtensionMediator>(mediatorNativeHandle);
+            rc->extensionMediator(em);
+        }
+
+        JNIEXPORT void JNICALL
         Java_com_amazon_apl_android_RootConfig_nRegisterExtensionEventHandler(JNIEnv *env,
                                                                               jclass clazz,
                                                                               jlong nativeHandle,

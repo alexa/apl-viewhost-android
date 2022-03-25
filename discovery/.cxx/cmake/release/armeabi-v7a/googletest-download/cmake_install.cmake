@@ -1,4 +1,4 @@
-# Install script for directory: /Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/googletest-download
+# Install script for directory: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/googletest-download
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -40,5 +40,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/googletest-download/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/googletest-download/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

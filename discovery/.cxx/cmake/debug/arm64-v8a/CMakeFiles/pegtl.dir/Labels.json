@@ -2,34 +2,34 @@
 	"sources" : 
 	[
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-complete.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-complete.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"
+			"file" : "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"
 		}
 	],
 	"target" : 

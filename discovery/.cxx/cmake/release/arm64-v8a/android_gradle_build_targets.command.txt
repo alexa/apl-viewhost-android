@@ -1,7 +1,7 @@
 Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
 arguments : 
 -C
-/Users/pranavsu/Documents/fixed_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
+/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
 alexaext
 discovery-jni
 jvmArgs : 
