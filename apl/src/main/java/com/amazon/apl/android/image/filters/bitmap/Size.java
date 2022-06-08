@@ -11,8 +11,8 @@ import com.google.auto.value.AutoValue;
 public abstract class Size {
     public static final Size ZERO = create(0, 0);
 
-    abstract int width();
-    abstract int height();
+    public abstract int width();
+    public abstract int height();
 
     public static Size create(int width, int height) {
         return new AutoValue_Size(width, height);

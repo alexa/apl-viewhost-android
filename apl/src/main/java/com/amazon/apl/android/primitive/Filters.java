@@ -145,10 +145,9 @@ public abstract class Filters implements IterableProperty<Filters.Filter> {
                     break;
                 case kFilterTypeBlur:
                     final float radius = mTransform.toViewhost(getFloatAt(FilterProperty.kFilterPropertyRadius, index));
-                    final float clampedRadius = Math.min(BlurFilterOperation.MAX_RADIUS, Math.max(BlurFilterOperation.MIN_RADIUS, radius));
                     filterBuilder
                             .source(getIntAt(FilterProperty.kFilterPropertySource, index))
-                            .radius(clampedRadius);
+                            .radius(radius);
                     break;
                 case kFilterTypeColor:
                     filterBuilder

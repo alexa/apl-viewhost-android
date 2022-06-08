@@ -11,7 +11,9 @@ import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
+import com.amazon.apl.enums.ImageScale;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,8 +38,18 @@ public class FilterExecutor {
     private final IExtensionImageFilterCallback mExtensionImageFilterCallback;
     private final IBitmapFactory mBitmapFactory;
     private final List<Future<FilterResult>> mFilterResultFutures = new ArrayList<>();
+    private final ImageScale mImageScale;
+    private final Size mImageSize;
 
-    private FilterExecutor(ExecutorService executorService, List<Bitmap> sourceBitmaps, Filters filters, IBitmapFactory bitmapFactory, RenderScriptWrapper renderScript, IExtensionImageFilterCallback extensionImageFilterCallback) {
+
+    private FilterExecutor(ExecutorService executorService,
+                           List<Bitmap> sourceBitmaps,
+                           Filters filters,
+                           IBitmapFactory bitmapFactory,
+                           RenderScriptWrapper renderScript,
+                           IExtensionImageFilterCallback extensionImageFilterCallback,
+                           ImageScale imageScale,
+                           Size imageSize) {
         mExecutorService = executorService;
         mFilters = filters;
         mRenderScript = renderScript;
@@ -47,6 +59,8 @@ public class FilterExecutor {
         for (final Bitmap source : sourceBitmaps) {
             mFilterResultFutures.add(mExecutorService.submit(() -> new BitmapFilterResult(source, bitmapFactory)));
         }
+        mImageScale = imageScale;
+        mImageSize = imageSize;
     }
 
     /**
@@ -64,8 +78,10 @@ public class FilterExecutor {
                                  Filters filters,
                                  IBitmapFactory bitmapFactory,
                                  RenderScriptWrapper renderScript,
-                                 IExtensionImageFilterCallback extensionImageFilterCallback) {
-        return new FilterExecutor(executorService, sourceBitmaps, filters, bitmapFactory, renderScript, extensionImageFilterCallback);
+                                 IExtensionImageFilterCallback extensionImageFilterCallback,
+                                 ImageScale imageScale,
+                                 Size imageSize) {
+        return new FilterExecutor(executorService, sourceBitmaps, filters, bitmapFactory, renderScript, extensionImageFilterCallback, imageScale, imageSize);
     }
 
     /**
@@ -80,13 +96,14 @@ public class FilterExecutor {
         Future<FilterResult> result = mFilterResultFutures.get(mFilterResultFutures.size() - 1);
         for (int i = 0; i < mFilters.size(); i++) {
             Filters.Filter filter = mFilters.at(i);
-            result = mExecutorService.submit(
-                    FilterOperationFactory.create(
+            result = mExecutorService.submit(FilterOperationFactory.create(
                             getSourceFilterResults(filter),
                             filter,
                             mBitmapFactory,
                             mRenderScript,
-                            mExtensionImageFilterCallback));
+                            mExtensionImageFilterCallback,
+                            mImageSize,
+                            mImageScale));
             mFilterResultFutures.add(result);
         }
 

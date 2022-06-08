@@ -77,6 +77,9 @@ public class ExtensionMediatorTest extends APLViewhostTest {
     @Mock
     private IExtensionProvider mExtensionProvider;
 
+    @Mock
+    private Session mSession;
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
@@ -108,7 +111,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
 
     @Test
     public void testInitializeExtensions_specific_grantedExtensions_loads_only_those_extensions() throws InterruptedException {
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
         RootConfig rootConfig = RootConfig.create();
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
         ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar);
@@ -167,7 +170,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
     public void testExecutor() throws InterruptedException {
         // given
         RootConfig rootConfig = RootConfig.create();
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
         TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
@@ -186,7 +189,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
     }
 
     private ExtensionMediator loadExtensions() {
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
         RootConfig rootConfig = RootConfig.create();
         ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar);
         mediator.initializeExtensions(rootConfig, content, null);

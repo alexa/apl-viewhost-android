@@ -44,6 +44,16 @@ public class NoOpMediaPlayer implements IMediaPlayer {
     }
 
     @Override
+    public void mute() {
+
+    }
+
+    @Override
+    public void unmute() {
+
+    }
+
+    @Override
     public void play() {
 
     }
@@ -101,6 +111,11 @@ public class NoOpMediaPlayer implements IMediaPlayer {
     @Override
     public int getTrackCount() {
         return 0;
+    }
+
+    @Override
+    public boolean isMuted() {
+        return false;
     }
 
     @NonNull

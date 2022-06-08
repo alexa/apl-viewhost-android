@@ -1,7 +1,7 @@
 # -*-perl-*-
 
 package.APLViewhostAndroid = {
-    interfaces = (1.9);
+    interfaces = (1.10);
 
     deploy = {
         generic = true;
@@ -14,7 +14,7 @@ package.APLViewhostAndroid = {
 
     build-system = custom-build;
     build-tools = {
-        1.9 = {
+        1.10 = {
             BrazilPath = 1.1;
             ContainerBuild = 1.2;
             ContainerBuildServerAPLKeys = 1.0;
@@ -22,19 +22,19 @@ package.APLViewhostAndroid = {
     };
 
     dependencies = {
-        1.9 = {
-            APLCoreEngine = 1.9;
+        1.10 = {
+            APLCoreEngine = 1.10;
         };
     };
 
     test-dependencies = {
-      1.9 = {
+      1.10 = {
           # build-tools defined here will be mapped to /opt/build-tools/PackageName inside the build container and added to PATH
       };
     };
 
     runtime-dependencies = {
-        1.9 = {
+        1.10 = {
         };
     };
 

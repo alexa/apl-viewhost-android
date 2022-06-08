@@ -152,6 +152,7 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
              * This invalidate is a performance hit vs. just doing the early return.
              * It will be revisited in quieter times for a potential performance gain.
              */
+            layout.requestLayout();
             layout.invalidate();
             return;
         }

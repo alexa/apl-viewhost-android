@@ -185,6 +185,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
             final long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
+            mTextMeasureCallback.onRootContextCreated();
             bind(nativeHandle);
             inflate();
         }
@@ -214,6 +215,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                     options, rootConfig, metricsTransform);
             // rebind to the previously configured text measure.
             mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
+            mTextMeasureCallback.onRootContextCreated();
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             inflate();
         }

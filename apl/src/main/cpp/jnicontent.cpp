@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #include <jni.h>
@@ -181,7 +181,8 @@ namespace apl {
          */
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_Content_nCreate(JNIEnv *env, jobject instance,
-                                                    jstring mainTemplate_) {
+                                                    jstring mainTemplate_,
+                                                    jlong _sessionHandler) {
 
             // for emoji characters, GetStringUTFChars returns the surrogate pair
             // eg. U+1F33D -> \uD83C\uDF3D

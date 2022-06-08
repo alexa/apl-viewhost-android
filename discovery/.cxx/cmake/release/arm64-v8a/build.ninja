@@ -34,7 +34,7 @@ include rules.ninja
 # Utility command for install/local
 
 build CMakeFiles/install/local.util: CUSTOM_COMMAND all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -44,7 +44,7 @@ build install/local: phony CMakeFiles/install/local.util
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/github/apl-viewhost-android/discovery -B/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -54,7 +54,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 build edit_cache: phony CMakeFiles/edit_cache.util
@@ -70,35 +70,35 @@ build CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o: CXX_COMPILER
   DEFINES = -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS
   DEP_FILE = CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -std=gnu++11
-  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include
+  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include
   OBJECT_DIR = CMakeFiles/discovery-jni.dir
   OBJECT_FILE_DIR = CMakeFiles/discovery-jni.dir/src/main/cpp
 build CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o: CXX_COMPILER__discovery-jni ../../../../src/main/cpp/jniextensionexecutor.cpp || cmake_object_order_depends_target_discovery-jni
   DEFINES = -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS
   DEP_FILE = CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -std=gnu++11
-  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include
+  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include
   OBJECT_DIR = CMakeFiles/discovery-jni.dir
   OBJECT_FILE_DIR = CMakeFiles/discovery-jni.dir/src/main/cpp
 build CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o: CXX_COMPILER__discovery-jni ../../../../src/main/cpp/jniextensionproxy.cpp || cmake_object_order_depends_target_discovery-jni
   DEFINES = -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS
   DEP_FILE = CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -std=gnu++11
-  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include
+  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include
   OBJECT_DIR = CMakeFiles/discovery-jni.dir
   OBJECT_FILE_DIR = CMakeFiles/discovery-jni.dir/src/main/cpp
 build CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o: CXX_COMPILER__discovery-jni ../../../../src/main/cpp/jniextensionregistrar.cpp || cmake_object_order_depends_target_discovery-jni
   DEFINES = -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS
   DEP_FILE = CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -std=gnu++11
-  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include
+  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include
   OBJECT_DIR = CMakeFiles/discovery-jni.dir
   OBJECT_FILE_DIR = CMakeFiles/discovery-jni.dir/src/main/cpp
 build CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o: CXX_COMPILER__discovery-jni ../../../../src/main/cpp/jniextensionresource.cpp || cmake_object_order_depends_target_discovery-jni
   DEFINES = -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS
   DEP_FILE = CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -std=gnu++11
-  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include
+  INCLUDES = -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include
   OBJECT_DIR = CMakeFiles/discovery-jni.dir
   OBJECT_FILE_DIR = CMakeFiles/discovery-jni.dir/src/main/cpp
 
@@ -140,7 +140,7 @@ build enumgen: phony CMakeFiles/enumgen CMakeFiles/enumgen-complete enumgen-pref
 # Utility command for install/strip
 
 build CMakeFiles/install/strip.util: CUSTOM_COMMAND all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
   DESC = Installing the project stripped...
   pool = console
   restat = 1
@@ -165,7 +165,7 @@ build rapidjson: phony CMakeFiles/rapidjson CMakeFiles/rapidjson-complete rapidj
 # Utility command for install
 
 build CMakeFiles/install.util: CUSTOM_COMMAND all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
   DESC = Install the project...
   pool = console
   restat = 1
@@ -185,7 +185,7 @@ build CMakeFiles/pegtl: phony CMakeFiles/pegtl-complete
 # Custom command for CMakeFiles/pegtl-complete
 
 build CMakeFiles/pegtl-complete pegtl-prefix/src/pegtl-stamp/pegtl-done: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-install pegtl-prefix/src/pegtl-stamp/pegtl-mkdir pegtl-prefix/src/pegtl-stamp/pegtl-download pegtl-prefix/src/pegtl-stamp/pegtl-update pegtl-prefix/src/pegtl-stamp/pegtl-patch pegtl-prefix/src/pegtl-stamp/pegtl-configure pegtl-prefix/src/pegtl-stamp/pegtl-build pegtl-prefix/src/pegtl-stamp/pegtl-install
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-done
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/pegtl-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-done
   DESC = Completed 'pegtl'
   restat = 1
 
@@ -193,7 +193,7 @@ build CMakeFiles/pegtl-complete pegtl-prefix/src/pegtl-stamp/pegtl-done: CUSTOM_
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-install
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-install: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-build
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && make install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && make install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install
   DESC = Performing install step for 'pegtl'
   restat = 1
 
@@ -201,7 +201,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-install: CUSTOM_COMMAND pegtl-prefix/sr
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-mkdir
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-mkdir: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir
   DESC = Creating directories for 'pegtl'
   restat = 1
 
@@ -209,7 +209,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-mkdir: CUSTOM_COMMAND
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-download
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-download: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-urlinfo.txt pegtl-prefix/src/pegtl-stamp/pegtl-mkdir
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/verify-pegtl.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/extract-pegtl.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/verify-pegtl.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/extract-pegtl.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download
   DESC = Performing download step (verify and extract) for 'pegtl'
   restat = 1
 
@@ -217,7 +217,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-download: CUSTOM_COMMAND pegtl-prefix/s
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-update
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-update: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update
   DESC = No update step for 'pegtl'
   restat = 1
 
@@ -225,7 +225,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-update: CUSTOM_COMMAND pegtl-prefix/src
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-patch
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-patch: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl && patch -p1 < /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/patches/pegtl.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl && patch -p1 < /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/patches/pegtl.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch
   DESC = Performing patch step for 'pegtl'
   restat = 1
 
@@ -233,7 +233,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-patch: CUSTOM_COMMAND pegtl-prefix/src/
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-configure
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-configure: CUSTOM_COMMAND pegtl-prefix/tmp/pegtl-cfgcmd.txt pegtl-prefix/src/pegtl-stamp/pegtl-update pegtl-prefix/src/pegtl-stamp/pegtl-patch
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure
   DESC = No configure step for 'pegtl'
   restat = 1
 
@@ -241,7 +241,7 @@ build pegtl-prefix/src/pegtl-stamp/pegtl-configure: CUSTOM_COMMAND pegtl-prefix/
 # Custom command for pegtl-prefix/src/pegtl-stamp/pegtl-build
 
 build pegtl-prefix/src/pegtl-stamp/pegtl-build: CUSTOM_COMMAND pegtl-prefix/src/pegtl-stamp/pegtl-configure
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build
   DESC = No build step for 'pegtl'
   restat = 1
 
@@ -254,7 +254,7 @@ build CMakeFiles/enumgen: phony CMakeFiles/enumgen-complete
 # Custom command for CMakeFiles/enumgen-complete
 
 build CMakeFiles/enumgen-complete enumgen-prefix/src/enumgen-stamp/enumgen-done: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-install enumgen-prefix/src/enumgen-stamp/enumgen-mkdir enumgen-prefix/src/enumgen-stamp/enumgen-download enumgen-prefix/src/enumgen-stamp/enumgen-update enumgen-prefix/src/enumgen-stamp/enumgen-patch enumgen-prefix/src/enumgen-stamp/enumgen-configure enumgen-prefix/src/enumgen-stamp/enumgen-build enumgen-prefix/src/enumgen-stamp/enumgen-install
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/enumgen-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-done
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/enumgen-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-done
   DESC = Completed 'enumgen'
   restat = 1
 
@@ -262,7 +262,7 @@ build CMakeFiles/enumgen-complete enumgen-prefix/src/enumgen-stamp/enumgen-done:
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-install
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-install: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-build
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . --target install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . --target install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install
   DESC = Performing install step for 'enumgen'
   restat = 1
 
@@ -270,7 +270,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-install: CUSTOM_COMMAND enumgen-p
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-mkdir
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-mkdir: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/tools && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/tools && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir
   DESC = Creating directories for 'enumgen'
   restat = 1
 
@@ -278,7 +278,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-mkdir: CUSTOM_COMMAND
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-download
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-download: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-mkdir
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download
   DESC = No download step for 'enumgen'
   restat = 1
 
@@ -286,7 +286,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-download: CUSTOM_COMMAND enumgen-
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-update
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-update: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update
   DESC = No update step for 'enumgen'
   restat = 1
 
@@ -294,7 +294,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-update: CUSTOM_COMMAND enumgen-pr
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-patch
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-patch: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch
   DESC = No patch step for 'enumgen'
   restat = 1
 
@@ -302,7 +302,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-patch: CUSTOM_COMMAND enumgen-pre
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-configure
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-configure: CUSTOM_COMMAND enumgen-prefix/tmp/enumgen-cfgcmd.txt enumgen-prefix/src/enumgen-stamp/enumgen-update enumgen-prefix/src/enumgen-stamp/enumgen-patch
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_PREFIX=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/tools -GNinja /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/tools && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_PREFIX=/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/tools -GNinja /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/tools && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure
   DESC = Performing configure step for 'enumgen'
   restat = 1
 
@@ -310,7 +310,7 @@ build enumgen-prefix/src/enumgen-stamp/enumgen-configure: CUSTOM_COMMAND enumgen
 # Custom command for enumgen-prefix/src/enumgen-stamp/enumgen-build
 
 build enumgen-prefix/src/enumgen-stamp/enumgen-build: CUSTOM_COMMAND enumgen-prefix/src/enumgen-stamp/enumgen-configure
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build
   DESC = Performing build step for 'enumgen'
   restat = 1
 
@@ -323,7 +323,7 @@ build CMakeFiles/yoga: phony CMakeFiles/yoga-complete
 # Custom command for CMakeFiles/yoga-complete
 
 build CMakeFiles/yoga-complete yoga-prefix/src/yoga-stamp/yoga-done: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-install yoga-prefix/src/yoga-stamp/yoga-mkdir yoga-prefix/src/yoga-stamp/yoga-download yoga-prefix/src/yoga-stamp/yoga-update yoga-prefix/src/yoga-stamp/yoga-patch yoga-prefix/src/yoga-stamp/yoga-configure yoga-prefix/src/yoga-stamp/yoga-build yoga-prefix/src/yoga-stamp/yoga-install
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/yoga-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-done
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/yoga-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-done
   DESC = Completed 'yoga'
   restat = 1
 
@@ -331,7 +331,7 @@ build CMakeFiles/yoga-complete yoga-prefix/src/yoga-stamp/yoga-done: CUSTOM_COMM
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-install
 
 build yoga-prefix/src/yoga-stamp/yoga-install: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-build
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . --target install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-install
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . --target install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-install
   DESC = Performing install step for 'yoga'
   restat = 1
 
@@ -339,7 +339,7 @@ build yoga-prefix/src/yoga-stamp/yoga-install: CUSTOM_COMMAND yoga-prefix/src/yo
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-mkdir
 
 build yoga-prefix/src/yoga-stamp/yoga-mkdir: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/lib && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-mkdir
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/lib && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-mkdir
   DESC = Creating directories for 'yoga'
   restat = 1
 
@@ -347,7 +347,7 @@ build yoga-prefix/src/yoga-stamp/yoga-mkdir: CUSTOM_COMMAND
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-download
 
 build yoga-prefix/src/yoga-stamp/yoga-download: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-urlinfo.txt yoga-prefix/src/yoga-stamp/yoga-mkdir
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/verify-yoga.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/extract-yoga.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-download
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/verify-yoga.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/extract-yoga.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-download
   DESC = Performing download step (verify and extract) for 'yoga'
   restat = 1
 
@@ -355,7 +355,7 @@ build yoga-prefix/src/yoga-stamp/yoga-download: CUSTOM_COMMAND yoga-prefix/src/y
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-update
 
 build yoga-prefix/src/yoga-stamp/yoga-update: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-update
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-update
   DESC = No update step for 'yoga'
   restat = 1
 
@@ -363,7 +363,7 @@ build yoga-prefix/src/yoga-stamp/yoga-update: CUSTOM_COMMAND yoga-prefix/src/yog
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-patch
 
 build yoga-prefix/src/yoga-stamp/yoga-patch: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && patch -p1 < /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/patches/yoga.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-patch
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && patch -p1 < /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/patches/yoga.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-patch
   DESC = Performing patch step for 'yoga'
   restat = 1
 
@@ -371,7 +371,7 @@ build yoga-prefix/src/yoga-stamp/yoga-patch: CUSTOM_COMMAND yoga-prefix/src/yoga
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-configure
 
 build yoga-prefix/src/yoga-stamp/yoga-configure: CUSTOM_COMMAND yoga-prefix/tmp/yoga-cfgcmd.txt yoga-prefix/src/yoga-stamp/yoga-update yoga-prefix/src/yoga-stamp/yoga-patch
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI=arm64-v8a -DANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DANDROID_PLATFORM=android-22 -DAPL_CORE_DIR=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/prefab/arm64-v8a/prefab /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/build/intermediates/cmake/release/obj/arm64-v8a -DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=1 "-DCMAKE_CXX_FLAGS=-std=c++11  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1" -DCMAKE_INSTALL_PREFIX=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/lib -DCMAKE_TOOLCHAIN_FILE=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake -GNinja /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-configure
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_BUILD_TYPE=Release -DANDROID_ABI=arm64-v8a -DANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DANDROID_PLATFORM=android-22 -DAPL_CORE_DIR=/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a -DCMAKE_ANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/prefab/arm64-v8a/prefab /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858 -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/github/apl-viewhost-android/discovery/build/intermediates/cmake/release/obj/arm64-v8a -DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -DCMAKE_SYSTEM_NAME=Android -DCMAKE_SYSTEM_VERSION=1 "-DCMAKE_CXX_FLAGS=-std=c++11  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1" -DCMAKE_INSTALL_PREFIX=/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/lib -DCMAKE_TOOLCHAIN_FILE=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake -GNinja /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-configure
   DESC = Performing configure step for 'yoga'
   restat = 1
 
@@ -379,7 +379,7 @@ build yoga-prefix/src/yoga-stamp/yoga-configure: CUSTOM_COMMAND yoga-prefix/tmp/
 # Custom command for yoga-prefix/src/yoga-stamp/yoga-build
 
 build yoga-prefix/src/yoga-stamp/yoga-build lib/libyogacore.a: CUSTOM_COMMAND yoga-prefix/src/yoga-stamp/yoga-configure
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-build
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake --build . && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-build
   DESC = Performing build step for 'yoga'
   restat = 1
 
@@ -392,7 +392,7 @@ build CMakeFiles/rapidjson-build: phony rapidjson-prefix/src/rapidjson-stamp/rap
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-build
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-build: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build
   DESC = No build step for 'rapidjson'
   restat = 1
 
@@ -400,7 +400,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-build: CUSTOM_COMMAND rapid
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure: CUSTOM_COMMAND rapidjson-prefix/tmp/rapidjson-cfgcmd.txt rapidjson-prefix/src/rapidjson-stamp/rapidjson-update rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure
   DESC = No configure step for 'rapidjson'
   restat = 1
 
@@ -408,7 +408,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure: CUSTOM_COMMAND r
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-update
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-update: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo_append && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update
   DESC = No update step for 'rapidjson'
   restat = 1
 
@@ -416,7 +416,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-update: CUSTOM_COMMAND rapi
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-download
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson && patch -p1 < /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/patches/rapidjson.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson && patch -p1 < /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/patches/rapidjson.patch && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch
   DESC = Performing patch step for 'rapidjson'
   restat = 1
 
@@ -424,7 +424,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch: CUSTOM_COMMAND rapid
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-download
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-download: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-urlinfo.txt rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/verify-rapidjson.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/extract-rapidjson.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/verify-rapidjson.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/extract-rapidjson.cmake && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download
   DESC = Performing download step (verify and extract) for 'rapidjson'
   restat = 1
 
@@ -432,7 +432,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-download: CUSTOM_COMMAND ra
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/tmp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir
   DESC = Creating directories for 'rapidjson'
   restat = 1
 
@@ -445,7 +445,7 @@ build CMakeFiles/rapidjson: phony CMakeFiles/rapidjson-complete
 # Custom command for CMakeFiles/rapidjson-complete
 
 build CMakeFiles/rapidjson-complete rapidjson-prefix/src/rapidjson-stamp/rapidjson-done: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-install rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir rapidjson-prefix/src/rapidjson-stamp/rapidjson-download rapidjson-prefix/src/rapidjson-stamp/rapidjson-update rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure rapidjson-prefix/src/rapidjson-stamp/rapidjson-build rapidjson-prefix/src/rapidjson-stamp/rapidjson-install
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-done
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E make_directory /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/CMakeFiles/rapidjson-complete && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-done
   DESC = Completed 'rapidjson'
   restat = 1
 
@@ -453,7 +453,7 @@ build CMakeFiles/rapidjson-complete rapidjson-prefix/src/rapidjson-stamp/rapidjs
 # Custom command for rapidjson-prefix/src/rapidjson-stamp/rapidjson-install
 
 build rapidjson-prefix/src/rapidjson-stamp/rapidjson-install: CUSTOM_COMMAND rapidjson-prefix/src/rapidjson-stamp/rapidjson-build
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && make install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-build && make install && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E touch /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install
   DESC = Performing install step for 'rapidjson'
   restat = 1
 
@@ -463,7 +463,7 @@ build rapidjson-prefix/src/rapidjson-stamp/rapidjson-install: CUSTOM_COMMAND rap
 build CMakeFiles/pegtl-build: phony pegtl-prefix/src/pegtl-stamp/pegtl-build
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/CMakeLists.txt
+# /Users/pranavsu/github/apl-viewhost-android/discovery/CMakeLists.txt
 # =============================================================================
 
 
@@ -471,7 +471,7 @@ build CMakeFiles/pegtl-build: phony pegtl-prefix/src/pegtl-stamp/pegtl-build
 # Utility command for install/local
 
 build build-extensions/CMakeFiles/install/local.util: CUSTOM_COMMAND build-extensions/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -481,7 +481,7 @@ build build-extensions/install/local: phony build-extensions/CMakeFiles/install/
 # Utility command for install/strip
 
 build build-extensions/CMakeFiles/install/strip.util: CUSTOM_COMMAND build-extensions/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
   DESC = Installing the project stripped...
   pool = console
   restat = 1
@@ -491,7 +491,7 @@ build build-extensions/install/strip: phony build-extensions/CMakeFiles/install/
 # Utility command for install
 
 build build-extensions/CMakeFiles/install.util: CUSTOM_COMMAND build-extensions/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
   DESC = Install the project...
   pool = console
   restat = 1
@@ -506,7 +506,7 @@ build build-extensions/list_install_components: phony
 # Utility command for rebuild_cache
 
 build build-extensions/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/github/apl-viewhost-android/discovery -B/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -516,13 +516,13 @@ build build-extensions/rebuild_cache: phony build-extensions/CMakeFiles/rebuild_
 # Utility command for edit_cache
 
 build build-extensions/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 build build-extensions/edit_cache: phony build-extensions/CMakeFiles/edit_cache.util
 # =============================================================================
 # Write statements declared in CMakeLists.txt:
-# /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/CMakeLists.txt
+# /Users/pranavsu/github/apl-core-library/extensions/CMakeLists.txt
 # =============================================================================
 
 
@@ -530,7 +530,7 @@ build build-extensions/edit_cache: phony build-extensions/CMakeFiles/edit_cache.
 # Utility command for install/local
 
 build build-extensions/alexaext/CMakeFiles/install/local.util: CUSTOM_COMMAND build-extensions/alexaext/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
   DESC = Installing only the local directory...
   pool = console
   restat = 1
@@ -540,7 +540,7 @@ build build-extensions/alexaext/install/local: phony build-extensions/alexaext/C
 # Utility command for install/strip
 
 build build-extensions/alexaext/CMakeFiles/install/strip.util: CUSTOM_COMMAND build-extensions/alexaext/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
   DESC = Installing the project stripped...
   pool = console
   restat = 1
@@ -550,7 +550,7 @@ build build-extensions/alexaext/install/strip: phony build-extensions/alexaext/C
 # Utility command for install
 
 build build-extensions/alexaext/CMakeFiles/install.util: CUSTOM_COMMAND build-extensions/alexaext/all
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -P cmake_install.cmake
   DESC = Install the project...
   pool = console
   restat = 1
@@ -565,7 +565,7 @@ build build-extensions/alexaext/list_install_components: phony
 # Utility command for rebuild_cache
 
 build build-extensions/alexaext/CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/github/apl-viewhost-android/discovery -B/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -575,7 +575,7 @@ build build-extensions/alexaext/rebuild_cache: phony build-extensions/alexaext/C
 # Utility command for edit_cache
 
 build build-extensions/alexaext/CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 build build-extensions/alexaext/edit_cache: phony build-extensions/alexaext/CMakeFiles/edit_cache.util
@@ -587,39 +587,81 @@ build build-extensions/alexaext/edit_cache: phony build-extensions/alexaext/CMak
 # Order-only phony target for alexaext
 
 build cmake_object_order_depends_target_alexaext: phony || rapidjson-build
-build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp || cmake_object_order_depends_target_alexaext
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp || cmake_object_order_depends_target_alexaext
   DEFINES = -DALEXAEXTENSIONS
   DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
-  INCLUDES = -I/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension
-build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/src/executor.cpp || cmake_object_order_depends_target_alexaext
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/APLWebflowExtension/AplWebflowBase.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/APLWebflowExtension/AplWebflowExtension.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/executor.cpp || cmake_object_order_depends_target_alexaext
   DEFINES = -DALEXAEXTENSIONS
   DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
-  INCLUDES = -I/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
-build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/src/extensionmessage.cpp || cmake_object_order_depends_target_alexaext
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/extensionmessage.cpp || cmake_object_order_depends_target_alexaext
   DEFINES = -DALEXAEXTENSIONS
   DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
-  INCLUDES = -I/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
-build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/src/extensionregistrar.cpp || cmake_object_order_depends_target_alexaext
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/extensionregistrar.cpp || cmake_object_order_depends_target_alexaext
   DEFINES = -DALEXAEXTENSIONS
   DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
-  INCLUDES = -I/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
-build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/src/localextensionproxy.cpp || cmake_object_order_depends_target_alexaext
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/localextensionproxy.cpp || cmake_object_order_depends_target_alexaext
   DEFINES = -DALEXAEXTENSIONS
   DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o.d
   FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
-  INCLUDES = -I/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/random.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
+  OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
+  OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
+build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o: CXX_COMPILER__alexaext /Users/pranavsu/github/apl-core-library/extensions/alexaext/src/sessiondescriptor.cpp || cmake_object_order_depends_target_alexaext
+  DEFINES = -DALEXAEXTENSIONS
+  DEP_FILE = build-extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o.d
+  FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG  -fPIC   -Werror -std=gnu++11
+  INCLUDES = -I/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Users/pranavsu/github/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   OBJECT_FILE_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir/src
 
@@ -630,7 +672,7 @@ build build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.
 #############################################
 # Link the static library build-extensions/alexaext/libalexaext.a
 
-build build-extensions/alexaext/libalexaext.a: CXX_STATIC_LIBRARY_LINKER__alexaext build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o || rapidjson-build
+build build-extensions/alexaext/libalexaext.a: CXX_STATIC_LIBRARY_LINKER__alexaext build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o build-extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o || rapidjson-build
   LANGUAGE_COMPILE_FLAGS = -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O2 -DNDEBUG
   OBJECT_DIR = build-extensions/alexaext/CMakeFiles/alexaext.dir
   POST_BUILD = :
@@ -651,13 +693,13 @@ build libdiscovery-jni.so: phony ../../../../build/intermediates/cmake/release/o
 # =============================================================================
 
 #############################################
-# Folder: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions
+# Folder: /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions
 
 build  build-extensions/all: phony build-extensions/alexaext/all
 # =============================================================================
 
 #############################################
-# Folder: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext
+# Folder: /Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/build-extensions/alexaext
 
 build  build-extensions/alexaext/all: phony alexaext
 # =============================================================================
@@ -677,13 +719,13 @@ default all
 #############################################
 # Re-run CMake if any of its inputs changed.
 
-build build.ninja: RERUN_CMAKE | ../../../../../../apl-core-library/aplcore/include/apl/apl_config.h.in ../../../../../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in ../../../../CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/options.cmake /Users/pranavsu/Documents/viewhost/apl-core-library/thirdparty/thirdparty.cmake /Users/pranavsu/Documents/viewhost/apl-core-library/tools.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake CMakeCache.txt CMakeFiles/3.10.2/CMakeCCompiler.cmake CMakeFiles/3.10.2/CMakeCXXCompiler.cmake CMakeFiles/3.10.2/CMakeSystem.cmake CMakeFiles/feature_tests.c CMakeFiles/feature_tests.cxx enumgen-prefix/tmp/enumgen-cfgcmd.txt.in pegtl-prefix/tmp/pegtl-cfgcmd.txt.in rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in yoga-prefix/tmp/yoga-cfgcmd.txt.in
+build build.ninja: RERUN_CMAKE | ../../../../../../apl-core-library/aplcore/include/apl/apl_config.h.in ../../../../../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in ../../../../CMakeLists.txt /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake /Users/pranavsu/github/apl-core-library/extensions/CMakeLists.txt /Users/pranavsu/github/apl-core-library/extensions/alexaext/CMakeLists.txt /Users/pranavsu/github/apl-core-library/options.cmake /Users/pranavsu/github/apl-core-library/thirdparty/thirdparty.cmake /Users/pranavsu/github/apl-core-library/tools.cmake CMakeCache.txt CMakeFiles/3.10.2/CMakeCCompiler.cmake CMakeFiles/3.10.2/CMakeCXXCompiler.cmake CMakeFiles/3.10.2/CMakeSystem.cmake CMakeFiles/feature_tests.c CMakeFiles/feature_tests.cxx enumgen-prefix/tmp/enumgen-cfgcmd.txt.in pegtl-prefix/tmp/pegtl-cfgcmd.txt.in rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in yoga-prefix/tmp/yoga-cfgcmd.txt.in
   pool = console
 
 #############################################
 # A missing CMake input file is not an error.
 
-build ../../../../../../apl-core-library/aplcore/include/apl/apl_config.h.in ../../../../../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in ../../../../CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/extensions/alexaext/CMakeLists.txt /Users/pranavsu/Documents/viewhost/apl-core-library/options.cmake /Users/pranavsu/Documents/viewhost/apl-core-library/thirdparty/thirdparty.cmake /Users/pranavsu/Documents/viewhost/apl-core-library/tools.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake CMakeCache.txt CMakeFiles/3.10.2/CMakeCCompiler.cmake CMakeFiles/3.10.2/CMakeCXXCompiler.cmake CMakeFiles/3.10.2/CMakeSystem.cmake CMakeFiles/feature_tests.c CMakeFiles/feature_tests.cxx enumgen-prefix/tmp/enumgen-cfgcmd.txt.in pegtl-prefix/tmp/pegtl-cfgcmd.txt.in rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in yoga-prefix/tmp/yoga-cfgcmd.txt.in: phony
+build ../../../../../../apl-core-library/aplcore/include/apl/apl_config.h.in ../../../../../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in ../../../../CMakeLists.txt /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake /Users/pranavsu/github/apl-core-library/extensions/CMakeLists.txt /Users/pranavsu/github/apl-core-library/extensions/alexaext/CMakeLists.txt /Users/pranavsu/github/apl-core-library/options.cmake /Users/pranavsu/github/apl-core-library/thirdparty/thirdparty.cmake /Users/pranavsu/github/apl-core-library/tools.cmake CMakeCache.txt CMakeFiles/3.10.2/CMakeCCompiler.cmake CMakeFiles/3.10.2/CMakeCXXCompiler.cmake CMakeFiles/3.10.2/CMakeSystem.cmake CMakeFiles/feature_tests.c CMakeFiles/feature_tests.cxx enumgen-prefix/tmp/enumgen-cfgcmd.txt.in pegtl-prefix/tmp/pegtl-cfgcmd.txt.in rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in yoga-prefix/tmp/yoga-cfgcmd.txt.in: phony
 
 #############################################
 # Clean all the built files.

@@ -1,14 +1,14 @@
 # Target labels
  googletest
 # Source files and their labels
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest-complete.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule
-/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/CMakeFiles/googletest-complete.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule
+/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule

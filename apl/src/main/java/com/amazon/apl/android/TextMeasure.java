@@ -16,12 +16,8 @@ import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.Display;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
-import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
 
 /**
  * Android text measurement utility.
@@ -39,7 +35,7 @@ public class TextMeasure {
 
     // Text measure metrics
     private static final String METRIC_MEASURE = TAG + ".measure";
-    private final int tMeasureText;
+    private final int cMeasureTextTotalTime;
     private static final String METRIC_MEASURE_COUNT = TAG + ".measureCount";
     private final int cMeasureText;
 
@@ -58,6 +54,7 @@ public class TextMeasure {
     private int mMeasuredWidthPx = 0;
     // The measured height in pixels
     private int mMeasuredHeightPx = 0;
+    private boolean mIsInitialRenderPass = true;
 
 
     public TextMeasure(@NonNull RenderingContext renderingContext) {
@@ -69,8 +66,12 @@ public class TextMeasure {
         mAplTrace = renderingContext.getAplTrace();
 
         mTelemetry = renderingContext.getTelemetryProvider();
-        tMeasureText = mTelemetry.createMetricId(APL_DOMAIN, METRIC_MEASURE, TIMER);
+        cMeasureTextTotalTime = mTelemetry.createMetricId(APL_DOMAIN, METRIC_MEASURE, COUNTER);
         cMeasureText = mTelemetry.createMetricId(APL_DOMAIN, METRIC_MEASURE_COUNT, COUNTER);
+    }
+
+    public void onRootContextCreated() {
+        mIsInitialRenderPass = false;
     }
 
     /**
@@ -100,18 +101,23 @@ public class TextMeasure {
                            float widthDp, MeasureMode widthMode,
                            float heightDp, MeasureMode heightMode) {
         mAplTrace.startTrace(TracePoint.TEXT_MEASURE);
+        long start = 0;
         // track time and frequency
-        mTelemetry.incrementCount(cMeasureText);
-        mTelemetry.startTimer(tMeasureText);
 
-        final float[] measurement;
-        // measure
-        try {
-            measurement = transformAndMeasure(componentType,
-                    widthDp, heightDp, widthMode, heightMode);
-        } finally {
-            mTelemetry.stopTimer(tMeasureText);
+        // Any text measurements that occur after initial render are meaningless for tracking time to first frame.
+        // If at some point we want to track successive measures we should be specific about their impact on performance
+        // as a long-running document could accrue many of these without any performance concerns.
+        if (mIsInitialRenderPass) {
+            start = System.currentTimeMillis();
+            mTelemetry.incrementCount(cMeasureText);
         }
+
+        final float[] measurement = transformAndMeasure(componentType, widthDp, heightDp, widthMode, heightMode);
+        if (mIsInitialRenderPass) {
+            long duration = System.currentTimeMillis() - start;
+            mTelemetry.incrementCount(cMeasureTextTotalTime, (int) duration);
+        }
+
         mAplTrace.endTrace();
         return measurement;
     }

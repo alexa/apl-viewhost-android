@@ -97,6 +97,8 @@ public class MediaPlayer implements IMediaPlayer {
     private boolean mHasAudioFocus = false;
     private boolean mShouldNotifyProgress = false;
     private boolean mWasPlaying = false;
+    private boolean isMuted = false;
+    private boolean mIsAttenuated = false;
     private int mCurrentTrackIndex = 0;
     private int mLoopCount = 0;
     private int mCurrentSeekPosition = 0;
@@ -172,6 +174,28 @@ public class MediaPlayer implements IMediaPlayer {
     @Override
     public void removeMediaStateListener(@NonNull IMediaListener listener) {
         mListeners.remove(listener);
+    }
+
+    @Override
+    public void mute() {
+        if (!isMuted) {
+            isMuted = true;
+            setVolumeIfNotMuted(0f);
+            notifyMediaState();
+        }
+    }
+
+    @Override
+    public void unmute() {
+        if (isMuted) {
+            isMuted = false;
+            if (mIsAttenuated) {
+                setVolumeIfNotMuted(ATTENUATED_VOLUME);
+            } else {
+                setVolumeIfNotMuted(1f);
+            }
+            notifyMediaState();
+        }
     }
 
     /**
@@ -362,6 +386,11 @@ public class MediaPlayer implements IMediaPlayer {
         return mMediaPlayer != null && mMediaPlayer.isPlaying();
     }
 
+    @Override
+    public boolean isMuted() {
+        return isMuted;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -537,7 +566,7 @@ public class MediaPlayer implements IMediaPlayer {
     private void requestAudioFocus() {
         if (mAudioTrack == AudioTrack.kAudioTrackNone) {
             // audio focus not needed and also mute the player
-            setVolume(0);
+            setVolumeIfNotMuted(0);
             return;
         }
 
@@ -562,8 +591,12 @@ public class MediaPlayer implements IMediaPlayer {
         }
     }
 
-    private void setVolume(float volume) {
-        mMediaPlayer.setVolume(volume, volume);
+    private void setVolumeIfNotMuted(float volume) {
+        if (!isMuted) {
+            mMediaPlayer.setVolume(volume, volume);
+        } else {
+            mMediaPlayer.setVolume(0f, 0f);
+        }
     }
 
     private void startProgressUpdateTask() {
@@ -724,10 +757,16 @@ public class MediaPlayer implements IMediaPlayer {
         }
     };
 
+    @VisibleForTesting
+    OnAudioFocusChangeListener getAudioFocusChangeListener() {
+        return mAudioFocusChangeListener;
+    }
+
     private final OnAudioFocusChangeListener mAudioFocusChangeListener = focusChange -> {
         switch (focusChange) {
             case AudioManager.AUDIOFOCUS_GAIN: {
-                setVolume(1f);
+                mIsAttenuated = false;
+                setVolumeIfNotMuted(1f);
                 if (mWasPlaying) {
                     play();
                 }
@@ -740,7 +779,8 @@ public class MediaPlayer implements IMediaPlayer {
             }
             case AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK: {
                 if (mAudioTrack == AudioTrack.kAudioTrackBackground) {
-                    setVolume(ATTENUATED_VOLUME);
+                    mIsAttenuated = true;
+                    setVolumeIfNotMuted(ATTENUATED_VOLUME);
                 } else {
                     pauseInternal(false);
                 }

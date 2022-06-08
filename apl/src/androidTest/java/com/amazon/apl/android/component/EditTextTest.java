@@ -47,7 +47,7 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
                         " \"selectOnFocus\": true," +
                         " \"size\": 10," +
                         " \"submitKeyType\": \"send\"," +
-                        " \"text\": \"This is a text\"," +
+                        " \"text\": \"19896 Text\"," +
                         " \"validCharacters\": \"0-9\"";
     }
 
@@ -125,7 +125,7 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
         assertEquals(true, proxy.isSelectOnFocus());
         assertEquals(10, proxy.getSize()); // Viewhost enforces size on the text
         assertEquals(SubmitKeyType.kSubmitKeyTypeSend, proxy.getSubmitKeyType());
-        assertEquals("This is a text", proxy.getText());
+        assertEquals("19896", proxy.getText());
         assertEquals("0-9", proxy.getValidCharacters()); // Viewhost enforces restriction of characters on the text
     }
 

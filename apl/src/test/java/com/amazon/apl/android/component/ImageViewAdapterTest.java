@@ -31,6 +31,7 @@ import com.amazon.apl.android.image.ProcessedImageBitmapKey;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.primitive.Gradient;
+import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -474,6 +475,30 @@ public class ImageViewAdapterTest extends AbstractComponentViewAdapterTest<Image
         inOrder.verify(mockCanvas).drawRect(eq(0f), eq(0f), eq(200f), eq(200f), eq(getView().getOverlayGradientPaint()));
         // final restore call
         inOrder.verify(mockCanvas).restoreToCount(anyInt());
+    }
+
+    @Test
+    public void testZeroSizeImage_applyProperties_doesNotLoadSource() {
+        Rect zeroSize = Rect.builder().left(0).top(0).width(0).height(0).build();
+        when(component().getInnerBounds()).thenReturn(zeroSize);
+
+        applyAllProperties();
+
+        verifyZeroInteractions(mockImageLoader);
+    }
+
+    @Test
+    public void testZeroSizeImage_resized_refreshProperties_loadsSource() {
+        Rect zeroSize = Rect.builder().left(0).top(0).width(0).height(0).build();
+        when(component().getInnerBounds()).thenReturn(zeroSize);
+
+        applyAllProperties();
+
+        when(component().getInnerBounds()).thenReturn(Rect.builder().left(0).top(0).width(10).height(10).build());
+
+        refreshProperties(PropertyKey.kPropertyBounds);
+
+        verify(mockImageLoader).loadImage(any());
     }
 
     private Bitmap createDummyBitmap() {

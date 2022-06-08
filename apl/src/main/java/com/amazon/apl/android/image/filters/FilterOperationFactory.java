@@ -11,18 +11,20 @@ import androidx.annotation.Nullable;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
+import com.amazon.apl.enums.ImageScale;
 
 import java.util.List;
 import java.util.concurrent.Future;
 
 public class FilterOperationFactory {
-    public static FilterOperation create(List<Future<FilterResult>> sourceFutures, @NonNull Filters.Filter filter, IBitmapFactory bitmapFactory, @NonNull RenderScriptWrapper renderScript, @Nullable IExtensionImageFilterCallback extensionImageFilterCallback) {
+    public static FilterOperation create(List<Future<FilterResult>> sourceFutures, @NonNull Filters.Filter filter, IBitmapFactory bitmapFactory, @NonNull RenderScriptWrapper renderScript, @Nullable IExtensionImageFilterCallback extensionImageFilterCallback, Size imageSize, ImageScale imageScale) {
         switch (filter.filterType()) {
             case kFilterTypeBlend:
                 return new BlendFilterOperation(sourceFutures, filter, bitmapFactory, renderScript);
             case kFilterTypeBlur:
-                return new BlurFilterOperation(sourceFutures, filter, bitmapFactory, renderScript);
+                return new BlurFilterOperation(sourceFutures, filter, bitmapFactory, renderScript, imageSize, imageScale);
             case kFilterTypeColor:
                 return new ColorFilterOperation(filter, bitmapFactory);
             case kFilterTypeGradient:

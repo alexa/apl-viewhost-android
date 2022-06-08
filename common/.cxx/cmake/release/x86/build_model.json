@@ -5,9 +5,9 @@
     "environmentVariables": []
   },
   "cmake": {
-    "cmakeArtifactsBaseFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86",
-    "cmakeServerLogFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86/cmake_server_log.txt",
-    "cmakeWrappingBaseFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cxx/release/x86",
+    "cmakeArtifactsBaseFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86",
+    "cmakeServerLogFile": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86/cmake_server_log.txt",
+    "cmakeWrappingBaseFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cxx/release/x86",
     "effectiveConfiguration": {
       "name": "traditional-android-studio-cmake-environment",
       "description": "Composite reified CMakeSettings configuration",
@@ -15,13 +15,13 @@
       "inheritEnvironments": [
         "ndk"
       ],
-      "buildRoot": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86",
+      "buildRoot": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86",
       "cmakeToolchain": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
       "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
       "variables": [
         {
           "name": "CMAKE_FIND_ROOT_PATH",
-          "value": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86/prefab"
+          "value": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86/prefab"
         },
         {
           "name": "CMAKE_BUILD_TYPE",
@@ -57,7 +57,7 @@
         },
         {
           "name": "CMAKE_LIBRARY_OUTPUT_DIRECTORY",
-          "value": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build/intermediates/cmake/release/obj/x86"
+          "value": "/Users/pranavsu/github/apl-viewhost-android/common/build/intermediates/cmake/release/obj/x86"
         },
         {
           "name": "CMAKE_MAKE_PROGRAM",
@@ -74,14 +74,14 @@
       ]
     }
   },
-  "cxxBuildFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86",
+  "cxxBuildFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86",
   "info": {
     "abi": "X86",
     "bitness": 32,
     "deprecated": false,
     "default": true
   },
-  "originalCxxBuildFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86",
+  "originalCxxBuildFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86",
   "variant": {
     "buildSystemArgumentList": [],
     "buildTargetSet": [
@@ -102,12 +102,12 @@
         "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja"
       },
       "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
-      "cxxFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx",
+      "cxxFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx",
       "gradleModulePathName": ":common",
-      "intermediatesFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build/intermediates",
-      "makeFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/CMakeLists.txt",
-      "moduleBuildFile": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build.gradle",
-      "moduleRootFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common",
+      "intermediatesFolder": "/Users/pranavsu/github/apl-viewhost-android/common/build/intermediates",
+      "makeFile": "/Users/pranavsu/github/apl-viewhost-android/common/CMakeLists.txt",
+      "moduleBuildFile": "/Users/pranavsu/github/apl-viewhost-android/common/build.gradle",
+      "moduleRootFolder": "/Users/pranavsu/github/apl-viewhost-android/common",
       "ndkDefaultAbiList": [
         "ARMEABI_V7A",
         "ARM64_V8A",
@@ -173,12 +173,12 @@
       "ndkDefaultStl": "LIBCXX_STATIC",
       "ndkVersion": "23.0.7599858",
       "project": {
-        "compilerSettingsCacheFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/.cxx",
-        "cxxFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/.cxx",
+        "compilerSettingsCacheFolder": "/Users/pranavsu/github/apl-viewhost-android/.cxx",
+        "cxxFolder": "/Users/pranavsu/github/apl-viewhost-android/.cxx",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
-        "rootBuildGradleFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android",
+        "rootBuildGradleFolder": "/Users/pranavsu/github/apl-viewhost-android",
         "sdkFolder": "/Users/pranavsu/Library/Android/sdk",
         "isPrefabEnabled": false
       },
@@ -195,15 +195,15 @@
         "SYSTEM": {}
       }
     },
-    "objFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build/intermediates/cmake/release/obj",
+    "objFolder": "/Users/pranavsu/github/apl-viewhost-android/common/build/intermediates/cmake/release/obj",
     "variantName": "release",
     "validAbiList": [
       "ARMEABI_V7A",
       "ARM64_V8A",
       "X86"
     ],
-    "prefabDirectory": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/prefab",
+    "prefabDirectory": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/prefab",
     "prefabPackageDirectoryList": []
   },
-  "prefabFolder": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86"
+  "prefabFolder": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86"
 }

@@ -39,6 +39,11 @@ public class RootConfig extends BoundObject {
     private ExtensionMediator mExtensionMediator;
 
     /**
+     * Memoization of Session  object to avoid returning it from JNI through conversion.
+     */
+    private Session mSession;
+
+    /**
      * Creates a default RootConfig.
      */
     private RootConfig() {
@@ -57,6 +62,7 @@ public class RootConfig extends BoundObject {
         final long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
 
         return new RootConfig()
+                .session(new Session())
                 .utcTime(currentTime)
                 .localTimeAdjustment(offset);
     }
@@ -527,6 +533,24 @@ public class RootConfig extends BoundObject {
     }
 
     /**
+     * Set document logging session. Hidden for now.
+     * @return This object for chaining
+     */
+    private RootConfig session(Session session) {
+        mSession = session;
+        nSession(getNativeHandle(), session.getNativeHandle());
+        return this;
+    }
+
+    /**
+     * Gets Document logging Session.
+     * @return Logging session.
+     */
+    public Session getSession() {
+        return mSession;
+    }
+
+    /**
      * Register an extension event handler.  The name should be something like 'onDomainAction'.
      * This method will also register the extension as a supported extension.
      *
@@ -804,4 +828,6 @@ public class RootConfig extends BoundObject {
     private static native void nPressedDuration(long nativehandle, int timeout);
 
     private static native void nTapOrScrollTimeout(long nativehandle, int timeout);
+
+    private static native void nSession(long nativehandle, long sessionHandler);
 }

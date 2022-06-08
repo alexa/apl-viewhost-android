@@ -1,35 +1,35 @@
 {
   "stringTable": {
-    "0": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a",
+    "0": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a",
     "1": "--target=aarch64-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -Dcommon_jni_EXPORTS -I../../../../src/main/cpp/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
   },
   "buildFiles": [
-    "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/CMakeLists.txt",
+    "/Users/pranavsu/github/apl-viewhost-android/common/CMakeLists.txt",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake"
   ],
   "cleanCommands": [
-    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" clean"
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" clean"
   ],
-  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" {LIST_OF_TARGETS_TO_BUILD}",
   "libraries": {
     "common-jni-Debug-arm64-v8a": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" common-jni",
+      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/arm64-v8a\" common-jni",
       "buildType": "debug",
       "toolchain": "750397747",
       "abi": "arm64-v8a",
       "artifactName": "common-jni",
       "files": [
         {
-          "src": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp",
+          "src": "/Users/pranavsu/github/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp",
           "flagsOrdinal": 1,
           "workingDirectoryOrdinal": 0
         }
       ],
       "headers": [],
-      "output": "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build/intermediates/cmake/debug/obj/arm64-v8a/libcommon-jni.so",
+      "output": "/Users/pranavsu/github/apl-viewhost-android/common/build/intermediates/cmake/debug/obj/arm64-v8a/libcommon-jni.so",
       "runtimeFiles": []
     }
   },

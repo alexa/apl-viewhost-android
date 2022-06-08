@@ -18,6 +18,7 @@ import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.Content.ImportRequest;
 import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.Session;
 import com.amazon.apl.android.dependencies.IContentDataRetriever;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageLoader;
@@ -217,6 +218,32 @@ public class ContentTest extends APLViewhostTest {
             "  }" +
             "}";
 
+    private final String mDuplicateImportDoc = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.0\"," +
+            "  \"import\": [" +
+            "    {\n" +
+            "      \"name\": \"test-package\"," +
+            "      \"version\": \"1.0\"" +
+            "    }," +
+            "    {\n" +
+            "      \"name\": \"test-package\"," +
+            "      \"version\": \"1.0\"," +
+            "      \"source\": \"dummy-source-1\"" +
+            "    }," +
+            "    {\n" +
+            "      \"name\": \"test-package\"," +
+            "      \"version\": \"1.0\"," +
+            "      \"source\": \"dummy-source-2\"" +
+            "    }" +
+            "  ]," +
+            "  \"mainTemplate\": {" +
+            "    \"item\": {" +
+            "      \"type\": \"Text\"" +
+            "    }" +
+            "  }" +
+            "}";
+
     private ViewportMetrics metrics = ViewportMetrics.builder()
             .width(640)
             .height(480)
@@ -236,6 +263,8 @@ public class ContentTest extends APLViewhostTest {
     IPackageLoader mPackageLoader;
     @Mock
     IContentDataRetriever mDataRetriever;
+    @Mock
+    private Session mSession;
 
 
     @Before
@@ -587,7 +616,7 @@ public class ContentTest extends APLViewhostTest {
             public void onError(Exception e) {
                 Assert.fail(e.getCause().getMessage());
             }
-        });
+        }, mSession);
         assertNotNull("Content should not be null.", content);
 
         try {
@@ -627,7 +656,7 @@ public class ContentTest extends APLViewhostTest {
                 completeCalled.set(true);
                 super.onComplete(content);
             }
-        });
+        }, mSession);
         assertNotNull("Content should not be null.", content);
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
@@ -1196,6 +1225,56 @@ public class ContentTest extends APLViewhostTest {
         // Test that no package requests are outstanding
         importRequests = c.getRequestedPackages();
         assertTrue("Expected zero length requests", importRequests.isEmpty());
+    }
+
+    /**
+     * Test multiple ImportRequest for same package name and version but different source,
+     * for such duplicate requests package should be added only once to the Content.
+     */
+    @Test
+    @SmallTest
+    public void testDocument_duplicateImports() {
+
+        CountDownLatch packageRequestedCountdown = new CountDownLatch(3);
+        CountDownLatch packageLoadedCallbackCountdown = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+            ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            if ("test-package".equals(request.getPackageName())) {
+                packageRequestedCountdown.countDown();
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            }
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
+
+        Content content = Content.create(mDuplicateImportDoc, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onPackageLoaded(Content content) {
+                packageLoadedCallbackCountdown.countDown();
+                super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Assert.fail(e.getCause().getMessage());
+            }
+        }, mSession);
+        assertNotNull("Content should not be null.", content);
+
+        try {
+            packageRequestedCountdown.await(1, TimeUnit.SECONDS);
+            packageLoadedCallbackCountdown.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Assert.fail();
+        }
+
+        assertTrue("Expected document ready", content.isReady());
+        assertFalse("Expected document not waiting.", content.isWaiting());
+        assertFalse("Expected document not error.", content.isError());
+
+        verifySuccessTelemetry();
+        verifyImportsTelemetry(3);
     }
 
     // used as abstraction for user doc sample

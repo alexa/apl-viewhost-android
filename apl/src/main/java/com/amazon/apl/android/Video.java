@@ -44,7 +44,7 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
 
     private static native void nUpdateMediaState(long nativeHandle, int trackIndex, int trackCount,
                                                  int currentTime, int duration, boolean paused,
-                                                 boolean ended, boolean fromEvent, int trackState,
+                                                 boolean ended, boolean muted, boolean fromEvent, int trackState,
                                                  int errorCode);
 
     /**
@@ -53,6 +53,10 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
      */
     public boolean shouldAutoPlay() {
         return mProperties.getBoolean(PropertyKey.kPropertyAutoplay);
+    }
+
+    public boolean shouldMute() {
+        return mProperties.getBoolean(PropertyKey.kPropertyMuted);
     }
 
     /**
@@ -130,6 +134,7 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
                 player.getDuration(),
                 !player.isPlaying(),
                 state == MediaState.END,
+                player.isMuted(),
                 mFromEvent,
                 player.getTrackState(),
                 player.getCurrentError());

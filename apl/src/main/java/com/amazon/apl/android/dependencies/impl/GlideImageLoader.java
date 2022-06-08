@@ -10,6 +10,7 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -27,6 +28,7 @@ import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.HttpException;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.load.model.Headers;
 import com.bumptech.glide.load.resource.bitmap.DownsampleStrategy;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
@@ -55,6 +57,7 @@ import java.util.Set;
  * See more: https://bumptech.github.io/glide/
  */
 public class GlideImageLoader implements IImageLoader {
+
     private static final String TAG = "GlideImageLoader";
     /**
      * Any valid scheme return by {@link Uri#getScheme()} that specifies a HTTP request.
@@ -72,11 +75,13 @@ public class GlideImageLoader implements IImageLoader {
     private int cImageSuccess = ITelemetryProvider.UNKNOWN_METRIC_ID;
     private int cImageFail = ITelemetryProvider.UNKNOWN_METRIC_ID;
 
+    private static final NoUpscalingDownsampleStrategy DOWNSAMPLE_STRATEGY = new NoUpscalingDownsampleStrategy();
+
     /**
      * GlideImageDownloader constructor.
      */
     public GlideImageLoader(@NonNull final Context context) {
-        mGlideRequestManager = Glide.with(context); // will init glide if not done before
+        this(Glide.with(context)); // will init glide if not done before
     }
 
     @VisibleForTesting
@@ -108,21 +113,27 @@ public class GlideImageLoader implements IImageLoader {
         final boolean allowUpscaling = load.allowUpscaling();
         final Map<String, String> headers = load.headers();
 
+        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
+        if (layoutParams == null) {
+            Log.wtf(TAG, "Attempting to load image for image view with no layout params.");
+            return;
+        }
+
+        // resume requests if Glide client being paused by other app (eg. mmsdk)
+        if (mGlideRequestManager.isPaused()) {
+            mGlideRequestManager.resumeRequests();
+        }
+
+        // Get original size if we are not scaling
+        int targetWidth = needsScaling ? layoutParams.width : SimpleTarget.SIZE_ORIGINAL;
+        int targetHeight = needsScaling ? layoutParams.height : SimpleTarget.SIZE_ORIGINAL;
+
+        BitmapTarget target = createTarget(imageView, callback, url, targetWidth, targetHeight);
+
         ImageLoaderRequestOptions options = new ImageLoaderRequestOptions();
         RequestOptions requestOptions = new RequestOptions().format(DecodeFormat.PREFER_ARGB_8888);
         Drawable placeholderDrawable = options.getPlaceholderDrawable();
         Drawable errorDrawable = options.getErrorDrawable();
-
-        ViewGroup.LayoutParams layoutParams = imageView.getLayoutParams();
-        int targetWidth = layoutParams != null ? layoutParams.width : 0;
-        int targetHeight = layoutParams != null ? layoutParams.height : 0;
-        // Get original size if the target view has zero size or we need to scale it
-        if (!needsScaling || targetWidth == 0 || targetHeight == 0) {
-            targetWidth = SimpleTarget.SIZE_ORIGINAL;
-            targetHeight = SimpleTarget.SIZE_ORIGINAL;
-        }
-
-        BitmapTarget target = createTarget(imageView, callback, url, targetWidth, targetHeight);
 
         if (placeholderDrawable != null) {
             requestOptions = requestOptions.placeholder(placeholderDrawable);
@@ -144,16 +155,11 @@ public class GlideImageLoader implements IImageLoader {
         // and then applied filters. This isn't correct per the apl spec, but we will quirk this behavior
         // to older document versions and capture metrics around it.
         if (!allowUpscaling) {
-            requestOptions = requestOptions.downsample(new NoUpscalingDownsampleStrategy());
-        }
-
-        // resume requests if Glide client being paused by other app (eg. mmsdk)
-        if (mGlideRequestManager.isPaused()) {
-            mGlideRequestManager.resumeRequests();
+            requestOptions = requestOptions.downsample(DOWNSAMPLE_STRATEGY);
         }
 
         if (headers.size() > 0) {
-            requestOptions.signature(new ObjectKey(headers));
+            requestOptions = requestOptions.signature(new ObjectKey(headers));
         }
 
         RequestBuilder<Bitmap> requestBuilder = mGlideRequestManager
@@ -161,9 +167,9 @@ public class GlideImageLoader implements IImageLoader {
                 .asBitmap();
 
         // GlideUrl class only works for loading HTTP urls
-        if (isUrlRequest(url)) {
+        if (isUrlRequest(url) && headers.size() > 0) {
            requestBuilder = requestBuilder
-                    .load(new GlideUrl(url, () -> headers));
+                    .load(new GlideUrl(url, new GlideStaticHeaders(headers)));
         } else {
             requestBuilder = requestBuilder
                     .load(url);

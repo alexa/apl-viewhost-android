@@ -228,28 +228,6 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
     }
 
     @Test
-    public void loadImage_doesRequestGlideUrl() {
-        // Given
-        RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
-        RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
-        when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-
-        // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
-                .path(URL)
-                .imageView(mImageView)
-                .callback(mCallback)
-                .needsScaling(NEEDS_SCALING)
-                .headers(Collections.emptyMap())
-                .allowUpscaling(false)
-                .build());
-
-        // Then
-        verify(spyBuilder).load(any(GlideUrl.class));
-    }
-
-    @Test
     public void loadImage_doesRequestGlideUrl_andAddsHeadersToSignature() {
         // Given
         RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
@@ -273,52 +251,6 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         ArgumentCaptor<RequestOptions> requestOptionsCaptor = ArgumentCaptor.forClass(RequestOptions.class);
         verify(requestManager).setDefaultRequestOptions(requestOptionsCaptor.capture());
         assertEquals(new ObjectKey(headers), requestOptionsCaptor.getValue().getSignature());
-    }
-
-    @Test
-    public void loadImage_doesRequestGlideUrl_withNoScheme() {
-        // Given
-        RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
-        RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
-        when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-        String urlWithoutScheme = "via.placeholder.com/300";
-
-        // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
-                .path(urlWithoutScheme)
-                .imageView(mImageView)
-                .callback(mCallback)
-                .needsScaling(NEEDS_SCALING)
-                .headers(Collections.emptyMap())
-                .allowUpscaling(false)
-                .build());
-
-        // Then
-        verify(spyBuilder).load(any(GlideUrl.class));
-    }
-
-    @Test
-    public void loadImage_doesRequestGlideUrl_withCapitalizedScheme() {
-        // Given
-        RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
-        RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
-        when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-        String urlWithoutScheme = "HTTPS://via.placeholder.com/300";
-
-        // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
-                .path(urlWithoutScheme)
-                .imageView(mImageView)
-                .callback(mCallback)
-                .needsScaling(NEEDS_SCALING)
-                .headers(Collections.emptyMap())
-                .allowUpscaling(false)
-                .build());
-
-        // Then
-        verify(spyBuilder).load(any(GlideUrl.class));
     }
 
     @Test
@@ -462,7 +394,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
     }
 
     @Test
-    public void loadImage_noScalingAndNoLayoutParams_setsSizeOriginal() {
+    public void loadImage_noScalingAndNoLayoutParams_doesNotLoad() {
         // Given
         RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
@@ -482,18 +414,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
                 .build());
 
         // Then
-        CountDownLatch latch = new CountDownLatch(1);
-        Target<?> target = imageLoader.getTargets().get(imageView).get(0);
-        target.getSize((int width, int height) -> {
-            assertEquals(SimpleTarget.SIZE_ORIGINAL, width);
-            assertEquals(SimpleTarget.SIZE_ORIGINAL, height);
-            latch.countDown();
-        });
-        try {
-            latch.await();
-        } catch (InterruptedException e) {
-            fail();
-        }
+        assertEquals(0, imageLoader.getTargets().size());
     }
 
     private Bitmap createDummyBitmap() {

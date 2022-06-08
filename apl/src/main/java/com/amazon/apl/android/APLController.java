@@ -163,7 +163,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
     @VisibleForTesting
     interface IContentCreator {
-        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2);
+        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, Session session);
     }
 
     /**
@@ -310,7 +310,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     mediator.registerImageFilters(registrar, content, rootConfig);
                 }
             }
-        });
+        }, rootConfig.getSession());
         if (content != null) {
             aplController.mContent = content;
             aplLayout.addMetricsReadyListener(viewportMetrics -> {

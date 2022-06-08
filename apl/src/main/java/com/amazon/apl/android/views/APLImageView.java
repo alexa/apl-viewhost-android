@@ -45,6 +45,7 @@ public class APLImageView extends ImageView {
     private final RectF mDrawableBoundsF = new RectF();
     private final Rect mDrawableBounds = new Rect();
     private final Rect mClipBounds = new Rect();
+    private boolean mIsLoadDeferred = false;
 
     private boolean mFrameSet = false;
 
@@ -78,6 +79,22 @@ public class APLImageView extends ImageView {
      */
     public void setLayoutRequestsEnabled(boolean value) {
         mLayoutRequestsEnabled = value;
+    }
+
+    /**
+     * Sets whether we deferred loading the image into this view.
+     *
+     * @param isLoadDeferred true if we have deferred an image load.
+     */
+    public void setLoadDeferred(boolean isLoadDeferred) {
+        mIsLoadDeferred = isLoadDeferred;
+    }
+
+    /**
+     * @return whether we deferred an image load.
+     */
+    public boolean isLoadDeferred() {
+        return mIsLoadDeferred;
     }
 
     @Override

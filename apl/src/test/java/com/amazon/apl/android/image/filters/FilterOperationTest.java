@@ -12,8 +12,10 @@ import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.enums.ImageScale;
 
 import org.junit.Before;
 import org.mockito.Mock;
@@ -47,15 +49,19 @@ public abstract class FilterOperationTest<T extends FilterOperation> extends Vie
             fail("Test shouldn't fail here.");
         }
     }
-
     public void init(List<FilterResult> sources, Filters.Filter filter) {
+        // Default size and scale
+        init(sources, filter, Size.ZERO, ImageScale.kImageScaleNone);
+    }
+
+    public void init(List<FilterResult> sources, Filters.Filter filter, Size imageSize, ImageScale imageScale) {
         mSourceFilterResults = sources;
         List<Future<FilterResult>> sourceFutures = new ArrayList<>();
         for (FilterResult result : sources) {
             sourceFutures.add(new MockFuture(result));
         }
 
-        mFilterOperation = FilterOperationFactory.create(sourceFutures, filter, mBitmapFactory, mRenderScript, mExtensionImageFilterCallback);
+        mFilterOperation = FilterOperationFactory.create(sourceFutures, filter, mBitmapFactory, mRenderScript, mExtensionImageFilterCallback, imageSize, imageScale);
     }
 
     @SuppressWarnings("unchecked")

@@ -19,15 +19,22 @@ set(APL_DEPENDENCIES_DIR "${APL_CORE_DIR}/thirdparty")
 include(${APL_DEPENDENCIES_DIR}/thirdparty.cmake)
 
 # tools
+set(EXTENSIONS_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build-extensions)
+set(APL_CORE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
+include(${APL_CORE_DIR}/options.cmake)
+include(${APL_CORE_DIR}/tools.cmake)
+
 include_directories(${APL_CORE_DIR}/aplcore)
 include_directories(${APL_CORE_BUILD_DIR/aplcore/include})
 
 # Extensions framework
 include_directories(${APL_CORE_DIR}/extensions/alexaext/include)
 
-set(APL_CORE_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build)
-include(${APL_CORE_DIR}/options.cmake)
-include(${APL_CORE_DIR}/tools.cmake)
+# build folder
+add_subdirectory(${APL_CORE_DIR}/extensions ${EXTENSIONS_BUILD_DIR})
+
+target_compile_definitions(alexaext PUBLIC ALEXAEXTENSIONS)
+add_dependencies(alexaext rapidjson-build)
 
 # build folder
 file(MAKE_DIRECTORY ${APL_CORE_DIR}/aplcore/build)
@@ -54,6 +61,7 @@ add_library(
         src/main/cpp/jniextensionmediator.cpp
         src/main/cpp/jnirootcontext.cpp
         src/main/cpp/jnirootconfig.cpp
+        src/main/cpp/jnisession.cpp
         src/main/cpp/jnicomponent.cpp
         src/main/cpp/jnicomplexproperty.cpp
         src/main/cpp/jnievent.cpp
@@ -92,7 +100,7 @@ target_link_libraries(
         ${log-lib})
 
 
-target_link_libraries(apl-jni apl)
+target_link_libraries(apl-jni apl alexaext)
 
 # APL Core include and dependencies
 include_directories(${APL_CORE_DIR}/aplcore/include)

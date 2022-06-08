@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz" STREQUAL "")
+if("/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz")
-  message(FATAL_ERROR "File not found: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz")
+if(NOT EXISTS "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
+  message(FATAL_ERROR "File not found: /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -16,20 +16,20 @@ if("MD5" STREQUAL "")
   return()
 endif()
 
-if("c9e88076ec371513fb23a0a5370ec2fd" STREQUAL "")
+if("284d6752a3fea3937a1abd49e826b109" STREQUAL "")
   message(FATAL_ERROR "EXPECT_VALUE can't be empty")
 endif()
 
 message(STATUS "verifying file...
-     file='/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz'")
+     file='/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz'")
 
-file("MD5" "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz" actual_value)
+file("MD5" "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" actual_value)
 
-if(NOT "${actual_value}" STREQUAL "c9e88076ec371513fb23a0a5370ec2fd")
+if(NOT "${actual_value}" STREQUAL "284d6752a3fea3937a1abd49e826b109")
   message(FATAL_ERROR "error: MD5 hash of
-  /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz
+  /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz
 does not match expected value
-  expected: 'c9e88076ec371513fb23a0a5370ec2fd'
+  expected: '284d6752a3fea3937a1abd49e826b109'
     actual: '${actual_value}'
 ")
 endif()

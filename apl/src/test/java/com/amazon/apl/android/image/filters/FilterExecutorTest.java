@@ -11,9 +11,11 @@ import android.graphics.Color;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.FilterType;
+import com.amazon.apl.enums.ImageScale;
 import com.amazon.apl.enums.NoiseFilterKind;
 
 import org.junit.Test;
@@ -151,6 +153,8 @@ public class FilterExecutorTest extends ViewhostRobolectricTest {
                 mFilters,
                 mBitmapFactory,
                 mRenderScript,
-                mExtensionImageFilterCallback);
+                mExtensionImageFilterCallback,
+                ImageScale.kImageScaleNone,
+                Size.ZERO);
     }
 }

@@ -1,11 +1,11 @@
 # ninja log v5
-0	64	1648239710457359816	googletest-prefix/src/googletest-stamp/googletest-mkdir	5d2fcd092446331
-65	202	1648239710595155844	googletest-prefix/src/googletest-stamp/googletest-download	e8df44bc6fe44e44
-202	226	1648239710618812697	googletest-prefix/src/googletest-stamp/googletest-update	81195d56c03b656b
-203	227	1648239710619821130	googletest-prefix/src/googletest-stamp/googletest-patch	2b65959e9ec169df
-227	249	1648239710641488533	googletest-prefix/src/googletest-stamp/googletest-configure	a8b75069be50dfde
-249	271	1648239710664043185	googletest-prefix/src/googletest-stamp/googletest-build	a696fe186c4642b0
-271	293	1648239710685932976	googletest-prefix/src/googletest-stamp/googletest-install	20273e8f93db7fd8
-293	316	1648239710708697036	googletest-prefix/src/googletest-stamp/googletest-test	4ef9e6609a8c41bf
-316	347	1648239710739672362	CMakeFiles/googletest-complete	4eb0b2f3f36a16c4
-316	347	1648239710739672362	googletest-prefix/src/googletest-stamp/googletest-done	4eb0b2f3f36a16c4
+0	79	1654647394378836192	googletest-prefix/src/googletest-stamp/googletest-mkdir	12a809693b6d26d0
+79	228	1654647394528086066	googletest-prefix/src/googletest-stamp/googletest-download	b8fc8b1817752d6b
+228	250	1654647394550303157	googletest-prefix/src/googletest-stamp/googletest-update	d5183f22788c8073
+229	251	1654647394550950083	googletest-prefix/src/googletest-stamp/googletest-patch	28185ae85a304f23
+251	274	1654647394573619270	googletest-prefix/src/googletest-stamp/googletest-configure	fc414510ac024c57
+274	301	1654647394600878880	googletest-prefix/src/googletest-stamp/googletest-build	d383b08d7097efbc
+301	326	1654647394625981641	googletest-prefix/src/googletest-stamp/googletest-install	96c2ed9ce3832da6
+326	352	1654647394651681278	googletest-prefix/src/googletest-stamp/googletest-test	816a87d62c1ffc00
+352	389	1654647394688862308	CMakeFiles/googletest-complete	c0a2e1f8527e1fdd
+352	389	1654647394688862308	googletest-prefix/src/googletest-stamp/googletest-done	c0a2e1f8527e1fdd

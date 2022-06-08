@@ -961,13 +961,12 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         }
 
         ITelemetryProvider telemetry = mAplViewPresenter.telemetry();
-
+        final boolean isNewLayout = mViewsNeedLayout.getAndSet(false);
         try (APLTrace.AutoTrace trace = mAplTrace.startAutoTrace(TracePoint.APL_LAYOUT_ON_LAYOUT)) {
-
-            if (telemetry != null) {
-                telemetry.startTimer(tLayout);
-            }
-            if (mViewsNeedLayout.getAndSet(false) && mRootContext != null) {
+            if (isNewLayout && mRootContext != null) {
+                if (telemetry != null) {
+                    telemetry.startTimer(tLayout);
+                }
 
                 if (telemetry != null) {
                     telemetry.startTimer(tViewInflate);
@@ -1010,11 +1009,11 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 }
             }
 
-            if (telemetry != null) {
+            if (telemetry != null && isNewLayout && mRootContext != null) {
                 telemetry.stopTimer(tLayout);
             }
         } catch (Exception ex) {
-            if (telemetry != null) {
+            if (telemetry != null && isNewLayout && mRootContext != null) {
                 telemetry.fail(tLayout);
             }
             throw (ex);

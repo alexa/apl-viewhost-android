@@ -122,6 +122,10 @@ public class TextMeasureCallback extends BoundObject {
         mMetricsTransform = transform;
     }
 
+    public void onRootContextCreated() {
+        mDelegate.onRootContextCreated();
+    }
+
     /**
      * Called by the JNI layer when a component needs to be measured.
      */

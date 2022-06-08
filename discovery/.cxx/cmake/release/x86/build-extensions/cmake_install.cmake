@@ -1,4 +1,4 @@
-# Install script for directory: /Users/pranavsu/Documents/viewhost/apl-core-library/extensions
+# Install script for directory: /Users/pranavsu/github/apl-core-library/extensions
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/.cxx/cmake/release/x86/build-extensions/alexaext/cmake_install.cmake")
+  include("/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/x86/build-extensions/alexaext/cmake_install.cmake")
 
 endif()
 

@@ -131,9 +131,11 @@ namespace alexaext {
         JNIEXPORT jlong JNICALL
         Java_com_amazon_alexaext_ResourceHolder_nCreate(JNIEnv *env, jobject instance,
                                                            jstring resourceId_) {
+            const char* resourceId =  env->GetStringUTFChars(resourceId_, nullptr);
             auto holder = std::make_shared<JNIResourceHolder>(
-                    env->GetStringUTFChars(resourceId_, nullptr),
-                    env->NewWeakGlobalRef(instance));
+                   resourceId,
+                   env->NewWeakGlobalRef(instance));
+            env->ReleaseStringUTFChars(resourceId_, resourceId);
             return apl::jni::createHandle<ResourceHolder>(holder);
         }
 

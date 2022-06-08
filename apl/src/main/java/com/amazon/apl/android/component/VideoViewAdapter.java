@@ -6,6 +6,7 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -27,6 +28,7 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     private VideoViewAdapter() {
         super();
         putPropertyFunction(PropertyKey.kPropertySource, this::applySource);
+        putPropertyFunction(PropertyKey.kPropertyMuted, this::applyMuted);
     }
 
     public static VideoViewAdapter getInstance() {
@@ -59,6 +61,14 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
         }
         component.setMediaPlayer(mediaPlayer);
         mediaPlayer.addMediaStateListener(component);
+    }
+
+    private void applyMuted(Video component, View view) {
+        if (component.shouldMute()) {
+            component.getMediaPlayer().mute();
+        } else {
+            component.getMediaPlayer().unmute();
+        }
     }
 
     public void applyAudioTrack(Video component) {
@@ -104,6 +114,7 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
         super.applyAllProperties(component, view);
         // This releases the current media player
         applySource(component, view);
+        applyMuted(component, view);
         applyAudioTrack(component);
         applyVideoScale(component);
         applyCurrentTrackIndex(component);

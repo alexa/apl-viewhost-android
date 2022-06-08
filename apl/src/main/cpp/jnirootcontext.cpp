@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #include <jni.h>
@@ -158,7 +158,7 @@ namespace apl {
 
 
         /**
-         * Create a RootContext from a Metrix and Content handle and attaches it to the view host peer.
+         * Create a RootContext from a Metrics and Content handle and attaches it to the view host peer.
          */
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_RootContext_nCreate(JNIEnv *env, jobject instance,

@@ -34,7 +34,7 @@ include rules.ninja
 # Utility command for rebuild_cache
 
 build CMakeFiles/rebuild_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common -B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/github/apl-viewhost-android/common -B/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a
   DESC = Running CMake to regenerate build system...
   pool = console
   restat = 1
@@ -44,7 +44,7 @@ build rebuild_cache: phony CMakeFiles/rebuild_cache.util
 # Utility command for edit_cache
 
 build CMakeFiles/edit_cache.util: CUSTOM_COMMAND
-  COMMAND = cd /Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+  COMMAND = cd /Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/debug/armeabi-v7a && /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
   DESC = No interactive CMake dialog available...
   restat = 1
 build edit_cache: phony CMakeFiles/edit_cache.util

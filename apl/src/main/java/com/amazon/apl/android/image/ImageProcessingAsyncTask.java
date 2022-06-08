@@ -23,6 +23,7 @@ import com.amazon.apl.android.image.filters.bitmap.FilterResult;
 import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.enums.ImageScale;
 import com.google.auto.value.AutoValue;
 
 import java.util.ArrayList;
@@ -89,14 +90,22 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
         //  due to variation in size and complexity of filters
         telemetryProvider.startTimer(imageProcessingMetricId);
         // Apply the filters
-        FilterExecutor filterExecutor = FilterExecutor.create(sExecutorService, bitmapsToProcess, params.getFilters(), params.getBitmapFactory(), params.getRenderScriptWrapper(), params.getExtensionImageFilterCallback());
+        Size imageSize = Size.create(params.getBounds().intWidth(), params.getBounds().intHeight());
+        FilterExecutor filterExecutor = FilterExecutor.create(sExecutorService,
+                bitmapsToProcess,
+                params.getFilters(),
+                params.getBitmapFactory(),
+                params.getRenderScriptWrapper(),
+                params.getExtensionImageFilterCallback(),
+                params.getImageScale(),
+                imageSize);
         Bitmap filteredResult;
         try {
             FilterResult result = filterExecutor.apply();
             if (result.isBitmap()) {
                 filteredResult = result.getBitmap();
             } else {
-                filteredResult = result.getBitmap(Size.create(params.getBounds().intWidth(), params.getBounds().intHeight()));
+                filteredResult = result.getBitmap(imageSize);
             }
 
             telemetryProvider.incrementCount(cMetricFilterSuccess);
@@ -155,6 +164,7 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
         public abstract ImageViewAdapter.ImageProcessingFinished getOnProcessingFinished();
         public abstract IExtensionImageFilterCallback getExtensionImageFilterCallback();
         public abstract RenderScriptWrapper getRenderScriptWrapper();
+        public abstract ImageScale getImageScale();
 
         public static ImageProcessingAsyncParams.Builder builder() {
             return new AutoValue_ImageProcessingAsyncTask_ImageProcessingAsyncParams.Builder()
@@ -175,6 +185,7 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
             public abstract ImageProcessingAsyncParams.Builder extensionImageFilterCallback(IExtensionImageFilterCallback callback);
             public abstract ImageProcessingAsyncParams.Builder renderScriptWrapper(RenderScriptWrapper renderScriptWrapper);
             public abstract ImageProcessingAsyncParams.Builder imageBitmapKey(ProcessedImageBitmapKey bitmapKey);
+            public abstract ImageProcessingAsyncParams.Builder imageScale(ImageScale imageScale);
 
             public abstract ImageProcessingAsyncParams build();
         }

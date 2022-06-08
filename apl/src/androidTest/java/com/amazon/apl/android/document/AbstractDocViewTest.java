@@ -101,14 +101,24 @@ public abstract class AbstractDocViewTest {
         private final String mData;
         private final APLOptions mOptions;
         private final RootConfig mRootConfig;
+        private final String mDocument;
 
-        public InflateAPLViewAction(String componentProps, String documentProps, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
+        InflateAPLViewAction(String document, String componentProps, String documentProps, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
             mComponentProps = componentProps;
             mDocumentProps = documentProps;
             mPayloadId = payloadId;
             mData = data;
             mOptions = options;
             mRootConfig = rootConfig;
+            mDocument = document;
+        }
+
+        InflateAPLViewAction(String componentProps, String documentProps, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
+            this(BASE_DOC, componentProps, documentProps, payloadId, data, options, rootConfig);
+        }
+
+        InflateAPLViewAction(String document, String payloadId, String data, APLOptions options, RootConfig rootConfig) {
+            this(document, "", "", payloadId, data, options, rootConfig);
         }
 
         @Override
@@ -125,7 +135,7 @@ public abstract class AbstractDocViewTest {
         @Override
         public void perform(UiController uiController, View view) {
             mTestContext = new APLTestContext()
-                    .setDocument(BASE_DOC, mPayloadId, mComponentProps, mDocumentProps)
+                    .setDocument(mDocument, mPayloadId, mComponentProps, mDocumentProps)
                     .setDocumentPayload(mPayloadId, mData)
                     .setAplOptions(mOptions)
                     .buildRootContextDependencies();
@@ -133,7 +143,7 @@ public abstract class AbstractDocViewTest {
             if (mRootConfig != null) {
                 mTestContext.setRootConfig(mRootConfig);
             }
-            
+
             APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl);
             try {
                 mAplController = APLController.renderDocument(mTestContext.getContent(), mTestContext.getAplOptions(), mTestContext.getRootConfig(), aplLayout.getPresenter());
@@ -163,6 +173,10 @@ public abstract class AbstractDocViewTest {
 
     public ViewAction inflate(String componentProps, String documentProps) {
         return inflateWithOptions(componentProps, documentProps, null);
+    }
+
+    public ViewAction inflateWithOptions(String document, APLOptions options) {
+        return actionWithAssertions(new InflateAPLViewAction(document, "payload", "{}", options, null));
     }
 
     public ViewAction inflateWithOptions(String componentProps, String documentProps, APLOptions options) {

@@ -1,3 +1,3 @@
 repository='external project URL'
-module='/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.16.0.tar.gz'
-tag='MD5=c9e88076ec371513fb23a0a5370ec2fd'
+module='/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz'
+tag='MD5=284d6752a3fea3937a1abd49e826b109'

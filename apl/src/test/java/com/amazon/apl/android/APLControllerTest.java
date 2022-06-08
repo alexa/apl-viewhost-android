@@ -220,7 +220,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2) -> mContent))
+                .contentCreator(((aplDocument, options, callbackV2, session) -> mContent))
                 .render();
 
         verify(mViewPresenter).addDocumentLifecycleListener(mockTelemetry);

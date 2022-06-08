@@ -86,6 +86,16 @@ public interface IMediaPlayer {
     void previous();
 
     /**
+     * Mute the audio
+     */
+    default void mute() {}
+
+    /**
+     * Unmute the audio
+     */
+    default void unmute() {}
+
+    /**
      * Change the current track in the source list.
      *
      * @param trackIndex the index of the next track.
@@ -109,6 +119,13 @@ public interface IMediaPlayer {
      * @return true if the player is playing a track currently.
      */
     boolean isPlaying();
+
+    /**
+     * @return true if the player audio is muted, false otherwise
+     */
+    default boolean isMuted() {
+        return false;
+    }
 
     /**
      * Return the total duration of the current track.

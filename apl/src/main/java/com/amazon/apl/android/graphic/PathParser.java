@@ -811,16 +811,16 @@ public class PathParser {
      */
     private static boolean isSvgSpecCompliant(List<PathDataNode> nodes,
                                               RenderingContext renderingContext) {
-        ITelemetryProvider telemetryProvider = renderingContext.getTelemetryProvider();
-        int svgSpecComplianceMetricId = telemetryProvider.createMetricId(
-                ITelemetryProvider.APL_DOMAIN, "AvgSpecComplianceFailure",
-                ITelemetryProvider.Type.COUNTER);
         if (renderingContext.getDocVersion() >= APLVersionCodes.APL_1_4) {
             // prior to APL 1.4, we did not assert that the pathData begins with a move command
             // and so documents referencing older versions are grandfathered into the old behavior
             if (!nodes.isEmpty()) {
                 char firstNodeType = nodes.get(0).mType;
                 if (!isMoveCommand(firstNodeType)) {
+                    ITelemetryProvider telemetryProvider = renderingContext.getTelemetryProvider();
+                    int svgSpecComplianceMetricId = telemetryProvider.createMetricId(
+                            ITelemetryProvider.APL_DOMAIN, "AvgSpecComplianceFailure",
+                            ITelemetryProvider.Type.COUNTER);
                     Log.e(TAG, "pathData must begin with a move command");
                     telemetryProvider.incrementCount(svgSpecComplianceMetricId);
                     return false;

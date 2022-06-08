@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #include <jni.h>
@@ -25,7 +25,7 @@ namespace apl {
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-            const bool DEBUG_JNI = true;
+        const bool DEBUG_JNI = true;
 #pragma clang diagnostic pop
 
         // Access APL view host RootContext class.
@@ -487,7 +487,12 @@ namespace apl {
             rc->tapOrScrollTimeout(timeout);
         }
 
-
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nSession(JNIEnv *env, jclass clazz, jlong nativeHandle,
+                                                        jlong sessionHandler) {
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->session(get<Session>(sessionHandler));
+        }
 #ifdef __cplusplus
         }
 #endif

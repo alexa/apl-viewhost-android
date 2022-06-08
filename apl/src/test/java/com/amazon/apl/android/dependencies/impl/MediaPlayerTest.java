@@ -48,10 +48,16 @@ import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.Me
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.RELEASED;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.TRACK_UPDATE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Robolectric.buildActivity;
 import static org.robolectric.Shadows.shadowOf;
@@ -69,6 +75,10 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     private Scheduler mScheduler;
     private Queue<MediaState> mExpectedStates;
     private MediaSources mMediaSources;
+    private TextureView mTextureView;
+    private AudioManager mAudioManager;
+    @Mock
+    private PlaybackListener mListener;
     @Mock
     private Context mContext;
 
@@ -76,12 +86,11 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     public void setup() {
         Activity activity = buildActivity(Activity.class).create().get();
         ShadowLog.stream = System.out;
-        TextureView mTextureView = new TextureView(activity);
+        mTextureView = new TextureView(activity);
         SurfaceTexture mSurfaceTexture = new SurfaceTexture(0);
-        PlaybackListener mListener = new PlaybackListener();
         mExpectedStates = new LinkedList<>();
 
-        AudioManager mAudioManager = Shadow.newInstanceOf(AudioManager.class);
+        mAudioManager = Shadow.newInstanceOf(AudioManager.class);
         // TODO Handle audio manager
         ShadowAudioManager mShadowAudioManager = shadowOf(mAudioManager);
 
@@ -346,6 +355,105 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
 
         mAplMediaPlayer.rewind();
         checkState(State.STARTED, PLAYING);
+    }
+
+    @Test
+    public void testMute() {
+        android.media.MediaPlayer mediaPlayer = mock(android.media.MediaPlayer.class);
+        MediaPlayer aplMediaPlayer = new MediaPlayer(mediaPlayer, mTextureView, mContext, mAudioManager);
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        aplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackForeground);
+        aplMediaPlayer.addMediaStateListener(mListener);
+        aplMediaPlayer.mute();
+        verify(mediaPlayer).setVolume(0.0f, 0.0f);
+        assertTrue(aplMediaPlayer.isMuted());
+        verify(mListener).updateMediaState(any(IMediaPlayer.class));
+
+        // Test mute again is a no-op
+        aplMediaPlayer.mute();
+        verifyNoMoreInteractions(mediaPlayer);
+        verifyNoMoreInteractions(mListener);
+        assertTrue(aplMediaPlayer.isMuted());
+    }
+
+    @Test
+    public void testUnmute() {
+        android.media.MediaPlayer mediaPlayer = mock(android.media.MediaPlayer.class);
+        MediaPlayer aplMediaPlayer = new MediaPlayer(mediaPlayer, mTextureView, mContext, mAudioManager);
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        aplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackForeground);
+        aplMediaPlayer.addMediaStateListener(mListener);
+        aplMediaPlayer.unmute();
+        // By default the MediaPlayer is unmuted. So call to unmute() is a no-op
+        verifyZeroInteractions(mediaPlayer);
+        verifyZeroInteractions(mListener);
+        assertFalse(aplMediaPlayer.isMuted());
+        // Mute the MediaPlayer
+        aplMediaPlayer.mute();
+        verify(mediaPlayer).setVolume(0.0f, 0.0f);
+        assertTrue(aplMediaPlayer.isMuted());
+        clearInvocations(mListener);
+        // Unmute the MediaPlayer
+        aplMediaPlayer.unmute();
+        verify(mediaPlayer).setVolume(1.0f, 1.0f);
+        verify(mListener).updateMediaState(any(IMediaPlayer.class));
+        assertFalse(aplMediaPlayer.isMuted());
+    }
+
+    @Test
+    public void testUnmute_when_attenuated_sets_volume_to_attenuated_level() {
+        // Setup MediaPlayer
+        android.media.MediaPlayer mediaPlayer = mock(android.media.MediaPlayer.class);
+        MediaPlayer aplMediaPlayer = new MediaPlayer(mediaPlayer, mTextureView, mContext, mAudioManager);
+        aplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackBackground);
+        aplMediaPlayer.addMediaStateListener(mListener);
+        aplMediaPlayer.mute();
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        // Simulate focus loss or attenuation
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
+        verify(mediaPlayer).setVolume(0f, 0f);
+        // Unmute while attenuated
+        aplMediaPlayer.unmute();
+        verify(mediaPlayer).setVolume(0.25f, 0.25f);
+        // Simulate focus gain or no attenuation
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_GAIN);
+        verify(mediaPlayer).setVolume(1f, 1f);
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        // Mute and unmute while not attenuated
+        aplMediaPlayer.mute();
+        verify(mediaPlayer).setVolume(0f, 0f);
+        aplMediaPlayer.unmute();
+        verify(mediaPlayer).setVolume(1f, 1f);
+    }
+
+    @Test
+    public void testFocusChange() {
+        // Setup MediaPlayer
+        android.media.MediaPlayer mediaPlayer = mock(android.media.MediaPlayer.class);
+        MediaPlayer aplMediaPlayer = new MediaPlayer(mediaPlayer, mTextureView, mContext, mAudioManager);
+        aplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackBackground);
+        aplMediaPlayer.addMediaStateListener(mListener);
+        aplMediaPlayer.mute();
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        // Verify that audio focus changes do not update volume, when player is muted.
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_GAIN);
+        verify(mediaPlayer).setVolume(0f, 0f);
+        clearInvocations(mediaPlayer);
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
+        verify(mediaPlayer).setVolume(0f, 0f);
+        aplMediaPlayer.unmute();
+        clearInvocations(mediaPlayer);
+        clearInvocations(mListener);
+        // Verify that audio focus changes update volume, when player is unmuted.
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_GAIN);
+        verify(mediaPlayer).setVolume(1f, 1f);
+        aplMediaPlayer.getAudioFocusChangeListener().onAudioFocusChange(AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK);
+        verify(mediaPlayer).setVolume(0.25f, 0.25f);
     }
 
     @Test

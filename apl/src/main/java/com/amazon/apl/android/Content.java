@@ -182,7 +182,7 @@ public final class Content extends BoundObject {
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      * Also registers a callback to receive Content ImportRequests and data parameters.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The APL document containing the 'mainTemplate' tag.
      * @param callback     A callback for Package and Data requests.
@@ -192,14 +192,14 @@ public final class Content extends BoundObject {
     @Deprecated
     public static Content create(@NonNull final String mainTemplate, final Callback callback) throws ContentException {
         long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, callback, null, entryTime);
+        return createContent(mainTemplate, null, callback, null, entryTime, new Session());
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      * Also registers a callback to receive Content ImportRequests and data parameters.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The APL document containing the 'mainTemplate' tag.
      * @param aplOptions   The APL options.
@@ -210,13 +210,13 @@ public final class Content extends BoundObject {
     public static Content create(@NonNull final String mainTemplate, @NonNull final APLOptions aplOptions, final Callback callback) throws ContentException {
         long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, callback, null, entryTime);
+        return createContent(mainTemplate, aplOptions, callback, null, entryTime, new Session());
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The main document.
      * @return A Content object based on the mainTemplate document.
@@ -225,13 +225,13 @@ public final class Content extends BoundObject {
     @NonNull
     public static Content create(final String mainTemplate) throws ContentException {
         long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, null, null, entryTime);
+        return createContent(mainTemplate, null, null, null, entryTime, new Session());
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The main document.
      * @param aplOptions   The APL options.
@@ -242,7 +242,7 @@ public final class Content extends BoundObject {
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions) throws ContentException {
         long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, null, null, entryTime);
+        return createContent(mainTemplate, aplOptions, null, null, entryTime, new Session());
     }
 
     /**
@@ -251,13 +251,14 @@ public final class Content extends BoundObject {
      * @param mainTemplate  The main document.
      * @param aplOptions    The APL Options
      * @param callback      The callback for handling Content requests.
+     * @param session       Experience logging session.
      * @return              A Content object if the maintemplate is valid, otherwise null.
      */
     @Nullable
-    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback) {
+    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session) {
         long entryTime = System.nanoTime();
         try {
-            return createContent(mainTemplate, aplOptions, null, callback, entryTime);
+            return createContent(mainTemplate, aplOptions, null, callback, entryTime, session);
         } catch (ContentException e) {
             callback.onError(e);
             return null;
@@ -268,7 +269,8 @@ public final class Content extends BoundObject {
                                          @Nullable final APLOptions aplOptions,
                                          @Nullable final Callback callback,
                                          @Nullable final CallbackV2 callbackV2,
-                                         long entryTime) throws ContentException {
+                                         long entryTime,
+                                         final Session session) throws ContentException {
         if (mainTemplate.length() == 0) {
             throw new ContentException("Invalid document length.");
         }
@@ -276,7 +278,7 @@ public final class Content extends BoundObject {
         try {
             content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime);
             content.setCallbacks(callbackV2, callback);
-            content.importDocument(mainTemplate);
+            content.importDocument(mainTemplate, session);
         } catch (Exception e) {
             if (content != null) {
                 content.recordErrorState();
@@ -348,8 +350,8 @@ public final class Content extends BoundObject {
      *
      * @param mainTemplate Contents of an APL document that contains the 'mainTemplate'.
      */
-    private void importDocument(String mainTemplate) {
-        long nativeHandle = nCreate(mainTemplate);
+    private void importDocument(String mainTemplate, Session session) {
+        long nativeHandle = nCreate(mainTemplate, session.getNativeHandle());
         if (nativeHandle != 0) {
             bind(nativeHandle);
             nUpdate(nativeHandle);
@@ -359,7 +361,8 @@ public final class Content extends BoundObject {
     }
 
     /**
-     * Add package contents.
+     * Add a package data to the content for a @{@link ImportRequest}. Will ignore the
+     * package data if package with same name and version was already added.
      *
      * @param importRequest   The import request this contents satisfies.
      * @param packageContents The Contents of the package.
@@ -375,8 +378,21 @@ public final class Content extends BoundObject {
         addPackage(importRequest, APLJSONData.create(packageContents));
     }
 
+    /**
+     * Add a package @{@link APLJSONData} to the content for a @{@link ImportRequest}. Will ignore
+     * the package data if package with same name and version was already added.
+     *
+     * @param importRequest The import request this contents satisfies.
+     * @param jsonData The Contents of the package.
+     */
     synchronized public void addPackage(@NonNull ImportRequest importRequest,
                                         @NonNull APLJSONData jsonData) {
+        if (mPackages.containsKey(importRequest.getImportRef())) {
+            Log.i(TAG, String.format("Package %s:%s was already added to content, ignoring request to re-add it",
+                    importRequest.getPackageName(),
+                    importRequest.getVersion()));
+            return;
+        }
         mPackages.put(importRequest.getImportRef(), jsonData);
         nAddPackage(getNativeHandle(), importRequest.getNativeHandle(), jsonData.getNativeHandle());
         // update the callback with package requests, no need for data requests
@@ -805,7 +821,7 @@ public final class Content extends BoundObject {
      * JNI call to core, document import. This creates the native peer and
      * initializes the document.  OnFailure may be called if the document is invalid.
      */
-    private native long nCreate(String mainTemplate);
+    private native long nCreate(String mainTemplate, long _sessionHandle);
 
     private native void nUpdate(long nativeHandle);
 

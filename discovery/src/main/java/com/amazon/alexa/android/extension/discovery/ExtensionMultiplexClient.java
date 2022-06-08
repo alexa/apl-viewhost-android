@@ -913,7 +913,9 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_send: " + message);
 
             try {
-                mService.L2_receive(mConnectionID, routingID, message);
+                if (mService != null) {
+                    mService.L2_receive(mConnectionID, routingID, message);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
@@ -938,7 +940,9 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_setFocusLost");
 
             try {
-                mService.L2_onFocusLost(mConnectionID, routingID);
+                if (mService != null) {
+                    mService.L2_onFocusLost(mConnectionID, routingID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
@@ -964,7 +968,9 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_setFocusGained");
 
             try {
-                mService.L2_onFocusGained(mConnectionID, routingID);
+                if (mService != null) {
+                    mService.L2_onFocusGained(mConnectionID, routingID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
@@ -990,7 +996,9 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_pause");
 
             try {
-                mService.L2_onPause(mConnectionID, routingID);
+                if (mService != null) {
+                    mService.L2_onPause(mConnectionID, routingID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
@@ -1032,7 +1040,9 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_resumed");
 
             try {
-                mService.L2_onResume(mConnectionID, routingID);
+                if (mService != null) {
+                    mService.L2_onResume(mConnectionID, routingID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
@@ -1091,7 +1101,9 @@ public class ExtensionMultiplexClient {
         public void L2_resourceAvailable(int routingID, Surface surface, Rect rect, String resourceID) throws RemoteException {
             try {
                 if(DEBUG) Log.d(TAG, "onResourceAvailable: resourceID=" + resourceID);
-                mService.L2_onResourceAvailable(mConnectionID, routingID, surface, rect, resourceID);
+                if (mService != null) {
+                    mService.L2_onResourceAvailable(mConnectionID, routingID, surface, rect, resourceID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling resource available without service connection");
                 throw (e);
@@ -1101,7 +1113,9 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_resourceUnavailable(int routingID, String resourceID) throws RemoteException {
             try {
-                mService.L2_onResourceUnavailable(mConnectionID, routingID, resourceID);
+                if (mService != null) {
+                    mService.L2_onResourceUnavailable(mConnectionID, routingID, resourceID);
+                }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling resource unavailable without service connection");
                 throw (e);

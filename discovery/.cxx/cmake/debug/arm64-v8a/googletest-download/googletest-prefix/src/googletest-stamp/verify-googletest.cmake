@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" STREQUAL "")
+if("/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz")
-  message(FATAL_ERROR "File not found: /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz")
+if(NOT EXISTS "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz")
+  message(FATAL_ERROR "File not found: /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -21,13 +21,13 @@ if("2e6fbeb6a91310a16efe181886c59596" STREQUAL "")
 endif()
 
 message(STATUS "verifying file...
-     file='/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz'")
+     file='/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz'")
 
-file("MD5" "/Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" actual_value)
+file("MD5" "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" actual_value)
 
 if(NOT "${actual_value}" STREQUAL "2e6fbeb6a91310a16efe181886c59596")
   message(FATAL_ERROR "error: MD5 hash of
-  /Users/pranavsu/Documents/viewhost/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz
+  /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz
 does not match expected value
   expected: '2e6fbeb6a91310a16efe181886c59596'
     actual: '${actual_value}'

@@ -27,6 +27,7 @@ import java.util.Arrays;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +70,7 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
 
         when(component().getMediaPlayer()).thenReturn(mMockMediaPlayer);
         when(component().getMediaSources()).thenReturn(mMockMediaSources);
+        when(component().shouldMute()).thenReturn(false);
     }
 
     @Test
@@ -94,6 +96,7 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
         verify(mMockMediaPlayer).setTrack(8);
         verify(mMockMediaPlayer).seek(180);
         verify(mMockMediaPlayer).play();
+        verify(mMockMediaPlayer).unmute();
     }
 
     @Test
@@ -104,5 +107,33 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
         InOrder inOrder = inOrder(mMockMediaPlayer, mComponent);
         inOrder.verify(mComponent).setMediaPlayer(mMockMediaPlayer);
         inOrder.verify(mMockMediaPlayer).addMediaStateListener(mComponent);
+    }
+
+    @Test
+    public void test_applyAllProperties_muted_is_true() {
+        when(component().shouldAutoPlay()).thenReturn(true);
+        when(component().shouldMute()).thenReturn(true);
+
+        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
+        adapter.applyAllProperties(component(), getView());
+        verify(mMockMediaPlayer).mute();
+    }
+
+    @Test
+    public void test_refreshProperties_muted() {
+        when(component().shouldAutoPlay()).thenReturn(true);
+        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
+        adapter.applyAllProperties(component(), getView());
+        // By default the muted property is false.
+        verify(mMockMediaPlayer).unmute();
+        reset(mMockMediaPlayer);
+        // Mute the audio
+        when(component().shouldMute()).thenReturn(true);
+        refreshProperties(PropertyKey.kPropertyMuted);
+        verify(mMockMediaPlayer).mute();
+        // Unmute the audio
+        when(component().shouldMute()).thenReturn(false);
+        refreshProperties(PropertyKey.kPropertyMuted);
+        verify(mMockMediaPlayer).unmute();
     }
 }

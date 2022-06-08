@@ -11,9 +11,11 @@ import android.renderscript.ScriptIntrinsicBlend;
 
 import com.amazon.apl.android.image.filters.bitmap.ColorFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.enums.BlendMode;
 import com.amazon.apl.enums.FilterType;
+import com.amazon.apl.enums.ImageScale;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -99,7 +101,7 @@ public class BlendFilterOperationTest extends RenderScriptOperationTest<BlendFil
                         .blendMode(BlendMode.kBlendModeNormal)
                         .build();
 
-        mFilterOperation = FilterOperationFactory.create(thrownFutures, filter, mBitmapFactory, mRenderScript, mExtensionImageFilterCallback);
+        mFilterOperation = FilterOperationFactory.create(thrownFutures, filter, mBitmapFactory, mRenderScript, mExtensionImageFilterCallback, Size.ZERO, ImageScale.kImageScaleNone);
 
         ColorFilterResult source = (ColorFilterResult) mFilterOperation.getSource();
         assertEquals(Color.TRANSPARENT, source.getColor());

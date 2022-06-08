@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.renderscript.RenderScript;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
@@ -23,6 +24,7 @@ import com.amazon.apl.android.image.ProcessedImageBitmapKey;
 import com.amazon.apl.android.image.filters.RenderScriptProvider;
 import com.amazon.apl.android.image.filters.RenderScriptWrapper;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.LazyImageLoader;
@@ -111,6 +113,18 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
         view.setOverlayGradient(component.getOverlayGradient());
     }
 
+    @Override
+    public void requestLayout(Image component, APLImageView view) {
+        super.requestLayout(component, view);
+        // If we previously cancelled the image load due to the view having no size, then we
+        // need to perform the load now.
+        Rect innerBounds = component.getInnerBounds();
+        if (view.isLoadDeferred() && innerBounds.intWidth() > 0 && innerBounds.intHeight() > 0) {
+            Log.d(TAG, "Load was deferred for: " + component);
+            initImageLoading(component, view);
+        }
+    }
+
     /**
      * Initialize loading of images.
      * @param image
@@ -132,6 +146,15 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
             return;
         }
 
+        Rect innerBounds = image.getInnerBounds();
+        if (innerBounds.intWidth() == 0 || innerBounds.intHeight() == 0) {
+            Log.d(TAG, "Image has no size. Deferring image load. " + image);
+            view.setLoadDeferred(true);
+            return;
+        }
+
+        Log.d(TAG, "Loading image: " + image.getSourceUrls() + " into " + image);
+        view.setLoadDeferred(false);
         telemetryProvider.incrementCount(metricBitmapCacheMissCounter);
         LazyImageLoader.initImageLoad(this, image, view);
         trace.endTrace();
@@ -170,7 +193,8 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
                     .filters(image.getFilters())
                     .imageBitmapKey(ProcessedImageBitmapKey.create(image))
                     .bitmapCache(image.getRenderingContext().getBitmapCache())
-                    .renderScriptWrapper(new RenderScriptWrapper(new RenderScriptProvider(RenderScript::create, view.getContext())));
+                    .renderScriptWrapper(new RenderScriptWrapper(new RenderScriptProvider(RenderScript::create, view.getContext())))
+                    .imageScale(image.getScale());
 
             ImageProcessingAsyncTask.ImageProcessingAsyncParams params = builder.build();
 

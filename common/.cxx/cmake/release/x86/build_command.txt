@@ -1,7 +1,7 @@
                 Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake
 arguments : 
--H/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common
--DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86/prefab
+-H/Users/pranavsu/github/apl-viewhost-android/common
+-DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/prefab/x86/prefab
 -DCMAKE_BUILD_TYPE=Release
 -DCMAKE_TOOLCHAIN_FILE=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake
 -DANDROID_ABI=x86
@@ -10,11 +10,11 @@ arguments :
 -DCMAKE_ANDROID_ARCH_ABI=x86
 -DCMAKE_ANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
--DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/build/intermediates/cmake/release/obj/x86
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/github/apl-viewhost-android/common/build/intermediates/cmake/release/obj/x86
 -DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
 -DCMAKE_SYSTEM_NAME=Android
 -DCMAKE_SYSTEM_VERSION=22
--B/Users/pranavsu/Documents/viewhost/apl-viewhost-android/common/.cxx/cmake/release/x86
+-B/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86
 -GNinja
 jvmArgs : 
 

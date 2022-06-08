@@ -220,6 +220,7 @@ public class TextMeasureCallbackTest extends APLViewhostTest {
                 eq(640.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
         verify(mMeasureSpy).measure(eq(relative1.getProxy().getVisualHash()), eq(kComponentTypeText),
                 eq(320.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
+        verify(mMeasureSpy).onRootContextCreated();
         verifyNoMoreInteractions(mMeasureSpy);
     }
 
@@ -234,6 +235,7 @@ public class TextMeasureCallbackTest extends APLViewhostTest {
         verify(mMeasureSpy).prepare(any(TextProxy.class), any(EditTextProxy.class));
         verify(mMeasureSpy, times(2)).measure(anyString(), eq(kComponentTypeText),
                 anyFloat(), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
+        verify(mMeasureSpy).onRootContextCreated();
         verifyNoMoreInteractions(mMeasureSpy);
 
         // get the hash of the existing callback
@@ -249,6 +251,7 @@ public class TextMeasureCallbackTest extends APLViewhostTest {
 
         // The text measure is prepared with the callback as a proxy
         verify(mMeasureSpy).prepare(any(TextProxy.class), any(EditTextProxy.class));
+        verify(mMeasureSpy).onRootContextCreated();
 
         // There is no need for callback because the context was already inflated
         verifyNoMoreInteractions(mMeasureSpy);

@@ -200,6 +200,7 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
             assertEquals(sources.size(), 1);
 
             assertEquals(sources.at(0).url(), "URL1");
+            assertFalse(((Video) child).shouldMute());
         }
     }
 
