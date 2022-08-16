@@ -1,7 +1,7 @@
 [
 {
-  "directory": "/Users/pranavsu/github/apl-viewhost-android/common/.cxx/cmake/release/x86",
-  "command": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  -Dcommon_jni_EXPORTS -I../../../../src/main/cpp/include  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -DNDEBUG  -fPIC   -o CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o -c /Users/pranavsu/github/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp",
-  "file": "/Users/pranavsu/github/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp"
+  "directory": "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/common/.cxx/cmake/release/x86",
+  "command": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=i686-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  -Dcommon_jni_EXPORTS -I../../../../src/main/cpp/include  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O2 -DNDEBUG  -fPIC   -o CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o -c /Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp",
+  "file": "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/common/src/main/cpp/jninativeowner.cpp"
 }
 ]

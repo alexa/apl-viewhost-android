@@ -1,23 +1,23 @@
-ninja: Entering directory `/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a'
+ninja: Entering directory `/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a'
 [1/24] Creating directories for 'rapidjson'
 [2/24] Performing download step (verify and extract) for 'rapidjson'
 -- verifying file...
-     file='/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz'
+     file='/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz'
 -- verifying file... done
 -- extracting...
-     src='/Users/pranavsu/github/apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz'
-     dst='/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson'
+     src='/Users/pranavsu/Documents/Test_open_source/apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz'
+     dst='/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/rapidjson-prefix/src/rapidjson'
 -- extracting... [tar xfz]
 -- extracting... [analysis]
 -- extracting... [rename]
 -- extracting... [clean up]
 -- extracting... done
-[3/24] No update step for 'rapidjson'
-[4/24] Performing patch step for 'rapidjson'
+[3/24] Performing patch step for 'rapidjson'
 patching file include/rapidjson/schema.h
 patching file include/rapidjson/rapidjson.h
 patching file test/unittest/allocatorstest.cpp
 patching file include/rapidjson/internal/biginteger.h
+[4/24] No update step for 'rapidjson'
 [5/24] No configure step for 'rapidjson'
 [6/24] No build step for 'rapidjson'
 [7/24] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o

@@ -23,7 +23,7 @@ rule CUSTOM_COMMAND
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download -B/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download
+  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download -B/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/googletest-download
   description = Re-running CMake...
   generator = 1
 

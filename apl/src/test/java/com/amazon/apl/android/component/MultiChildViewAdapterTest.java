@@ -380,7 +380,6 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         verify(mockView, never()).detachAllViews();
         verify(mockView, never()).attachView(any());
-        verify(mockView).requestLayout();
         verify(mockView).invalidate();
     }
 

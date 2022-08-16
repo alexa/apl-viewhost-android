@@ -6,10 +6,10 @@ project(googletest-unpack NONE)
 
 include(ExternalProject)
 ExternalProject_Add(googletest
-      URL /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz
+      URL /Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz
       URL_MD5 2e6fbeb6a91310a16efe181886c59596
-      SOURCE_DIR        "/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/googletest-src"
-      BINARY_DIR        "/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/googletest-build"
+      SOURCE_DIR        "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/googletest-src"
+      BINARY_DIR        "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/googletest-build"
       CONFIGURE_COMMAND ""
       BUILD_COMMAND     ""
       INSTALL_COMMAND   ""

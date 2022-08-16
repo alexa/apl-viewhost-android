@@ -1,7 +1,7 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" ABSOLUTE)
-get_filename_component(directory "/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/pegtl-prefix/src/pegtl" ABSOLUTE)
+get_filename_component(filename "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" ABSOLUTE)
+get_filename_component(directory "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/pegtl-prefix/src/pegtl" ABSOLUTE)
 
 message(STATUS "extracting...
      src='${filename}'

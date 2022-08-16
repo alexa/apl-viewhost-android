@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" STREQUAL "")
+if("/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
-  message(FATAL_ERROR "File not found: /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
+if(NOT EXISTS "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
+  message(FATAL_ERROR "File not found: /Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -21,13 +21,13 @@ if("284d6752a3fea3937a1abd49e826b109" STREQUAL "")
 endif()
 
 message(STATUS "verifying file...
-     file='/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz'")
+     file='/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz'")
 
-file("MD5" "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" actual_value)
+file("MD5" "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" actual_value)
 
 if(NOT "${actual_value}" STREQUAL "284d6752a3fea3937a1abd49e826b109")
   message(FATAL_ERROR "error: MD5 hash of
-  /Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz
+  /Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz
 does not match expected value
   expected: '284d6752a3fea3937a1abd49e826b109'
     actual: '${actual_value}'

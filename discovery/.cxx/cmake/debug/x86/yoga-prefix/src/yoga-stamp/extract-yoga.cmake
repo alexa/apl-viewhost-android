@@ -1,7 +1,7 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" ABSOLUTE)
-get_filename_component(directory "/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/yoga-prefix/src/yoga" ABSOLUTE)
+get_filename_component(filename "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" ABSOLUTE)
+get_filename_component(directory "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/yoga-prefix/src/yoga" ABSOLUTE)
 
 message(STATUS "extracting...
      src='${filename}'

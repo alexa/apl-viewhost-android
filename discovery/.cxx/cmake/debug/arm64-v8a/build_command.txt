@@ -1,8 +1,8 @@
                 Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake
 arguments : 
--H/Users/pranavsu/github/apl-viewhost-android/discovery
+-H/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery
 -DCMAKE_CXX_FLAGS=-std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1
--DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/arm64-v8a/prefab
+-DCMAKE_FIND_ROOT_PATH=/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/prefab/arm64-v8a/prefab
 -DCMAKE_BUILD_TYPE=Debug
 -DCMAKE_TOOLCHAIN_FILE=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake
 -DANDROID_ABI=arm64-v8a
@@ -11,12 +11,12 @@ arguments :
 -DCMAKE_ANDROID_ARCH_ABI=arm64-v8a
 -DCMAKE_ANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
--DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/github/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/arm64-v8a
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/build/intermediates/cmake/debug/obj/arm64-v8a
 -DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
 -DCMAKE_SYSTEM_NAME=Android
 -DCMAKE_SYSTEM_VERSION=22
--DAPL_CORE_DIR=/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library
--B/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a
+-DAPL_CORE_DIR=/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library
+-B/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a
 -GNinja
 jvmArgs : 
 

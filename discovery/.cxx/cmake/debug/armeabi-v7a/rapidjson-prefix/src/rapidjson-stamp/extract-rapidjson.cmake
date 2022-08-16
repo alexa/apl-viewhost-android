@@ -1,7 +1,7 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Users/pranavsu/github/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz" ABSOLUTE)
-get_filename_component(directory "/Users/pranavsu/github/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/rapidjson-prefix/src/rapidjson" ABSOLUTE)
+get_filename_component(filename "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz" ABSOLUTE)
+get_filename_component(directory "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/rapidjson-prefix/src/rapidjson" ABSOLUTE)
 
 message(STATUS "extracting...
      src='${filename}'
