@@ -4,12 +4,14 @@
 
 #include <jni.h>
 #include <string>
+#include <jnimediaplayer.h>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 #include "apl/apl.h"
 #include "jniutil.h"
+#include "apl/component/videocomponent.h"
 #include "jnimetricstransform.h"
 #include "loggingbridge.h"
 
@@ -135,6 +137,16 @@ namespace apl {
             auto c = get<Component>(handle);
             auto hs = c->getHierarchySignature();
             return env->NewStringUTF(hs.c_str());
+        }
+
+        JNIEXPORT jobject JNICALL Java_com_amazon_apl_android_Video_nGetMediaPlayer(JNIEnv *env, jclass clazz,
+                                                                                    jlong handle) {
+            auto c = get<VideoComponent>(handle);
+            auto player = std::dynamic_pointer_cast<AndroidMediaPlayer>(c->getMediaPlayer());
+            if (player) {
+                return player->getInstance();
+            }
+            return nullptr;
         }
 
         JNIEXPORT void JNICALL

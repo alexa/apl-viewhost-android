@@ -30,6 +30,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.PLAYING;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;

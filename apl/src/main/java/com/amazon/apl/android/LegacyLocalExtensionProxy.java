@@ -5,6 +5,9 @@
 
 package com.amazon.apl.android;
 
+import androidx.annotation.Nullable;
+
+import com.amazon.alexaext.ActivityDescriptor;
 import com.amazon.alexaext.ExtensionProxy;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
@@ -26,6 +29,13 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
     private IExtension mExtension;
     private ILegacyLocalExtension mLegacyLocalExtension;
 
+    /**
+     * @deprecated Here hor backwards compatibility only.
+     */
+    @Nullable
+    @Deprecated
+    private ActivityDescriptor mCachedDescriptor;
+
     public LegacyLocalExtensionProxy(IExtension extension) {
         super(extension.getUri());
         mExtension = extension;
@@ -33,18 +43,23 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
     }
 
     @Override
-    protected boolean initializeInternal(String uri) {
+    protected boolean initialize(String uri) {
         if (mLegacyLocalExtension != null) {
             return mLegacyLocalExtension.initialize(
-                    this::sendExtensionEvent,
-                    this::invokeLiveDataUpdate);
+                this::sendExtensionEvent,
+                (eUri, liveDataUpdate) -> {
+                    if (mCachedDescriptor == null) {
+                        return false;
+                    }
+                    return invokeLiveDataUpdate(mCachedDescriptor, liveDataUpdate);
+                });
         }
 
         return true;
     }
 
     @Override
-    protected boolean invokeCommandInternal(String uri, String command) {
+    protected boolean invokeCommand(ActivityDescriptor activity, String command) {
         IExtensionEventCallback callback = mExtension.getCallback();
         if (callback == null) return false;
 
@@ -61,7 +76,7 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
                 }
             }
 
-            callback.onExtensionEvent(name, uri, new HashMap<>(), props, succeeded -> {
+            callback.onExtensionEvent(name, activity.getURI(), new HashMap<>(), props, succeeded -> {
                 JSONObject result = new JSONObject();
                 try {
                     result.put("version", "1.0");
@@ -76,7 +91,7 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
                     }
                 } catch (JSONException ex) {}
 
-                commandResult(uri, result.toString());
+                commandResult(activity, result.toString());
             });
 
             return true;
@@ -86,13 +101,14 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
     }
 
     @Override
-    protected boolean sendMessageInternal(String uri, String command) {
+    protected boolean sendMessage(ActivityDescriptor activity, String command) {
         // TODO: Relevant to CustomComponents.
         return false;
     }
 
     @Override
-    protected boolean requestRegistrationInternal(String uri, String request) {
+    protected boolean requestRegistration(ActivityDescriptor activity, String request) {
+        mCachedDescriptor = activity;
         try {
             JSONObject reader = new JSONObject(request);
             JSONObject settings = reader.optJSONObject("settings");
@@ -198,23 +214,24 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
                 schema.put("types", types);
             }
             registrationSuccess.put("schema", schema);
-            registrationResult(uri, registrationSuccess.toString());
+            registrationResult(activity, registrationSuccess.toString());
             return true;
         } catch (org.json.JSONException e) {}
         return false;
     }
 
     @Override
-    protected void onRegisteredInternal(String uri, String token) {
+    protected void onRegistered(ActivityDescriptor activity) {
         if (mLegacyLocalExtension != null) {
-            mLegacyLocalExtension.onRegistered(uri, token);
+            mLegacyLocalExtension.onRegistered(activity.getURI(), activity.getActivityId());
         }
     }
 
     @Override
-    protected void onUnregisteredInternal(String uri, String token) {
+    protected void onUnregistered(ActivityDescriptor activity) {
+        mCachedDescriptor = null;
         if (mLegacyLocalExtension != null) {
-            mLegacyLocalExtension.onUnregistered(uri, token);
+            mLegacyLocalExtension.onUnregistered(activity.getURI(), activity.getActivityId());
         }
     }
 
@@ -225,6 +242,9 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
      * @return true if event handled, false otherwise.
      */
     public boolean sendExtensionEvent(String name, Map<String, Object> parameters) {
+        if (mCachedDescriptor != null) {
+            return false;
+        }
         try {
             JSONObject event = new JSONObject();
             event.put("version", "1.0");
@@ -240,7 +260,7 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
                 event.put("payload", payload);
             }
 
-            return invokeExtensionEventHandler(getUri(), event.toString());
+            return invokeExtensionEventHandler(mCachedDescriptor, event.toString());
         } catch (JSONException ex) {}
         return false;
     }

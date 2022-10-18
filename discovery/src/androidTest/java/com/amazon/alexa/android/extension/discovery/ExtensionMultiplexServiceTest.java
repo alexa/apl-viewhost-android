@@ -11,6 +11,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ClientConnection;
 import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexService.ServiceConnection;
 import com.amazon.alexa.android.extension.discovery.test.TestService.Latch;
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.SessionDescriptor;
 
 import org.junit.After;
 import org.junit.Before;
@@ -361,6 +363,7 @@ public class ExtensionMultiplexServiceTest {
     @Test
     public void testReceive_simple() {
         final String uri = "alexatest:latch:10";
+        ActivityDescriptor activity = new ActivityDescriptor(uri, new SessionDescriptor("session"), "activity");
         ClientConnection connection = (ClientConnection) mClient.connect(uri, mCallback);
         assertNotNull(connection);
 
@@ -375,7 +378,7 @@ public class ExtensionMultiplexServiceTest {
 
         // Send a message from client
         try {
-            connection.send(mCallback, "APL");
+            connection.send(mCallback, activity, "APL");
         } catch (RemoteException e) {
             fail(e.getMessage());
         }

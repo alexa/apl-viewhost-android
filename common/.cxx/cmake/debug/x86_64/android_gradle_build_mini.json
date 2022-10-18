@@ -1,19 +1,30 @@
 {
   "buildFiles": [
-    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake"
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt"
   ],
-  "cleanCommands": [
-    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64\" clean"
+  "cleanCommandsComponents": [
+    [
+      "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64",
+      "clean"
+    ]
   ],
-  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommandComponents": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
   "libraries": {
     "common-jni-Debug-x86_64": {
       "artifactName": "common-jni",
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64\" common-jni",
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/debug/x86_64",
+        "common-jni"
+      ],
       "abi": "x86_64",
       "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so",
       "runtimeFiles": []

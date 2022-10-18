@@ -45,7 +45,7 @@ import java.util.Map;
 /**
  * Default media player for APL.
  */
-public class MediaPlayer implements IMediaPlayer {
+public class MediaPlayer implements IMediaPlayer<TextureView> {
 
     /**
      * Lists all the actions that can be initiated on the media player.
@@ -84,7 +84,7 @@ public class MediaPlayer implements IMediaPlayer {
     @Nullable
     private Surface mSurface;
     private final List<IMediaListener> mListeners;
-    private final AudioManager mAudioManager;
+    private AudioManager mAudioManager;
     private Handler mHandler;
     @NonNull
     private AudioTrack mAudioTrack = AudioTrack.kAudioTrackForeground;
@@ -103,6 +103,20 @@ public class MediaPlayer implements IMediaPlayer {
     private int mLoopCount = 0;
     private int mCurrentSeekPosition = 0;
 
+    public MediaPlayer() {
+        mMediaPlayer = new android.media.MediaPlayer();
+        mHandler = new Handler(Looper.getMainLooper());
+        mListeners = new LinkedList<>();
+        try {
+            mMediaPlayer.setAudioAttributes(AUDIO_ATTRIBUTES);
+            mMediaPlayer.setOnErrorListener(mOnErrorListener);
+            mMediaPlayer.setOnPreparedListener(mOnPreparedListener);
+            mMediaPlayer.setOnSeekCompleteListener(mOnSeekCompleteListener);
+            mMediaPlayer.setOnVideoSizeChangedListener(mOnVideoSizeChangedListener);
+        } catch (Exception e) {
+            onPlayerError("Error while initializing media player.", e);
+        }
+    }
     /**
      * Constructs the media player.
      *
@@ -181,7 +195,6 @@ public class MediaPlayer implements IMediaPlayer {
         if (!isMuted) {
             isMuted = true;
             setVolumeIfNotMuted(0f);
-            notifyMediaState();
         }
     }
 
@@ -194,7 +207,6 @@ public class MediaPlayer implements IMediaPlayer {
             } else {
                 setVolumeIfNotMuted(1f);
             }
-            notifyMediaState();
         }
     }
 

@@ -493,6 +493,20 @@ namespace apl {
             auto rc = get<RootConfig>(nativeHandle);
             rc->session(get<Session>(sessionHandler));
         }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nAudioPlayerFactory(JNIEnv *env, jclass clazz, jlong nativeHandle,
+                                                                   jlong factoryHandler) {
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->audioPlayerFactory(get<AudioPlayerFactory>(factoryHandler));
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nMediaPlayerFactory(JNIEnv *env, jclass clazz, jlong nativeHandle,
+                                                                    jlong nativeHandler) {
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->mediaPlayerFactory(get<MediaPlayerFactory>(nativeHandler));
+        }
 #ifdef __cplusplus
         }
 #endif

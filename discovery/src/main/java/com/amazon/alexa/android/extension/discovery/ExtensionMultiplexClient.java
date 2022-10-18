@@ -6,6 +6,9 @@
 package com.amazon.alexa.android.extension.discovery;
 
 import com.amazon.alexa.android.extension.discovery.ExtensionDiscovery.ExtensionPresence;
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.IExtension;
+import com.amazon.alexaext.SessionDescriptor;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -25,6 +28,7 @@ import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -34,12 +38,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * multiplexing calls to a service.  The connection handshake establishes 2-way communication between
  * client and server.  Messages may be sent/received once establishes.
  * May wrapL3 to facilitate communication.
- * @deprecated Use DiscoveryExtensionsProvider.getExtension() provided proxy instead.
+ * @deprecated Use {@link com.amazon.alexaext.DiscoveryExtensionsProvider#getExtension(String)} provided proxy instead.
  */
 @SuppressWarnings("deprecation")
 @Deprecated
 public class ExtensionMultiplexClient {
-
     private static final String TAG = "ExtensionMultiplexClnt";
     private static final boolean DEBUG = false;
     private final ExtensionBinder mBinder = new ExtensionBinder();
@@ -48,7 +51,6 @@ public class ExtensionMultiplexClient {
      * The Android Context extension biding is running in.
      */
     public interface ExtensionContext {
-
         /**
          * @return The Android Context.
          */
@@ -60,8 +62,7 @@ public class ExtensionMultiplexClient {
      * have multiple clients (receivers).  Each client is give a unique routingID so that it may
      * be uniquely identified.
      */
-    public interface IMultiplexClientConnection extends IBinder {
-
+    public interface IMultiplexClientConnection {
         /**
          * @return The unique identifier for this connection.
          */
@@ -72,9 +73,22 @@ public class ExtensionMultiplexClient {
          * may identify the message sender.
          *
          * @param callback The connection client sending this message.
+         * @param activity ActivityDescriptor.
          * @param message  The message.
          * @throws RemoteException Binder remote-invocation error.
          */
+        void send(ConnectionCallback callback, ActivityDescriptor activity, String message) throws RemoteException;
+
+        /**
+         * Message send to the service.  This message uses the callback ID so the server
+         * may identify the message sender.
+         *
+         * @param callback The connection client sending this message.
+         * @param message  The message.
+         * @throws RemoteException Binder remote-invocation error.
+         * @deprecated Use the other variant of send that specifies an ActivityDescriptor
+         */
+        @Deprecated
         void send(ConnectionCallback callback, String message) throws RemoteException;
 
         /**
@@ -83,7 +97,9 @@ public class ExtensionMultiplexClient {
          *
          * @param callback The connection client.
          * @throws RemoteException Binder remote-invocation error.
+         * @deprecated Rely on new activity-based lifecycle APIs.
          */
+        @Deprecated
         void setFocusLost(ConnectionCallback callback) throws RemoteException;
 
         /**
@@ -92,7 +108,9 @@ public class ExtensionMultiplexClient {
          *
          * @param callback The connection client.
          * @throws RemoteException Binder remote-invocation error.
+         * @deprecated Rely on new activity-based lifecycle APIs.
          */
+        @Deprecated
         void setFocusGain(ConnectionCallback callback) throws RemoteException;
 
         /**
@@ -101,7 +119,9 @@ public class ExtensionMultiplexClient {
          *
          * @param callback The connection client.
          * @throws RemoteException Binder remote-invocation error.
+         * @deprecated Rely on new activity-based lifecycle APIs.
          */
+        @Deprecated
         void pause(ConnectionCallback callback) throws RemoteException;
 
         /**
@@ -110,7 +130,9 @@ public class ExtensionMultiplexClient {
          *
          * @param callback The connection client.
          * @throws RemoteException Binder remote-invocation error.
+         * @deprecated Rely on new activity-based lifecycle APIs.
          */
+        @Deprecated
         void resume(ConnectionCallback callback) throws RemoteException;
 
         /**
@@ -132,6 +154,63 @@ public class ExtensionMultiplexClient {
          * @throws RemoteException Binder remote-invocation error.
          */
         default void resourceUnavailable(ConnectionCallback callback, String resourceID) throws RemoteException {}
+
+        /**
+         * The resource which was requested by server is available.
+         *
+         * @param callback   The connection client.
+         * @param activity   ActivityDescriptor.
+         * @param surface    Handle to a surface/resource with a given unique ID
+         * @param rect       Frame details associated with the resource.
+         * @param resourceID Unique identifier of the associated surface/resource.
+         * @throws RemoteException Binder remote-invocation error.
+         */
+        default void resourceAvailable(ConnectionCallback callback, ActivityDescriptor activity, Surface surface, Rect rect, String resourceID) throws RemoteException {}
+
+        /**
+         * The resource which was requested by server is not available.
+         *
+         * @param callback   The connection client.
+         * @param activity   ActivityDescriptor.
+         * @param resourceID Unique identifier of the associated surface/resource.
+         * @throws RemoteException Binder remote-invocation error.
+         */
+        default void resourceUnavailable(ConnectionCallback callback, ActivityDescriptor activity, String resourceID) throws RemoteException {}
+
+        /**
+         * @see IExtension#onRegistered(ActivityDescriptor)
+         */
+        default void onRegistered(ConnectionCallback callback, ActivityDescriptor session) throws RemoteException {}
+
+        /**
+         * @see IExtension#onUnregistered(ActivityDescriptor)
+         */
+        default void onUnregistered(ConnectionCallback callback, ActivityDescriptor session) throws RemoteException {}
+
+        /**
+         * @see IExtension#onSessionStarted(SessionDescriptor)
+         */
+        default void onSessionStarted(ConnectionCallback callback, SessionDescriptor session) throws RemoteException {}
+
+        /**
+         * @see IExtension#onSessionEnded(SessionDescriptor)
+         */
+        default void onSessionEnded(ConnectionCallback callback, SessionDescriptor session) throws RemoteException {}
+
+        /**
+         * @see IExtension#onForeground(ActivityDescriptor)
+         */
+        default void onForeground(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {}
+
+        /**
+         * @see IExtension#onBackground(ActivityDescriptor)
+         */
+        default void onBackground(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {}
+
+        /**
+         * @see IExtension#onHidden(ActivityDescriptor)
+         */
+        default void onHidden(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {}
     }
 
 
@@ -237,6 +316,25 @@ public class ExtensionMultiplexClient {
          * @param resourceId   Unique Identifier associated with the resource.
          */
         default void onRequestResource(String extensionURI, String resourceId) {}
+
+        /// V2 support
+        /**
+         * A message has been sent by the extension.
+         *
+         * @param activity      ActivityDescriptor.
+         * @param message      The message.
+         */
+        default void onMessage(ActivityDescriptor activity, String message) {}
+
+        /**
+         * A message sent to the extension could not be parsed.
+         *
+         * @param activity      ActivityDescriptor.
+         * @param errorCode     Reason for the message failure.
+         * @param message       Readable message.
+         * @param failedPayload Response payload.
+         */
+        default void onMessageFailure(ActivityDescriptor activity, int errorCode, String message, String failedPayload) {}
     }
 
 
@@ -527,7 +625,9 @@ public class ExtensionMultiplexClient {
         private final String mConfiguration;
 
         // The connected service
-        private L2_IRemoteService mService;
+        private boolean mHasService = false;
+        private L2_IRemoteService mServiceV1;
+        private L2_IRemoteServiceV2 mServiceV2;
         // The connection has been accepted by service
         private final AtomicBoolean mAccept = new AtomicBoolean(false);
         // Message Handler
@@ -535,10 +635,12 @@ public class ExtensionMultiplexClient {
         // Identify as closed for testing
         final CountDownLatch mBindingFailTest = new CountDownLatch(1);
 
+        // Simulated activity descriptor for shimming V1 clients
+        // @deprecated Remove once there are no more V1 clients
+        private final ActivityDescriptor mDummyActivityDescriptor;
+
         ClientConnection(final String extensionURI, final Looper looper, final boolean async,
                          final String configuration) {
-
-
             mExtensionURI = extensionURI;
             mConfiguration = configuration;
 
@@ -560,6 +662,19 @@ public class ExtensionMultiplexClient {
                 // async on a specific looper is not supported before Pie
             }
             mHandler = handler;
+
+            // The following "dummy" activity descriptor is a shim for V1 clients
+            // * If a V1 client connects to a V1 service, it will not be used, but
+            //   is only passed around internally within this class.
+            // * If a V1 client connects to a V2 service, it will actually be
+            //   given to the V2 service as the activity descriptor. In that case,
+            //   the activity descriptor is simply analogous to a connection ID.
+            final String activityId = UUID.randomUUID().toString();
+            final String sessionId = UUID.randomUUID().toString();
+            mDummyActivityDescriptor = new ActivityDescriptor(
+                extensionURI,
+                new SessionDescriptor(sessionId),
+                activityId);
         }
 
         /**
@@ -581,7 +696,7 @@ public class ExtensionMultiplexClient {
                 // save this callback with a routing ID.
                 final int routingID = callback.getID();
                 mCallbacks.put(routingID, callback);
-                if (mService != null && mAccept.get()) {
+                if (mHasService && mAccept.get()) {
                     if (null != mHandler) {
                         mHandler.post(() -> notifyConnect(callback));
                     } else {
@@ -602,8 +717,10 @@ public class ExtensionMultiplexClient {
             synchronized (mCallbacks) {
                 ConnectionCallback result = mCallbacks.remove(callback.getID());
                 try {
-                    if (mService != null) {
-                        mService.L2_onExit(connectionID(), callback.getID());
+                    if (mHasService) {
+                        if (mServiceV1 != null) {
+                            mServiceV1.L2_onExit(connectionID(), callback.getID());
+                        }
                     }
                 } catch (RemoteException e) {
                     Log.w(TAG, "Connection close failed", e);
@@ -614,12 +731,16 @@ public class ExtensionMultiplexClient {
 
 
         /**
-         * Unregister a callback for this connection.
+         * Close connection.
          */
         void close() {
             try {
-                if (mService != null) {
-                    mService.L2_connectionClosed(this, "Exit");
+                if (mHasService) {
+                    if (mServiceV1 != null) {
+                        mServiceV1.L2_connectionClosed(this, "Exit");
+                    } else if (mServiceV2 != null) {
+                        mServiceV2.L2_connectionClosed(this, "Exit");
+                    }
                 }
             } catch (RemoteException e) {
                 Log.w(TAG, "Connection close failed", e);
@@ -640,7 +761,7 @@ public class ExtensionMultiplexClient {
          */
         @VisibleForTesting
         L2_IRemoteService getService() {
-            return mService;
+            return mServiceV1;
         }
 
         /**
@@ -652,7 +773,9 @@ public class ExtensionMultiplexClient {
         private void disconnectOnFailure(final int errorCode, final String error) {
             Log.w(TAG, "disconnectOnFailure:" + errorCode + " " + error);
             // close the connection
-            mService = null;
+            mServiceV1 = null;
+            mServiceV2 = null;
+            mHasService = false;
 
             // notify clients
             synchronized (mCallbacks) {
@@ -666,9 +789,7 @@ public class ExtensionMultiplexClient {
                 mCallbacks.clear();
             }
             clearConnection(this);
-
         }
-
 
         /**
          * Notify a single callback of a connection error.
@@ -691,15 +812,20 @@ public class ExtensionMultiplexClient {
          * L1 IPC binding to service is successful.  The L2 connection handshake is initiated.
          */
         @Override
-        public void bindingSuccess(final L2_IRemoteService service) {
-
-            // the server has been bound, save a reference
-            mService = service;
-
+        public void bindingSuccess(final IBinder service) {
             // initiate the two-way communication by sending this client to the server
             try {
-                if (service.L2_supportsTransactVersion(L2_IRemoteService.TRANSACT_VERSION)) {
-                    mService.L2_connect(this, mConfiguration);
+                String descriptor = service.getInterfaceDescriptor();
+                Log.i(TAG, "INTERFACE_DESCRIPTOR:" + descriptor);
+                if (descriptor.equals("com.amazon.alexa.android.extension.discovery.L2_IRemoteService")) {
+                    // the server has been bound, save a reference
+                    mServiceV1 = L2_IRemoteService.Stub.asInterface(service);
+                    mServiceV1.L2_connect(this, mConfiguration);
+                    mHasService = true;
+                } else if (descriptor.equals("com.amazon.alexa.android.extension.discovery.L2_IRemoteServiceV2")) {
+                    mServiceV2 = L2_IRemoteServiceV2.Stub.asInterface(service);
+                    mServiceV2.L2_connect(this, mConfiguration);
+                    mHasService = true;
                 } else {
                     disconnectOnFailure(ConnectionCallback.FAIL_HANDSHAKE,
                             "Client - Server transaction incompatibility");
@@ -727,7 +853,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings("RedundantThrows")
         @Override
         public boolean L2_supportsTransactVersion(final int expectedVersion) throws RemoteException {
-            return (expectedVersion == TRANSACT_VERSION);
+            return (expectedVersion == TRANSACT_VERSION || expectedVersion == 2);
         }
 
 
@@ -896,13 +1022,63 @@ public class ExtensionMultiplexClient {
         }
 
         /**
+         * Shim for legacy V1 method
+         */
+        @Deprecated
+        @Override
+        public void send(final ConnectionCallback callback, final String message) throws RemoteException {
+            send(callback, mDummyActivityDescriptor, message);
+        }
+
+        /**
+         * Shim for legacy V1 method
+         */
+        @Deprecated
+        @Override
+        public void setFocusLost(final ConnectionCallback callback) throws RemoteException {
+            onBackground(callback, mDummyActivityDescriptor);
+        }
+
+        /**
+         * Shim for legacy V1 method
+         */
+        @Deprecated
+        @Override
+        public void setFocusGain(final ConnectionCallback callback) throws RemoteException {
+            onForeground(callback, mDummyActivityDescriptor);
+        }
+
+        /**
+         * Shim for legacy V1 method
+         */
+        @Deprecated
+        @Override
+        public void resourceAvailable(ConnectionCallback callback, Surface surface, Rect rect, String resourceID) throws RemoteException {
+            resourceAvailable(callback, mDummyActivityDescriptor, surface, rect, resourceID);
+        }
+
+        /**
+         * Shim for legacy V1 method
+         */
+        @Deprecated
+        @Override
+        public void resourceUnavailable(ConnectionCallback callback, String resourceID) throws RemoteException {
+            resourceUnavailable(callback, mDummyActivityDescriptor, resourceID);
+        }
+
+        /**
          * Message send to the service.
          */
         @Override
-        public void send(final ConnectionCallback callback, final String message) throws RemoteException {
+        public void send(final ConnectionCallback callback, ActivityDescriptor activity, final String message) throws RemoteException {
             if (null == callback || null == message)
                 throw new RemoteException("No routing identifiers");
-            L2_send(callback.getID(), message);
+
+            if (mServiceV1 != null) {
+                L2_send(callback.getID(), message);
+            } else if (mServiceV2 != null) {
+                L2_sendV2(callback.getID(), activity, message);
+            }
         }
 
         /**
@@ -913,69 +1089,28 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_send: " + message);
 
             try {
-                if (mService != null) {
-                    mService.L2_receive(mConnectionID, routingID, message);
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_receive(mConnectionID, routingID, message);
                 }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
                 throw (e);
             }
-        }
-
-        /**
-         * Message focus to the service.
-         */
-        @Override
-        public void setFocusLost(final ConnectionCallback callback) throws RemoteException {
-            if (null == callback)
-                throw new RemoteException("No routing identifiers");
-            L2_setFocusLost(callback.getID());
         }
 
         /**
          * Internal focus lost to the service.
          */
         @Override
-        public void L2_setFocusLost(final int routingID) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_setFocusLost");
-
-            try {
-                if (mService != null) {
-                    mService.L2_onFocusLost(mConnectionID, routingID);
-                }
-            } catch (final RemoteException e) {
-                Log.e(TAG, "calling send without service connection");
-                throw (e);
-            }
-        }
-
-
-        /**
-         * Message focus gained to the service.
-         */
-        @Override
-        public void setFocusGain(final ConnectionCallback callback) throws RemoteException {
-            if (null == callback)
-                throw new RemoteException("No routing identifiers");
-            L2_setFocusGained(callback.getID());
-        }
+        @Deprecated
+        public void L2_setFocusLost(final int routingID) throws RemoteException {}
 
         /**
          * Internal focus gained to the service.
          */
         @Override
-        public void L2_setFocusGained(final int routingID) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_setFocusGained");
-
-            try {
-                if (mService != null) {
-                    mService.L2_onFocusGained(mConnectionID, routingID);
-                }
-            } catch (final RemoteException e) {
-                Log.e(TAG, "calling send without service connection");
-                throw (e);
-            }
-        }
+        @Deprecated
+        public void L2_setFocusGained(final int routingID) throws RemoteException {}
 
 
         /**
@@ -996,8 +1131,8 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_pause");
 
             try {
-                if (mService != null) {
-                    mService.L2_onPause(mConnectionID, routingID);
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onPause(mConnectionID, routingID);
                 }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
@@ -1017,19 +1152,29 @@ public class ExtensionMultiplexClient {
         }
 
         @Override
-        public void resourceAvailable(ConnectionCallback callback, Surface surface, Rect rect, String resourceID) throws RemoteException {
+        public void resourceAvailable(ConnectionCallback callback, ActivityDescriptor activity, Surface surface, Rect rect, String resourceID) throws RemoteException {
             if (null == callback || null == surface ) {
                 throw new RemoteException("No routing identifiers");
             }
-            L2_resourceAvailable(callback.getID(), surface, rect, resourceID);
+
+            if (mServiceV1 != null) {
+                L2_resourceAvailable(callback.getID(), surface, rect, resourceID);
+            } else if (mServiceV2 != null) {
+                L2_resourceAvailableV2(callback.getID(), activity, surface, rect, resourceID);
+            }
         }
 
         @Override
-        public void resourceUnavailable(ConnectionCallback callback, String resourceID) throws RemoteException {
+        public void resourceUnavailable(ConnectionCallback callback, ActivityDescriptor activity, String resourceID) throws RemoteException {
             if (null == callback) {
                 throw new RemoteException("No routing identifiers");
             }
-            L2_resourceUnavailable(callback.getID(), resourceID);
+
+            if (mServiceV1 != null) {
+                L2_resourceUnavailable(callback.getID(), resourceID);
+            } else if (mServiceV2 != null) {
+                L2_resourceUnavailableV2(callback.getID(), activity, resourceID);
+            }
         }
 
         /**
@@ -1040,8 +1185,8 @@ public class ExtensionMultiplexClient {
             if (DEBUG) Log.d(TAG, "L2_resumed");
 
             try {
-                if (mService != null) {
-                    mService.L2_onResume(mConnectionID, routingID);
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onResume(mConnectionID, routingID);
                 }
             } catch (final RemoteException e) {
                 Log.e(TAG, "calling send without service connection");
@@ -1075,54 +1220,6 @@ public class ExtensionMultiplexClient {
             }
         }
 
-        private void notifyResourceRequest(final int routingID, final String resourceId) {
-            try {
-                ConnectionCallback callback = mCallbacks.get(routingID);
-                if (callback != null) {
-                    callback.onRequestResource(mExtensionURI, resourceId);
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "notifyResourceRequest error: ", e);
-            }
-        }
-
-        @Override
-        public void L2_onRequestResource(int routingID, String resourceId) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "onRequestResource: " + resourceId);
-
-            if (mHandler != null) {
-                mHandler.post(() -> notifyResourceRequest(routingID, resourceId));
-            } else {
-                notifyResourceRequest(routingID, resourceId);
-            }
-        }
-
-        @Override
-        public void L2_resourceAvailable(int routingID, Surface surface, Rect rect, String resourceID) throws RemoteException {
-            try {
-                if(DEBUG) Log.d(TAG, "onResourceAvailable: resourceID=" + resourceID);
-                if (mService != null) {
-                    mService.L2_onResourceAvailable(mConnectionID, routingID, surface, rect, resourceID);
-                }
-            } catch (final RemoteException e) {
-                Log.e(TAG, "calling resource available without service connection");
-                throw (e);
-            }
-        }
-
-        @Override
-        public void L2_resourceUnavailable(int routingID, String resourceID) throws RemoteException {
-            try {
-                if (mService != null) {
-                    mService.L2_onResourceUnavailable(mConnectionID, routingID, resourceID);
-                }
-            } catch (final RemoteException e) {
-                Log.e(TAG, "calling resource unavailable without service connection");
-                throw (e);
-            }
-        }
-
-
         /**
          * Internal fail processing.
          *
@@ -1143,7 +1240,305 @@ public class ExtensionMultiplexClient {
             }
         }
 
+        @Override
+        public void L2_onRequestResource(int routingID, String resourceId) throws RemoteException {
+            if (DEBUG) Log.d(TAG, "onRequestResource: " + resourceId);
 
+            if (mHandler != null) {
+                mHandler.post(() -> notifyResourceRequest(routingID, resourceId));
+            } else {
+                notifyResourceRequest(routingID, resourceId);
+            }
+        }
+
+        private void notifyResourceRequest(final int routingID, final String resourceId) {
+            try {
+                ConnectionCallback callback = mCallbacks.get(routingID);
+                if (callback != null) {
+                    callback.onRequestResource(mExtensionURI, resourceId);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "notifyResourceRequest error: ", e);
+            }
+        }
+
+        @Override
+        public void L2_resourceAvailable(int routingID, Surface surface, Rect rect, String resourceID) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onResourceAvailable: resourceID=" + resourceID);
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onResourceAvailable(mConnectionID, routingID, surface, rect, resourceID);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void L2_resourceUnavailable(int routingID, String resourceID) throws RemoteException {
+            try {
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onResourceUnavailable(mConnectionID, routingID, resourceID);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource unavailable without service connection");
+                throw (e);
+            }
+        }
+
+        /// V2 Specific handlers
+
+        @Override
+        public void L2_receiveV2(int routingID, ActivityDescriptor activity, String message) throws RemoteException {
+            if (DEBUG) Log.d(TAG, "L2_receiveV2: " + message);
+
+            if (mHandler != null) {
+                mHandler.post(() -> notifyMessageV2(routingID, activity, message));
+            } else {
+                notifyMessageV2(routingID, activity, message);
+            }
+        }
+
+        private void notifyMessageV2(final int routingID, ActivityDescriptor activity, final String message) {
+            // notify the L3 callback
+            try {
+                ConnectionCallback callback = mCallbacks.get(routingID);
+                if (callback != null) {
+                    callback.onMessage(activity, message);
+                } else {
+                    // may have requested disconnect before looper ran
+                    Log.w(TAG, "Failed to find client id = " + message);
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "onReceive callback error.", e);
+            }
+        }
+
+        @Override
+        public void L2_messageFailureV2(int routingID, ActivityDescriptor activity, int errorCode, String error, String failedMessage) throws RemoteException {
+            if (DEBUG) Log.d(TAG, "L2_messageFailure: " + failedMessage);
+
+            if (null != mHandler) {
+                boolean result = mHandler.post(() -> notifyMessageFailureV2(routingID, activity,
+                        errorCode, error, failedMessage));
+                if (!result) {
+                    throw new RemoteException("Remote message queue failed");
+                }
+            } else {
+                notifyMessageFailureV2(routingID, activity, errorCode, error, failedMessage);
+            }
+        }
+
+        private void notifyMessageFailureV2(final int routingID, ActivityDescriptor activity,
+                                            final int errorCode, final String error,
+                                            final String failedMessage) {
+            ConnectionCallback callback = mCallbacks.get(routingID);
+            if (callback != null) {
+                try {
+                    callback.onMessageFailure(activity, errorCode, error, failedMessage);
+                } catch (Exception e) {
+                    Log.e(TAG, "Error handling message failure:" + error);
+                }
+            }
+        }
+
+        @Override
+        public void L2_sendV2(int routingID, ActivityDescriptor activity, String message) throws RemoteException {
+            if (DEBUG) Log.d(TAG, "L2_sendV2: " + message);
+
+            try {
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_receive(mConnectionID, routingID, activity, message);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling send without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void L2_resourceAvailableV2(int routingID, ActivityDescriptor activity, Surface surface, Rect rect, String resourceID) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onResourceAvailableV2: resourceID=" + resourceID);
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onResourceAvailable(mConnectionID, routingID, activity, surface, rect, resourceID);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void L2_resourceUnavailableV2(int routingID, ActivityDescriptor activity, String resourceID) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onResourceUnavailableV2: resourceID=" + resourceID);
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onResourceUnavailable(mConnectionID, routingID, activity, resourceID);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onRegistered(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onRegisteredV2(callback.getID(), activity);
+        }
+
+        @Override
+        public void L2_onRegisteredV2(int routingID, ActivityDescriptor activity) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onRegisteredV2: activity=" + activity.getActivityId());
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onRegistered(mConnectionID, routingID, activity);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onUnregistered(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {
+            if (null == callback) {
+                throw new RemoteException("No routing identifiers");
+            }
+
+            if (mServiceV1 != null) {
+                disconnect(activity.getURI(), callback, "Un-registered");
+            }
+
+            L2_onUnregisteredV2(callback.getID(), activity);
+        }
+
+        @Override
+        public void L2_onUnregisteredV2(int routingID, ActivityDescriptor activity) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onUnregisteredV2: activity=" + activity.getActivityId());
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onUnregistered(mConnectionID, routingID, activity);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onSessionStarted(ConnectionCallback callback, SessionDescriptor session) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onSessionStartedV2(callback.getID(), session);
+        }
+
+        @Override
+        public void L2_onSessionStartedV2(int routingID, SessionDescriptor session) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onSessionStartedV2: activity=" + session.getId());
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onSessionStarted(mConnectionID, routingID, session);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onSessionEnded(ConnectionCallback callback, SessionDescriptor session) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onSessionEndedV2(callback.getID(), session);
+        }
+
+        @Override
+        public void L2_onSessionEndedV2(int routingID, SessionDescriptor session) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onSessionEndedV2: activity=" + session.getId());
+                if (mServiceV2 != null) {
+                    mServiceV2.L2_onSessionEnded(mConnectionID, routingID, session);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onForeground(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onForegroundV2(callback.getID(), activity);
+        }
+
+        @Override
+        public void L2_onForegroundV2(int routingID, ActivityDescriptor activity) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onForegroundV2: activity=" + activity.getActivityId());
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onFocusGained(mConnectionID, routingID);
+                } else if (mServiceV2 != null) {
+                    mServiceV2.L2_onForeground(mConnectionID, routingID, activity);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onBackground(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onBackgroundV2(callback.getID(), activity);
+        }
+
+        @Override
+        public void L2_onBackgroundV2(int routingID, ActivityDescriptor activity) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onBackgroundV2: activity=" + activity.getActivityId());
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onFocusLost(mConnectionID, routingID);
+                } else if (mServiceV2 != null) {
+                    mServiceV2.L2_onBackground(mConnectionID, routingID, activity);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
+
+        @Override
+        public void onHidden(ConnectionCallback callback, ActivityDescriptor activity) throws RemoteException {
+            if (null == callback)
+                throw new RemoteException("No routing identifiers");
+
+            L2_onHiddenV2(callback.getID(), activity);
+        }
+
+        @Override
+        public void L2_onHiddenV2(int routingID, ActivityDescriptor activity) throws RemoteException {
+            try {
+                if(DEBUG) Log.d(TAG, "onHiddenV2: activity=" + activity.getActivityId());
+                if (mServiceV1 != null) {
+                    mServiceV1.L2_onFocusLost(mConnectionID, routingID);
+                } else if (mServiceV2 != null) {
+                    mServiceV2.L2_onHidden(mConnectionID, routingID, activity);
+                }
+            } catch (final RemoteException e) {
+                Log.e(TAG, "calling resource available without service connection");
+                throw (e);
+            }
+        }
     }
-
 }

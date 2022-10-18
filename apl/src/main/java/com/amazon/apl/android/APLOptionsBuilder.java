@@ -22,6 +22,7 @@ import com.amazon.apl.android.dependencies.ISendEventCallback;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
@@ -281,10 +282,12 @@ public class APLOptionsBuilder {
 
     /**
      * Allows the consumer to set its own Media Provider.
-     *
+     * @deprecated This provider is not used.
+     * Instead, provider injected in {@link RootConfig#mediaPlayerFactory(RuntimeMediaPlayerFactory)}
      * @param provider The provider
      * @return The builder
      */
+    @Deprecated
     @NonNull
     public <T extends View> APLOptionsBuilder mediaPlayerProvider(@NonNull AbstractMediaPlayerProvider<T> provider) {
         mMediaPlayerProvider = provider;
@@ -425,7 +428,7 @@ public class APLOptionsBuilder {
                 .sendEventCallback(mSendEventCallback)
                 .screenLockListener(mScreenLockListener)
                 .openUrlCallback(mOpenUrlCallback)
-                .mediaPlayerProvider(mMediaPlayerProvider)
+                //.mediaPlayerProvider(mMediaPlayerProvider)
                 .imageUriSchemeValidator(mImageUriSchemeValidator)
                 .imageProvider(mImageDownloaderProvider)
                 .imageProcessor(mImageProcessor)

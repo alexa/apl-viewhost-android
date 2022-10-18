@@ -48,6 +48,7 @@ public class RenderingContext {
     private final IContentRetriever<Uri, String> avgRetriever;
     private final IExtensionEventCallback extensionEventCallback;
     private final APLTrace aplTrace;
+    private final boolean mediaPlayerV2Enabled;
 
     private RenderingContext(
             int docVersion,
@@ -64,7 +65,8 @@ public class RenderingContext {
             IBitmapCache bitmapCache,
             IContentRetriever<Uri, String> avgRetriever,
             IExtensionEventCallback extensionEventCallback,
-            APLTrace aplTrace) {
+            APLTrace aplTrace,
+            boolean mediaPlayerV2Enabled) {
         this.docVersion = docVersion;
         this.metricsTransform = metricsTransform;
         this.textLayoutFactory = textLayoutFactory;
@@ -80,6 +82,7 @@ public class RenderingContext {
         this.avgRetriever = avgRetriever;
         this.extensionEventCallback = extensionEventCallback;
         this.aplTrace = aplTrace;
+        this.mediaPlayerV2Enabled = mediaPlayerV2Enabled;
     }
 
     public int getDocVersion() {
@@ -146,6 +149,8 @@ public class RenderingContext {
 
     public APLTrace getAplTrace() { return aplTrace; }
 
+    public boolean isMediaPlayerV2Enabled() { return mediaPlayerV2Enabled; }
+
     // Defaults are no-ops
     public static Builder builder() {
         return new Builder()
@@ -179,6 +184,7 @@ public class RenderingContext {
         private IContentRetriever<Uri, String> avgRetriever;
         private IExtensionEventCallback extensionEventCallback;
         private APLTrace aplTrace;
+        private boolean isMediaPlayerV2Enabled;
 
         Builder() {
         }
@@ -259,6 +265,11 @@ public class RenderingContext {
             return this;
         }
 
+        public RenderingContext.Builder isMediaPlayerV2Enabled(boolean isMediaPlayerV2Enabled) {
+            this.isMediaPlayerV2Enabled = isMediaPlayerV2Enabled;
+            return this;
+        }
+
         public RenderingContext build() {
             return new RenderingContext(
                     this.docVersion,
@@ -275,7 +286,8 @@ public class RenderingContext {
                     this.bitmapCache,
                     this.avgRetriever,
                     this.extensionEventCallback,
-                    this.aplTrace);
+                    this.aplTrace,
+                    this.isMediaPlayerV2Enabled);
         }
     }
 }

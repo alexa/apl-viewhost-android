@@ -6,15 +6,19 @@
 package com.amazon.apl.android.providers;
 
 import android.content.Context;
+
+import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import android.view.View;
 
 import com.amazon.apl.android.IDocumentLifecycleListener;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.dependencies.impl.NoOpMediaPlayer;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -76,6 +80,7 @@ public abstract class AbstractMediaPlayerProvider<T extends View> implements IMe
     /**
      * Releases all media player instances.
      */
+    @CallSuper
     public void releasePlayers() {
         // create a new array to avoid a ConcurrentModificationException
         List<IMediaPlayer> players = new LinkedList<>(mPlayers);

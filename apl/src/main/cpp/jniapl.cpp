@@ -5,6 +5,10 @@
 
 #include <jni.h>
 
+#include "jniaudioplayer.h"
+#include "jniaudioplayerfactory.h"
+#include "jnimediaplayer.h"
+#include "jnimediaplayerfactory.h"
 #include "jnirootcontext.h"
 #include "jnirootconfig.h"
 #include "jnicontent.h"
@@ -45,11 +49,16 @@ namespace apl {
             jboolean jniscalingLoaded = jniscaling_OnLoad(vm, reserved);
             jboolean textmeasureLoaded = textmeasurecallback_OnLoad(vm, reserved);
             jboolean localExtensionMediatorLoaded = extensionmediator_OnLoad(vm, reserved);
+            jboolean audioFactoryLoaded = audioplayerfactory_OnLoad(vm, reserved);
+            jboolean audioPlayerLoaded = audioplayer_OnLoad(vm, reserved);
+            jboolean mediaplayerLoaded = mediaplayer_OnLoad(vm, reserved);
+            jboolean mediaplayerFactoryLoaded = mediaplayerfactory_OnLoad(vm, reserved);
 
             if (!driverLoaded || !contentLoaded || !rootconfigLoaded
                 || !complexpropertyLoaded || !eventLoaded || !actionLoaded || !graphicLoaded
                 || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded
-                || !localExtensionMediatorLoaded)  {
+                || !localExtensionMediatorLoaded || !audioFactoryLoaded || !audioPlayerLoaded
+                || !localExtensionMediatorLoaded || !mediaplayerLoaded || !mediaplayerFactoryLoaded)  {
                 return JNI_ERR;
             }
 
@@ -74,6 +83,10 @@ namespace apl {
             jniutil_OnUnload(vm, reserved);
             textmeasurecallback_OnUnload(vm, reserved);
             extensionmediator_OnUnload(vm, reserved);
+            audioplayerfactory_OnUnload(vm, reserved);
+            audioplayer_OnUnload(vm, reserved);
+            mediaplayer_OnUnload(vm, reserved);
+            mediaplayerfactory_OnUnload(vm, reserved);
         }
 
     } //namespace jni

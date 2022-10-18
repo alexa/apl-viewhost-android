@@ -7,7 +7,16 @@ package com.amazon.apl.android;
 
 import android.os.Looper;
 
+import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
+import static com.amazon.apl.android.APLController.setLibraryFuture;
+import androidx.test.platform.app.InstrumentationRegistry;
+
+import com.amazon.apl.android.bitmap.IBitmapPool;
+import com.amazon.apl.android.dependencies.IContentCompleteCallback;
+import com.amazon.apl.android.font.CompatFontResolver;
+import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.DisplayState;
 
@@ -16,8 +25,12 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -48,6 +61,18 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private IAPLViewPresenter mViewPresenter;
     @Mock
     private RootConfig mRootConfig;
+    @Mock
+    private AbstractMediaPlayerProvider mMediaPlayerProvider;
+    @Mock
+    private ExtensionMediator mExtensionMediator;
+    @Mock
+    private ITtsPlayerProvider mTtsPlayerProvider;
+    @Mock
+    private Future<Boolean> mLibraryFuture;
+    @Mock
+    private IContentCompleteCallback mContentCompleteCallback;
+    @Mock
+    private DocumentSession mDocumentSession;
 
     private APLController mController;
 
@@ -56,7 +81,15 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         mController = new APLController(mRootContext, mContent);
         when(mRootContext.executeCommands(any())).thenReturn(mAction);
         when(mRootContext.getOptions()).thenReturn(mOptions);
+        when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
+        try {
+            when(mLibraryFuture.get()).thenReturn(true);
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -172,6 +205,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.pauseDocument();
 
+        verify(mRootContext).getRootConfig();
         verifyNoMoreInteractions(mRootContext);
     }
 
@@ -192,6 +226,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.updateDisplayState(DisplayState.kDisplayStateHidden);
 
+        verify(mRootContext).getRootConfig();
         verifyNoMoreInteractions(mRootContext);
     }
 
@@ -203,6 +238,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.finishDocument();
         verify(mRootContext).finishDocument();
+        verify(mRootContext).getRootConfig();
 
         mController.getDocVersion();
 
@@ -221,8 +257,66 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
                 .contentCreator(((aplDocument, options, callbackV2, session) -> mContent))
+                .documentSession(mDocumentSession)
                 .render();
 
         verify(mViewPresenter).addDocumentLifecycleListener(mockTelemetry);
+    }
+
+    @Test
+    public void testRenderV2_addsRootConfigLifecycleListeners() {
+        Collection<IDocumentLifecycleListener> listeners = new LinkedList<>();
+        listeners.add(mExtensionMediator);
+        listeners.add(mTtsPlayerProvider);
+        listeners.add(mMediaPlayerProvider);
+        listeners.add(null);
+        when(mRootConfig.getDocumentLifecycleListeners()).thenReturn(listeners);
+        ITelemetryProvider mockTelemetry = mock(ITelemetryProvider.class);
+        APLOptions aplOptions = APLOptions.builder()
+                .telemetryProvider(mockTelemetry).build();
+
+        APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(aplOptions)
+                .contentCreator(((aplDocument, options, callbackV2, session) -> mContent))
+                .documentSession(mDocumentSession)
+                .render();
+
+        verify(mViewPresenter).addDocumentLifecycleListener(mockTelemetry);
+        verify(mViewPresenter).addDocumentLifecycleListener(mExtensionMediator);
+        verify(mViewPresenter).addDocumentLifecycleListener(mMediaPlayerProvider);
+        verify(mViewPresenter).addDocumentLifecycleListener(mTtsPlayerProvider);
+    }
+
+    @Test
+    public void testRenderV2_contentCompleteCallbackOnComplete() {
+        RuntimeConfig runtimeConfig = RuntimeConfig.builder().
+                fontResolver(new CompatFontResolver()).
+                bitmapPool(mock(IBitmapPool.class)).
+                build();
+        TypefaceResolver.getInstance().initialize(InstrumentationRegistry.getInstrumentation().getContext(),
+                runtimeConfig);
+
+        APLController.initializeAPL(InstrumentationRegistry.getInstrumentation().getContext(), runtimeConfig);
+        ITelemetryProvider mockTelemetry = mock(ITelemetryProvider.class);
+        setLibraryFuture(mLibraryFuture);
+        APLOptions aplOptions = APLOptions.builder()
+                .contentCompleteCallback(mContentCompleteCallback)
+                .telemetryProvider(mockTelemetry).build();
+
+
+        APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(aplOptions)
+                .contentCreator(((aplDocument, options, callbackV2, session) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .documentSession(mDocumentSession)
+                .render();
+
+        verify(mViewPresenter).addDocumentLifecycleListener(mockTelemetry);
+        verify(mContentCompleteCallback).onComplete();
     }
 }

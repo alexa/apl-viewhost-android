@@ -31,4 +31,10 @@ public interface ICache<K,V> extends ComponentCallbacks2 {
      * @param val   the value
      */
     void put(@NonNull K key, @NonNull V val);
+
+    /**
+     * Get size of cache in bytes.
+     * @return
+     */
+    int getSize();
 }

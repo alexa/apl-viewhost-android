@@ -34,43 +34,57 @@ namespace jni {
 
         ~AndroidExtensionProxy() override;
 
+        /// alexaext::ExtensionProxy overrides
         std::set<std::string> getURIs() const override;
         bool initializeExtension(const std::string &uri) override;
         bool isInitialized(const std::string &uri) const override;
         bool getRegistration(
-                const std::string &uri,
-                const rapidjson::Value &registrationRequest,
-                RegistrationSuccessCallback success,
-                RegistrationFailureCallback error) override;
-        bool invokeCommand(const std::string &uri, const rapidjson::Value &command,
-                           CommandSuccessCallback success, CommandFailureCallback error) override;
-        bool sendMessage(const std::string &uri, const rapidjson::Value &message) override;
-        void registerEventCallback(alexaext::Extension::EventCallback callback) override;
-        void registerLiveDataUpdateCallback(alexaext::Extension::LiveDataUpdateCallback callback) override;
-        void onRegistered(const std::string &uri, const std::string &token) override;
-        void onUnregistered(const std::string &uri, const std::string &token) override;
+                const ActivityDescriptor& activity,
+                const rapidjson::Value& registrationRequest,
+                RegistrationSuccessActivityCallback&& success,
+                RegistrationFailureActivityCallback&& error) override;
+        bool invokeCommand(
+                const ActivityDescriptor& activity,
+                const rapidjson::Value& command,
+                CommandSuccessActivityCallback&& success,
+                CommandFailureActivityCallback&& error) override;
+        bool sendComponentMessage(
+                const ActivityDescriptor& activity,
+                const rapidjson::Value& message) override;
+        void registerEventCallback(
+                const ActivityDescriptor& activity,
+                Extension::EventActivityCallback&& callback) override;
+        void registerLiveDataUpdateCallback(
+                const ActivityDescriptor& activity,
+                Extension::LiveDataUpdateActivityCallback&& callback) override;
+        void onRegistered(const ActivityDescriptor& activity) override;
+        void onUnregistered(const ActivityDescriptor& activity) override;
 
-        void registrationResult(const std::string &uri, const std::string &registrationResult);
+        void onResourceReady(
+                const ActivityDescriptor& activity,
+                const ResourceHolderPtr &resourceHolder) override;
+        void onSessionStarted(const SessionDescriptor& session) override;
+        void onSessionEnded(const SessionDescriptor& session) override;
+        void onForeground(const ActivityDescriptor& activity) override;
+        void onBackground(const ActivityDescriptor& activity) override;
+        void onHidden(const ActivityDescriptor& activity) override;
 
-        void commandResult(const std::string &uri, const std::string &commandResult);
 
-        void onResourceReady(const std::string &uri, const alexaext::ResourceHolderPtr &resourceHolder) override ;
-
-        bool invokeExtensionEventHandler(const std::string& uri, const std::string& event);
-
-        bool invokeLiveDataUpdate(const std::string& uri, const std::string& liveDataUpdate);
-
+        void registrationResult(const ActivityDescriptor& activity, const std::string &registrationResult);
+        void commandResult(const ActivityDescriptor& activity, const std::string &commandResult);
+        bool invokeExtensionEventHandler(const ActivityDescriptor& activity, const std::string& event);
+        bool invokeLiveDataUpdate(const ActivityDescriptor& activity, const std::string& liveDataUpdate);
         bool attachSurfaceHolder(JNIEnv *env, jstring resourceId, jobject surfaceHolder);
 
     private:
         jweak mWeakInstance;
         std::set<std::string> mURIs;
-        std::vector<alexaext::Extension::EventCallback> mEventCallbacks;
-        std::vector<alexaext::Extension::LiveDataUpdateCallback> mLiveDataCallbacks;
-        RegistrationSuccessCallback mRegistrationSuccessCallback;
-        RegistrationFailureCallback mRegistrationErrorCallback;
-        CommandSuccessCallback mCommandSuccessCallback;
-        CommandFailureCallback mCommandErrorCallback;
+        std::vector<alexaext::Extension::EventActivityCallback> mEventCallbacks;
+        std::vector<alexaext::Extension::LiveDataUpdateActivityCallback> mLiveDataCallbacks;
+        RegistrationSuccessActivityCallback mRegistrationSuccessCallback;
+        RegistrationFailureActivityCallback mRegistrationErrorCallback;
+        CommandSuccessActivityCallback mCommandSuccessCallback;
+        CommandFailureActivityCallback mCommandErrorCallback;
         bool mInitialized;
     };
 }

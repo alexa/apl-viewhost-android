@@ -128,7 +128,7 @@ public abstract class GraphicElement extends BoundObject {
         return Gradient.create(this, property);
     }
 
-    void applyDirtyProperties(@NonNull Set<Integer> dirtyGraphicUniqueIds) {
+    public void applyDirtyProperties(@NonNull Set<Integer> dirtyGraphicUniqueIds) {
         for (Integer graphicElementId : dirtyGraphicUniqueIds) {
             GraphicElement element = mGraphicElementMap.get(graphicElementId);
             if (element != null) {

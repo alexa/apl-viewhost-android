@@ -2,28 +2,28 @@
 	"sources" : 
 	[
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/pegtl-build"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/CMakeFiles/pegtl-build"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/CMakeFiles/pegtl-build.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/CMakeFiles/pegtl-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"
 		}
 	],
 	"target" : 

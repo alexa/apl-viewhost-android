@@ -9,10 +9,14 @@ import android.os.RemoteException;
 import android.util.Log;
 import android.view.Surface;
 
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.SessionDescriptor;
+
 /**
  * This abstract class represents a single client to an extension.
+ * @deprecated Appropriate ExtensionProxy should be used.
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public  class AbstractExtensionClient implements ExtensionMultiplexClient.ConnectionCallback {
     private static final String TAG = "AbstractExtensionClient";
 
@@ -41,10 +45,9 @@ public  class AbstractExtensionClient implements ExtensionMultiplexClient.Connec
      * Called when the document executes an extension command.
      */
     public void sendMessage(final String message) {
-
         try {
             if (mConnection != null) {
-                mConnection.send(this, message);
+                mConnection.send(this, new ActivityDescriptor("", new SessionDescriptor(""), ""), message);
             } else {
                 Log.w(AbstractExtensionClient.TAG, "Calling command when service is not connected");
             }
@@ -56,7 +59,7 @@ public  class AbstractExtensionClient implements ExtensionMultiplexClient.Connec
     public void sendResourceAvailable(Surface surface, Rect rect, String resourceID) {
         try {
             if (mConnection != null) {
-                mConnection.resourceAvailable(this, surface, rect, resourceID);
+                mConnection.resourceAvailable(this, new ActivityDescriptor("", new SessionDescriptor(""), ""), surface, rect, resourceID);
             } else {
                 Log.w(AbstractExtensionClient.TAG, "Calling command when service is not connected");
             }
@@ -68,7 +71,7 @@ public  class AbstractExtensionClient implements ExtensionMultiplexClient.Connec
     public void sendResourceUnavailable(String resourceID) {
         try {
             if (mConnection != null) {
-                mConnection.resourceUnavailable(this, resourceID);
+                mConnection.resourceUnavailable(this, new ActivityDescriptor("", new SessionDescriptor(""), ""), resourceID);
             } else {
                 Log.w(AbstractExtensionClient.TAG, "Calling command when service is not connected");
             }

@@ -9,10 +9,12 @@ import android.content.Context;
 import android.view.View;
 
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.Video;
 import com.amazon.apl.android.component.VideoViewAdapter;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 
 import org.junit.Before;
@@ -25,6 +27,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,11 +76,22 @@ public class ControlMediaEventTest extends AbstractDocUnitTest {
             "  \"value\": %d\n" +
             "}]";
 
+    private static final String SET_MUTE = "[{\n" +
+            "  \"type\": \"SetValue\",\n" +
+            "  \"componentId\": \"VideoPlayer\",\n" +
+            "  \"property\": \"muted\",\n" +
+            "  \"value\": %b\n" +
+            "}]";
+
     @Mock private IMediaPlayer mMockPlayer;
     @Mock private View mMockView;
 
     @Before
     public void setup() {
+        MockitoAnnotations.initMocks(this);
+        mRootConfig = RootConfig.create("Unit Test", "1.0")
+                .allowOpenUrl(true)
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(new MediaPlayerProvider()));
         MockitoAnnotations.initMocks(this);
 
 
@@ -145,6 +160,22 @@ public class ControlMediaEventTest extends AbstractDocUnitTest {
         mRootContext.executeCommands(getCommand("setTrack", 1));
         update(100); // executes play media command
         verify(mMockPlayer).setTrack(1);
+    }
+
+    @Test
+    @SmallTest
+    public void testCommands_mute() {
+        mRootContext.executeCommands(String.format(SET_MUTE, "mute", true));
+        update(100); // executes SetValue command to change muted property of Video to true
+        verify(mMockPlayer).mute();
+    }
+
+    @Test
+    @SmallTest
+    public void testCommands_unmute() {
+        mRootContext.executeCommands(String.format(SET_MUTE, "mute", false));
+        update(100); // executes SetValue command to change muted property of Video to false
+        verify(mMockPlayer).unmute();
     }
 
     @Test

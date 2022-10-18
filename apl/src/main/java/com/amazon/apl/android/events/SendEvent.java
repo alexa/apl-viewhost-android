@@ -51,7 +51,7 @@ public class SendEvent extends Event {
         Map<String, Object> flags = mProperties.get(EventProperty.kEventPropertyFlags);
         // Our visual context may be up to 500 ms stale for performance reasons
         // so this pushes an update to the runtime.
-        mRootContext.notifyVisualContext();
+        mRootContext.notifyContext();
         mSendEventCallback.onSendEvent(args, components, sources, flags);
     }
 

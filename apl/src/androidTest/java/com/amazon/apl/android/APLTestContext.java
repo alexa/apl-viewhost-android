@@ -6,8 +6,12 @@
 package com.amazon.apl.android;
 
 import android.content.Context;
+import android.view.TextureView;
 import android.view.View;
 
+import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.RootProperty;
@@ -21,6 +25,7 @@ import java.util.HashMap;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import static junit.framework.TestCase.fail;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,6 +65,7 @@ public class APLTestContext {
     // The view context bv
     private IAPLViewPresenter mPresenter = mock(IAPLViewPresenter.class);
 
+    private IMediaPlayer mMockMediaPlayer = mock(IMediaPlayer.class);
 
     public Content buildContent() {
         if (mContent == null) {
@@ -113,7 +119,7 @@ public class APLTestContext {
 
 
     public RootConfig buildRootConfig() {
-        if (mRootConfig == null)
+        if (mRootConfig == null) {
             mRootConfig = RootConfig.create("Unit Test", "1.0")
                     .registerDataSource("dynamicIndexList")
                     // On heavy load, the speed of the Espresso `swipeLeft` and `swipeRight` actions
@@ -121,10 +127,24 @@ public class APLTestContext {
                     // We need to lower the threshold so that the swipes get detected properly.
                     .set(RootProperty.kTapOrScrollTimeout, 50) // Half of the Fast swipe speed.
                     .pagerChildCache(3)
-                    .sequenceChildCache(3);
+                    .sequenceChildCache(3)
+                    .mediaPlayerFactory(new RuntimeMediaPlayerFactory(new MediaPlayerProvider()));
+        }
         return mRootConfig;
     }
 
+    private class MediaPlayerProvider extends AbstractMediaPlayerProvider<View> {
+
+        @Override
+        public IMediaPlayer createPlayer(Context context, View view) {
+            return mMockMediaPlayer;
+        }
+
+        @Override
+        public View createView(Context context) {
+            return new TextureView(context);
+        }
+    }
 
     public IAPLViewPresenter buildPresenter() {
         when(mPresenter.getContext()).thenReturn(InstrumentationRegistry.getInstrumentation().getContext());
@@ -145,7 +165,6 @@ public class APLTestContext {
 
 
     public RootContext buildRootContext() {
-
         APLController.setRuntimeConfig(RuntimeConfig.builder().build());
         buildRootContextDependencies();
 

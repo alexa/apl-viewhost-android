@@ -2,37 +2,37 @@
 	"sources" : 
 	[
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest-complete.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/CMakeFiles/googletest-complete.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/arm64-v8a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule"
 		}
 	],
 	"target" : 

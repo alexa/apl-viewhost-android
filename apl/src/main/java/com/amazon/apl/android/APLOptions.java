@@ -10,6 +10,8 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.amazon.apl.android.audio.IAudioPlayerFactory;
+import com.amazon.apl.android.dependencies.IContentCompleteCallback;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IContentDataRetriever;
 import com.amazon.apl.android.dependencies.IDataSourceContextListener;
@@ -28,6 +30,7 @@ import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
 import com.amazon.apl.android.extension.IExtensionRegistration;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
@@ -68,7 +71,21 @@ public abstract class APLOptions {
     // Providers
     public abstract ITelemetryProvider getTelemetryProvider();
     public abstract IImageLoaderProvider getImageProvider();
+
+    /**
+     * Get the specified MediaPlayerProvider
+     * @return {@link AbstractMediaPlayerProvider}
+     * @deprecated Please use {@link RootConfig#getMediaPlayerFactoryProxy()}
+     */
+    @Deprecated
     public abstract AbstractMediaPlayerProvider getMediaPlayerProvider();
+
+    /**
+     * Get the specified TtsPlayerProvider
+     * @return {@link ITtsPlayerProvider}
+     * @deprecated Please use {@link RootConfig#getAudioPlayerFactoryProxy()}
+     */
+    @Deprecated
     public abstract ITtsPlayerProvider getTtsPlayerProvider();
 
     @Nullable
@@ -94,6 +111,8 @@ public abstract class APLOptions {
     public abstract IExtensionImageFilterCallback getExtensionImageFilterCallback();
 
     public abstract ExtensionMediator.IExtensionGrantRequestCallback getExtensionGrantRequestCallback();
+
+    public abstract IContentCompleteCallback getContentCompleteCallback();
 
     public abstract IExtensionRegistration getExtensionRegistration();
 
@@ -138,6 +157,7 @@ public abstract class APLOptions {
                 .openUrlCallback((url, result)-> result.onResult(false))
                 .extensionEventCallback((name, uri, source, custom, resultCallback) -> {})
                 .extensionGrantRequestCallback((uri) -> true)
+                .contentCompleteCallback(() -> {})
                 .extensionImageFilterCallback((sourceBitmap, destinationBitmap, params) -> sourceBitmap)
                 .extensionRegistration(new IExtensionRegistration() {
                     @Override
@@ -174,14 +194,18 @@ public abstract class APLOptions {
          * Defaults to {@link MediaPlayerProvider}
          * @param provider a media player provider
          * @return this builder
+         * @deprecated Please use {@link RootConfig#mediaPlayerFactory(RuntimeMediaPlayerFactory)}
          */
+        @Deprecated
         public abstract Builder mediaPlayerProvider(AbstractMediaPlayerProvider provider);
 
         /**
          * Defaults to {@link NoOpTtsPlayerProvider}
          * @param provider a tts player provider
          * @return this builder
+         * @deprecated Please use {@link RootConfig#audioPlayerFactory(IAudioPlayerFactory)}
          */
+        @Deprecated
         public abstract Builder ttsPlayerProvider(ITtsPlayerProvider provider);
 
         /**
@@ -241,6 +265,14 @@ public abstract class APLOptions {
          */
         @Deprecated
         public abstract Builder extensionEventCallback(IExtensionEventCallback callback);
+
+        /**
+         * Support content complete: callback for handling when all the imports have been successfully downloaded
+         *
+         * @param callback a callback for {@link com.amazon.apl.android.content}
+         * @return this builder
+         */
+        public abstract Builder contentCompleteCallback(IContentCompleteCallback callback);
 
         /**
          * Required to support granted extensions.

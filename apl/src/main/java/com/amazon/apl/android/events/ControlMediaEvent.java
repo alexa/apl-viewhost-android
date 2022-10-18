@@ -21,6 +21,7 @@ import com.amazon.apl.enums.EventProperty;
 
 
 /**
+ * TODO [JIRA-28202] Delete this and automatically update consumers to new api
  * APL ControlMedia Event
  * See @{link <a https://developer.amazon.com/docs/alexa-presentation-language/apl-commands-media.html#controlmedia>
  *     APL Command Specification</a>}

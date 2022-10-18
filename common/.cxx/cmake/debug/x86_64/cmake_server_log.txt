@@ -47,6 +47,7 @@ CMAKE SERVER: {
     "-DCMAKE_ANDROID_NDK\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON",
     "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/debug/obj/x86_64",
+    "-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/debug/obj/x86_64",
     "-DCMAKE_MAKE_PROGRAM\u003d/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
     "-DCMAKE_SYSTEM_NAME\u003dAndroid",
     "-DCMAKE_SYSTEM_VERSION\u003d22"

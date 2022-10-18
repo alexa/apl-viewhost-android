@@ -8,7 +8,9 @@ package com.amazon.alexa.android.extension.discovery;
  * L3 Client.
  * This abstract class represents a single client to a remote service.  Concrete implementations
  * of this class are application specific.
+ * @deprecated Appropriate ExtensionProxy should be used.
  */
+@Deprecated
 public class ExtensionClientCallback implements ExtensionMultiplexClient.ConnectionCallback {
 
     final int mID = ExtensionMultiplexClient.randomConnectionID();

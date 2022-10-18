@@ -48,6 +48,6 @@ public class APLViewPresenterTest extends ViewhostRobolectricTest {
         
         InOrder inOrder = inOrder(lifeCycleListener, mockRootContext);
         inOrder.verify(lifeCycleListener).onDocumentRender(mockRootContext);
-        inOrder.verify(mockRootContext).notifyVisualContext();
+        inOrder.verify(mockRootContext).notifyContext();
     }
 }

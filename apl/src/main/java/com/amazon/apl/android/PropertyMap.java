@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.apl.android.primitive.AccessibilityActions;
+import com.amazon.apl.android.primitive.BoundMediaSources;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.primitive.Gradient;
@@ -160,8 +161,18 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
         return Gradient.create(getMapOwner(), property);
     }
 
+    /**
+     * @deprecated The mediasources are now directly set from Core. So this query method should not be used.
+     * @param property
+     * @return {@link MediaSources}
+     */
+    @Deprecated
     public final MediaSources getMediaSources(K property) {
-        return MediaSources.create(getMapOwner(), property);
+        return MediaSources.create();
+    }
+
+    public final BoundMediaSources getBoundMediaSources(K property) {
+        return BoundMediaSources.create(getMapOwner(), property);
     }
 
     public final UrlRequests getUrlRequests(K property) {

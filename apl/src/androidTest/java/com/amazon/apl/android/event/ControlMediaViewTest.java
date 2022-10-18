@@ -10,8 +10,10 @@ import android.view.View;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.document.AbstractDocViewTest;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 
@@ -55,7 +57,7 @@ public class ControlMediaViewTest extends AbstractDocViewTest {
             "        \"items\": {\n" +
             "          \"type\": \"Video\",\n" +
             "          \"id\": \"video\",\n" +
-            "          \"source\": \"https://d3891lgtxgmxvq.cloudfront.net/speechlet-assets/foodnetwork/Amazon_FNK_Promo.m3u8\",\n" +
+            "          \"source\": \"sourceUrl\",\n" +
             "          \"audioTrack\": \"foreground\",\n" +
             "          \"width\": \"100\",\n" +
             "          \"height\": \"100\"\n" +
@@ -65,26 +67,30 @@ public class ControlMediaViewTest extends AbstractDocViewTest {
     @Mock private IMediaPlayer mMockPlayer;
     APLOptions mOptions;
 
+    private final AbstractMediaPlayerProvider mMediaPlayerProvider = new AbstractMediaPlayerProvider() {
+        @Override
+        public View createView(Context context) {
+            return new View(context);
+        }
+
+        @Override
+        public IMediaPlayer createPlayer(Context context, View view) {
+            return mMockPlayer;
+        }
+    };
+
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        mOptions = APLOptions.builder().mediaPlayerProvider(new AbstractMediaPlayerProvider() {
-            @Override
-            public View createView(Context context) {
-                return new View(context);
-            }
-
-            @Override
-            public IMediaPlayer createPlayer(Context context, View view) {
-                return mMockPlayer;
-            }
-        }).build();
+        mOptions = APLOptions.builder().mediaPlayerProvider(mMediaPlayerProvider).build();
     }
 
     @Test
     public void testInflatingVideoPlayer_playsVideo_correctSize() {
+        RootConfig rootConfig = RootConfig.create("Unit Test", "1.0")
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(mMediaPlayerProvider));
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(inflateWithOptions(DISPLAY_AND_PLAY_VIDEO, "", mOptions))
+                .perform(inflateWithOptions(DISPLAY_AND_PLAY_VIDEO, "", mOptions, rootConfig))
                 .check(hasRootContext());
 
         onView(withComponent(mTestContext.getTestComponent()))

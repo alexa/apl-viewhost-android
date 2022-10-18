@@ -1,7 +1,12 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
 package com.amazon.alexaext;
 
 import android.os.RemoteException;
 import android.util.Log;
+import android.util.Pair;
 import android.view.SurfaceHolder;
 
 import androidx.annotation.CallSuper;
@@ -25,15 +30,26 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     @NonNull
     protected final ExtensionMultiplexClient mMultiplexClient;
     @NonNull
-    protected final Map<String, String> mRegistrations = new HashMap<>();
+    protected final Map<String, Pair<ActivityDescriptor, String>> mRegistrations = new HashMap<>();
+    @NonNull
+    protected final List<SessionDescriptor> mSessions = new ArrayList<>();
 
     // Messages from extension
     protected final List<String> mInboundMessages = new ArrayList<>();
+
+    protected final List<Pair<ActivityDescriptor, String>> mInboundV2Messages = new ArrayList<>();
 
     private InternalMessageAction mOnInternalMessageAction;
 
     // Connected means the extensions is bound, see onConnect().
     protected boolean mConnected;
+
+    /**
+     * Backwards compatibility.
+     */
+    @Nullable
+    @Deprecated
+    protected ActivityDescriptor mCachedDescriptor;
 
     /**
      * Registered means that RegisterSuccess message has been passed to discovery.
@@ -53,7 +69,7 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     private ExtensionMultiplexClient.IMultiplexClientConnection mConnection;
 
     interface InternalMessageAction {
-        boolean act(@NonNull String uri, String message, boolean registered);
+        boolean act(@NonNull ActivityDescriptor activity, String message, boolean registered);
     }
 
     BaseRemoteProxyDelegate(@NonNull final ExtensionMultiplexClient multiplexClient) {
@@ -83,14 +99,15 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     }
 
     @CallSuper
-    synchronized boolean onRequestRegistration(@NonNull final String uri, final String request) {
+    synchronized boolean onRequestRegistration(@NonNull final ActivityDescriptor activity, final String request) {
+        mCachedDescriptor = activity;
         if (!mRegistered) {
             if (!mConnected) {
                 // Delay as can be processed only after connection
-                mRegistrations.put(uri, request);
+                mRegistrations.put(activity.getURI(), Pair.create(activity, request));
                 return true;
             }
-            return sendMessage(uri, request);
+            return sendMessage(activity, request);
         }
 
         return false;
@@ -107,12 +124,22 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
         return mID;
     }
 
-    synchronized void onRegisteredInternal(@NonNull final String uri) {
+    synchronized void onRegisteredInternal(@NonNull final ActivityDescriptor activity) {
         // Now we can transfer other messages.
         mRegistered = true;
 
+        if (!mConnected) {
+            return;
+        }
+
+        try {
+            mConnection.onRegistered(this, activity);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify registration.", e);
+        }
+
         for (String message : mInboundMessages) {
-            onMessageInternal(uri, message);
+            onMessageInternal(activity.getURI(), message);
         }
     }
 
@@ -121,11 +148,90 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             throw new IllegalStateException("MessageAction not provided");
         }
 
-        return mOnInternalMessageAction.act(uri, message, mRegistered);
+        if (mCachedDescriptor == null) return false;
+        if (!mCachedDescriptor.getURI().equals(uri)) return false;
+
+        return mOnInternalMessageAction.act(mCachedDescriptor, message, mRegistered);
     }
 
-    void onUnregisteredInternal(@NonNull final String uri) {
-        disconnect(uri, "Un-registered");
+    boolean onMessageInternal(@NonNull final ActivityDescriptor activity, final String message) {
+        if (mOnInternalMessageAction == null) {
+            throw new IllegalStateException("MessageAction not provided");
+        }
+
+        return mOnInternalMessageAction.act(activity, message, mRegistered);
+    }
+
+    void onUnregisteredInternal(@NonNull final ActivityDescriptor activity) {
+        try {
+            mConnection.onUnregistered(this, activity);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify un-registration.", e);
+        }
+
+        mCachedDescriptor = null;
+        mRegistered = false;
+    }
+
+    void onSessionStartedInternal(@NonNull final SessionDescriptor session) {
+        if (!mConnected) {
+            mSessions.add(session);
+            return;
+        }
+
+        try {
+            mConnection.onSessionStarted(this, session);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify session start.", e);
+        }
+    }
+
+    void onSessionEndedInternal(@NonNull final SessionDescriptor session) {
+        if (!mConnected) {
+            return;
+        }
+
+        try {
+            mConnection.onSessionEnded(this, session);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify session end.", e);
+        }
+    }
+
+    void onForegroundInternal(@NonNull final ActivityDescriptor activity) {
+        if (!mConnected) {
+            return;
+        }
+
+        try {
+            mConnection.onForeground(this, activity);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify foreground.", e);
+        }
+    }
+
+    void onBackgroundInternal(@NonNull final ActivityDescriptor activity) {
+        if (!mConnected) {
+            return;
+        }
+
+        try {
+            mConnection.onBackground(this, activity);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify background.", e);
+        }
+    }
+
+    void onHiddenInternal(@NonNull final ActivityDescriptor activity) {
+        if (!mConnected) {
+            return;
+        }
+
+        try {
+            mConnection.onHidden(this, activity);
+        } catch (RemoteException e) {
+            Log.wtf(TAG, "Unable to notify hidden.", e);
+        }
     }
 
     /**
@@ -138,20 +244,28 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     public synchronized void onConnect(String extensionURI) {
         mConnected = true;
 
-        if (mRegistrations.containsKey(extensionURI)) {
-            sendMessage(extensionURI, mRegistrations.get(extensionURI));
+        if (!mSessions.isEmpty()) {
+            for (SessionDescriptor session : mSessions) {
+                onSessionStartedInternal(session);
+            }
+            mSessions.clear();
+        }
+
+        Pair<ActivityDescriptor, String> registration = mRegistrations.get(extensionURI);
+        if (registration != null) {
+            sendMessage(registration.first, registration.second);
             mRegistrations.remove(extensionURI);
         }
     }
 
-    synchronized void onResourceReadyInternal(@NonNull final ResourceHolder resourceHolder) {
+    synchronized void onResourceReadyInternal(@NonNull final ActivityDescriptor activity, @NonNull final ResourceHolder resourceHolder) {
         if (!mConnected) {
             return;
         }
 
         try {
             final SurfaceHolder surface = (SurfaceHolder) resourceHolder.getFacet(SurfaceHolder.class);
-            mConnection.resourceAvailable(this, surface.getSurface(),
+            mConnection.resourceAvailable(this, activity, surface.getSurface(),
                     surface.getSurfaceFrame(), resourceHolder.resourceId());
         } catch (IllegalStateException ie) {
             Log.w(TAG, "Cannot Send Resource: " + ie.getMessage());
@@ -163,14 +277,14 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     }
 
     @CallSuper
-    synchronized boolean sendMessage(@NonNull final String uri, final String message) {
+    synchronized boolean sendMessage(@NonNull final ActivityDescriptor activity, final String message) {
         if (!mConnected) {
             Log.w(TAG, "Calling command when service is not connected");
             return false;
         }
 
         try {
-            mConnection.send(this, message);
+            mConnection.send(this, activity, message);
             return true;
         } catch (final RemoteException e) {
             e.printStackTrace();
@@ -224,38 +338,15 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
                                  final String message, final String failedPayload) {
     }
 
-    /**
-     * Invoked when controlling instance gained platform focus.
-     */
-    @Deprecated
-    @CallSuper
-    synchronized void onFocusGained(@NonNull final String uri) {
-        if (!mConnected) {
-            return;
-        }
-
-        try {
-            mConnection.setFocusGain(this);
-        } catch (RemoteException e) {
-            Log.wtf(TAG, "Unable to gain focus.", e);
+    @Override
+    public void onMessage(ActivityDescriptor activity, String message) {
+        if (!onMessageInternal(activity, message)) {
+            mInboundV2Messages.add(Pair.create(activity, message));
         }
     }
 
-    /**
-     * Invoked when controlling instance lost platform focus.
-     */
-    @Deprecated
-    @CallSuper
-    synchronized void onFocusLost() {
-        if (!mConnected) {
-            return;
-        }
-
-        try {
-            mConnection.setFocusLost(this);
-        } catch (RemoteException e) {
-            Log.wtf(TAG, "Unable to loose focus", e);
-        }
+    @Override
+    public void onMessageFailure(ActivityDescriptor activity, int errorCode, String message, String failedPayload) {
     }
 
     private synchronized void reset() {

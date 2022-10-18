@@ -1,478 +1,118 @@
 {
-  "stringTable": {
-    "0": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
-    "1": "--target=x86_64-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS -I../../../../../../APLCoreEngine/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info -fPIC -std=gnu++11",
-    "2": "--target=x86_64-none-linux-android22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -I/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include -Iaplcore/include -I/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info -fPIC -Werror -std=gnu++11",
-    "3": "null"
-  },
+  "stringTable": {},
   "buildFiles": [
-    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
-    "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/thirdparty.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-CMakeLists.txt.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/options.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/include/apl/apl_config.h.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/tools.cmake",
     "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
     "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
   ],
-  "cleanCommands": [
-    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" clean"
+  "cleanCommandsComponents": [
+    [
+      "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+      "clean"
+    ]
   ],
-  "buildTargetsCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja  -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" {LIST_OF_TARGETS_TO_BUILD}",
+  "buildTargetsCommandComponents": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
   "libraries": {
     "alexaext-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" alexaext",
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "alexaext"
+      ],
       "buildType": "debug",
-      "toolchain": "750397747",
       "abi": "x86_64",
       "artifactName": "alexaext",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLWebflowExtension/AplWebflowBase.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLWebflowExtension/AplWebflowExtension.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/executor.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/extensionmessage.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/extensionregistrar.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/localextensionproxy.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/random.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/sessiondescriptor.cpp",
-          "flagsOrdinal": 2,
-          "workingDirectoryOrdinal": 0
-        }
-      ],
-      "headers": [],
       "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/build-extensions/alexaext/libalexaext.a"
     },
     "pegtl-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" pegtl",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "pegtl",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/pegtl",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/pegtl.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/pegtl-complete.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "pegtl"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "pegtl"
     },
     "enumgen-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" enumgen",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "enumgen",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/enumgen",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/enumgen.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/enumgen-complete.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "enumgen"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "enumgen"
     },
     "pegtl-build-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" pegtl-build",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "pegtl-build",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/pegtl-build",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/pegtl-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "pegtl-build"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "pegtl-build"
     },
     "yoga-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" yoga",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "yoga",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/yoga",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/yoga.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/yoga-complete.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-install.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/yoga-prefix/src/yoga-stamp/yoga-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "yoga"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "yoga"
     },
     "discovery-jni-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" discovery-jni",
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "discovery-jni"
+      ],
       "buildType": "debug",
-      "toolchain": "750397747",
       "abi": "x86_64",
       "artifactName": "discovery-jni",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/jnidiscovery.cpp",
-          "flagsOrdinal": 1,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/jniextensionexecutor.cpp",
-          "flagsOrdinal": 1,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/jniextensionproxy.cpp",
-          "flagsOrdinal": 1,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/jniextensionregistrar.cpp",
-          "flagsOrdinal": 1,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/jniextensionresource.cpp",
-          "flagsOrdinal": 1,
-          "workingDirectoryOrdinal": 0
-        }
-      ],
-      "headers": [],
       "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj/x86_64/libdiscovery-jni.so",
       "runtimeFiles": []
     },
     "rapidjson-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" rapidjson",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "rapidjson",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/rapidjson",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/rapidjson.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/rapidjson-complete.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "rapidjson"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "rapidjson"
     },
     "rapidjson-build-Debug-x86_64": {
-      "buildCommand": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64\" rapidjson-build",
-      "buildType": "debug",
-      "toolchain": "750397747",
-      "abi": "x86_64",
-      "artifactName": "rapidjson-build",
-      "files": [
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/rapidjson-build",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/CMakeFiles/rapidjson-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        },
-        {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",
-          "flagsOrdinal": 3,
-          "workingDirectoryOrdinal": 0
-        }
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
+        "rapidjson-build"
       ],
-      "headers": []
+      "buildType": "debug",
+      "abi": "x86_64",
+      "artifactName": "rapidjson-build"
     }
   },
-  "toolchains": {
-    "750397747": {
-      "cppCompilerExecutable": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
-    }
-  },
+  "toolchains": {},
   "cFileExtensions": [],
   "cppFileExtensions": [
     "cpp"

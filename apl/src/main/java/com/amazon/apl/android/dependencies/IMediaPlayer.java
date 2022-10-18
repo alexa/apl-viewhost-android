@@ -5,9 +5,10 @@
 
 package com.amazon.apl.android.dependencies;
 
+import android.view.View;
+
 import androidx.annotation.NonNull;
 
-import com.amazon.apl.android.IDocumentLifecycleListener;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.TrackState;
@@ -16,7 +17,8 @@ import com.amazon.apl.enums.VideoScale;
 /**
  * Defines the API for media player.
  */
-public interface IMediaPlayer {
+public interface IMediaPlayer<T extends View> {
+
     /**
      * Return the current playback position.
      *

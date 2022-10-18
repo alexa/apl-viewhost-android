@@ -21,9 +21,10 @@ import java.util.Objects;
 /**
  * L2 Service.
  * This class is responsible for message events, connection request/refusals, and multiplexing.
- * May wrapL3 to facilitate communication. .
+ * May wrapL3 to facilitate communication.
+ * @deprecated Use {@link ExtensionMultiplexServiceV2} instead.
  */
-@SuppressWarnings("deprecation")
+@Deprecated
 public final class ExtensionMultiplexService {
 
     /**

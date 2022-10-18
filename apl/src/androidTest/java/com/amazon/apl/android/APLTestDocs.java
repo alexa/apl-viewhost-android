@@ -15,6 +15,16 @@ public final class APLTestDocs {
     public final static String COMPONENT_BASE_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"1.0\"," +
+            "  \"onConfigChange\": [\n" +
+            "      {\n" +
+            "          \"type\": \"SendEvent\",\n" +
+            "          \"sequencer\": \"ConfigSendEvent\",\n" +
+            "          \"arguments\": [ \"reinflating the APL document\"]\n" +
+            "      },\n" +
+            "      {\n" +
+            "          \"type\": \"Reinflate\"\n" +
+            "      }\n" +
+            "  ],\n" +
             "  \"mainTemplate\": {" +
             "    \"item\":" +
             "    {" +

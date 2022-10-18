@@ -16,6 +16,9 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.audio.AudioPlayer;
+import com.amazon.apl.android.audio.AudioPlayerFactoryProxy;
+import com.amazon.apl.android.audio.IAudioPlayerFactory;
 import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
@@ -25,6 +28,7 @@ import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.ExtensionEvent;
 import com.amazon.apl.android.events.FinishEvent;
 import com.amazon.apl.android.events.FocusEvent;
+import com.amazon.apl.android.events.LineHighlightEvent;
 import com.amazon.apl.android.events.LoadMediaRequestEvent;
 import com.amazon.apl.android.events.OpenKeyboardEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
@@ -32,8 +36,11 @@ import com.amazon.apl.android.events.PlayMediaEvent;
 import com.amazon.apl.android.events.PrerollEvent;
 import com.amazon.apl.android.events.ReinflateEvent;
 import com.amazon.apl.android.events.RequestFirstLineBounds;
+import com.amazon.apl.android.events.RequestLineBoundsEvent;
 import com.amazon.apl.android.events.SendEvent;
 import com.amazon.apl.android.events.SpeakEvent;
+import com.amazon.apl.android.media.MediaPlayer;
+import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -58,6 +65,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -246,7 +254,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                 .textLayoutFactory(TextLayoutFactory.create(metricsTransform))
                 .extensionImageFilterCallback(ifCB)
                 .extensionEventCallback(eeCB)
-                .aplTrace(mAplTrace);
+                .aplTrace(mAplTrace)
+                .isMediaPlayerV2Enabled(config.isMediaPlayerV2Enabled());
 
         if (extensionMediator != null) {
             ctxBuilder.extensionResourceProvider(extensionMediator.extensionResourceProvider);
@@ -256,6 +265,9 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     }
 
     private AbstractMediaPlayerProvider getMediaPlayerProvider(boolean disallowVideo, APLOptions options) {
+        if (mRootConfig.isMediaPlayerV2Enabled()) {
+            return disallowVideo ? NoOpMediaPlayerProvider.getInstance() : mRootConfig.getMediaPlayerFactoryProxy().getMediaPlayerProvider();
+        }
         return disallowVideo ? NoOpMediaPlayerProvider.getInstance() : options.getMediaPlayerProvider();
     }
 
@@ -380,7 +392,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                     Log.w(TAG, "Reinflation failed because document cannot be rendered");
                     return;
                 }
-                notifyVisualContext();
+                notifyContext();
             } catch (Exception e) {
                 mTelemetryProvider.fail(tReinflate);
                 throw (e);
@@ -773,6 +785,10 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
                 return OpenKeyboardEvent.create(nativeHandle, this);
             case kEventTypeMediaRequest:
                 return LoadMediaRequestEvent.create(nativeHandle, this, mOptions.getImageProvider());
+            case kEventTypeRequestLineBounds:
+                return RequestLineBoundsEvent.create(nativeHandle, this);
+            case kEventTypeLineHighlight:
+                return LineHighlightEvent.create(nativeHandle, this);
         }
 
         return null;
@@ -810,12 +826,19 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     }
 
     /**
+     * Notify the runtime with visual and dataSourceContext
+     */
+    public void notifyContext() {
+        notifyVisualContext();
+        notifyDataSourceContext();
+    }
+    /**
      * Notify visual context.
      * For now, we rely only on core specifying the visual context is dirty and call this during the frame loop.
      * <p>
      * TODO consider moving this to a worker thread with the payload String if it is too expensive.
      */
-    public void notifyVisualContext() {
+    private void notifyVisualContext() {
         mLastVisualContextUpdateTime = System.currentTimeMillis();
         try {
             mOptions.getVisualContextListener()
@@ -970,6 +993,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      * * Call **clearPending** method on RootConfig to give Core possibility to execute all pending actions and updates.
      * * Process dirty properties. Side note: this can inflate Views which are required by an Event in the same frame.
      * * Process requested events.
+     * * Send time update to AudioPlayers for speech
      * * Check and set screenlock if required.
      * * check for data source errors.
      *
@@ -1320,6 +1344,13 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         if (DEBUG) Log.d(TAG, "Update Display State: " + displayState.name());
 
         nUpdateDisplayState(getNativeHandle(), displayState.getIndex());
+
+        // When the display state changes, we want to ensure that the document is notified promptly
+        // and that any resulting events are processed immediately, rather than waiting for the next
+        // tick of the frame loop. We do this because another tick of the frame loop is not
+        // guaranteed, particularly not in the "background" or "hidden" states, in which case the
+        // runtime may reduce the frequency of the ticks or stop ticking entirely.
+        nHandleEvents(getNativeHandle());
     }
 
     /**

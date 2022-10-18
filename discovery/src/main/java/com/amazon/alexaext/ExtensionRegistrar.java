@@ -46,7 +46,6 @@ public class ExtensionRegistrar extends BoundObject {
      * @return This object for chaining.
      */
     public ExtensionRegistrar registerExtension(ExtensionProxy proxy) {
-        nRegisterExtension(getNativeHandle(), proxy.getNativeHandle());
         mProxies.put(proxy.getUri(), proxy);
         return this;
     }
@@ -115,5 +114,4 @@ public class ExtensionRegistrar extends BoundObject {
     }
 
     private native long nCreate();
-    private static native void nRegisterExtension(long handle, long proxyHandle);
 }

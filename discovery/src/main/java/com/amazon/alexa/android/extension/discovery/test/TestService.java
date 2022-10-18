@@ -247,7 +247,6 @@ public final class TestService {
             mClientID = clientID;
             if (lSvcRscAvailable.getCount() == 0) throw new IllegalArgumentException("lSvcRscAvailable latch count can't be 0");
             if (connectionID == null) throw new NullPointerException("ConnectionID connectionID can't be null");
-            if (mClientID < 0) throw new IllegalArgumentException("int clientID can't be negative");
             if (surface == null) throw new NullPointerException("Surface surface can't be null");
             if (rect == null) throw new NullPointerException("Rect rect can't be null");
             if (resourceID == null) throw new NullPointerException("String resourceId can't be null");
@@ -258,7 +257,6 @@ public final class TestService {
         public void onResourceUnavailable(ConnectionID connectionID, int clientID, String resourceID) {
             mClientID = clientID;
             if (connectionID == null) throw new NullPointerException("ConnectionID connectionId can't be null");
-            if (clientID < 0) throw new IllegalArgumentException("int clientID can't be negative");
             if (lSvcRscUnavailable.getCount() == 0) throw new IllegalArgumentException("lSvcRscUnavailable latch count can't be 0");
             if (resourceID == null) throw new NullPointerException("String resourceId can't be null");
             

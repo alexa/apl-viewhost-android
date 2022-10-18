@@ -542,7 +542,7 @@ namespace apl {
         }
 
         JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceDurationAt(JNIEnv *env, jclass clazz,
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceDurationAt(JNIEnv *env, jclass clazz,
                                                                                      jlong handle,
                                                                                      jint propertyId,
                                                                                      jint index) {
@@ -553,7 +553,7 @@ namespace apl {
         }
 
         JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceOffsetAt(JNIEnv *env, jclass clazz,
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceOffsetAt(JNIEnv *env, jclass clazz,
                                                                                    jlong handle,
                                                                                    jint propertyId,
                                                                                    jint index) {
@@ -564,7 +564,7 @@ namespace apl {
         }
 
         JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceRepeatCountAt(JNIEnv *env, jclass clazz,
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceRepeatCountAt(JNIEnv *env, jclass clazz,
                                                                                         jlong handle,
                                                                                         jint propertyId,
                                                                                         jint index) {
@@ -575,7 +575,7 @@ namespace apl {
         }
 
         JNIEXPORT jstring JNICALL
-        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceUrlAt(JNIEnv *env, jclass clazz,
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceUrlAt(JNIEnv *env, jclass clazz,
                                                                                 jlong handle,
                                                                                 jint propertyId,
                                                                                 jint index) {
@@ -601,7 +601,7 @@ namespace apl {
         }
 
         JNIEXPORT jobjectArray JNICALL
-        Java_com_amazon_apl_android_primitive_MediaSources_nGetMediaSourceHeadersAt(JNIEnv *env, jclass clazz,
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceHeadersAt(JNIEnv *env, jclass clazz,
                                                                                 jlong handle,
                                                                                 jint propertyId,
                                                                                 jint index) {

@@ -20,6 +20,7 @@ import android.view.accessibility.AccessibilityManager;
 
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.configuration.ConfigurationChange;
+import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.helper.LinearGradientWrapper;
 import com.amazon.apl.android.helper.RadialGradientWrapper;
 import com.amazon.apl.android.primitive.Gradient;
@@ -28,7 +29,9 @@ import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
+import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.GradientType;
+import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenMode;
 import com.amazon.apl.enums.ViewportMode;
@@ -38,8 +41,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.internal.matchers.Any;
 import org.robolectric.RuntimeEnvironment;
 
+import java.util.Arrays;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -240,6 +246,24 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
     public void testFinishWithNullContext() {
         APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
         view.getPresenter().onDocumentFinish(); // calls onFinish
+    }
+
+    @Test
+    public void test_onComponentChange_with_VectorGraphic_no_View() {
+        VectorGraphic graphic = mock(VectorGraphic.class);
+        GraphicContainerElement gce = mock(GraphicContainerElement.class);
+
+        final Set<Integer> dirtyGraphics = Set.of(1);
+
+        when(graphic.getComponentId()).thenReturn("1001");
+        when(graphic.getComponentType()).thenReturn(ComponentType.kComponentTypeVectorGraphic);
+        when(graphic.getDirtyGraphics()).thenReturn(dirtyGraphics);
+        when(graphic.getOrCreateGraphicContainerElement()).thenReturn(gce);
+
+        APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
+        view.getPresenter().onComponentChange(graphic, Arrays.asList(new PropertyKey[]{ }));
+
+        verify(gce).applyDirtyProperties(any(Set.class));
     }
 
     @Test

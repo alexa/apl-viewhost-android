@@ -29,7 +29,15 @@ public interface IDocumentLifecycleListener {
     /**
      * Callback for when the document is visible to the user.
      */
+    @Deprecated
     default void onDocumentDisplayed() {}
+
+    /**
+     * Callback for when the document is visible to the user.
+     *
+     * @param utcTime Time of document being displayed in milliseconds elapsed since the Unix epoch in UTC. 
+     */
+    default void onDocumentDisplayed(long documentDisplayedTime) { onDocumentDisplayed(); }
 
     /**
      * Callback for when the document has been paused (is visible but not actively processing).

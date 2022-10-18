@@ -12,12 +12,16 @@ import com.amazon.apl.android.APLJSONData;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.dependencies.IPackageLoader;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.google.auto.value.AutoValue;
 
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
+import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 
 /**
  * Class to handle multiple requests for packages across APL Documents using a Cache and delegate.
@@ -29,12 +33,28 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CachingPackageLoader implements IPackageLoader {
     private final IPackageLoader mDelegate;
     private final IPackageCache mPackageCache;
+    private final ITelemetryProvider mTelemetryProvider;
 
     private final Map<Content.ImportRef, Queue<Request>> mPendingRequestMap = new ConcurrentHashMap<>();
+    private int cPackageMemoryCacheHit;
+    private int cPackageMemoryCacheSize;
+
+    private static final String METRIC_PACKAGE_MEMORY_CACHE_HIT = "PackageMemoryCacheHit";
+    private static final String METRIC_PACKAGE_MEMORY_CACHE_SIZE = "PackageMemoryCacheSize";
+
 
     public CachingPackageLoader(IPackageLoader delegateLoader, IPackageCache packageCache) {
         mDelegate = delegateLoader;
         mPackageCache = packageCache;
+        mTelemetryProvider = null;
+    }
+
+    public CachingPackageLoader(IPackageLoader delegateLoader, IPackageCache packageCache, ITelemetryProvider telemetryProvider) {
+        mDelegate = delegateLoader;
+        mPackageCache = packageCache;
+        mTelemetryProvider = telemetryProvider;
+        cPackageMemoryCacheHit = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_PACKAGE_MEMORY_CACHE_HIT, COUNTER);
+        cPackageMemoryCacheSize = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_PACKAGE_MEMORY_CACHE_SIZE, COUNTER );
     }
 
     @Override
@@ -44,6 +64,9 @@ public class CachingPackageLoader implements IPackageLoader {
         APLJSONData cachedPackage = mPackageCache.get(ref);
         if (cachedPackage != null) {
             successCallback.onSuccess(request, cachedPackage);
+            if(mTelemetryProvider != null) {
+                mTelemetryProvider.incrementCount(cPackageMemoryCacheHit);
+            }
             return;
         }
 
@@ -80,6 +103,9 @@ public class CachingPackageLoader implements IPackageLoader {
             final String failMessage = response.failMessage();
             if (aplJsonData != null) {
                 mPackageCache.put(importRef, aplJsonData);
+                if(mTelemetryProvider != null) {
+                    mTelemetryProvider.incrementCount(cPackageMemoryCacheSize, mPackageCache.getSize());
+                }
                 pending.successCallback().onSuccess(pendingRequest, aplJsonData);
             } else {
                 pending.failureCallback().onFailure(pendingRequest, failMessage);

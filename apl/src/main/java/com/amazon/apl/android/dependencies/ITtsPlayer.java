@@ -83,24 +83,39 @@ public interface ITtsPlayer {
 
         class SpeechMark {
             public static SpeechMark create(JSONObject obj) throws JSONException {
+                MarkType markType = MarkType.UNKNOWN;
+                String type = obj.getString("type");
+                if (type.equalsIgnoreCase("word")) {
+                    markType = MarkType.WORD;
+                } else if (type.equalsIgnoreCase("sentence")) {
+                    markType = MarkType.SENTENCE;
+                } else if (type.equalsIgnoreCase("ssml")) {
+                    markType = MarkType.SSML;
+                }
                 return new SpeechMark(
                         obj.getString("value"),
                         obj.getLong("time"),
                         obj.getInt("start"),
-                        obj.getInt("end"));
+                        obj.getInt("end"),
+                        markType);
             }
 
-            private SpeechMark(String value, long time, int start, int end) {
+            private SpeechMark(String value, long time, int start, int end, MarkType markType) {
                 this.value = value;
                 this.time = time;
                 this.start = start;
                 this.end = end;
-
+                this.markType = markType;
             }
             public int start;
             public int end;
             public String value;
             public long time;
+            public MarkType markType;
+        }
+
+        enum MarkType {
+            UNKNOWN, WORD, SENTENCE, SSML
         }
     }
 

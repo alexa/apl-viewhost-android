@@ -97,7 +97,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
 
     @Test
     public void testCreate() {
-        ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar);
+        ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar, DocumentSession.create());
         assertTrue(mediator.isBound());
     }
 
@@ -114,7 +114,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
         Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
         RootConfig rootConfig = RootConfig.create();
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
-        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
         mediator.initializeExtensions(rootConfig, content, (uri) -> {
             if ("alexaext:myextA:10".equals(uri)) {
                 return true;
@@ -128,45 +128,6 @@ public class ExtensionMediatorTest extends APLViewhostTest {
     }
 
     @Test
-    public void testOnDocumentFinish() throws InterruptedException {
-        ExtensionMediator mediator = loadExtensions();
-        mCallbackLatch.await(2, TimeUnit.SECONDS);
-        mediator.onDocumentFinish();
-        verify(mRemoteExtensionProxy).onFocusLost();
-    }
-
-    @Test
-    public void testOnDocumentPaused() throws InterruptedException {
-        ExtensionMediator mediator = loadExtensions();
-        mCallbackLatch.await(2, TimeUnit.SECONDS);
-        mediator.onDocumentPaused();
-        verify(mRemoteExtensionProxy).onFocusLost();
-    }
-
-    @Test
-    public void testOnDocumentResumed() throws InterruptedException {
-        ExtensionMediator mediator = loadExtensions();
-        mCallbackLatch.await(2, TimeUnit.SECONDS);
-        mediator.onDocumentResumed();
-        verify(mRemoteExtensionProxy).onFocusGained();
-    }
-
-    @Test
-    public void testOnDocumentDisplayed() throws InterruptedException {
-        ExtensionMediator mediator = loadExtensions();
-        mCallbackLatch.await(2, TimeUnit.SECONDS);
-        mediator.onDocumentDisplayed();
-        // onFocusGained is posted to next frame, so wait for idle.
-        final CountDownLatch countDownLatch = new CountDownLatch(1);
-        onIdle(() -> {
-            verify(mRemoteExtensionProxy).onFocusGained();
-            countDownLatch.countDown();
-            return null;
-        });
-        countDownLatch.await(1, TimeUnit.SECONDS);
-    }
-
-    @Test
     public void testExecutor() throws InterruptedException {
         // given
         RootConfig rootConfig = RootConfig.create();
@@ -175,7 +136,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
         extensionRegistrar.registerExtension(legacyLocalExtensionProxy);
-        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
 
         // when
         mediator.initializeExtensions(rootConfig, content, (String uri) -> true);
@@ -191,7 +152,7 @@ public class ExtensionMediatorTest extends APLViewhostTest {
     private ExtensionMediator loadExtensions() {
         Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
         RootConfig rootConfig = RootConfig.create();
-        ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar);
+        ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar, DocumentSession.create());
         mediator.initializeExtensions(rootConfig, content, null);
         mediator.loadExtensions(rootConfig, content, mOnCompleteCallback);
         return mediator;

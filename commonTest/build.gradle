@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 31
 
     defaultConfig {
         minSdkVersion 22
-        targetSdkVersion 28
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
 
@@ -28,7 +28,7 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.test.ext:junit:1.1.0'
     implementation project(path: ':common')
 }

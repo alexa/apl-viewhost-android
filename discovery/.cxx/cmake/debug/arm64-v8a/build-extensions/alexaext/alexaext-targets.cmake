@@ -46,14 +46,14 @@ add_library(alexa::extensions STATIC IMPORTED)
 
 set_target_properties(alexa::extensions PROPERTIES
   INTERFACE_COMPILE_DEFINITIONS "ALEXAEXTENSIONS"
-  INTERFACE_INCLUDE_DIRECTORIES "/Users/pranavsu/Documents/Test_open_source/apl-core-library/extensions/alexaext/include;/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include;/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"
 )
 
 # Import target "alexa::extensions" for configuration "Debug"
 set_property(TARGET alexa::extensions APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBUG)
 set_target_properties(alexa::extensions PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
-  IMPORTED_LOCATION_DEBUG "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"
+  IMPORTED_LOCATION_DEBUG "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"
   )
 
 # This file does not depend on other imported targets which have

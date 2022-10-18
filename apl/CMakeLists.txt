@@ -52,13 +52,18 @@ add_library(
         # Provides a relative path to source file(s).
         src/main/cpp/jniapl.cpp
         src/main/cpp/jniaction.cpp
+        src/main/cpp/jniaudioplayer.cpp
+        src/main/cpp/jniaudioplayerfactory.cpp
         src/main/cpp/jnicontent.cpp
+        src/main/cpp/jnidocumentsession.cpp
         src/main/cpp/jniextensionclient.cpp
         src/main/cpp/jniextensioncommand.cpp
         src/main/cpp/jniextensioncomponent.cpp
         src/main/cpp/jniextensioneventhandler.cpp
         src/main/cpp/jniextensionfilter.cpp
         src/main/cpp/jniextensionmediator.cpp
+        src/main/cpp/jnimediaplayer.cpp
+        src/main/cpp/jnimediaplayerfactory.cpp
         src/main/cpp/jnirootcontext.cpp
         src/main/cpp/jnirootconfig.cpp
         src/main/cpp/jnisession.cpp
@@ -119,6 +124,7 @@ include_directories(../common/src/main/cpp/include)
 add_custom_target(generate-android-enums ALL
         COMMAND cd ${APL_CORE_DIR} && ${ENUMGEN_BIN}
         -f  "AnimationQuality"
+        -f  "AudioPlayerEventType"
         -f  "BlendMode"
         -f  "ComponentType"
         -f  "ContainerDirection"
@@ -159,6 +165,7 @@ add_custom_target(generate-android-enums ALL
         -f  "ImageScale"
         -f  "KeyHandlerType"
         -f  "LayoutDirection"
+        -f  "MediaPlayerEventType"
         -f  "Navigation"
         -f  "NoiseFilterKind"
         -f  "ObjectType"
@@ -172,6 +179,7 @@ add_custom_target(generate-android-enums ALL
         -f  "SpanAttributeName"
         -f  "SpanType"
         -f  "Snap"
+        -f  "SpeechMarkType"
         -f  "TextAlign"
         -f  "TextAlignVertical"
         -f  "TokenType"
@@ -190,6 +198,7 @@ add_custom_target(generate-android-enums ALL
         -l java -p com.amazon.apl.enums -o ${CMAKE_CURRENT_SOURCE_DIR}/src/main/java/com/amazon/apl/enums
         ${APL_CORE_DIR}/aplcore/include/action/*.h
         ${APL_CORE_DIR}/aplcore/include/animation/*.h
+        ${APL_CORE_DIR}/aplcore/include/apl/audio/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/command/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/component/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/content/*.h
@@ -197,6 +206,7 @@ add_custom_target(generate-android-enums ALL
         ${APL_CORE_DIR}/aplcore/include/apl/document/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/engine/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/graphic/*.h
+        ${APL_CORE_DIR}/aplcore/include/apl/media/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/primitives/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/time/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/utils/*.h

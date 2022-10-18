@@ -4,23 +4,6 @@
  */
 package com.amazon.alexa.android.extension.discovery;
 
-import android.os.RemoteException;
-import androidx.test.InstrumentationRegistry;
-import androidx.test.ext.junit.runners.AndroidJUnit4;
-
-import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ClientConnection;
-import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ConnectionCallback;
-import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.IMultiplexClientConnection;
-import com.amazon.alexa.android.extension.discovery.TestUtil.ClientTestCallback;
-import com.amazon.alexa.android.extension.discovery.test.TestService;
-import com.amazon.alexa.android.extension.discovery.test.TestService.FailDied;
-import com.amazon.alexa.android.extension.discovery.test.TestService.Remote;
-
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
 import static com.amazon.alexa.android.extension.discovery.TestUtil.assertNoLatch;
 import static com.amazon.alexa.android.extension.discovery.TestUtil.assertOnLatch;
 import static com.amazon.alexa.android.extension.discovery.TestUtil.isRunning;
@@ -33,6 +16,8 @@ import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvc
 import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvcOnPause;
 import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvcOnResume;
 import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvcReceive;
+import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvcRscAvailable;
+import static com.amazon.alexa.android.extension.discovery.test.TestService.lSvcRscUnavailable;
 import static com.amazon.alexa.android.extension.discovery.test.TestService.latch;
 import static com.amazon.alexa.android.extension.discovery.test.TestService.latchService;
 import static org.junit.Assert.assertEquals;
@@ -41,6 +26,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import android.graphics.Rect;
+import android.graphics.SurfaceTexture;
+import android.os.RemoteException;
+import android.view.Surface;
+
+import androidx.test.InstrumentationRegistry;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ClientConnection;
+import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ConnectionCallback;
+import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.IMultiplexClientConnection;
+import com.amazon.alexa.android.extension.discovery.TestUtil.ClientTestCallback;
+import com.amazon.alexa.android.extension.discovery.test.TestService;
+import com.amazon.alexa.android.extension.discovery.test.TestService.FailDied;
+import com.amazon.alexa.android.extension.discovery.test.TestService.Remote;
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.SessionDescriptor;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -381,6 +389,7 @@ public class ExtensionMultiplexClientTest {
     @Test
     public void testConnect_failHandshakeDied() {
         final String uri = "alexatest:faildied:10";
+        ActivityDescriptor activity = new ActivityDescriptor(uri, new SessionDescriptor("session"), "activity");
         ClientConnection connection = createTestConnect(uri, mCallback);
 
         // verify successful connection
@@ -392,7 +401,7 @@ public class ExtensionMultiplexClientTest {
 
         // Send a message
         try {
-            connection.send(mCallback, "APL");
+            connection.send(mCallback, activity, "APL");
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
@@ -435,6 +444,7 @@ public class ExtensionMultiplexClientTest {
     @Test
     public void testSend() {
         final String uri = "alexatest:latch:10";
+        ActivityDescriptor activity = new ActivityDescriptor(uri, new SessionDescriptor("session"), "activity");
         ClientConnection connection = createTestConnect(uri, mCallback);
 
         // verify successful connection
@@ -448,7 +458,7 @@ public class ExtensionMultiplexClientTest {
 
         // Send a message
         try {
-            connection.send(mCallback, "APL");
+            connection.send(mCallback, activity, "APL");
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
@@ -468,6 +478,7 @@ public class ExtensionMultiplexClientTest {
     @Test
     public void testSend_null() {
         final String uri = "alexatest:simple:10";
+        ActivityDescriptor activity = new ActivityDescriptor(uri, new SessionDescriptor("session"), "activity");
         ClientConnection connection = createTestConnect(uri, mCallback);
 
         // verify successful connection
@@ -476,7 +487,7 @@ public class ExtensionMultiplexClientTest {
         // Send a message
         boolean failed = false;
         try {
-            connection.send(mCallback, null);
+            connection.send(mCallback, activity, null);
         } catch (RemoteException e) {
             failed = true;
         }
@@ -491,7 +502,7 @@ public class ExtensionMultiplexClientTest {
 
 
     @Test
-    public void testFocusLost() {
+    public void testLegacyFocusLost() {
         final String uri = "alexatest:latch:10";
         ClientConnection connection = createTestConnect(uri, mCallback);
 
@@ -510,7 +521,7 @@ public class ExtensionMultiplexClientTest {
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
-        assertOnLatch(lSvcOnFocusLost, "Expected Receive");
+        assertOnLatch(lSvcOnFocusLost, "Expected focus lost");
         assertNotNull(latchService);
 
         // cleanup
@@ -522,7 +533,7 @@ public class ExtensionMultiplexClientTest {
 
 
     @Test
-    public void testFocusGained() {
+    public void testLegacyFocusGained() {
         final String uri = "alexatest:latch:10";
         ClientConnection connection = createTestConnect(uri, mCallback);
 
@@ -541,7 +552,7 @@ public class ExtensionMultiplexClientTest {
         } catch (RemoteException e) {
             fail(e.getMessage());
         }
-        assertOnLatch(lSvcOnFocusGain, "Expected Receive");
+        assertOnLatch(lSvcOnFocusGain, "Expected focus gain");
         assertNotNull(latchService);
 
         // cleanup
@@ -864,5 +875,103 @@ public class ExtensionMultiplexClientTest {
         assertEquals(0, mClient.getConnectionCount());
     }
 
+    @Test
+    public void testLegacySend() {
+        final String uri = "alexatest:latch:10";
+        ClientConnection connection = createTestConnect(uri, mCallback);
 
+        // verify successful connection
+        assertOnLatch(mCallback.lOnCon, "Service fail expected");
+        assertOnLatch(lSvcOnCon, "Service connect expected");
+        assertEquals(uri, mCallback.mExtensionURI);
+        assertEquals(1, mClient.getConnectionCount());
+        assertEquals(1, connection.getRegisteredCallbackCount());
+        assertTrue(isRunning(Latch.class));
+        assertNotNull(latchService);
+
+        // Send a message
+        try {
+            connection.send(mCallback, "APL");
+        } catch (RemoteException e) {
+            fail(e.getMessage());
+        }
+        assertOnLatch(lSvcReceive, "Expected Receive");
+        assertNotNull(latchService);
+        assertNotNull(latchService.mReceived);
+        assertEquals("APL", latchService.mReceived);
+
+        // cleanup
+        mClient.disconnect(uri, mCallback, "disconnect");
+        assertEquals(0, mClient.getConnectionCount());
+        assertEquals(0, connection.getRegisteredCallbackCount());
+        assertFalse(isRunning(Latch.class));
+    }
+
+    @Test
+    public void testLegacyResourceAvailable() {
+        final String uri = "alexatest:latch:10";
+        ClientConnection connection = createTestConnect(uri, mCallback);
+
+        // verify successful connection
+        assertOnLatch(mCallback.lOnCon, "Service fail expected");
+        assertOnLatch(lSvcOnCon, "Service connect expected");
+        assertEquals(uri, mCallback.mExtensionURI);
+        assertEquals(1, mClient.getConnectionCount());
+        assertEquals(1, connection.getRegisteredCallbackCount());
+        assertTrue(isRunning(Latch.class));
+        assertNotNull(latchService);
+
+        // Send a message
+        try {
+            connection.resourceAvailable(
+                    mCallback,
+                    new Surface(new SurfaceTexture(true)),
+                    new Rect(0, 0, 100, 100),
+                    "resourceId");
+
+        } catch (RemoteException e) {
+            fail(e.getMessage());
+        }
+        assertOnLatch(lSvcRscAvailable, "Expected resource available");
+        assertNotNull(latchService);
+
+        // cleanup
+        mClient.disconnect(uri, mCallback, "disconnect");
+        assertEquals(0, mClient.getConnectionCount());
+        assertEquals(0, connection.getRegisteredCallbackCount());
+        assertFalse(isRunning(Latch.class));
+    }
+
+    @Test
+    public void testLegacyResourceUnavailable() {
+        final String uri = "alexatest:latch:10";
+        ClientConnection connection = createTestConnect(uri, mCallback);
+
+        // verify successful connection
+        assertOnLatch(mCallback.lOnCon, "Service fail expected");
+        assertOnLatch(lSvcOnCon, "Service connect expected");
+        assertEquals(uri, mCallback.mExtensionURI);
+        assertEquals(1, mClient.getConnectionCount());
+        assertEquals(1, connection.getRegisteredCallbackCount());
+        assertTrue(isRunning(Latch.class));
+        assertNotNull(latchService);
+
+        // Send a message
+        try {
+            connection.resourceUnavailable(
+                    mCallback,
+                    "resourceId");
+
+        } catch (RemoteException e) {
+            fail(e.getMessage());
+        }
+        assertOnLatch(lSvcRscUnavailable, "Expected resource unavailable");
+        assertNotNull(latchService);
+
+        // cleanup
+        mClient.disconnect(uri, mCallback, "disconnect");
+        assertEquals(0, mClient.getConnectionCount());
+        assertEquals(0, connection.getRegisteredCallbackCount());
+        assertFalse(isRunning(Latch.class));
+    }
 }

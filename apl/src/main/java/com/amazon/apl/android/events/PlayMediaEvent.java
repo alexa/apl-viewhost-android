@@ -26,6 +26,7 @@ import java.util.Objects;
 import static com.amazon.apl.enums.AudioTrack.kAudioTrackForeground;
 
 /**
+ * TODO [JIRA-28202] Delete this and automatically update consumers to new api
  * APL Play Media Event
  * See @{link <a https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-commands-media.html#playmedia>
  * APL Play Media Command Specification</a>}

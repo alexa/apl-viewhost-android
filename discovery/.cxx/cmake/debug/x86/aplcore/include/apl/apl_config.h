@@ -24,4 +24,6 @@
 /* #undef ALEXAEXTENSIONS */
 #endif //ALEXAEXTENSIONS
 
+/* #undef SCENEGRAPH */
+
 #endif //_APL_GENERATED_CONFIG_H

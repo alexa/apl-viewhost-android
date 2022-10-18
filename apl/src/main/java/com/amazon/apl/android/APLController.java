@@ -21,6 +21,7 @@ import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.functional.Consumer;
+import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider.Type;
 import com.amazon.apl.android.scaling.Scaling;
@@ -147,6 +148,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         sRuntimeConfig = runtimeConfig;
     }
 
+    @VisibleForTesting
+    static void setLibraryFuture(@NonNull Future<Boolean> libraryFuture) {
+        sLibraryFuture = libraryFuture;
+    }
+
     /**
      * Private constructor.
      */
@@ -187,9 +193,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @NonNull final IContentCreator contentCreator,
             final long startTime,
             @NonNull final InflationErrorCallback errorCallback,
-            final boolean disableAsyncInflate) {
-        ExtensionMediator mediator = rootConfig.getExtensionMediator();
-        ExtensionRegistrar registrar = rootConfig.getExtensionProvider();
+            final boolean disableAsyncInflate,
+            @NonNull final DocumentSession documentSession) {
+        final ExtensionRegistrar registrar = rootConfig.getExtensionProvider();
+        final ExtensionMediator mediator = (registrar != null) ? ExtensionMediator.create(registrar, documentSession) : null;
+        if (mediator != null) {
+            rootConfig.extensionMediator(mediator);
+        }
 
         aplLayout.setAgentName(rootConfig);
         final APLController aplController = new APLController(contentCreator);
@@ -206,8 +216,10 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
         final IAPLViewPresenter presenter = aplLayout.getPresenter();
         presenter.addDocumentLifecycleListener(aplController);
-        if (mediator != null) {
-            presenter.addDocumentLifecycleListener(mediator);
+        for (IDocumentLifecycleListener documentLifecycleListener : rootConfig.getDocumentLifecycleListeners()) {
+            if (documentLifecycleListener != null) {
+                presenter.addDocumentLifecycleListener(documentLifecycleListener);
+            }
         }
         for (IDocumentLifecycleListener documentLifecycleListener : options.getDocumentLifecycleListeners()) {
             presenter.addDocumentLifecycleListener(documentLifecycleListener);
@@ -220,6 +232,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     Log.i(TAG, "Finished while Content is being prepared. Aborting");
                     return;
                 }
+
+                options.getContentCompleteCallback().onComplete();
 
                 if (mediator == null || registrar == null) {
                     // TODO: Going with old APIs. Not recommended. Planned to be removed in future.
@@ -324,6 +338,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             });
         }
 
+        documentSession.bind(aplController);
+        documentSession.onSessionEnded(session -> aplController.executeOnCoreThread(() -> {
+            if (mediator != null) {
+                mediator.onSessionEnded();
+            }
+        }));
+
         return aplController;
     }
 
@@ -410,6 +431,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     public static APLController restoreDocument(@NonNull final DocumentState documentState,
                                                 @NonNull final IAPLViewPresenter presenter) throws APLException {
         final APLOptions options = documentState.getOptions();
+        final RootConfig rootConfig = documentState.getRootConfig();
         Scaling scaling = documentState.getMetricsTransform().getScaledMetrics().scaling();
         // Render document
         try {
@@ -422,9 +444,18 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             for (IDocumentLifecycleListener documentLifecycleListener : options.getDocumentLifecycleListeners()) {
                 presenter.addDocumentLifecycleListener(documentLifecycleListener);
             }
+            for (IDocumentLifecycleListener documentLifecycleListener : rootConfig.getDocumentLifecycleListeners()) {
+                if (documentLifecycleListener != null) {
+                    presenter.addDocumentLifecycleListener(documentLifecycleListener);
+                }
+            }
             APLController aplController = new APLController(rootContext, documentState.getContent());
             presenter.addDocumentLifecycleListener(aplController);
             presenter.onDocumentRender(rootContext);
+            ExtensionMediator mediator = rootContext.getRootConfig().getExtensionMediator();
+            if (mediator != null) {
+                mediator.enable(true);
+            }
             return aplController;
         } catch (Exception e) {
             throw new APLException("Cannot restore APL document", e);
@@ -463,6 +494,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     @Override
     public void resumeDocument() {
         executeIfNotFinishedOnMyThread(RootContext::resumeDocument);
+    }
+
+    @Override
+    public void executeOnCoreThread(Runnable task) {
+        executeOnMyThread(rootContext -> task.run());
     }
 
     /**
@@ -636,6 +672,14 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         executeOnMyThread(this::finishDocumentInternal);
     }
 
+    /**
+     * @return true if document is finished, false otherwise.
+     */
+    @Override
+    public boolean isFinished() {
+        return mIsFinished.get();
+    }
+
     @MainThread
     private void finishDocumentInternal(RootContext rootContext) {
         if (rootContext == null) {
@@ -643,7 +687,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             return;
         }
 
+        ExtensionMediator mediator = rootContext.getRootConfig().getExtensionMediator();
         rootContext.finishDocument();
+
+        if (mediator != null) {
+            mediator.enable(false);
+        }
     }
 
     private void executeOnMyThread(final Consumer<RootContext> rootContextFunction) {
@@ -749,6 +798,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         private InflationErrorCallback errorCallback = exception -> Log.e(TAG, "Exception inflating document!", exception);
         private IContentCreator contentCreator = Content::create;
         private boolean disableAsyncInflate;
+        private DocumentSession documentSession;
 
         /**
          * Set the apl document. See https://aplspec.aka.corp.amazon.com/release-1.7/html/apl_document.html
@@ -827,6 +877,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             return this;
         }
 
+        public Builder documentSession(DocumentSession documentSession) {
+            this.documentSession = documentSession;
+            return this;
+        }
+
         /**
          * Starts the render process for this document.
          *
@@ -837,6 +892,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
          * @return  An {@link IAPLController} instance.
          */
         public IAPLController render() {
+            if (documentSession == null) {
+                documentSession = DocumentSession.create();
+            }
             return APLController.renderDocument(
                     Objects.requireNonNull(aplDocument),
                     Objects.requireNonNull(aplOptions),
@@ -845,7 +903,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     Objects.requireNonNull(contentCreator),
                     startTime,
                     Objects.requireNonNull(errorCallback),
-                    disableAsyncInflate);
+                    disableAsyncInflate,
+                    Objects.requireNonNull(documentSession));
         }
     }
 

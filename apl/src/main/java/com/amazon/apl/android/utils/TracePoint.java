@@ -21,6 +21,7 @@ public enum TracePoint {
     ROOT_CONTEXT_CLEAR_PENDING("RootContext", "clearPending"),
     ROOT_CONTEXT_HANDLE_DIRTY_PROPERTIES("RootContext", "handleDirtyProperties"),
     ROOT_CONTEXT_HANDLE_EVENTS("RootContext", "handleEvents"),
+    ROOT_CONTEXT_AUDIOPLAYER_TIMEUPDATE("RootContext", "audioPlayerOnTimeUpdate"),
     ROOT_CONTEXT_NOTIFY_VISUAL_CONTEXT("RootContext", "notifyVisualContext"),
     ROOT_CONTEXT_NOTIFY_DATA_SOURCE_CONTEXT("RootContext", "notifyDataSourceContext"),
 

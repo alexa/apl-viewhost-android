@@ -1,0 +1,120 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "pegtl-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "pegtl"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "pegtl"
+    },
+    "yoga-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "yoga"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "yoga"
+    },
+    "rapidjson-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "rapidjson"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "rapidjson"
+    },
+    "pegtl-build-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "pegtl-build"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "pegtl-build"
+    },
+    "rapidjson-build-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "rapidjson-build"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "rapidjson-build"
+    },
+    "alexaext-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "alexaext"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "alexaext",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86/build-extensions/alexaext/libalexaext.a"
+    },
+    "enumgen-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "enumgen"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "enumgen"
+    },
+    "discovery-jni-Debug-x86": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/x86",
+        "discovery-jni"
+      ],
+      "buildType": "debug",
+      "abi": "x86",
+      "artifactName": "discovery-jni",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cxx/Debug/16u18723/obj/x86/libdiscovery-jni.so",
+      "runtimeFiles": []
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

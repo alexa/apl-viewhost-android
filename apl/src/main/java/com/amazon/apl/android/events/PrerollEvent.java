@@ -21,10 +21,16 @@ import java.net.URL;
 
 
 /**
+ * @deprecated
+ * TODO [JIRA-28202] Delete this and automatically update consumers to new api
+ * This class is deprecated in favor of {@link com.amazon.apl.android.audio.AudioPlayer} since
+ * TTS events are now driven by APLCore and do not need to be handled using PrerollEvent.
+ * This class will be removed in future versions.
  * APL Set Page Event
  * See @{link <a https://developer.amazon.com/docs/alexa-presentation-language/apl-commands-media.html#playmedia>
  * APL Command Specification</a>}
  */
+@Deprecated
 public class PrerollEvent extends Event {
 
     private static final String TAG = "PrerollEvent";

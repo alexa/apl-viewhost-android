@@ -15,7 +15,6 @@ import androidx.annotation.Nullable;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.alexaext.ExtensionProxy;
 import com.amazon.alexaext.ExtensionResourceProvider;
-import com.amazon.alexaext.RemoteExtensionProxy;
 import com.amazon.apl.android.dependencies.ExtensionFilterParameters;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
@@ -52,19 +51,19 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
 
     private Runnable mOnCompleteCallback;
 
-    public static ExtensionMediator create(@NonNull final ExtensionRegistrar registrar) {
+    public static ExtensionMediator create(@NonNull final ExtensionRegistrar registrar, @NonNull DocumentSession session) {
         ExtensionResourceProvider resourceProvider = new ExtensionResourceProvider();
         APLExtensionExecutor executor = new APLExtensionExecutor();
         ExtensionMediator mediator = new ExtensionMediator(registrar,
-                resourceProvider, executor);
+                resourceProvider, executor, session);
         mediator.extensionResourceProvider = resourceProvider;
         mediator.extensionRegistrar = registrar;
         return mediator;
     }
 
-    private ExtensionMediator(ExtensionRegistrar provider, ExtensionResourceProvider resourceProvider, APLExtensionExecutor executor) {
+    private ExtensionMediator(ExtensionRegistrar provider, ExtensionResourceProvider resourceProvider, APLExtensionExecutor executor, DocumentSession session) {
         mExecutor = executor;
-        final long handle = nCreate(provider.getNativeHandle(), resourceProvider.getNativeHandle(), executor.getNativeHandle());
+        final long handle = nCreate(provider.getNativeHandle(), resourceProvider.getNativeHandle(), executor.getNativeHandle(), session.getNativeHandle());
         bind(handle);
     }
 
@@ -131,44 +130,21 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
         mExecutor.setRootContext(rootContext);
     }
 
-    @Override
-    public synchronized void onDocumentFinish() { loseFocus(); }
-
-    @Override
-    public synchronized void onDocumentPaused() { loseFocus(); }
-
-    @Override
-    public synchronized void onDocumentResumed() { gainFocus(); }
-
-    @Override
-    public synchronized void onDocumentDisplayed() {
-        mMainHandler.post(this::gainFocus);
+    public void enable(boolean enabled) {
+        nEnable(getNativeHandle(), enabled);
     }
 
-    private void gainFocus() {
-        for (ExtensionProxy proxy : extensionRegistrar.getExtensions()) {
-            if (proxy instanceof RemoteExtensionProxy) {
-                ((RemoteExtensionProxy) proxy).onFocusGained();
-            }
-        }
+    /**
+     * Invoked by a viewhost when the session associated with this mediator (if it has been
+     * previously set) has ended.
+     */
+    void onSessionEnded() {
+        nOnSessionEnded(getNativeHandle());
     }
 
-    private void loseFocus() {
-        for (ExtensionProxy proxy : extensionRegistrar.getExtensions()) {
-            if (proxy instanceof RemoteExtensionProxy) {
-                ((RemoteExtensionProxy) proxy).onFocusLost();
-            }
-        }
-    }
-
-    public void finish() {
-        mOnCompleteCallback = null;
-        extensionResourceProvider = null;
-        nFinish(getNativeHandle());
-    }
-
-    private native long nCreate(long providerHandler_, long resourceProviderHandler_, long executorHandler_);
+    private native long nCreate(long providerHandler_, long resourceProviderHandler_, long executorHandler_, long sessionHandler_);
     private static native void nInitializeExtensions(long mediatorHandler_, long rootConfigHandler_, long contentHandler_);
     private static native void nLoadExtensions(long mediatorHandler_, long rootConfigHandler_, long contentHandler_);
-    private static native void nFinish(long mediatorHandler_);
+    private static native void nEnable(long mediatorHandler_, boolean enabled);
+    private static native void nOnSessionEnded(long mediatorHandler_);
 }

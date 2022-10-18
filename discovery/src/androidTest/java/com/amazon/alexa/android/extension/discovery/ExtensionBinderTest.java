@@ -6,6 +6,8 @@ package com.amazon.alexa.android.extension.discovery;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.IBinder;
+
 import androidx.test.InstrumentationRegistry;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -56,8 +58,8 @@ public class ExtensionBinderTest {
         }
 
         @Override
-        public void bindingSuccess(L2_IRemoteService service) {
-            mService = service;
+        public void bindingSuccess(IBinder service) {
+            mService = L2_IRemoteService.Stub.asInterface(service);
             lBindingSuccess.countDown();
         }
 

@@ -10,6 +10,7 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.dependencies.IPackageLoader;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
@@ -47,12 +48,14 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
     IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallbackTwo;
     @Mock
     IContentRetriever.FailureCallback<Content.ImportRequest> failureCallback;
+    @Mock
+    ITelemetryProvider mTelemetryProvider;
 
     private CachingPackageLoader mPackageLoader;
 
     @Before
     public void setup() {
-        mPackageLoader = new CachingPackageLoader(mDelegate, mPackageCache);
+        mPackageLoader = new CachingPackageLoader(mDelegate, mPackageCache, mTelemetryProvider);
     }
 
     @Test

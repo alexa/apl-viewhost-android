@@ -46,11 +46,11 @@ final class ExtensionBinder {
          *
          * @param service Interface to the extension instance.
          */
-        void bindingSuccess(L2_IRemoteService service);
+        void bindingSuccess(IBinder service);
 
         /**
          * Called when a connection to the Extension service has been lost due to unexpected process
-         * termination (crash). The connection stays open and {@link #bindingSuccess(L2_IRemoteService)}
+         * termination (crash). The connection stays open and {@link #bindingSuccess(IBinder)}
          * is called whe the connection is reestablished.
          **/
         int FAIL_DISCONNECTED = -100;
@@ -89,7 +89,7 @@ final class ExtensionBinder {
     /**
      * Request to connect to an extension service.  This method returns {@code true} if an extension
      * connection is established and two way communication is initiated.
-     * {@link ConnectionCallback#bindingSuccess(L2_IRemoteService)} is called when two way
+     * {@link ConnectionCallback#bindingSuccess(IBinder)} is called when two way
      * communication is in place. {@link ConnectionCallback#bindingFailure(int, String)}
      * is called if the binding fails;  No callback is made if the method returns {@code false} as
      * a result of an inability to attempt the connection.
@@ -238,9 +238,7 @@ final class ExtensionBinder {
         public void onServiceConnected(final ComponentName componentName, final IBinder service) {
             if (DEBUG) Log.d(TAG, "onServiceConnected: " + componentName);
 
-            // Register two way communication with L2 callback
-            L2_IRemoteService svc = L2_IRemoteService.Stub.asInterface(service);
-            mCallback.bindingSuccess(svc);
+            mCallback.bindingSuccess(service);
         }
 
         @Override

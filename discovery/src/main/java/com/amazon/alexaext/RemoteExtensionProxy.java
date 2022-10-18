@@ -7,6 +7,7 @@ package com.amazon.alexaext;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +30,7 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
         super(uri);
 
         mProxyDelegate = proxyDelegate;
-        mProxyDelegate.setOnInternalMessageAction((extensionUri, message, registered) -> {
+        mProxyDelegate.setOnInternalMessageAction((activity, message, registered) -> {
             try {
                 final JSONObject reader = new JSONObject(message);
                 final String method = reader.optString("method", "");
@@ -39,18 +40,18 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
 
                 switch (method) {
                     case METHOD_EVENT:
-                        invokeExtensionEventHandler(extensionUri, message);
+                        invokeExtensionEventHandler(activity, message);
                         break;
                     case METHOD_LIVE_DATA_UPDATE:
-                        invokeLiveDataUpdate(extensionUri, message);
+                        invokeLiveDataUpdate(activity, message);
                         break;
                     case METHOD_COMMAND_SUCCESS:
                     case METHOD_COMMAND_FAILURE:
-                        commandResult(extensionUri, message);
+                        commandResult(activity, message);
                         break;
                     case METHOD_REGISTER_SUCCESS:
                     case METHOD_REGISTER_FAILURE:
-                        registrationResult(extensionUri, message);
+                        registrationResult(activity, message);
                         break;
                 }
             } catch (JSONException e) {
@@ -67,55 +68,63 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
     }
 
     @Override
-    protected boolean initializeInternal(@NonNull final String uri) {
+    protected boolean initialize(@NonNull final String uri) {
         return mProxyDelegate.onProxyInitialize(uri);
     }
 
     @Override
-    protected boolean invokeCommandInternal(@NonNull final String uri, final String command) {
-        return mProxyDelegate.sendMessage(uri, command);
+    protected boolean invokeCommand(@NonNull final ActivityDescriptor activity, final String command) {
+        return mProxyDelegate.sendMessage(activity, command);
     }
 
     @Override
-    protected boolean sendMessageInternal(@NonNull final String uri, final String message) {
-        return mProxyDelegate.sendMessage(uri, message);
+    protected boolean sendMessage(@NonNull final ActivityDescriptor activity, final String message) {
+        return mProxyDelegate.sendMessage(activity, message);
     }
 
     @Override
-    protected boolean requestRegistrationInternal(@NonNull final String uri, final String request) {
-        return mProxyDelegate.onRequestRegistration(uri, request);
+    protected boolean requestRegistration(@NonNull final ActivityDescriptor activity, final String request) {
+        return mProxyDelegate.onRequestRegistration(activity, request);
     }
 
     @Override
-    protected void onRegisteredInternal(@NonNull final String uri, final String token) {
-        mProxyDelegate.onRegisteredInternal(uri);
+    protected void onRegistered(@NonNull final ActivityDescriptor activity) {
+        mProxyDelegate.onRegisteredInternal(activity);
     }
 
     @Override
-    protected void onUnregisteredInternal(@NonNull final String uri, final String token) {
-        // Now we can transfer other messages.
-       mProxyDelegate.onUnregisteredInternal(uri);
+    protected void onUnregistered(@NonNull final ActivityDescriptor activity) {
+        mProxyDelegate.onUnregisteredInternal(activity);
     }
 
     @Override
     //TODO: raw use of parameterized generic, this code smells
-    protected void onResourceReadyInternal(@NonNull final String extensionURI, final ResourceHolder resourceHolder) {
-       mProxyDelegate.onResourceReadyInternal(resourceHolder);
+    protected void onResourceReady(@NonNull final ActivityDescriptor activity, final ResourceHolder resourceHolder) {
+       mProxyDelegate.onResourceReadyInternal(activity, resourceHolder);
     }
 
-    /**
-     * Invoked when controlling instance gained platform focus.
-     */
-    @Deprecated
-    public void onFocusGained() {
-        mProxyDelegate.onFocusGained(getUri());
+    @Override
+    protected void onSessionStarted(SessionDescriptor session) {
+        mProxyDelegate.onSessionStartedInternal(session);
     }
 
-    /**
-     * Invoked when controlling instance lost platform focus.
-     */
-    @Deprecated
-    public void onFocusLost() {
-        mProxyDelegate.onFocusLost();
+    @Override
+    protected void onSessionEnded(SessionDescriptor session) {
+        mProxyDelegate.onSessionEndedInternal(session);
+    }
+
+    @Override
+    protected void onForeground(ActivityDescriptor activity) {
+        mProxyDelegate.onForegroundInternal(activity);
+    }
+
+    @Override
+    protected void onBackground(ActivityDescriptor activity) {
+        mProxyDelegate.onBackgroundInternal(activity);
+    }
+
+    @Override
+    protected void onHidden(ActivityDescriptor activity) {
+        mProxyDelegate.onHiddenInternal(activity);
     }
 }

@@ -1,0 +1,13 @@
+# Target labels
+ rapidjson
+# Source files and their labels
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/CMakeFiles/rapidjson
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/CMakeFiles/rapidjson.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/CMakeFiles/rapidjson-complete.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule

@@ -31,5 +31,11 @@ public interface ITtsPlayerProvider extends IDocumentLifecycleListener {
      * @param source the path of the tts mp3.
      * @param ttsSourceProvider the TTS source.
      */
-    void prepare(@NonNull String source, @NonNull ITtsSourceProvider ttsSourceProvider) throws IOException;
+    default void prepare(@NonNull String source, @NonNull ITtsSourceProvider ttsSourceProvider) throws IOException {}
+
+    /**
+     * Prepares a source for the TTS Player.
+     * @param source the path of the tts mp3
+     */
+    default void prepare(@NonNull String source) {}
 }

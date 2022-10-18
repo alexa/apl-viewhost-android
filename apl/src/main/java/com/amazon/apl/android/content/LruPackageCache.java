@@ -27,8 +27,9 @@ public class LruPackageCache extends LruCacheWrapper<Content.ImportRef, APLJSOND
         super(new LruCache<Content.ImportRef, APLJSONData>(sizeInBytes) {
             @Override
             protected int sizeOf(@NonNull Content.ImportRef key, @NonNull APLJSONData value) {
-                // Size is number of characters. Each character should be two bytes.
-                return value.getSize() * 2;
+                // Size is number of characters encoded using UTF-8.
+                // APLJsonData has a reference to a native rapid json object of type rapidjson:GenericObject which uses UTF-8 encoding
+                return value.getSize() ;
             }
         });
     }

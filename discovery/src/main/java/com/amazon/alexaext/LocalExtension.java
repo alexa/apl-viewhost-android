@@ -35,6 +35,10 @@ public abstract class LocalExtension implements IExtension {
     IExtensionCommandResultCallback mCommandCallback;
     ILiveDataUpdateCallback mLiveDataCallback;
 
+    IExtensionActivityEventCallback mActivityEventCallback;
+    IExtensionActivityCommandResultCallback mActivityCommandCallback;
+    ILiveDataActivityUpdateCallback mActivityLiveDataCallback;
+
     public LocalExtension(String uri) {
         mUris.add(uri);
     }
@@ -63,13 +67,86 @@ public abstract class LocalExtension implements IExtension {
         mCommandCallback = callback;
     }
 
+    @Override
+    public void registerEventCallback(IExtensionActivityEventCallback callback) {
+        mActivityEventCallback = callback;
+    }
+
+    @Override
+    public void registerLiveDataUpdateCallback(ILiveDataActivityUpdateCallback callback) {
+        mActivityLiveDataCallback = callback;
+    }
+
+    @Override
+    public void registerCommandResultCallback(IExtensionActivityCommandResultCallback callback) {
+        mActivityCommandCallback = callback;
+    }
+
+    /**
+     * Invoke an extension event handler in the document.
+     *
+     * @param activity ActivityDescriptor.
+     * @param event The extension generated event.
+     * @return true if the event is delivered, false if there is no callback registered.
+     */
+    protected boolean invokeExtensionEventHandler(ActivityDescriptor activity, String event) {
+        if (mActivityEventCallback != null) {
+            mActivityEventCallback.sendExtensionEvent(activity, event);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Invoke an live data binding change, or data update handler in the document.
+     *
+     * @param activity ActivityDescriptor.
+     * @param liveDataUpdate The extension generated event.
+     * @return true if the event is delivered, false if there is no callback registered.
+     */
+    protected boolean invokeLiveDataUpdate(ActivityDescriptor activity, String liveDataUpdate) {
+        if (mActivityLiveDataCallback != null) {
+            mActivityLiveDataCallback.invokeLiveDataUpdate(activity, liveDataUpdate);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Notify system about command success.
+     *
+     * @param activity ActivityDescriptor.
+     * @param id Command id.
+     */
+    protected void commandSuccess(ActivityDescriptor activity, int id) {
+        if (mActivityCommandCallback != null) {
+            mActivityCommandCallback.sendCommandResult(activity, String.format(COMMAND_SUCCESS, id));
+        }
+    }
+
+    /**
+     * Notify system about command failure.
+     *
+     * @param activity ActivityDescriptor.
+     * @param id Command id.
+     * @param code error code.
+     * @param message error message.
+     */
+    protected void commandFailure(ActivityDescriptor activity, int id, int code, String message) {
+        if (mActivityCommandCallback != null) {
+            mActivityCommandCallback.sendCommandResult(activity, String.format(COMMAND_FAILURE, id, code, message));
+        }
+    }
+
     /**
      * Invoke an extension event handler in the document.
      *
      * @param uri The extension URI.
      * @param event The extension generated event.
      * @return true if the event is delivered, false if there is no callback registered.
+     * @deprecated see {@link #invokeExtensionEventHandler(ActivityDescriptor,String)}
      */
+    @Deprecated
     protected boolean invokeExtensionEventHandler(String uri, String event) {
         if (mEventCallback != null) {
             mEventCallback.sendExtensionEvent(uri, event);
@@ -84,7 +161,9 @@ public abstract class LocalExtension implements IExtension {
      * @param uri The extension URI.
      * @param liveDataUpdate The extension generated event.
      * @return true if the event is delivered, false if there is no callback registered.
+     * @deprecated see {@link #invokeLiveDataUpdate(ActivityDescriptor,String)}
      */
+    @Deprecated
     protected boolean invokeLiveDataUpdate(String uri, String liveDataUpdate) {
         if (mLiveDataCallback != null) {
             mLiveDataCallback.invokeLiveDataUpdate(uri, liveDataUpdate);
@@ -98,7 +177,9 @@ public abstract class LocalExtension implements IExtension {
      *
      * @param uri The extension URI.
      * @param id Command id.
+     * @deprecated see {@link #commandSuccess(ActivityDescriptor,int)}
      */
+    @Deprecated
     protected void commandSuccess(String uri, int id) {
         if (mCommandCallback != null) {
             mCommandCallback.sendCommandResult(uri, String.format(COMMAND_SUCCESS, id));
@@ -112,7 +193,9 @@ public abstract class LocalExtension implements IExtension {
      * @param id Command id.
      * @param code error code.
      * @param message error message.
+     * @deprecated see {@link #commandFailure(ActivityDescriptor,int,int,String)}
      */
+    @Deprecated
     protected void commandFailure(String uri, int id, int code, String message) {
         if (mCommandCallback != null) {
             mCommandCallback.sendCommandResult(uri, String.format(COMMAND_FAILURE, id, code, message));

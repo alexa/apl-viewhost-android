@@ -93,6 +93,13 @@ public class Text extends Component {
     }
 
     @Nullable
+    public void invalidateNullLine(@NonNull IAPLViewPresenter presenter){
+        List<PropertyKey> dirtyProperties = new LinkedList<>();
+        dirtyProperties.add(PropertyKey.kPropertyColorKaraokeTarget);
+        presenter.onComponentChange(this,dirtyProperties);
+    }
+
+    @Nullable
     public int[] getSpans() {
         final Layout textLayout = getTextLayout();
 
@@ -158,6 +165,19 @@ public class Text extends Component {
         final int left = b.intLeft();
         final int right = b.intRight();
         return new android.graphics.Rect(left, top, right, bottom);
+    }
+
+    /**
+     * Gets the line number by range
+     */
+    public int getLineNumberByRange(int rangeStart, int rangeEnd) {
+        final Layout textLayout = getTextLayout();
+
+        if (textLayout == null) {
+            return -1;
+        }
+
+        return textLayout.getLineForOffset((rangeStart + rangeEnd)/2);
     }
 
     private Layout getTextLayout() {

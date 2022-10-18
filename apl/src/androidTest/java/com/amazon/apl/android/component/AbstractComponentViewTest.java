@@ -19,6 +19,7 @@ import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLLayout;
@@ -98,6 +99,14 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
                     .buildRootContextDependencies();
         }
 
+        public InflateAPLViewAction(RootConfig rootConfig, APLOptions options, String componentProps) {
+            mTestContext = new APLTestContext()
+                    .setDocument(COMPONENT_BASE_DOC, getComponentType(), componentProps, "")
+                    .setRootConfig(rootConfig)
+                    .setAplOptions(options)
+                    .buildRootContextDependencies();
+        }
+
         @Override
         public Matcher<View> getConstraints() {
             Matcher<View> standardConstraint = isDisplayingAtLeast(90);
@@ -168,6 +177,17 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
             }
         }
         return actionWithAssertions(new InflateAPLViewAction(options, props.toString()));
+    }
+
+    ViewAction inflateWithOptions(RootConfig rootConfig, APLOptions options, String... componentProps) {
+        StringBuilder props = new StringBuilder();
+        for (int i = 0; i < componentProps.length; i++) {
+            if (componentProps[i].length() > 0) {
+                props.append(",");
+                props.append(componentProps[i]);
+            }
+        }
+        return actionWithAssertions(new InflateAPLViewAction(rootConfig, options, props.toString()));
     }
 
     ViewAssertion hasRootContext() {

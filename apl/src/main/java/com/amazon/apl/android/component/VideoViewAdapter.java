@@ -11,11 +11,13 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.amazon.apl.android.APLLayoutParams;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.Video;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.media.MediaPlayer;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.AudioTrack;
@@ -23,10 +25,12 @@ import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.VideoScale;
 
 public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
+    private static final String TAG = "VideoViewAdapter";
     private static VideoViewAdapter INSTANCE;
 
     private VideoViewAdapter() {
         super();
+        // The below methods are for legacy purposes only, should not be used when using Core mediaPlayer interface
         putPropertyFunction(PropertyKey.kPropertySource, this::applySource);
         putPropertyFunction(PropertyKey.kPropertyMuted, this::applyMuted);
     }
@@ -47,64 +51,128 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
      *
      * @param view the view associated with the player.
      */
+    @Deprecated
     private void applySource(Video component, View view) {
-        IMediaPlayer mediaPlayer = component.getMediaPlayer();
-        if (mediaPlayer != null) {
-            // In case media player was already initialized.
+        // Before MediaPlayerV2, source and mute property updates were handled through dynamic property updates.
+        // Now they are handled by the MediaPlayer interface.
+        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
+            IMediaPlayer mediaPlayer = component.getMediaPlayer();
+            if (mediaPlayer != null) {
+                // In case media player was already initialized.
+                mediaPlayer.release();
+            }
+            mediaPlayer = component.getMediaPlayerProvider().getNewPlayer(
+                    view.getContext(), view);
+            final MediaSources mediaSources = component.getMediaSources();
+            if (mediaSources != null) {
+                mediaPlayer.setMediaSources(mediaSources);
+            }
+            component.setMediaPlayer(mediaPlayer);
+            mediaPlayer.addMediaStateListener(component);
+        }
+    }
+
+    /**
+     * Apply the view to the media player
+     * @param component
+     * @param view
+     */
+    private void applyView(Video component, View view) {
+        final MediaPlayer nativePlayer = component.getNativePlayer();
+        if (nativePlayer == null) {
+            Log.e(TAG, "Native player not initialized, won't render video");
+            return;
+        }
+        IMediaPlayer mediaPlayer = nativePlayer.getMediaPlayer();
+        if (mediaPlayer == null) {
+            // Order is not guaranteed and may change in future
+            mediaPlayer = component.getMediaPlayerProvider().getNewPlayer(view.getContext(), view);
+            applyVideoScale(component, mediaPlayer);
+            applyCurrentTrackIndex(component, mediaPlayer);
+            applyCurrentTrackTime(component, mediaPlayer);
+            nativePlayer.setMediaPlayer(mediaPlayer);
+        }
+        // For supporting back navigation.
+        else {
             mediaPlayer.release();
+            // The track index and track time are not available from component in V2
+            // Retrieve the current track index before the player was released.
+            final int preReleaseTrackIndex = nativePlayer.getCurrentTrackIndex();
+            // Retrieve the current track time before the player was released.
+            final int preReleaseTrackPosition = nativePlayer.getCurrentSeekPosition();
+            // Add the mediaPlayer to the list of playing set
+            mediaPlayer = component.getMediaPlayerProvider().getNewPlayer(view.getContext(), view);
+            // Add the native player to listen to media state updates from the revived media player
+            nativePlayer.setMediaPlayer(mediaPlayer);
+            // Assign all the properties from cached document state
+            mediaPlayer.setMediaSources(component.getMediaSources());
+            applyMuted(component, mediaPlayer);
+            applyAudioTrack(component, mediaPlayer);
+            applyVideoScale(component, mediaPlayer);
+            // Set the track to the pre-release track index
+            mediaPlayer.setTrack(preReleaseTrackIndex);
+            // Seek to the pre-release track position
+            mediaPlayer.seek(preReleaseTrackPosition);
+            // Play if needed
+            applyAutoPlay(component, mediaPlayer);
         }
-        mediaPlayer = component.getMediaPlayerProvider().getNewPlayer(
-                view.getContext(), view);
-        final MediaSources mediaSources = component.getMediaSources();
-        if (mediaSources != null) {
-            mediaPlayer.setMediaSources(mediaSources);
-        }
-        component.setMediaPlayer(mediaPlayer);
-        mediaPlayer.addMediaStateListener(component);
     }
 
-    private void applyMuted(Video component, View view) {
+    private void applyMuted(Video component, IMediaPlayer mediaPlayer) {
         if (component.shouldMute()) {
-            component.getMediaPlayer().mute();
+            mediaPlayer.mute();
         } else {
-            component.getMediaPlayer().unmute();
+            mediaPlayer.unmute();
         }
     }
 
-    public void applyAudioTrack(Video component) {
+    @Deprecated
+    private void applyMuted(Video component, View view) {
+        // Before MediaPlayerV2, source and mute property updates were handled through dynamic property updates.
+        // Now they are handled by the MediaPlayer interface.
+        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
+            if (component.shouldMute()) {
+                component.getMediaPlayer().mute();
+            } else {
+                component.getMediaPlayer().unmute();
+            }
+        }
+    }
+
+    private void applyAudioTrack(Video component, IMediaPlayer mediaPlayer) {
         final AudioTrack audioTrack = component.getAudioTrack();
-        if (audioTrack != null) {
-            component.getMediaPlayer().setAudioTrack(audioTrack);
+        if (mediaPlayer != null && audioTrack != null) {
+            mediaPlayer.setAudioTrack(audioTrack);
         }
     }
 
-    public void applyVideoScale(Video component) {
+    private void applyVideoScale(Video component, IMediaPlayer mediaPlayer) {
         final VideoScale scale = component.getVideoScale();
-        if (scale == null) return;
-        IMediaPlayer mediaPlayer = component.getMediaPlayer();
-        if (mediaPlayer == null) return;
-        mediaPlayer.setVideoScale(scale);
+        if (mediaPlayer != null && scale != null) {
+            mediaPlayer.setVideoScale(scale);
+        }
     }
 
-    public void applyCurrentTrackIndex(Video component) {
+    private void applyCurrentTrackIndex(Video component, IMediaPlayer mediaPlayer) {
         final int currentTrackIndex = component.getTrackIndex();
-        if (currentTrackIndex != 0) {
-            component.getMediaPlayer().setTrack(currentTrackIndex);
+        if (mediaPlayer != null && currentTrackIndex != 0) {
+            mediaPlayer.setTrack(currentTrackIndex);
         }
     }
 
-    public void applyCurrentTrackTime(Video component) {
+    private void applyCurrentTrackTime(Video component, IMediaPlayer mediaPlayer) {
         final int currentTrackTime = component.getCurrentTrackTime();
-        if (currentTrackTime != 0) {
-            component.getMediaPlayer().seek(currentTrackTime);
+        if (mediaPlayer != null && currentTrackTime != 0) {
+            mediaPlayer.seek(currentTrackTime);
         }
     }
 
-    public void applyAutoPlay(Video component) {
-        if (component.shouldAutoPlay()) {
-            component.getMediaPlayer().play();
+    private void applyAutoPlay(Video component, IMediaPlayer mediaPlayer) {
+        if (mediaPlayer != null && component.shouldAutoPlay()) {
+            mediaPlayer.play();
         }
     }
+
     /**
      * Apply properties to the APL component.
      */
@@ -112,15 +180,20 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     public void applyAllProperties(Video component, @NonNull View view) {
 
         super.applyAllProperties(component, view);
-        // This releases the current media player
-        applySource(component, view);
-        applyMuted(component, view);
-        applyAudioTrack(component);
-        applyVideoScale(component);
-        applyCurrentTrackIndex(component);
-        applyCurrentTrackTime(component);
-        // Order matters here as we want to apply the autoPlay last.
-        applyAutoPlay(component);
+        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
+            // This releases the current media player and gets a new one
+            applySource(component, view);
+            // Assign all properties
+            applyMuted(component, view);
+            applyAudioTrack(component, component.getMediaPlayer());
+            applyVideoScale(component, component.getMediaPlayer());
+            applyCurrentTrackIndex(component, component.getMediaPlayer());
+            applyCurrentTrackTime(component, component.getMediaPlayer());
+            // Order matters here as we want to apply the autoPlay last.
+            applyAutoPlay(component, component.getMediaPlayer());
+        } else {
+            applyView(component, view);
+        }
     }
 
     @Override

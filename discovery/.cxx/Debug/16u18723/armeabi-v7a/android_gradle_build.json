@@ -1,0 +1,120 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "enumgen-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "enumgen"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "enumgen"
+    },
+    "yoga-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "yoga"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "yoga"
+    },
+    "rapidjson-build-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "rapidjson-build"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "rapidjson-build"
+    },
+    "rapidjson-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "rapidjson"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "rapidjson"
+    },
+    "discovery-jni-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "discovery-jni"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "discovery-jni",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cxx/Debug/16u18723/obj/armeabi-v7a/libdiscovery-jni.so",
+      "runtimeFiles": []
+    },
+    "pegtl-build-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "pegtl-build"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "pegtl-build"
+    },
+    "pegtl-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "pegtl"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "pegtl"
+    },
+    "alexaext-Debug-armeabi-v7a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a",
+        "alexaext"
+      ],
+      "buildType": "debug",
+      "abi": "armeabi-v7a",
+      "artifactName": "alexaext",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/armeabi-v7a/build-extensions/alexaext/libalexaext.a"
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

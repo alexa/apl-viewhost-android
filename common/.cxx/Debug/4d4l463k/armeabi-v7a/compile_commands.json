@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/Debug/4d4l463k/armeabi-v7a",
+  "command": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ --target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot  -Dcommon_jni_EXPORTS -I../../../../src/main/cpp/include  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -O0 -fno-limit-debug-info  -fPIC   -o CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o -c /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/src/main/cpp/jninativeowner.cpp",
+  "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/src/main/cpp/jninativeowner.cpp"
+}
+]

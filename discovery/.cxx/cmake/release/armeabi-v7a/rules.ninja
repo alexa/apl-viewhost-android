@@ -61,7 +61,7 @@ rule CXX_STATIC_LIBRARY_LINKER__alexaext
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery -B/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a
+  command = /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake -H/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery -B/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a
   description = Re-running CMake...
   generator = 1
 

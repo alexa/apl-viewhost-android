@@ -8,6 +8,7 @@
 #include "apl/apl.h"
 #include "apl/extension/extensioncomponent.h"
 #include "alexaext/alexaext.h"
+#include "jnidocumentsession.h"
 #include "jniutil.h"
 #include "jnicontent.h"
 #include "loggingbridge.h"
@@ -72,8 +73,9 @@ namespace apl {
                     const alexaext::ExtensionProviderPtr& provider,
                     const alexaext::ExtensionResourceProviderPtr& resourceProvider,
                     const alexaext::ExecutorPtr& messageExecutor,
+                    const apl::ExtensionSessionPtr& session,
                     jweak weakInstance) :
-                    ExtensionMediator(provider, resourceProvider, messageExecutor),
+                    ExtensionMediator(provider, resourceProvider, messageExecutor, session),
                     mWeakInstance(weakInstance) {}
 
             ~AndroidExtensionMediator() {
@@ -81,6 +83,7 @@ namespace apl {
                 if (MEDIATOR_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                     return;
                 }
+                finish();
                 env->DeleteWeakGlobalRef(mWeakInstance);
             }
 
@@ -125,15 +128,18 @@ namespace apl {
         Java_com_amazon_apl_android_ExtensionMediator_nCreate(JNIEnv *env, jobject instance,
                                                               jlong providerHandler_,
                                                               jlong resourceProviderHandler_,
-                                                              jlong executorHandler_) {
+                                                              jlong executorHandler_,
+                                                              jlong sessionHandler_) {
             auto extensionProvider = get<alexaext::ExtensionProvider>(providerHandler_);
             auto resourceProvider = get<alexaext::ExtensionResourceProvider>(
                     resourceProviderHandler_);
             auto extensionExecutor = get<alexaext::Executor>(executorHandler_);
+            auto session = get<AndroidDocumentSession>(sessionHandler_);
             auto extensionMediator_ = std::make_shared<AndroidExtensionMediator>(
                     extensionProvider,
                     resourceProvider,
                     extensionExecutor,
+                    session->getExtensionSession(),
                     env->NewWeakGlobalRef(instance));
             return createHandle<ExtensionMediator>(extensionMediator_);
         }
@@ -177,11 +183,17 @@ namespace apl {
         }
 
         JNIEXPORT void JNICALL
-        Java_com_amazon_apl_android_ExtensionMediator_nFinish(JNIEnv *env, jclass clazz, jlong mediatorHandler_) {
+        Java_com_amazon_apl_android_ExtensionMediator_nEnable(JNIEnv *env, jclass clazz, jlong mediatorHandler_, jboolean enabled) {
             auto mediator = get<AndroidExtensionMediator>(mediatorHandler_);
-            mediator->finish();
+            mediator->enable(enabled);
         }
 
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_ExtensionMediator_nOnSessionEnded(JNIEnv *env, jclass clazz,
+                                                                      jlong mediatorHandler_) {
+            auto mediator = get<AndroidExtensionMediator>(mediatorHandler_);
+            mediator->onSessionEnded();
+        }
 
 #ifdef __cplusplus
         }

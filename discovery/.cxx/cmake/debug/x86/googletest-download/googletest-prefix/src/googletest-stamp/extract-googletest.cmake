@@ -1,7 +1,7 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" ABSOLUTE)
-get_filename_component(directory "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/x86/googletest-src" ABSOLUTE)
+get_filename_component(filename "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz" ABSOLUTE)
+get_filename_component(directory "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86/googletest-src" ABSOLUTE)
 
 message(STATUS "extracting...
      src='${filename}'

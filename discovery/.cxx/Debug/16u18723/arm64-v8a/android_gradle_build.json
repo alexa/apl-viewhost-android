@@ -1,0 +1,120 @@
+{
+  "stringTable": {},
+  "buildFiles": [
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+      "-C",
+      "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+    "-C",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {
+    "yoga-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "yoga"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "yoga"
+    },
+    "pegtl-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "pegtl"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "pegtl"
+    },
+    "enumgen-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "enumgen"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "enumgen"
+    },
+    "alexaext-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "alexaext"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "alexaext",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a/build-extensions/alexaext/libalexaext.a"
+    },
+    "discovery-jni-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "discovery-jni"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "discovery-jni",
+      "output": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cxx/Debug/16u18723/obj/arm64-v8a/libdiscovery-jni.so",
+      "runtimeFiles": []
+    },
+    "rapidjson-build-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "rapidjson-build"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "rapidjson-build"
+    },
+    "pegtl-build-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "pegtl-build"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "pegtl-build"
+    },
+    "rapidjson-Debug-arm64-v8a": {
+      "buildCommandComponents": [
+        "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "-C",
+        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a",
+        "rapidjson"
+      ],
+      "buildType": "debug",
+      "abi": "arm64-v8a",
+      "artifactName": "rapidjson"
+    }
+  },
+  "toolchains": {},
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}

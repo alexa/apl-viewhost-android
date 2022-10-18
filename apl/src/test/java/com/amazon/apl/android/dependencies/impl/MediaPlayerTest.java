@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.util.Log;
 import android.view.TextureView;
 
@@ -50,11 +49,10 @@ import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.Me
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -368,7 +366,6 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         aplMediaPlayer.mute();
         verify(mediaPlayer).setVolume(0.0f, 0.0f);
         assertTrue(aplMediaPlayer.isMuted());
-        verify(mListener).updateMediaState(any(IMediaPlayer.class));
 
         // Test mute again is a no-op
         aplMediaPlayer.mute();
@@ -398,7 +395,6 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         // Unmute the MediaPlayer
         aplMediaPlayer.unmute();
         verify(mediaPlayer).setVolume(1.0f, 1.0f);
-        verify(mListener).updateMediaState(any(IMediaPlayer.class));
         assertFalse(aplMediaPlayer.isMuted());
     }
 

@@ -11,6 +11,7 @@ import androidx.test.annotation.UiThreadTest;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
+import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
 import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.BuildConfig;
@@ -19,6 +20,9 @@ import com.amazon.apl.android.NoOpComponent;
 import com.amazon.apl.android.NotOnUiThreadError;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.dependencies.IDataSourceContextListener;
+import com.amazon.apl.android.dependencies.IVisualContextListener;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.enums.RootProperty;
@@ -36,6 +40,9 @@ import static junit.framework.TestCase.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 @RunWith(AndroidJUnit4.class)
 public class RootContextTest extends APLViewhostTest {
@@ -243,6 +250,45 @@ public class RootContextTest extends APLViewhostTest {
                 .setDocument(DOC_SETTINGS)
                 .buildRootContext();
         assertTrue(rootContext.getRenderingContext().getMediaPlayerProvider() instanceof MediaPlayerProvider);
+    }
+
+    @Test
+    @SmallTest
+    public void test_enabledVideo_enabled_mediaPlayerV2Enabled() {
+        MediaPlayerProvider optionsProvider = new MediaPlayerProvider();
+        MediaPlayerProvider rootConfigProvider = new MediaPlayerProvider();
+        RootConfig rootConfig = RootConfig.create()
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider))
+                .set(RootProperty.kDisallowVideo, Boolean.FALSE);
+        RootContext rootContext = new APLTestContext()
+                .setAplOptions(APLOptions.builder().mediaPlayerProvider(optionsProvider).build())
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_SETTINGS)
+                .buildRootContext();
+        assertEquals(rootConfigProvider, rootContext.getRenderingContext().getMediaPlayerProvider());
+    }
+
+    @Test
+    @SmallTest
+    public void test_notifyContext() {
+        MediaPlayerProvider optionsProvider = new MediaPlayerProvider();
+        MediaPlayerProvider rootConfigProvider = new MediaPlayerProvider();
+        RootConfig rootConfig = RootConfig.create()
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider))
+                .set(RootProperty.kDisallowVideo, Boolean.FALSE);
+        IDataSourceContextListener dataSourceContextListener = mock(IDataSourceContextListener.class);
+        IVisualContextListener visualContextListener = mock(IVisualContextListener.class);
+        RootContext rootContext = new APLTestContext()
+                .setAplOptions(APLOptions.builder()
+                        .dataSourceContextListener(dataSourceContextListener)
+                        .visualContextListener(visualContextListener)
+                        .build())
+                .setRootConfig(rootConfig)
+                .setDocument(DOC_SETTINGS)
+                .buildRootContext();
+        rootContext.notifyContext();
+        verify(visualContextListener).onVisualContextUpdate(any());
+        verify(dataSourceContextListener).onDataSourceContextUpdate(any());
     }
 
     @Test

@@ -53,6 +53,27 @@ import static org.junit.Assert.assertNotNull;
  */
 public abstract class AbstractDocViewTest {
 
+    // The document will reinflate on configuration change
+    public static final String BASE_DOC_REINFLATE_SEND_EVENT_ARGUMENT = "reinflating the APL document";
+
+    /**
+     * The preserve property is used to specify an array of sequencer that should continue
+     * to execute during and after reinflation.
+     * onConfigChange handler with Reinflate command preserving
+     * the named sequencer "MAGIC"
+     */
+    public static final String DOCUMENT_PROPERTIES ="\"onConfigChange\": [\n" +
+            "      {\n" +
+            "        \"type\": \"SendEvent\",\n" +
+            "        \"sequencer\": \"ConfigSendEvent\",\n" +
+            "        \"arguments\": [ \"" + BASE_DOC_REINFLATE_SEND_EVENT_ARGUMENT + "\" ]\n" +
+            "      },\n" +
+            "      {\n" +
+            "        \"type\": \"Reinflate\",\n" +
+            "        \"preservedSequencers\": [\"MAGIC\"]" +
+            "      }\n" +
+            "    ]\n";
+
     final static String BASE_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"1.4\"," +
@@ -181,6 +202,10 @@ public abstract class AbstractDocViewTest {
 
     public ViewAction inflateWithOptions(String componentProps, String documentProps, APLOptions options) {
         return inflate(componentProps, documentProps, "payload", "{}", options);
+    }
+
+    public ViewAction inflateWithOptions(String componentProps, String documentProps, APLOptions options, RootConfig rootConfig) {
+        return inflate(componentProps, documentProps, "payload", "{}", options, rootConfig);
     }
 
     public ViewAction inflate(String componentProps, String documentProps, String payloadId, String data, APLOptions options) {

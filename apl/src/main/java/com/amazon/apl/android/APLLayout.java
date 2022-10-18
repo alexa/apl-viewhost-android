@@ -44,6 +44,7 @@ import com.amazon.apl.android.component.ComponentViewAdapterFactory;
 import com.amazon.apl.android.component.ImageViewAdapter;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.functional.Consumer;
+import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
@@ -62,6 +63,7 @@ import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLExtensionView;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FocusDirection;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.RootProperty;
@@ -548,6 +550,14 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             if (view != null) {
                 ComponentViewAdapter adapter = ComponentViewAdapterFactory.getAdapter(component);
                 adapter.refreshProperties(component, view, dirtyProperties);
+            } else if (component.getComponentType() == ComponentType.kComponentTypeVectorGraphic) {
+                // The vector graphic is cached, so even if the view isn't available (not inflated), we need to notify the
+                // vector graphic that it is dirty.
+                final VectorGraphic vcComponent = (VectorGraphic)component;
+                final GraphicContainerElement graphicContainerElement = vcComponent.getOrCreateGraphicContainerElement();
+                if (graphicContainerElement != null) {
+                    graphicContainerElement.applyDirtyProperties(vcComponent.getDirtyGraphics());
+                }
             }
         }
 
@@ -648,7 +658,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 documentLifecycleListener.onDocumentRender(rootContext);
             }
 
-            rootContext.notifyVisualContext();
+            rootContext.notifyContext();
         }
 
         public void reinflate() {
@@ -678,6 +688,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         @Override
         public void onDocumentDisplayed() {
+            final long documentDisplayedTime = System.currentTimeMillis();
+
             if (tRenderDocument != ITelemetryProvider.UNKNOWN_METRIC_ID) {
                 mTelemetryProvider.stopTimer(tRenderDocument);
                 tRenderDocument = ITelemetryProvider.UNKNOWN_METRIC_ID;
@@ -690,7 +702,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             }
 
             for (IDocumentLifecycleListener documentLifecycleListener : mDocumentLifecycleListeners) {
-                documentLifecycleListener.onDocumentDisplayed();
+                documentLifecycleListener.onDocumentDisplayed(documentDisplayedTime);
             }
         }
 

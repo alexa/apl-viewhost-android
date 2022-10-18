@@ -17,8 +17,10 @@ import static com.amazon.alexa.android.extension.discovery.ExtensionMultiplexSer
 
 /**
  * This abstract class represents an extension.
+ * @deprecated Use {@link AbstractExtensionServiceV2} instead.
  */
 @SuppressWarnings("deprecation")
+@Deprecated
 public abstract class AbstractExtensionService extends Service implements ExtensionMultiplexService.ConnectionCallback {
 
     protected IMultiplexServiceConnection mMultiplexService;

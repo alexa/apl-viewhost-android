@@ -76,19 +76,7 @@ namespace alexaext {
                 env->DeleteWeakGlobalRef(mWeakInstance);
             }
 
-            void registerExtension(const ExtensionProxyPtr& proxy) {
-                if (proxy) {
-                    for (auto uri : proxy->getURIs()) {
-                        mExtensions.emplace(uri, proxy);
-                    }
-                }
-            }
-
             bool hasExtension(const std::string& uri) override {
-                if (mExtensions.find(uri) != mExtensions.end()) {
-                    return true;
-                }
-
                 JNIEnv *env;
                 if (PROVIDER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                     return false;
@@ -101,70 +89,58 @@ namespace alexaext {
 
                 bool result;
                 jstring jUri = env->NewStringUTF(uri.c_str());
-                try {
-                    result = env->CallBooleanMethod(localRef, EXTENSIONREGISTRAR_HAS_EXTENSION, jUri);
-                }
-                catch (...) {
-                    env->DeleteLocalRef(localRef);
-                    env->DeleteLocalRef(jUri);
-                    return false;
-                }
+                result = env->CallBooleanMethod(localRef, EXTENSIONREGISTRAR_HAS_EXTENSION, jUri);
+
                 env->DeleteLocalRef(localRef);
                 env->DeleteLocalRef(jUri);
+
+                if (env->ExceptionCheck()) {
+                    env->ExceptionClear();
+                    return false;
+                }
 
                 return result;
             }
 
             ExtensionProxyPtr getExtension(const std::string& uri) override {
-                auto proxy = mExtensions.find(uri);
-                ExtensionProxyPtr proxyPtr;
-                if (proxy != mExtensions.end()) {
-                    proxyPtr = proxy->second;
-                } else {
-                    JNIEnv *env;
-                    if (PROVIDER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
-                        return nullptr;
-                    }
-
-                    jobject localRef = env->NewLocalRef(mWeakInstance);
-                    if (!localRef) {
-                        return nullptr;
-                    }
-
-                    jstring jUri = env->NewStringUTF(uri.c_str());
-                    try {
-                        auto proxyHandle = env->CallLongMethod(localRef, EXTENSIONREGISTRAR_CREATE_PROXY, jUri);
-                        if (proxyHandle > 0) proxyPtr = apl::jni::get<alexaext::ExtensionProxy>(proxyHandle);
-                    }
-                    catch (...) {
-                        env->DeleteLocalRef(localRef);
-                        env->DeleteLocalRef(jUri);
-                        return nullptr;
-                    }
-                    env->DeleteLocalRef(localRef);
-                    env->DeleteLocalRef(jUri);
+                JNIEnv *env;
+                if (PROVIDER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+                    return nullptr;
                 }
-                proxyPtr->initializeExtension(uri);
-                registerExtension(proxyPtr);
+
+                jobject localRef = env->NewLocalRef(mWeakInstance);
+                if (!localRef) {
+                    return nullptr;
+                }
+
+                jstring jUri = env->NewStringUTF(uri.c_str());
+                ExtensionProxyPtr proxyPtr;
+                auto proxyHandle = env->CallLongMethod(localRef, EXTENSIONREGISTRAR_CREATE_PROXY, jUri);
+                if (proxyHandle > 0) proxyPtr = apl::jni::get<alexaext::ExtensionProxy>(proxyHandle);
+
+                env->DeleteLocalRef(localRef);
+                env->DeleteLocalRef(jUri);
+
+                if (env->ExceptionCheck()) {
+                    env->ExceptionClear();
+                    return nullptr;
+                }
+
+                if (proxyPtr && !proxyPtr->isInitialized(uri)){
+                    proxyPtr->initializeExtension(uri);
+                }
+
                 return proxyPtr;
             }
 
         private:
             jweak mWeakInstance;
-            std::map<std::string, ExtensionProxyPtr> mExtensions;
         };
 
         JNIEXPORT jlong JNICALL
         Java_com_amazon_alexaext_ExtensionRegistrar_nCreate(JNIEnv *env, jobject thiz) {
             auto extensionProvider_ = std::make_shared<AndroidExtensionProvider>(env->NewWeakGlobalRef(thiz));
             return apl::jni::createHandle<AndroidExtensionProvider>(extensionProvider_);
-        }
-
-        JNIEXPORT void JNICALL
-        Java_com_amazon_alexaext_ExtensionRegistrar_nRegisterExtension(JNIEnv *env, jclass clazz, jlong handle, jlong proxyHandle) {
-            auto provider = apl::jni::get<AndroidExtensionProvider>(handle);
-            auto proxy = apl::jni::get<alexaext::ExtensionProxy>(proxyHandle);
-            provider->registerExtension(proxy);
         }
 
 #ifdef __cplusplus

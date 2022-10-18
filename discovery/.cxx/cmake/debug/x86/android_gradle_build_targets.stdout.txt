@@ -1,2 +1,2 @@
-ninja: Entering directory `/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/x86'
+ninja: Entering directory `/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86'
 ninja: no work to do.

@@ -10,6 +10,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.media.MediaPlayer;
+import com.amazon.apl.android.primitive.BoundMediaSources;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.enums.AudioTrack;
@@ -47,6 +49,8 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
                                                  boolean ended, boolean muted, boolean fromEvent, int trackState,
                                                  int errorCode);
 
+    private static native MediaPlayer nGetMediaPlayer(long nativeHandle);
+
     /**
      * @return True if the video should begin playback by itself as soon as it is ready. Defaults to
      * false.
@@ -75,7 +79,19 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
     }
 
     public MediaSources getMediaSources() {
-        return mProperties.getMediaSources(PropertyKey.kPropertySource);
+        BoundMediaSources boundMediaSources = mProperties.getBoundMediaSources(PropertyKey.kPropertySource);
+        MediaSources sources = MediaSources.create();
+        for (int i = 0; i < boundMediaSources.size(); i++) {
+            MediaSources.MediaSource source = MediaSources.MediaSource.builder()
+                    .url(boundMediaSources.at(i).url())
+                    .duration(boundMediaSources.at(i).duration())
+                    .offset(boundMediaSources.at(i).offset())
+                    .repeatCount(boundMediaSources.at(i).repeatCount())
+                    .headers(boundMediaSources.at(i).headers())
+                    .build();
+            sources.add(source);
+        }
+        return sources;
     }
 
     /**
@@ -101,6 +117,11 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
      */
     public IMediaPlayer getMediaPlayer() {
         return mMediaPlayer;
+    }
+
+    @Nullable
+    public MediaPlayer getNativePlayer() {
+        return nGetMediaPlayer(getNativeHandle());
     }
 
     /**

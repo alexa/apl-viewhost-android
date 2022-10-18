@@ -42,4 +42,9 @@ public interface IterableProperty<T> extends Iterable<T> {
         }
         return iterableProperty;
     }
+
+    static <K extends IterableProperty<T>, T> K create(SimpleArrayGetter<K, T> getter) {
+        K iterableProperty = getter.builder();
+        return iterableProperty;
+    }
 }

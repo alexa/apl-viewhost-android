@@ -227,7 +227,6 @@ namespace apl {
                 jobject instance,
                 const std::shared_ptr<RootContext>& rootContext,
                 const ComponentPtr& rootComponent) {
-
             std::queue<ComponentPtr> queue;
             queue.push(rootComponent);
 

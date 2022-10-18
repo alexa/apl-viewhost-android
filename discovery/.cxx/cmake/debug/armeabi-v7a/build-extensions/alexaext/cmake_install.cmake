@@ -1,4 +1,4 @@
-# Install script for directory: /Users/pranavsu/Documents/Test_open_source/apl-core-library/extensions/alexaext
+# Install script for directory: /Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,18 +38,18 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/libalexaext.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/libalexaext.a")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/Users/pranavsu/Documents/Test_open_source/apl-core-library/extensions/alexaext/include/alexaext" FILES_MATCHING REGEX "/[^/]*\\.h$")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include/alexaext" FILES_MATCHING REGEX "/[^/]*\\.h$")
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext/alexaextConfig.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext/alexaextConfig.cmake"
-         "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig.cmake")
+         "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext/alexaextConfig-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -58,9 +58,9 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext" TYPE FILE FILES "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext" TYPE FILE FILES "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext" TYPE FILE FILES "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig-debug.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/alexaext" TYPE FILE FILES "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a/build-extensions/alexaext/CMakeFiles/Export/lib/cmake/alexaext/alexaextConfig-debug.cmake")
   endif()
 endif()
 

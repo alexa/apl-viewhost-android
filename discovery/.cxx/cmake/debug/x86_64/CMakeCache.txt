@@ -188,6 +188,9 @@ CMAKE_PROJECT_NAME:STATIC=discovery-jni
 //Ranlib
 CMAKE_RANLIB:FILEPATH=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ranlib
 
+//No help, variable specified on the command line.
+CMAKE_RUNTIME_OUTPUT_DIRECTORY:UNINITIALIZED=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj/x86_64
+
 //Flags used by the linker during the creation of dll's.
 CMAKE_SHARED_LINKER_FLAGS:STRING=
 
@@ -248,6 +251,9 @@ COVERAGE:BOOL=OFF
 
 //Track memory use.
 DEBUG_MEMORY_USE:BOOL=OFF
+
+//Build code without RTTI (i.e. -fno-rtti)
+DISABLE_RTTI:BOOL=OFF
 
 //Use the Alexa Extensions library.
 ENABLE_ALEXAEXTENSIONS:BOOL=OFF

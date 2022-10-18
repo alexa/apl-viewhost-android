@@ -17,6 +17,7 @@ import androidx.test.espresso.ViewAction;
 
 import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.Component;
@@ -38,6 +39,7 @@ import static com.amazon.apl.android.espresso.APLViewActions.requestFocus;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static com.amazon.apl.android.espresso.APLViewAssertions.hasBackgroundColor;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
@@ -81,11 +83,41 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
                     "  \"value\": \"" + UP_COLOR + "\"\n" +
                     "}]";
 
+    static final String ARGUMENT_FIRED_1 = "fired1";
+    static final String ARGUMENT_FIRED_2 = "fired2";
+
     static final String ON_PRESS =
-            "\"onPress\": {\n" +
-                    "  \"type\": \"SendEvent\",\n" +
-                    "  \"arguments\": [\"fired\"]" +
-                    "}\n";
+                    "\"onPress\": [\n" +
+                    "        {\n" +
+                    "          \"type\": \"Sequential\",\n" +
+                    "          \"sequencer\": \"MAGIC\",\n" +
+                    "          \"commands\": [\n" +
+                    "            {\n" +
+                    "              \"type\": \"SendEvent\",\n" +
+                    "              \"arguments\": [\"" + ARGUMENT_FIRED_1 + "\"]" +
+                    "            },\n" +
+                    "            {\n" +
+                    "              \"type\": \"SendEvent\",\n" +
+                    "              \"delay\": 800,\n" +
+                    "              \"arguments\": [\"" + ARGUMENT_FIRED_2 + "\"]" +
+                    "            }\n" +
+                    "          ],\n" +
+                    "          \"finally\": [\n" +
+                    "            {\n" +
+                    "              \"type\": \"AnimateItem\",\n" +
+                    "              \"componentId\": \"slide-0\",\n" +
+                    "              \"value\": [\n" +
+                    "                {\n" +
+                    "                  \"property\": \"opacity\",\n" +
+                    "                  \"from\": 0,\n" +
+                    "                  \"to\": 1\n" +
+                    "                }\n" +
+                    "              ],\n" +
+                    "              \"duration\": 1000\n" +
+                    "            }\n" +
+                    "          ]\n" +
+                    "        }\n" +
+                    "      ]\n";
 
     static final String ON_CANCEL =
             "\"onCancel\": {\n" +
@@ -182,7 +214,6 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
             "        \"item\": {\n" +
             TOUCHABLE_COMPONENT +
             "        }\n" +
-            "      }\n" +
             "    }";
 
     /**
@@ -244,7 +275,7 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
 
     String getComponentProps() { return ""; }
 
-    String getDocumentProps() { return ""; }
+    String getDocumentProps() { return DOCUMENT_PROPERTIES; }
 
     abstract String getComponentType();
 
@@ -308,6 +339,30 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
     public void testView_click() {
         inflate();
         verifyClick(click());
+    }
+
+    @Test
+    public void testView_click_sequential_continues_after_reinflation() {
+        inflate();
+        // Press TouchWrapper to start the Sequential command sequence in the onPress handler
+        // The verifyClick method verifies that the first SendEvent command is executed
+        verifyClick(click());
+        // Reinflate
+        // Dummy config
+        ConfigurationChange configChange = mTestContext.getRootContext().createConfigurationChange()
+                .build();
+
+        mTestContext.getRootContext().handleConfigurationChange(configChange);
+        onView(isRoot())
+                .perform(waitFor(500));
+        // The reinflate command is defined in BASE_DOC which sends an event before re-inflation
+        String[] expectedArgument = new String[]{BASE_DOC_REINFLATE_SEND_EVENT_ARGUMENT};
+        verify(mSendEventCallback).onSendEvent(eq(expectedArgument), any(), any(), any());
+        onView(isRoot())
+                .perform(waitFor(800));
+        // Verify that the remaining command in Sequential is executed after remaining delay
+        expectedArgument = new String[]{ARGUMENT_FIRED_2};
+        verify(mSendEventCallback).onSendEvent(eq(expectedArgument), any(), any(), any());
     }
 
     @Test
@@ -382,7 +437,8 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         onView(withComponent(getInnerFrame()))
                 .check(hasBackgroundColor(Color.parseColor(UP_COLOR))); // verify up handler invoked
 
-        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
+        String[] expectedArguments = new String[]{ARGUMENT_FIRED_1};
+        verify(mSendEventCallback).onSendEvent(eq(expectedArguments), any(), any(), any());
     }
 
     @Test
@@ -496,7 +552,8 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
                 .perform(waitFor(100));
 
         // since "activate" action does not have any command, it will invoke its default event handler (onPress)
-        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
+        String[] expectedArguments = new String[]{ARGUMENT_FIRED_1};
+        verify(mSendEventCallback).onSendEvent(eq(expectedArguments), any(), any(), any());
     }
 
     @Test
@@ -553,7 +610,8 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         onView(isRoot())
                 .perform(waitFor(100));
 
-        verify(mSendEventCallback).onSendEvent(any(), any(), any(), any());
+        String[] expectedArgument = new String[]{ARGUMENT_FIRED_1};
+        verify(mSendEventCallback).onSendEvent(eq(expectedArgument), any(), any(), any());
     }
 
 }

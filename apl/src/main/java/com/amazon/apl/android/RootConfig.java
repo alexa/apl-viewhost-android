@@ -9,8 +9,13 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.amazon.alexaext.ExtensionRegistrar;
+import com.amazon.apl.android.audio.AudioPlayerFactoryProxy;
+import com.amazon.apl.android.audio.IAudioPlayerFactory;
+import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
@@ -19,6 +24,8 @@ import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenMode;
 
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -26,6 +33,11 @@ import java.util.Map;
  */
 @SuppressWarnings("WeakerAccess")
 public class RootConfig extends BoundObject {
+
+    /**
+     * Feature flag for runtime to switch to using new MediaPlayer functionality introduced in 2022.2
+     */
+    private boolean mMediaPlayerV2Enabled;
 
     /**
      * @deprecated ExtensionProvider references to support transitional API {@link #getExtensionProvider()}
@@ -42,6 +54,16 @@ public class RootConfig extends BoundObject {
      * Memoization of Session  object to avoid returning it from JNI through conversion.
      */
     private Session mSession;
+
+    /**
+     * Factory for creating AudioPlayers..
+     */
+    private AudioPlayerFactoryProxy mAudioPlayerFactoryProxy;
+
+    /**
+     * Factory for creating MediaPlayer
+     */
+    private MediaPlayerFactoryProxy mMediaPlayerFactoryProxy;
 
     /**
      * Creates a default RootConfig.
@@ -485,7 +507,6 @@ public class RootConfig extends BoundObject {
     public RootConfig extensionProvider(@NonNull ExtensionRegistrar extensionProvider) {
         mExtensionProvider = extensionProvider;
         nExtensionProvider(getNativeHandle(), extensionProvider.getNativeHandle());
-        extensionMediator(ExtensionMediator.create(extensionProvider));
         return this;
     }
 
@@ -548,6 +569,72 @@ public class RootConfig extends BoundObject {
      */
     public Session getSession() {
         return mSession;
+    }
+
+    /**
+     * Gets the Media Player Factory to create Media Player instances
+     * @return Proxy for storing the MediaPlayerProvider
+     */
+    @Nullable
+    @VisibleForTesting
+    public MediaPlayerFactoryProxy getMediaPlayerFactoryProxy() {
+        return mMediaPlayerFactoryProxy;
+    }
+
+    /**
+     * Gets the Audio Player Factory to create TTSPlayer instances.
+     * @return Proxy for storing the AudioPlayerFactory
+     */
+    @Nullable
+    AudioPlayerFactoryProxy getAudioPlayerFactoryProxy() {
+        return mAudioPlayerFactoryProxy;
+    }
+
+    public Collection<IDocumentLifecycleListener> getDocumentLifecycleListeners() {
+        Collection<IDocumentLifecycleListener> listeners = new LinkedList<>();
+        listeners.add(getExtensionMediator());
+        final AudioPlayerFactoryProxy audioPlayerFactoryProxy = getAudioPlayerFactoryProxy();
+        if (audioPlayerFactoryProxy != null) {
+            listeners.add(audioPlayerFactoryProxy.getAudioProvider());
+        }
+        final MediaPlayerFactoryProxy mediaPlayerFactoryProxy = getMediaPlayerFactoryProxy();
+        if (mediaPlayerFactoryProxy != null) {
+            listeners.add(mediaPlayerFactoryProxy.getMediaPlayerProvider());
+        }
+        return listeners;
+    }
+
+    /**
+     * Query if the feature flag is turned on by runtime.
+     * @return true if the feature is turned on, false by default.
+     */
+    public boolean isMediaPlayerV2Enabled() {
+        return mMediaPlayerV2Enabled;
+    }
+
+    /**
+     * Set media player factory.
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig mediaPlayerFactory(@NonNull RuntimeMediaPlayerFactory mediaPlayerFactory) {
+        mMediaPlayerV2Enabled = true;
+        mMediaPlayerFactoryProxy = new MediaPlayerFactoryProxy(mediaPlayerFactory);
+        // A reference to the factory needs to be held in the Java layer, else it would be cleaned.
+        nMediaPlayerFactory(getNativeHandle(), mMediaPlayerFactoryProxy.getNativeHandle());
+        return this;
+    }
+
+    /**
+     * Set audio player factory.
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig audioPlayerFactory(@NonNull IAudioPlayerFactory audioPlayerFactory) {
+        // A reference to the factory needs to be held in the Java layer, else it would be cleaned.
+        mAudioPlayerFactoryProxy = new AudioPlayerFactoryProxy(audioPlayerFactory);
+        nAudioPlayerFactory(getNativeHandle(), mAudioPlayerFactoryProxy.getNativeHandle());
+        return this;
     }
 
     /**
@@ -830,4 +917,8 @@ public class RootConfig extends BoundObject {
     private static native void nTapOrScrollTimeout(long nativehandle, int timeout);
 
     private static native void nSession(long nativehandle, long sessionHandler);
+
+    private static native void nAudioPlayerFactory(long nativehandle, long factoryHandler);
+
+    private static native void nMediaPlayerFactory(long nativehandle, long factoryHandler);
 }

@@ -7,12 +7,19 @@ package com.amazon.apl.android.extension;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.SessionDescriptor;
 import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.ExtensionCommandDefinition;
 import com.amazon.apl.android.ExtensionEventHandler;
@@ -23,11 +30,14 @@ import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.providers.IExtension;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -133,7 +143,7 @@ public class LegacyLocalExtensionProxyTest extends APLViewhostTest {
         }
 
         @Override
-        public void registrationResult(String uri, String result) {
+        public void registrationResult(ActivityDescriptor activity, String result) {
             registrationResult = result;
         }
 
@@ -153,7 +163,7 @@ public class LegacyLocalExtensionProxyTest extends APLViewhostTest {
     @SmallTest
     public void testRegistrationMessage() {
         ProxyWrapper proxy = new ProxyWrapper(oldBuildIn);
-        assertTrue(proxy.requestRegistration(URI, ""));
+        assertTrue(proxy.requestRegistrationNative(new ActivityDescriptor(URI, new SessionDescriptor("TEST"), "TEST"), ""));
 
         assertEquals(
                 "{" +
@@ -190,10 +200,38 @@ public class LegacyLocalExtensionProxyTest extends APLViewhostTest {
 
     @Test
     @SmallTest
+    public void testOnExtensionEvent() throws JSONException {
+        IExtension extension = mock(IExtension.class);
+        IExtensionEventCallback callback = mock(IExtensionEventCallback.class);
+        when(extension.getCallback()).thenReturn(callback);
+        when(extension.getUri()).thenReturn(URI);
+
+        JSONObject payload = new JSONObject();
+        payload.put("test", "test");
+
+        JSONObject command = new JSONObject();
+        command.put("name", "testCommand");
+        command.put("payload", payload);
+
+        LegacyLocalExtensionProxy proxy = new LegacyLocalExtensionProxy(extension);
+
+        proxy.invokeCommandNative(new ActivityDescriptor(URI, new SessionDescriptor("TEST"), "TEST"), command.toString());
+
+        ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
+
+        verify(callback).onExtensionEvent(eq("testCommand"), eq(URI), any(Map.class), captor.capture(), any());
+
+        assertEquals(1, captor.getValue().size());
+        assertTrue(captor.getValue().containsKey("test"));
+        assertEquals("test", captor.getValue().get("test"));
+    }
+
+    @Test
+    @SmallTest
     public void testApplySettings() {
         ProxyWrapper proxy = new ProxyWrapper(mLegacyLocalExtension);
         String request = String.format("{\"settings\": {\"%s\": \"settingsValue\"}}", TestLegacyLocalExtension.SETTINGS_KEY);
-        assertTrue(proxy.requestRegistration(LEGACY_EXTENSION_URI, request));
+        assertTrue(proxy.requestRegistrationNative(new ActivityDescriptor(LEGACY_EXTENSION_URI, new SessionDescriptor("TEST"), "TEST"), request));
         assertEquals("settingsValue", mLegacyLocalExtension.getSetting());
     }
 }

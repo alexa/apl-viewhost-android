@@ -2,28 +2,28 @@
 	"sources" : 
 	[
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/rapidjson-build"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/rapidjson-build"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/rapidjson-build.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/CMakeFiles/rapidjson-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule"
 		},
 		{
-			"file" : "/Users/pranavsu/Documents/Test_open_source/apl-viewhost-android/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"
+			"file" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/armeabi-v7a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"
 		}
 	],
 	"target" : 

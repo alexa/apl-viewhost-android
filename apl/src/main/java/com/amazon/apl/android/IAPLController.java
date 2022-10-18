@@ -140,6 +140,19 @@ public interface IAPLController {
      */
     void finishDocument();
 
+    /**
+     * Execute task on Core handling thread.
+     * @param task task to execute.
+     */
+    default void executeOnCoreThread(Runnable task) {
+        task.run();
+    }
+
+    /**
+     * @return true if document was finished, false otherwise.
+     */
+    default boolean isFinished() { return false; }
+
     // TODO Currently used by the Backstack but should be refactored out once BackExtension is moved into
     //  c++.
     DocumentState getDocumentState();

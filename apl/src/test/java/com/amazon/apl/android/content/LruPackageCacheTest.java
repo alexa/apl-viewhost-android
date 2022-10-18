@@ -15,8 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 public class LruPackageCacheTest extends ViewhostRobolectricTest {
@@ -42,7 +41,7 @@ public class LruPackageCacheTest extends ViewhostRobolectricTest {
 
     @Test
     public void testLaterEntriesEvictEarlierEntries() {
-        when(mPackageOne.getSize()).thenReturn(25);
+        when(mPackageOne.getSize()).thenReturn(75);
         when(mPackageTwo.getSize()).thenReturn(50);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.0"), mPackageOne);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.1"), mPackageTwo);
@@ -55,7 +54,7 @@ public class LruPackageCacheTest extends ViewhostRobolectricTest {
 
     @Test
     public void testOnTrimMemoryCriticalEvictsLaterEntries() {
-        when(mPackageOne.getSize()).thenReturn(25);
+        when(mPackageOne.getSize()).thenReturn(30);
         when(mPackageTwo.getSize()).thenReturn(25);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.0"), mPackageOne);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.1"), mPackageTwo);
@@ -69,8 +68,8 @@ public class LruPackageCacheTest extends ViewhostRobolectricTest {
     }
 
     @Test
-    public void testOnTrimMemoryCompleteEvictsAllEntries() {
-        when(mPackageOne.getSize()).thenReturn(25);
+    public void testOnTrimMemoryCompleteEvictsHalfEntries() {
+        when(mPackageOne.getSize()).thenReturn(30);
         when(mPackageTwo.getSize()).thenReturn(25);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.0"), mPackageOne);
         mLruPackageCache.put(Content.ImportRef.create("p", "1.1"), mPackageTwo);

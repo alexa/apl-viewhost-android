@@ -1,9 +1,11 @@
 /*
- * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 package com.amazon.alexa.android.extension.discovery;
 
 import android.os.Message;
+import com.amazon.alexaext.ActivityDescriptor;
+import com.amazon.alexaext.SessionDescriptor;
 
 //
 // Numeric method id must persist across versions.
@@ -56,4 +58,28 @@ void L2_onRequestResource(int routingID, String resourceId) = 101;
 void L2_resourceAvailable(int routingID, in Surface surface, in Rect rect, in String resourceID) = 102;
 // message from Client->Server indicating failure in retrieving resource
 void L2_resourceUnavailable(int routingID, in String resourceID) = 103;
+
+
+// V2 service support
+// Server->Client message
+void L2_receiveV2(int routingID, in ActivityDescriptor activity, String message) = 270;
+// Client->Server message
+void L2_sendV2(int routingID, in ActivityDescriptor activity, String message) = 290;
+// Server->Client message, the server could not process a message
+void L2_messageFailureV2(int routingID, in ActivityDescriptor activity, int errorCode, String error, String message) = 200;
+
+// message from Client->Server indicating successful retrieval of resource
+void L2_resourceAvailableV2(int routingID, in ActivityDescriptor activity, in Surface surface, in Rect rect, in String resourceID) = 202;
+// message from Client->Server indicating failure in retrieving resource
+void L2_resourceUnavailableV2(int routingID, in ActivityDescriptor activity, in String resourceID) = 203;
+
+void L2_onRegisteredV2(int routingID, in ActivityDescriptor activity) = 220;
+void L2_onUnregisteredV2(int routingID, in ActivityDescriptor activity) = 221;
+
+void L2_onSessionStartedV2(int routingID, in SessionDescriptor session) = 230;
+void L2_onSessionEndedV2(int routingID, in SessionDescriptor session) = 231;
+
+void L2_onForegroundV2(int routingID, in ActivityDescriptor activity) = 240;
+void L2_onBackgroundV2(int routingID, in ActivityDescriptor activity) = 241;
+void L2_onHiddenV2(int routingID, in ActivityDescriptor activity) = 242;
 }
