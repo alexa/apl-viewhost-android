@@ -245,12 +245,22 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
         // Finish and inflate another document
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(finish(mAplController))
-                .check(isFinished())
+                .check(isFinished());
+
+        activityRule.getScenario().recreate();
+
+        // Finish and inflate another document
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(inflate(DOC, ""))
                 .check(hasRootContext());
 
         // Verify that initial frame is displayed
         verifyFrameIsDisplayed("frame1");
+
+        // Finish and restore first document
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(finish(mAplController))
+                .check(isFinished());
 
         String commands = "[\n" +
                 "    {\n" +
@@ -260,10 +270,8 @@ public class RestoreDocumentTest extends AbstractDocViewTest {
                 "        \"componentId\": \"textComponent\"\n" +
                 "    }\n" +
                 "]";
-        // Finish and restore first document
+
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(finish(mAplController))
-                .check(isFinished())
                 .perform(restoreAndExecuteCommands(mTestContext.getPresenter(), cacheDocumentState, commands))
                 .check(hasRootContext());
 

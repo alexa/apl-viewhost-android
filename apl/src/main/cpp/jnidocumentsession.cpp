@@ -6,10 +6,9 @@
 #include "apl/apl.h"
 #include "documentsession.h"
 #include <random>
+#include <mutex>
 #include "jniutil.h"
 #include "jnidocumentsession.h"
-#include "loggingbridge.h"
-
 
 namespace apl {
 namespace jni {

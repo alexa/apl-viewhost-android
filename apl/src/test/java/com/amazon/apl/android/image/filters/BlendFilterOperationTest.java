@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -91,7 +92,7 @@ public class BlendFilterOperationTest extends RenderScriptOperationTest<BlendFil
     @Test
     public void test_getWithException_returnsTransparentBitmap() throws Exception {
         Future<FilterResult> thrownFuture = mock(Future.class);
-        when(thrownFuture.get()).thenThrow(new ExecutionException("thrown", new Exception()));
+        when(thrownFuture.get(any(long.class), any(TimeUnit.class))).thenThrow(new ExecutionException("thrown", new Exception()));
 
         List<Future<FilterResult>> thrownFutures = Arrays.asList(thrownFuture, thrownFuture);
         Filters.Filter filter = Filters.Filter.builder()

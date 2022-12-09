@@ -24,8 +24,8 @@ namespace apl {
         static JavaVM* JAVA_VM;
 
         jboolean
-        event_OnLoad(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Event JNI environment.";
+        event_OnLoad(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Event JNI environment.";
 
             JAVA_VM = vm;
             JNIEnv *env;
@@ -39,7 +39,7 @@ namespace apl {
             ACTION_ON_TERMINATE = env->GetMethodID(EVENT_CLASS, "onTerminate", "()V");
 
             if (nullptr == EVENT_CLASS || nullptr == ACTION_ON_TERMINATE) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.Event";
                 return JNI_FALSE;
             }
@@ -48,8 +48,8 @@ namespace apl {
         }
 
         void
-        event_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Event JNI environment.";
+        event_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Event JNI environment.";
             apl::LoggerFactory::instance().reset();
             JNIEnv *env;
             if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {

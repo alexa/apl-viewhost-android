@@ -44,7 +44,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Deprecated
 public class ExtensionMultiplexClient {
     private static final String TAG = "ExtensionMultiplexClnt";
-    private static final boolean DEBUG = false;
     private final ExtensionBinder mBinder = new ExtensionBinder();
 
     /**
@@ -356,7 +355,7 @@ public class ExtensionMultiplexClient {
                 // Note: "Callback" here is the death monitor, and implemented by ClientConnection
                 @Override
                 public void onDied(final ClientConnection connection, final String extensionURI) {
-                    if (DEBUG) Log.d(TAG, "Service has died: " + extensionURI);
+                    if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Service has died: " + extensionURI);
 
                     if (connection != null) {
                         // notify connection callback that the server died
@@ -464,7 +463,7 @@ public class ExtensionMultiplexClient {
 
             connection = mConnections.get(extensionURI);
             if (connection == null) {
-                if (DEBUG) Log.d(TAG, "Creating connection: " + extensionURI);
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Creating connection: " + extensionURI);
                 connection = new ClientConnection(extensionURI, looper, async, configuration);
                 requiresBinding = true;
             }
@@ -477,7 +476,7 @@ public class ExtensionMultiplexClient {
             // connect to the service if needed
             if (requiresBinding) {
                 if (mBinder.bind(mContext.getContext(), extensionURI, connection)) {
-                    if (DEBUG) Log.d(TAG, "Registering connection: " + extensionURI);
+                    if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Registering connection: " + extensionURI);
                     mConnections.register(connection, extensionURI);
                 } else {
                     Log.e(TAG, "Service not available");
@@ -528,8 +527,6 @@ public class ExtensionMultiplexClient {
      */
     public boolean disconnect(final String extensionURI, final ConnectionCallback callback,
                               final String message) {
-        if (DEBUG) Log.d(TAG, "disconnect: " + extensionURI);
-
         Log.i(TAG, String.format("Closing connection: %s, reason: %s", extensionURI, message));
         boolean result = false;
         synchronized (mConnections) {
@@ -871,7 +868,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings("RedundantThrows")
         @Override
         public void L2_connectionAccept() throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_connectionSuccess");
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_connectionSuccess");
 
             mAccept.set(true);
             // notify the L3 callback,
@@ -908,7 +905,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings("RedundantThrows")
         @Override
         public void L2_connectionReject(final int errorCode, final String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_connectionFailure: " + errorCode);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_connectionFailure: " + errorCode);
             disconnectOnFailure(ConnectionCallback.FAIL_HANDSHAKE, message);
         }
 
@@ -920,7 +917,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings({"RedundantThrows", "checkstyle:LineLength"})
         @Override
         public void L2_connectionClosed(final String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_connectionClosed: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_connectionClosed: " + message);
 
             // disconnect all clients
             synchronized (mCallbacks) {
@@ -959,7 +956,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings("RedundantThrows")
         @Override
         public void L2_receive(final int routingID, final String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_receive: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_receive: " + message);
 
             if (mHandler != null) {
                 mHandler.post(() -> notifyMessage(routingID, message));
@@ -997,7 +994,7 @@ public class ExtensionMultiplexClient {
         @SuppressWarnings("RedundantThrows")
         @Override
         public void L2_receiveBroadcast(final String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_receive: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_receive: " + message);
 
             if (mHandler != null) {
                 mHandler.post(() -> notifyBroadcast(message));
@@ -1086,7 +1083,7 @@ public class ExtensionMultiplexClient {
          */
         @Override
         public void L2_send(final int routingID, final String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_send: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_send: " + message);
 
             try {
                 if (mServiceV1 != null) {
@@ -1128,7 +1125,7 @@ public class ExtensionMultiplexClient {
          */
         @Override
         public void L2_pause(final int routingID) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_pause");
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_pause");
 
             try {
                 if (mServiceV1 != null) {
@@ -1182,7 +1179,7 @@ public class ExtensionMultiplexClient {
          */
         @Override
         public void L2_resume(final int routingID) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_resumed");
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_resumed");
 
             try {
                 if (mServiceV1 != null) {
@@ -1206,7 +1203,7 @@ public class ExtensionMultiplexClient {
         public void L2_messageFailure(final int routingID, final int errorCode,
                                       final String error, final String failedMessage)
                 throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_messageFailure: " + failedMessage);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_messageFailure: " + failedMessage);
 
             if (null != mHandler) {
                 boolean result = mHandler.post(() -> notifyMessageFailure(routingID, errorCode,
@@ -1242,7 +1239,7 @@ public class ExtensionMultiplexClient {
 
         @Override
         public void L2_onRequestResource(int routingID, String resourceId) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "onRequestResource: " + resourceId);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onRequestResource: " + resourceId);
 
             if (mHandler != null) {
                 mHandler.post(() -> notifyResourceRequest(routingID, resourceId));
@@ -1265,7 +1262,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_resourceAvailable(int routingID, Surface surface, Rect rect, String resourceID) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onResourceAvailable: resourceID=" + resourceID);
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onResourceAvailable: resourceID=" + resourceID);
                 if (mServiceV1 != null) {
                     mServiceV1.L2_onResourceAvailable(mConnectionID, routingID, surface, rect, resourceID);
                 }
@@ -1291,7 +1288,7 @@ public class ExtensionMultiplexClient {
 
         @Override
         public void L2_receiveV2(int routingID, ActivityDescriptor activity, String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_receiveV2: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_receiveV2: " + message);
 
             if (mHandler != null) {
                 mHandler.post(() -> notifyMessageV2(routingID, activity, message));
@@ -1317,7 +1314,7 @@ public class ExtensionMultiplexClient {
 
         @Override
         public void L2_messageFailureV2(int routingID, ActivityDescriptor activity, int errorCode, String error, String failedMessage) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_messageFailure: " + failedMessage);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_messageFailure: " + failedMessage);
 
             if (null != mHandler) {
                 boolean result = mHandler.post(() -> notifyMessageFailureV2(routingID, activity,
@@ -1345,7 +1342,7 @@ public class ExtensionMultiplexClient {
 
         @Override
         public void L2_sendV2(int routingID, ActivityDescriptor activity, String message) throws RemoteException {
-            if (DEBUG) Log.d(TAG, "L2_sendV2: " + message);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "L2_sendV2: " + message);
 
             try {
                 if (mServiceV2 != null) {
@@ -1360,7 +1357,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_resourceAvailableV2(int routingID, ActivityDescriptor activity, Surface surface, Rect rect, String resourceID) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onResourceAvailableV2: resourceID=" + resourceID);
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onResourceAvailableV2: resourceID=" + resourceID);
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onResourceAvailable(mConnectionID, routingID, activity, surface, rect, resourceID);
                 }
@@ -1373,7 +1370,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_resourceUnavailableV2(int routingID, ActivityDescriptor activity, String resourceID) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onResourceUnavailableV2: resourceID=" + resourceID);
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onResourceUnavailableV2: resourceID=" + resourceID);
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onResourceUnavailable(mConnectionID, routingID, activity, resourceID);
                 }
@@ -1394,7 +1391,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onRegisteredV2(int routingID, ActivityDescriptor activity) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onRegisteredV2: activity=" + activity.getActivityId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onRegisteredV2: activity=" + activity.getActivityId());
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onRegistered(mConnectionID, routingID, activity);
                 }
@@ -1420,7 +1417,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onUnregisteredV2(int routingID, ActivityDescriptor activity) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onUnregisteredV2: activity=" + activity.getActivityId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onUnregisteredV2: activity=" + activity.getActivityId());
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onUnregistered(mConnectionID, routingID, activity);
                 }
@@ -1441,7 +1438,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onSessionStartedV2(int routingID, SessionDescriptor session) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onSessionStartedV2: activity=" + session.getId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onSessionStartedV2: activity=" + session.getId());
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onSessionStarted(mConnectionID, routingID, session);
                 }
@@ -1462,7 +1459,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onSessionEndedV2(int routingID, SessionDescriptor session) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onSessionEndedV2: activity=" + session.getId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onSessionEndedV2: activity=" + session.getId());
                 if (mServiceV2 != null) {
                     mServiceV2.L2_onSessionEnded(mConnectionID, routingID, session);
                 }
@@ -1483,7 +1480,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onForegroundV2(int routingID, ActivityDescriptor activity) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onForegroundV2: activity=" + activity.getActivityId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onForegroundV2: activity=" + activity.getActivityId());
                 if (mServiceV1 != null) {
                     mServiceV1.L2_onFocusGained(mConnectionID, routingID);
                 } else if (mServiceV2 != null) {
@@ -1506,7 +1503,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onBackgroundV2(int routingID, ActivityDescriptor activity) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onBackgroundV2: activity=" + activity.getActivityId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onBackgroundV2: activity=" + activity.getActivityId());
                 if (mServiceV1 != null) {
                     mServiceV1.L2_onFocusLost(mConnectionID, routingID);
                 } else if (mServiceV2 != null) {
@@ -1529,7 +1526,7 @@ public class ExtensionMultiplexClient {
         @Override
         public void L2_onHiddenV2(int routingID, ActivityDescriptor activity) throws RemoteException {
             try {
-                if(DEBUG) Log.d(TAG, "onHiddenV2: activity=" + activity.getActivityId());
+                if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onHiddenV2: activity=" + activity.getActivityId());
                 if (mServiceV1 != null) {
                     mServiceV1.L2_onFocusLost(mConnectionID, routingID);
                 } else if (mServiceV2 != null) {

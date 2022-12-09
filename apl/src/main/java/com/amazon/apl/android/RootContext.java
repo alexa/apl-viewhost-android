@@ -9,16 +9,12 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
-import android.view.Choreographer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.apl.android.audio.AudioPlayer;
-import com.amazon.apl.android.audio.AudioPlayerFactoryProxy;
-import com.amazon.apl.android.audio.IAudioPlayerFactory;
 import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
@@ -39,8 +35,6 @@ import com.amazon.apl.android.events.RequestFirstLineBounds;
 import com.amazon.apl.android.events.RequestLineBoundsEvent;
 import com.amazon.apl.android.events.SendEvent;
 import com.amazon.apl.android.events.SpeakEvent;
-import com.amazon.apl.android.media.MediaPlayer;
-import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -65,7 +59,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -88,7 +81,7 @@ import static com.amazon.apl.enums.EventType.valueOf;
  * APL RootContext is responsible for communication via JNI with APL core.  It marshals the tasks of
  * layout, an component construction.
  */
-public class RootContext extends BoundObject implements Choreographer.FrameCallback {
+public class RootContext extends BoundObject implements IClock.IClockCallback {
 
     private static final String TAG = "RootContext";
     private static final boolean DEBUG = false;
@@ -166,6 +159,8 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     private final APLTrace mAplTrace;
 
+    private final IClock mAplClock;
+
     /**
      * Construct a new RootContext object.
      *
@@ -183,6 +178,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
+            mAplClock = options.getAplClockProvider().create(this);
             mTelemetryProvider = mOptions.getTelemetryProvider();
             mViewPresenter = viewPresenter;
             mRootConfig = rootConfig;
@@ -214,6 +210,7 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
+            mAplClock = options.getAplClockProvider().create(this);
             mTelemetryProvider = mOptions.getTelemetryProvider();
             mMetricsTransform = metricsTransform;
             mRootConfig = rootConfig;
@@ -450,11 +447,12 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void finishDocument() {
+        Log.i(TAG, String.format("Document(%s) finishing.", mRootConfig.getSession().getLogId()));
         synchronized (mLock) {
             checkUiThread();
             // mark the context as finished to block any per frame loop.
             mIsFinished.set(true);
-            APLChoreographer.getInstance().removeFrameCallback(this);
+            mAplClock.stop();
 
             // End all active events
             cancelExecution();
@@ -476,20 +474,26 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void pauseDocument() {
         if (!mIsFinished.get() && mIsResumed.get()) {
+            Log.i(TAG, String.format("Document(%s) pausing.", mRootConfig.getSession().getLogId()));
             mIsResumed.set(false);
-            APLChoreographer.getInstance().removeFrameCallback(this);
+            mAplClock.stop();
             cancelExecution();
             mStartLoopTime = 0;
             mViewPresenter.onDocumentPaused();
+        } else {
+            Log.i(TAG, String.format("Document(%s) already resumed.", mRootConfig.getSession().getLogId()));
         }
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void resumeDocument() {
         if (!mIsFinished.get() && !mIsResumed.get()) {
+            Log.i(TAG, String.format("Document(%s) resuming.", mRootConfig.getSession().getLogId()));
             mIsResumed.set(true);
-            APLChoreographer.getInstance().postFrameCallback(this);
+            mAplClock.start();
             mViewPresenter.onDocumentResumed();
+        } else {
+            Log.i(TAG, String.format("Document(%s) already paused.", mRootConfig.getSession().getLogId()));
         }
     }
 
@@ -1046,20 +1050,21 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
 
     /**
      * Called when a new display frame is being rendered.
-     * See {@link Choreographer.FrameCallback#doFrame(long)}
+     * See {@link IClock.IClockCallback#onTick(long)}
      *
      * @param frameTimeNanos The time in nanoseconds when the frame started being rendered,
      *                       in the {@link System#nanoTime()} timebase.
      */
     @Override
-    public void doFrame(long frameTimeNanos) {
+    public void onTick(long frameTimeNanos) {
         try {
             mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_DO_FRAME);
             if (mStartLoopTime == 0) {
                 // Use the elapsed time from core if it was set
                 mStartLoopTime = frameTimeNanos - getElapsedTime() * 1000000;
-            } else if (mIsFinished.get())
+            } else if (mIsFinished.get()) {
                 return;
+            }
 
 
             //do any work that's pending
@@ -1072,12 +1077,6 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
             long time = (frameTimeNanos - mStartLoopTime) / 1000000;
 
             coreFrameUpdate(time);
-
-            // rerun every frame
-            // Do not run when reinflating.
-            if (!mIsFinished.get()) {
-                APLChoreographer.getInstance().postFrameCallback(this);
-            }
 
             final long end = System.nanoTime();
             final long doFrameTime = end - frameTimeNanos;
@@ -1367,42 +1366,6 @@ public class RootContext extends BoundObject implements Choreographer.FrameCallb
         //TODO an unwanted dependency on rootContext and the presenter
         //TODO only in use by Events
         return mViewPresenter;
-    }
-
-
-    /**
-     * This is just a simple wrapper for Choreographer. Mockito cannot mock final
-     * classes, so we create our own here so tests can be exact about frame updates
-     */
-    public static class APLChoreographer {
-        @VisibleForTesting
-        public APLChoreographer() {
-
-        }
-
-        private static APLChoreographer instance;
-
-        @NonNull
-        public static APLChoreographer getInstance() {
-            if (instance == null) {
-                instance = new APLChoreographer();
-            }
-            return instance;
-        }
-
-        public static void setInstance(@NonNull APLChoreographer choreographer) {
-            instance = choreographer;
-        }
-
-        @VisibleForTesting
-        protected void postFrameCallback(Choreographer.FrameCallback callback) {
-            Choreographer.getInstance().postFrameCallback(callback);
-        }
-
-        @VisibleForTesting
-        protected void removeFrameCallback(Choreographer.FrameCallback callback) {
-            Choreographer.getInstance().removeFrameCallback(callback);
-        }
     }
 
     /**

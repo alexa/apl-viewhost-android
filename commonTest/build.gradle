@@ -31,4 +31,5 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.test.ext:junit:1.1.0'
     implementation project(path: ':common')
+    implementation('com.squareup.leakcanary:leakcanary-android-instrumentation:2.9.1')
 }

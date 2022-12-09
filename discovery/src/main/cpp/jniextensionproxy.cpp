@@ -3,6 +3,8 @@
  */
 
 #include <jni.h>
+#include <string>
+#include <memory>
 #include "alexaext/alexaext.h"
 #include "jniextensionproxy.h"
 #include "jniextensionresource.h"
@@ -278,17 +280,7 @@ namespace alexaext {
 
             jstring jRequest = env->NewStringUTF(AsString(registrationRequest).c_str());
 
-            try {
-                result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_CREATE_REGISTRATION, jActivityDescriptor, jRequest);
-            }
-            catch (const std::exception& e) {
-                errorCode = kErrorExtensionException;
-                errorMsg = e.what();
-            }
-            catch (...) {
-                errorCode = kErrorException;
-                errorMsg = sErrorMessage[kErrorException];
-            }
+            result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_CREATE_REGISTRATION, jActivityDescriptor, jRequest);
 
             ACTIVITY_CLEAR();
             SESSION_CLEAR();
@@ -382,17 +374,8 @@ namespace alexaext {
             SESSION_CREATE(*activity.getSession());
             ACTIVITY_CREATE(activity);
             jstring jCommand = env->NewStringUTF(AsString(command).c_str());
-            try {
-                result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_INVOKE_COMMAND, jActivityDescriptor, jCommand);
-            }
-            catch (const std::exception& e) {
-                errorCode = kErrorExtensionException;
-                errorMsg = e.what();
-            }
-            catch (...) {
-                errorCode = kErrorException;
-                errorMsg = sErrorMessage[kErrorException];
-            }
+
+            result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_INVOKE_COMMAND, jActivityDescriptor, jCommand);
 
             ACTIVITY_CLEAR();
             SESSION_CLEAR();
@@ -435,16 +418,7 @@ namespace alexaext {
             SESSION_CREATE(*activity.getSession());
             ACTIVITY_CREATE(activity);
             jstring jMessage = env->NewStringUTF(AsString(message).c_str());
-            try {
-                result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_SEND_MESSAGE, jActivityDescriptor, jMessage);
-            }
-            catch (...) {
-                ACTIVITY_CLEAR();
-                SESSION_CLEAR();
-                ENV_CLEAR();
-                env->DeleteLocalRef(jMessage);
-                return false;
-            }
+            result = env->CallBooleanMethod(localRef, EXTENSIONPROXY_SEND_MESSAGE, jActivityDescriptor, jMessage);
             ACTIVITY_CLEAR();
             SESSION_CLEAR();
             ENV_CLEAR();
@@ -542,7 +516,7 @@ namespace alexaext {
                 const ResourceHolderPtr &resourceHolder) {
 
             ENV_CREATE();
-            auto holder = std::dynamic_pointer_cast<JNIResourceHolder>(resourceHolder);
+            auto holder = std::static_pointer_cast<JNIResourceHolder>(resourceHolder);
             SESSION_CREATE(*activity.getSession());
             ACTIVITY_CREATE(activity);
 

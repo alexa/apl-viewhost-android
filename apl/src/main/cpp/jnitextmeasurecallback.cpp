@@ -4,6 +4,7 @@
 
 #include <jni.h>
 #include <string>
+#include <cmath>
 #include "apl/apl.h"
 
 #include "jniutil.h"
@@ -33,7 +34,7 @@ namespace apl {
         textmeasurecallback_OnLoad(JavaVM *vm, void *reserved) {
 
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host textmeasure JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host textmeasure JNI environment.";
 
             JAVA_VM = vm;
             JNIEnv *env;
@@ -48,7 +49,7 @@ namespace apl {
                                                            "(Ljava/lang/String;IFIFI)[F");
 
             if (nullptr == TEXTMEASURECALLBACK_MEASURE) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.TextMeasure";
                 return JNI_FALSE;
             }
@@ -113,7 +114,7 @@ namespace apl {
                                                                 jlong rootConfigHandle) {
 
             auto config = get<RootConfig>(rootConfigHandle);
-            auto measure = std::dynamic_pointer_cast<JniTextMeasurement>(config->getMeasure());
+            auto measure = std::static_pointer_cast<JniTextMeasurement>(config->getMeasure());
 
             // Set up TextMeasure for JNI use as a native object
             // the environment calls back to 'instance'
@@ -151,13 +152,13 @@ namespace apl {
             JNIEnv *env;
             if (JAVA_VM->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
                 // environment failure, can't proceed.
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Attempt to measure with no env.";
                 return {.width = 0, .height = 0};
             }
 
             if (env->IsSameObject(mInstance, NULL)) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Attempt to measure after Textmeasure is finished.";
                 return {.width = 0, .height = 0};
             }
@@ -169,13 +170,13 @@ namespace apl {
                                                                       TEXTMEASURECALLBACK_MEASURE,
                                                                       jVisualHash,
                                                                       static_cast<jint>(mCurrentComponent->getType()),
-                                                                      static_cast<jfloat>(isnan(
+                                                                      static_cast<jfloat>(std::isnan(
                                                                               width)
                                                                                           ? FLOAT_MAX
                                                                                           :
                                                                                           width),
                                                                       static_cast<jint>(widthMode),
-                                                                      static_cast<jfloat>(isnan(
+                                                                      static_cast<jfloat>(std::isnan(
                                                                               height)
                                                                                           ? FLOAT_MAX
                                                                                           :
@@ -188,7 +189,7 @@ namespace apl {
             auto measureHeight = static_cast<float>(array[1]);
             env->ReleaseFloatArrayElements(measureResult, array, 0);
             env->DeleteLocalRef(measureResult);
-            return {.width = measureWidth, .height = measureHeight};
+            return { measureWidth, measureHeight };
         }
 
         float JniTextMeasurement::baseline(Component *component,

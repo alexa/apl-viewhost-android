@@ -26,6 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+// This test requires a view to be displayed thus must be done via androidTest.
 public class APLControllerTest extends AbstractDocViewTest {
 
     private static final String SIMPLE_DOC = "{" +
@@ -40,38 +41,37 @@ public class APLControllerTest extends AbstractDocViewTest {
             "}";
 
     @Test
-    public void testAPLController_renderDefaults() {
-        APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl);
-        CountDownLatch renderLatch = new CountDownLatch(1);
-        CountDownLatch displayedLatch = new CountDownLatch(1);
-        aplLayout.getPresenter().addDocumentLifecycleListener(new IDocumentLifecycleListener() {
-            @Override
-            public void onDocumentRender(@NonNull RootContext rootContext) {
-                assertTrue(rootContext.getTopComponent() instanceof Frame);
-                renderLatch.countDown();
-            }
+    public void testAPLController_renderDefaults() throws InterruptedException {
+        final CountDownLatch renderLatch = new CountDownLatch(1);
+        final CountDownLatch displayedLatch = new CountDownLatch(1);
 
-            @Override
-            public void onDocumentDisplayed() {
-                assertTrue(aplLayout.getChildAt(0) instanceof APLAbsoluteLayout);
-                displayedLatch.countDown();
-            }
+        activityRule.getScenario().onActivity(activity -> {
+            APLLayout aplLayout = activity.findViewById(com.amazon.apl.android.test.R.id.apl);
+            aplLayout.getPresenter().addDocumentLifecycleListener(new IDocumentLifecycleListener() {
+                @Override
+                public void onDocumentRender(@NonNull RootContext rootContext) {
+                    assertTrue(rootContext.getTopComponent() instanceof Frame);
+                    renderLatch.countDown();
+                }
+
+                @Override
+                public void onDocumentDisplayed() {
+                    assertTrue(aplLayout.getChildAt(0) instanceof APLAbsoluteLayout);
+                    displayedLatch.countDown();
+                }
+            });
+
+            IAPLController aplController = new APLController.Builder()
+                    .aplDocument(SIMPLE_DOC)
+                    .aplOptions(APLOptions.builder().build())
+                    .aplLayout(aplLayout)
+                    .rootConfig(RootConfig.create())
+                    .render();
+
+            assertNotNull(aplController);
         });
 
-        IAPLController aplController = new APLController.Builder()
-                .aplDocument(SIMPLE_DOC)
-                .aplOptions(APLOptions.builder().build())
-                .aplLayout(aplLayout)
-                .rootConfig(RootConfig.create())
-                .render();
-
-        assertNotNull(aplController);
-
-        try {
-            assertTrue(renderLatch.await(1, TimeUnit.SECONDS));
-            assertTrue(displayedLatch.await(1, TimeUnit.SECONDS));
-        } catch (InterruptedException e) {
-            fail("Task failed to complete in time.");
-        }
+        assertTrue(renderLatch.await(1, TimeUnit.SECONDS));
+        assertTrue(displayedLatch.await(5, TimeUnit.SECONDS));
     }
 }

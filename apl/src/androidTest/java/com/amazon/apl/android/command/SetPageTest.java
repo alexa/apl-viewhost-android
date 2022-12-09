@@ -12,6 +12,7 @@ import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -128,6 +129,7 @@ public class SetPageTest extends AbstractDocViewTest {
      * Spec: Reinflate command - The default “MAIN” sequencer can’t be preserved.
      */
     @Test
+    @Ignore // Need to rewrite as a test that pumps APLCore deterministically.
     public void testAutoPageCommand_start_reinflate_finish_without_sequencer() {
         // AutoPage command with duration of 1000 ms starts with initial page 1
         onView(isRoot())
@@ -169,6 +171,7 @@ public class SetPageTest extends AbstractDocViewTest {
      * the named sequencer "MAGIC"
      */
     @Test
+    @Ignore // Need to rewrite as a test that pumps APLCore deterministically.
     public void testAutoPageCommand_start_reinflate_finish_with_sequencer_without_preserve() {
         final String AUTOPAGE_COMMAND_WITH_NAMED_SEQUENCER = "[{\n" +
                 "    \"sequencer\": \"MAGIC\",\n" +

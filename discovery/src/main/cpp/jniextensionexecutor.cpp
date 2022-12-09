@@ -4,6 +4,7 @@
 
 #include <jni.h>
 #include <queue>
+#include <mutex>
 
 #include "alexaext/alexaext.h"
 #include "jniextensionexecutor.h"

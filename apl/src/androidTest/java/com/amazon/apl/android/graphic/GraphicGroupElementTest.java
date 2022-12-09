@@ -171,61 +171,6 @@ public class GraphicGroupElementTest extends AbstractDocUnitTest {
             "}";
 
     @Test
-    public void testProperties_avgGroupInflation_optionalDefaultValues() {
-
-        final String REQUIRED_PROPS_FOR_AVG_GROUP = "{" +
-                "  \"type\": \"AVG\"," +
-                "  \"version\": \"1.0\"," +
-                "  \"height\": 24," +
-                "  \"width\": 24," +
-                "  \"items\": [{" +
-                "      \"type\": \"group\"" +
-                "    }" +
-                "  ]" +
-                "}";
-
-        String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, REQUIRED_PROPS_FOR_AVG_GROUP));
-        loadDocument(doc);
-        VectorGraphic component = getTestComponent();
-
-        GraphicContainerElement containerElement = component.getOrCreateGraphicContainerElement();
-        assertEquals(1, containerElement.getChildren().size());
-
-        GraphicElement element = containerElement.getChildren().get(0);
-        assertEquals(GraphicElementType.kGraphicElementTypeGroup, element.getType());
-
-        GraphicGroupElement avgGroupElement = (GraphicGroupElement)element;
-
-        assertEquals(1, avgGroupElement.getOpacity(), 0.1);
-
-        Matrix expectedTransformation = getTransformationCalculation(1, 1, 0, 0, 0, 0, 0);
-        assertArrayEquals(getMatrixArray(expectedTransformation), getMatrixArray(avgGroupElement.getTransform()), 0.0001f);
-        assertEquals(0, avgGroupElement.getChildren().size());
-        assertEquals("", avgGroupElement.getClipPath());
-    }
-
-    @Test
-    public void testProperties_avgGroupInflation_optionalExplicitValues() {
-        String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, FULL_PROPS_FOR_AVG_GROUP));
-        loadDocument(doc);
-        VectorGraphic component = getTestComponent();
-
-        GraphicContainerElement containerElement = component.getOrCreateGraphicContainerElement();
-        assertEquals(1, containerElement.getChildren().size());
-
-        GraphicElement element = containerElement.getChildren().get(0);
-        assertEquals(GraphicElementType.kGraphicElementTypeGroup, element.getType());
-
-        GraphicGroupElement avgGroupElement = (GraphicGroupElement)element;
-
-        assertEquals(0.8, avgGroupElement.getOpacity(), 0.1);
-        Matrix expectedTransformation = getTransformationCalculation(0.5f, 0.5f, 90, 50, 50, 10, 10);
-        assertArrayEquals(getMatrixArray(expectedTransformation), getMatrixArray(avgGroupElement.getTransform()), 0.0001f);
-        assertEquals(2, avgGroupElement.getChildren().size());
-        assertEquals("M0,0", avgGroupElement.getClipPath());
-    }
-
-    @Test
     public void testStackedOpacity_avgGroupChildren_fillAndStrokePaints() {
         String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, OPACITIES_AVG_GROUP));
         loadDocument(doc);

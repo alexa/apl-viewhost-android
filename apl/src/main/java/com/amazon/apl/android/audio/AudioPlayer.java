@@ -23,7 +23,7 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private final ITtsPlayerProvider mTtsPlayerProvider;
     private final AtomicBoolean mIsReleased = new AtomicBoolean();
-    private TrackState mCurrentTrackState = TrackState.kTrackNotReady;
+    private TrackState mLastPublishedTrackState = TrackState.kTrackNotReady;
     private long mStartTime;
     private int mCurrentOffset;
     private boolean mTimeUpdatesStarted = false;
@@ -101,23 +101,23 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
     }
 
     private synchronized void startTimeUpdates() {
-        if (mIsReleased.get() || mCurrentTrackState != TrackState.kTrackReady) {
+        if (mIsReleased.get() || mLastPublishedTrackState != TrackState.kTrackReady) {
             return;
         }
 
         long now = System.currentTimeMillis();
         mCurrentOffset = (int) (now - mStartTime);
-        updateState(new AudioPlayerEvent(AudioPlayerEventType.kAudioPlayerEventTimeUpdate, TrackState.kTrackReady, mCurrentOffset));
+        publishTrackState(new AudioPlayerEvent(AudioPlayerEventType.kAudioPlayerEventTimeUpdate, TrackState.kTrackReady, mCurrentOffset));
         mMainHandler.postDelayed(this::startTimeUpdates, UPDATE_TIME_INTERVAL_MS);
     }
 
-    public synchronized void updateState(AudioPlayerEvent audioPlayerEvent) {
+    public synchronized void publishTrackState(AudioPlayerEvent audioPlayerEvent) {
         if (mIsReleased.get()) {
             return;
         }
 
-        TrackState oldState = mCurrentTrackState;
-        mCurrentTrackState = audioPlayerEvent.mTrackState;
+        TrackState oldState = mLastPublishedTrackState;
+        mLastPublishedTrackState = audioPlayerEvent.mTrackState;
 
         nStateChange(getNativeHandle(),
                 audioPlayerEvent.mAudioPlayerEventType.getIndex(),
@@ -128,7 +128,7 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
                 audioPlayerEvent.mTrackState.getIndex());
 
         // Start time updates when transitioning to ready
-        if (oldState == TrackState.kTrackNotReady && mCurrentTrackState == TrackState.kTrackReady) {
+        if (oldState == TrackState.kTrackNotReady && mLastPublishedTrackState == TrackState.kTrackReady) {
             // TODO: Can we remove mCurrentTrackState and instead just call startTimeUpdates in onStateChanged
             // when there is track state of ready?
             startTimeUpdates();
@@ -164,7 +164,7 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
                 break;
         }
 
-        mMainHandler.post(() -> updateState(audioPlayerEvent));
+        mMainHandler.post(() -> publishTrackState(audioPlayerEvent));
     }
 
     private SpeechMarkType viewhostMarkToAPLSM(SpeechMark mark) {

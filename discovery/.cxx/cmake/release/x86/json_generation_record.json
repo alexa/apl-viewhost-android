@@ -25,7 +25,337 @@
   },
   {
     "level": "INFO",
-    "message": "JSON \u0027/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/android_gradle_build.json\u0027 was up-to-date",
+    "message": "CMake \u00273.18.1\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "CMake \u00273.22.1\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "rebuilding JSON /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/android_gradle_build.json due to:",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "- a dependent build file changed",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/apl-core-library/thirdparty/thirdparty.cmake",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/apl-core-library/options.cmake",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "keeping json folder \u0027/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\u0027 but regenerating project",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "executing cmake Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake\narguments : \n-H/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\n-DCMAKE_CXX_FLAGS\u003d-std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1\n-DCMAKE_FIND_ROOT_PATH\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/prefab/x86/prefab\n-DCMAKE_BUILD_TYPE\u003dRelease\n-DCMAKE_TOOLCHAIN_FILE\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake\n-DANDROID_ABI\u003dx86\n-DANDROID_NDK\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858\n-DANDROID_PLATFORM\u003dandroid-22\n-DCMAKE_ANDROID_ARCH_ABI\u003dx86\n-DCMAKE_ANDROID_NDK\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858\n-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\n-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/release/obj/x86\n-DCMAKE_MAKE_PROGRAM\u003d/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja\n-DCMAKE_SYSTEM_NAME\u003dAndroid\n-DCMAKE_SYSTEM_VERSION\u003d22\n-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library\n-B/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\n-GNinja\njvmArgs : \n\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "[\u003d\u003d \"CMake Server\" \u003d\u003d[\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"supportedProtocolVersions\":[{\"isExperimental\":true,\"major\":1,\"minor\":1}],\"type\":\"hello\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "]\u003d\u003d \"CMake Server\" \u003d\u003d]\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"handshake\",\n  \"cookie\": \"gradle-cmake-cookie\",\n  \"protocolVersion\": {\n    \"isExperimental\": true,\n    \"major\": 1,\n    \"minor\": 1\n  },\n  \"sourceDirectory\": \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\n  \"buildDirectory\": \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\n  \"generator\": \"Ninja\"\n}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"gradle-cmake-cookie\",\"inReplyTo\":\"handshake\",\"type\":\"reply\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\n  \"type\": \"configure\",\n  \"cacheArguments\": [\n    \"\",\n    \"-DCMAKE_CXX_FLAGS\\u003d-std\\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\\u003dOn -DALEXAEXTENSIONS\\u003d1\",\n    \"-DCMAKE_FIND_ROOT_PATH\\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/prefab/x86/prefab\",\n    \"-DCMAKE_BUILD_TYPE\\u003dRelease\",\n    \"-DCMAKE_TOOLCHAIN_FILE\\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake\",\n    \"-DANDROID_ABI\\u003dx86\",\n    \"-DANDROID_NDK\\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858\",\n    \"-DANDROID_PLATFORM\\u003dandroid-22\",\n    \"-DCMAKE_ANDROID_ARCH_ABI\\u003dx86\",\n    \"-DCMAKE_ANDROID_NDK\\u003d/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858\",\n    \"-DCMAKE_EXPORT_COMPILE_COMMANDS\\u003dON\",\n    \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/release/obj/x86\",\n    \"-DCMAKE_MAKE_PROGRAM\\u003d/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja\",\n    \"-DCMAKE_SYSTEM_NAME\\u003dAndroid\",\n    \"-DCMAKE_SYSTEM_VERSION\\u003d22\",\n    \"-DAPL_CORE_DIR\\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library\"\n  ]\n}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\\n  An old version of CMake is being used that cannot automatically detect\\n  compiler attributes.  Compiler identification is being bypassed.  Some\\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\\n  CMake\u0027s built-in compiler identification.\\nCall Stack (most recent call first):\\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\\n  .cxx/cmake/release/x86/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\\n  CMakeLists.txt:9 (project)\\n\\n\",\"title\":\"Warning\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "WARN",
+    "message": "CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake\u0027s built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  .cxx/cmake/release/x86/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  CMakeLists.txt:9 (project)\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"VERBOSEUsingyogalib\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/lib/libyogacore.a\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "VERBOSEUsingyogalib\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/lib/libyogacore.a",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"VERBOSEYoga include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/yoga-prefix/src/yoga\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "VERBOSEYoga include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/yoga-prefix/src/yoga",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"VERBOSEPEGTL include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl/include\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "VERBOSEPEGTL include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/pegtl-prefix/src/pegtl/include",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"VERBOSERapidjson include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "VERBOSERapidjson include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Configuring done\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Configuring done",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Generating done\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Generating done",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/googletest-download\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "-- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/googletest-download",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "ninja: no work to do.\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "ninja: no work to do.",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":599,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":899,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":933,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":966,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"progressCurrent\":1000,\"progressMaximum\":1000,\"progressMessage\":\"Configuring\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"message\":\"Configuring done\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "Configuring done",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"configure\",\"type\":\"reply\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"compute\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"progressCurrent\":333,\"progressMaximum\":1000,\"progressMessage\":\"Generating\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"progressCurrent\":666,\"progressMaximum\":1000,\"progressMessage\":\"Generating\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"progressCurrent\":1000,\"progressMaximum\":1000,\"progressMessage\":\"Generating\",\"progressMinimum\":0,\"type\":\"progress\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"message\":\"Generating done\",\"type\":\"message\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "Generating done",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"cookie\":\"\",\"inReplyTo\":\"compute\",\"type\":\"reply\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"cmakeInputs\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"buildFiles\":[{\"isCMake\":true,\"isTemporary\":false,\"sources\":[\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in\",\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in\"]},{\"isCMake\":false,\"isTemporary\":false,\"sources\":[\"CMakeLists.txt\",\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake\",\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake\",\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake\",\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake\",\"../../apl-core-library/thirdparty/thirdparty.cmake\",\"../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in\",\"../../apl-core-library/options.cmake\",\"../../apl-core-library/aplcore/include/apl/apl_config.h.in\",\"../../apl-core-library/tools.cmake\",\"../../apl-core-library/extensions/CMakeLists.txt\",\"../../apl-core-library/extensions/alexaext/CMakeLists.txt\"]},{\"isCMake\":false,\"isTemporary\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/3.10.2/CMakeSystem.cmake\",\".cxx/cmake/release/x86/CMakeFiles/3.10.2/CMakeCCompiler.cmake\",\".cxx/cmake/release/x86/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake\",\".cxx/cmake/release/x86/yoga-prefix/tmp/yoga-cfgcmd.txt.in\",\".cxx/cmake/release/x86/pegtl-prefix/tmp/pegtl-cfgcmd.txt.in\",\".cxx/cmake/release/x86/rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in\",\".cxx/cmake/release/x86/enumgen-prefix/tmp/enumgen-cfgcmd.txt.in\"]}],\"cmakeRootDirectory\":\"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10\",\"cookie\":\"\",\"inReplyTo\":\"cmakeInputs\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"reply\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"type\":\"codemodel\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "{\"configurations\":[{\"name\":\"Release\",\"projects\":[{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext\",\"name\":\"AlexaExt\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext\",\"targets\":[{\"artifacts\":[\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext/libalexaext.a\"],\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext\",\"fileGroups\":[{\"compileFlags\":\"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE\u003d2 -Wformat -Werror\u003dformat-security  -std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1 -fno-exceptions -O2 -DNDEBUG  -fPIC   -Werror -std\u003dgnu++11\",\"defines\":[\"ALEXAEXTENSIONS\"],\"includePath\":[{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/aplcore/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include\"}],\"isGenerated\":false,\"language\":\"CXX\",\"sources\":[\"src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp\",\"src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp\",\"src/APLWebflowExtension/AplWebflowBase.cpp\",\"src/APLWebflowExtension/AplWebflowExtension.cpp\",\"src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp\",\"src/executor.cpp\",\"src/extensionmessage.cpp\",\"src/extensionregistrar.cpp\",\"src/localextensionproxy.cpp\",\"src/random.cpp\",\"src/sessiondescriptor.cpp\"]}],\"fullName\":\"libalexaext.a\",\"linkerLanguage\":\"CXX\",\"name\":\"alexaext\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext\",\"sysroot\":\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot\",\"type\":\"STATIC_LIBRARY\"}]},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions\",\"name\":\"Extensions\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions\",\"targets\":[{\"artifacts\":[\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext/libalexaext.a\"],\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext\",\"fileGroups\":[{\"compileFlags\":\"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE\u003d2 -Wformat -Werror\u003dformat-security  -std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1 -fno-exceptions -O2 -DNDEBUG  -fPIC   -Werror -std\u003dgnu++11\",\"defines\":[\"ALEXAEXTENSIONS\"],\"includePath\":[{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/aplcore/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include\"}],\"isGenerated\":false,\"language\":\"CXX\",\"sources\":[\"src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp\",\"src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp\",\"src/APLWebflowExtension/AplWebflowBase.cpp\",\"src/APLWebflowExtension/AplWebflowExtension.cpp\",\"src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp\",\"src/executor.cpp\",\"src/extensionmessage.cpp\",\"src/extensionregistrar.cpp\",\"src/localextensionproxy.cpp\",\"src/random.cpp\",\"src/sessiondescriptor.cpp\"]}],\"fullName\":\"libalexaext.a\",\"linkerLanguage\":\"CXX\",\"name\":\"alexaext\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext\",\"sysroot\":\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot\",\"type\":\"STATIC_LIBRARY\"}]},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"name\":\"discovery-jni\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"targets\":[{\"artifacts\":[\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/release/obj/x86/libdiscovery-jni.so\"],\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"compileFlags\":\"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE\u003d2 -Wformat -Werror\u003dformat-security  -std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1 -O2 -DNDEBUG  -fPIC   -std\u003dgnu++11\",\"defines\":[\"ALEXAEXTENSIONS\",\"discovery_jni_EXPORTS\"],\"includePath\":[{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/aplcore/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../common/src/main/cpp/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include\"}],\"isGenerated\":false,\"language\":\"CXX\",\"sources\":[\"src/main/cpp/jnidiscovery.cpp\",\"src/main/cpp/jniextensionexecutor.cpp\",\"src/main/cpp/jniextensionproxy.cpp\",\"src/main/cpp/jniextensionregistrar.cpp\",\"src/main/cpp/jniextensionresource.cpp\"]}],\"fullName\":\"libdiscovery-jni.so\",\"linkFlags\":\"-static-libstdc++ -Wl,--build-id\u003dsha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments\",\"linkLibraries\":\"-llog build-extensions/alexaext/libalexaext.a -latomic -lm\",\"linkerLanguage\":\"CXX\",\"name\":\"discovery-jni\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"sysroot\":\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot\",\"type\":\"SHARED_LIBRARY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/pegtl\",\".cxx/cmake/release/x86/CMakeFiles/pegtl.rule\",\".cxx/cmake/release/x86/CMakeFiles/pegtl-complete.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule\"]}],\"fullName\":\"pegtl\",\"name\":\"pegtl\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/enumgen\",\".cxx/cmake/release/x86/CMakeFiles/enumgen.rule\",\".cxx/cmake/release/x86/CMakeFiles/enumgen-complete.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule\",\".cxx/cmake/release/x86/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule\"]}],\"fullName\":\"enumgen\",\"name\":\"enumgen\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/yoga\",\".cxx/cmake/release/x86/CMakeFiles/yoga.rule\",\".cxx/cmake/release/x86/CMakeFiles/yoga-complete.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-install.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-download.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-update.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-patch.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-configure.rule\",\".cxx/cmake/release/x86/yoga-prefix/src/yoga-stamp/yoga-build.rule\"]}],\"fullName\":\"yoga\",\"name\":\"yoga\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/rapidjson-build\",\".cxx/cmake/release/x86/CMakeFiles/rapidjson-build.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule\"]}],\"fullName\":\"rapidjson-build\",\"name\":\"rapidjson-build\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/rapidjson\",\".cxx/cmake/release/x86/CMakeFiles/rapidjson.rule\",\".cxx/cmake/release/x86/CMakeFiles/rapidjson-complete.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule\",\".cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule\"]}],\"fullName\":\"rapidjson\",\"name\":\"rapidjson\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86\",\"fileGroups\":[{\"isGenerated\":true,\"sources\":[\".cxx/cmake/release/x86/CMakeFiles/pegtl-build\",\".cxx/cmake/release/x86/CMakeFiles/pegtl-build.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule\",\".cxx/cmake/release/x86/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule\"]}],\"fullName\":\"pegtl-build\",\"name\":\"pegtl-build\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery\",\"type\":\"UTILITY\"},{\"artifacts\":[\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext/libalexaext.a\"],\"buildDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build-extensions/alexaext\",\"fileGroups\":[{\"compileFlags\":\"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mstackrealign -D_FORTIFY_SOURCE\u003d2 -Wformat -Werror\u003dformat-security  -std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1 -fno-exceptions -O2 -DNDEBUG  -fPIC   -Werror -std\u003dgnu++11\",\"defines\":[\"ALEXAEXTENSIONS\"],\"includePath\":[{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/aplcore/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include\"},{\"path\":\"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/rapidjson-prefix/src/rapidjson/include\"}],\"isGenerated\":false,\"language\":\"CXX\",\"sources\":[\"src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp\",\"src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp\",\"src/APLWebflowExtension/AplWebflowBase.cpp\",\"src/APLWebflowExtension/AplWebflowExtension.cpp\",\"src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp\",\"src/executor.cpp\",\"src/extensionmessage.cpp\",\"src/extensionregistrar.cpp\",\"src/localextensionproxy.cpp\",\"src/random.cpp\",\"src/sessiondescriptor.cpp\"]}],\"fullName\":\"libalexaext.a\",\"linkerLanguage\":\"CXX\",\"name\":\"alexaext\",\"sourceDirectory\":\"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext\",\"sysroot\":\"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot\",\"type\":\"STATIC_LIBRARY\"}]}]}],\"cookie\":\"\",\"inReplyTo\":\"codemodel\",\"type\":\"reply\"}\n",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "done executing cmake",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "write build output /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build_output.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "release|x86"
+  },
+  {
+    "level": "INFO",
+    "message": "write command file /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/release/x86/build_command.txt",
     "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
     "tag": "release|x86"
   },

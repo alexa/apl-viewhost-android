@@ -16,13 +16,13 @@ extern "C" {
 *  Initialize and cache java class and method handles for callback to the rendering layer.
 */
 jboolean
-jniscaling_OnLoad(JavaVM *vm, void __unused *reserved);
+jniscaling_OnLoad(JavaVM *vm, void *reserved __attribute__((__unused__)));
 
 /**
 * Release the class and method cache.
 */
 void
-jniscaling_OnUnload(JavaVM *vm, void __unused *reserved);
+jniscaling_OnUnload(JavaVM *vm, void *reserved __attribute__((__unused__)));
 
 
 #ifdef __cplusplus

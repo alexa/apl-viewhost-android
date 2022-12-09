@@ -7,6 +7,7 @@
 
 #include "apl/apl.h"
 #include "documentsession.h"
+#include <mutex>
 
 namespace apl {
 namespace jni {

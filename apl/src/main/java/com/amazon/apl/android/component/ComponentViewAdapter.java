@@ -10,6 +10,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
@@ -116,6 +117,10 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
 
     private void applyTransform(C component, V view) {
         view.invalidate();
+        ViewParent parent = view.getParent();
+        if (parent instanceof View) {
+            ((View)parent).invalidate();
+        }
     }
 
     /**

@@ -8,32 +8,32 @@ package com.amazon.apl.android.component;
 import android.view.KeyEvent;
 
 import androidx.test.espresso.IdlingRegistry;
-import androidx.test.espresso.IdlingResource;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
+import com.amazon.apl.android.espresso.APLViewActions;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.pressKey;
 import static androidx.test.espresso.action.ViewActions.swipeLeft;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * This class tests the interaction between nested pagers and touch wrappers.
@@ -98,15 +98,6 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
     @Mock
     private ISendEventCallbackV2 mSendEventCallback;
 
-    private IdlingResource mIdlingResource;
-
-    @After
-    public void teardown() {
-        if (mIdlingResource != null) {
-            IdlingRegistry.getInstance().unregister(mIdlingResource);
-        }
-    }
-
     private void loadDocumentWithNavigation(String navigation) {
         onView(withId(com.amazon.apl.android.test.R.id.apl))
                 .perform(inflateWithOptions(String.format(DOC, navigation), "", APLOptions.builder().sendEventCallbackV2(mSendEventCallback).build()))
@@ -144,16 +135,22 @@ public class PagerTouchWrapperTest extends AbstractDocViewTest {
     }
 
     @Test
-    public void testView_innerTouchWrapperReceivesKeyEventWithNoneNavigation() {
+    public void testView_innerTouchWrapperReceivesKeyEventWithNoneNavigation() throws InterruptedException {
         loadDocumentWithNavigation("none");
 
-        onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_DOWN))
-                .perform(pressKey(KeyEvent.KEYCODE_ENTER))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+        CountDownLatch latch = new CountDownLatch(2);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(mSendEventCallback).onSendEvent(eq(new String[] { "outer" }), any(), any(), any());
 
-        onView(isRoot())
-                .perform(waitFor(100));
+        // Espresso is intermittantly not calling ACTION_DOWN key events, so we'll do it explicitly here.
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_DOWN))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_ENTER))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+
+        latch.await(4, TimeUnit.SECONDS);
 
         // the expectation is that core's focus doesn't recursively search in TW
         verify(mSendEventCallback, times(2)).onSendEvent(eq(new String[] { "outer" }), any(), any(), any());

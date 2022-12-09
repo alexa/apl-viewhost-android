@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
@@ -112,7 +113,7 @@ public class ImageProcessingAsyncTask extends AsyncTask<ImageProcessingAsyncTask
             telemetryProvider.stopTimer(imageProcessingMetricId);
         } catch (TimeoutException e) {
             telemetryProvider.incrementCount(cMetricFilterTimeout);
-            Log.e(TAG, String.format("Filter processing took longer than %d seconds. Returning last bitmap.", FilterExecutor.TIMEOUT_SECONDS), e);
+            Log.e(TAG, String.format("Filter processing took longer than %d seconds. Returning last bitmap.", ConcurrencyUtils.LARGE_TIMEOUT_SECONDS), e);
             telemetryProvider.fail(imageProcessingMetricId);
             filteredResult = bitmapsToProcess.get(bitmapsToProcess.size() - 1);
         } catch (InterruptedException e) {

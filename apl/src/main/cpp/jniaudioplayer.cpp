@@ -9,7 +9,6 @@
 #include "jniaudioplayer.h"
 #include "jniutil.h"
 #include "jnicontent.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -32,11 +31,11 @@ namespace apl {
         jboolean
         audioplayer_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Component JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Audio Player JNI environment.";
 
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return JNI_FALSE;
             }
 
@@ -88,12 +87,12 @@ namespace apl {
          */
         void
         audioplayer_OnUnload(JavaVM *vm, void *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Component JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Audio Player JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
             if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return;
             }
 
@@ -123,7 +122,7 @@ namespace apl {
             JNIEnv *env;
             if (AUDIOPLAYER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env),
                                                  JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return;
             }
 
@@ -143,7 +142,7 @@ namespace apl {
             JNIEnv *env;
             if (AUDIOPLAYER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env),
                                                  JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return;
             }
 
@@ -163,7 +162,7 @@ namespace apl {
             JNIEnv *env;
             if (AUDIOPLAYER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env),
                                                  JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return;
             }
 
@@ -189,7 +188,7 @@ namespace apl {
             JNIEnv *env;
             if (AUDIOPLAYER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env),
                                                  JNI_VERSION_1_6) != JNI_OK) {
-                LOG(apl::LogLevel::ERROR) << "Environment failure, cannot proceed";
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
                 return;
             }
 

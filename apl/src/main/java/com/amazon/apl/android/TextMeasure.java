@@ -207,7 +207,7 @@ public class TextMeasure {
         }
     }
 
-    boolean shouldSkipLayoutPass(float widthPx, float heightPx,
+    private boolean shouldSkipLayoutPass(float widthPx, float heightPx,
                                  MeasureMode widthMode, Display display) {
         if (display == Display.kDisplayNone) {
             return true;

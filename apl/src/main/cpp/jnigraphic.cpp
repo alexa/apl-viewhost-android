@@ -4,11 +4,9 @@
 
 #include <jni.h>
 #include <string>
-#include <elf.h>
 #include "apl/apl.h"
 #include "jniutil.h"
 #include "jnimetricstransform.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -29,9 +27,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
         jboolean
-        graphic_OnLoad(JavaVM *vm, void __unused *reserved) {
+        graphic_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Component JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Graphics JNI environment.";
 
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -51,7 +49,7 @@ namespace apl {
                 || nullptr == HASHSET_CLASS
                 || nullptr == HASHSET_CONSTRUCTOR
                 || nullptr == HASHSET_ADD) {
-                LOG(LogLevel::ERROR) << "Could not find class GraphicElement Constructor or GraphicElement::addChildren method";
+                LOG(LogLevel::kError) << "Could not find class GraphicElement Constructor or GraphicElement::addChildren method";
                 return JNI_FALSE;
             }
 
@@ -62,8 +60,8 @@ namespace apl {
          * Release the class and method cache.
          */
         void
-        graphic_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Component JNI environment.";
+        graphic_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Graphics JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
@@ -90,7 +88,7 @@ namespace apl {
                                                               jint propertyId) {
             auto c = get<Component>(componentHandle);
             auto prop = static_cast<PropertyKey>(static_cast<int>(propertyId));
-            auto g = c->getCalculated(prop).getGraphic();
+            auto g = c->getCalculated(prop).get<Graphic>();
             const auto root = g->getRoot();
             return createHandle<GraphicElement, GraphicPropertyLookup>(root);
         }
@@ -171,10 +169,10 @@ namespace apl {
         JNIEXPORT jobject JNICALL
         Java_com_amazon_apl_android_VectorGraphic_nGetDirtyGraphics(JNIEnv *env, jobject instance, jlong componentHandle) {
             auto g = get<Component>(componentHandle);
-            auto graphic = g->getCalculated(kPropertyGraphic).getGraphic();
+            auto graphic = g->getCalculated(kPropertyGraphic).get<Graphic>();
             auto dirtyChildren = graphic->getDirty();
             jobject javaSet = env->NewObject(HASHSET_CLASS, HASHSET_CONSTRUCTOR);
-            for (auto it : dirtyChildren) {
+            for (const auto& it : dirtyChildren) {
                 auto val = getJObject(env, it->getId());
                 env->CallBooleanMethod(javaSet, HASHSET_ADD, val);
             }
@@ -186,7 +184,7 @@ namespace apl {
                 jlong handle, jint propertyId) {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGraphicPattern();
+            const auto &g = value.get<GraphicPattern>();
 
             return static_cast<jfloat>(g->getWidth());
         }
@@ -196,7 +194,7 @@ namespace apl {
                         jlong handle, jint propertyId) {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGraphicPattern();
+            const auto &g = value.get<GraphicPattern>();
 
             return static_cast<jfloat>(g->getHeight());
         }
@@ -205,7 +203,7 @@ namespace apl {
         Java_com_amazon_apl_android_graphic_GraphicPattern_nGetItems(JNIEnv *env, jclass clazz,
                                                                      jlong handle, jint propertyId) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGraphicPattern();
+            const auto &g = value.get<GraphicPattern>();
 
 
             int numItems = g->getItems().size();

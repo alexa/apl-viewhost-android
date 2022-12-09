@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android.espresso;
 
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -46,7 +47,11 @@ public final class APLViewActions {
 
     public static ViewAction waitFor(long millis) { return new WaitFor(millis); }
 
+    public static ViewAction pressKey(int keyCode) { return new KeyEventAction(keyCode); }
+
     public static ViewAction executeCommands(RootContext rootContext, String command) { return new ExecuteCommandViewAction(rootContext, command); }
+
+    public static ViewAction executeCommandsNoLoop(RootContext rootContext, String command) { return new ExecuteCommandNoLoopViewAction(rootContext, command); }
 
     public static ViewAction updateDataSource(RootContext rootContext, String type, String data) { return new UpdateDataSourceViewAction(rootContext, type, data); }
 
@@ -84,6 +89,42 @@ public final class APLViewActions {
         public void perform(UiController uiController, View view) {
             view.requestFocus();
             uiController.loopMainThreadUntilIdle();
+        }
+    }
+
+    static class KeyEventAction implements ViewAction {
+        private final int mKeyCode;
+
+        public KeyEventAction(int keyCode) {
+            this.mKeyCode = keyCode;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return CoreMatchers.any(View.class);
+        }
+
+        @Override
+        public String getDescription() {
+            return "Performs a key press.";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            View currentView = view;
+            while (!(currentView instanceof  APLLayout)) {
+                currentView = (View)currentView.getParent();
+            }
+
+            APLLayout aplLayout = (APLLayout) currentView;
+
+            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, mKeyCode));
+            aplLayout.dispatchKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, mKeyCode));
+
+            // Dispatching the key events will make the root context dirty until it's handled.
+            while (aplLayout.getAPLContext().isDirty()) {
+                uiController.loopMainThreadForAtLeast(50);
+            }
         }
     }
 
@@ -219,7 +260,7 @@ public final class APLViewActions {
             mRootContext.updateDataSource(mType, mData);
 
             // Force an update.
-            mRootContext.doFrame(1);
+            mRootContext.onTick(1);
         }
     }
 
@@ -245,11 +286,37 @@ public final class APLViewActions {
         @Override
         public void perform(UiController uiController, View view) {
             Action commandAction = mRootContext.executeCommands(mCommand);
-            mRootContext.doFrame(1);
+            mRootContext.onTick(1);
 
             while (commandAction.isPending()) {
                 uiController.loopMainThreadForAtLeast(50);
             }
+        }
+    }
+
+    static class ExecuteCommandNoLoopViewAction implements ViewAction {
+        private final RootContext mRootContext;
+        private final String mCommand;
+
+        public ExecuteCommandNoLoopViewAction(RootContext rootContext, String command) {
+            mRootContext = rootContext;
+            mCommand = command;
+        }
+
+        @Override
+        public Matcher<View> getConstraints() {
+            return isDisplayingAtLeast(90);
+        }
+
+        @Override
+        public String getDescription() {
+            return "Execute command no loop";
+        }
+
+        @Override
+        public void perform(UiController uiController, View view) {
+            mRootContext.executeCommands(mCommand);
+            mRootContext.onTick(1);
         }
     }
 
@@ -347,7 +414,7 @@ public final class APLViewActions {
         @Override
         public void perform(UiController uiController, View view) {
             mRootContext.handleConfigurationChange(mConfigurationChange);
-            mRootContext.doFrame(1);
+            mRootContext.onTick(1);
         }
     }
 

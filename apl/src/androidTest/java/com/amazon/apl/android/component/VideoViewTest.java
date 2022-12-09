@@ -31,13 +31,15 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.executeCommands;
-import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -195,7 +197,7 @@ public class VideoViewTest extends AbstractComponentViewTest<View, Video> {
     @Test
     public void test_reinflation_preserves_playingState() {
         //Mock dependencies
-        FakeMediaPlayer fakeMediaPlayer = new FakeMediaPlayer();
+        IMediaPlayer fakeMediaPlayer = mock(IMediaPlayer.class);
         AbstractMediaPlayerProvider<View> playerProvider = new AbstractMediaPlayerProvider<View>() {
             @Override
             public View createView(Context context) {
@@ -217,30 +219,34 @@ public class VideoViewTest extends AbstractComponentViewTest<View, Video> {
                 .perform(inflateWithOptions(rootConfig, options, REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
                 .check(hasRootContext());
 
-        // Advance player by 200 ms.
-        fakeMediaPlayer.setTrack(0);
-        fakeMediaPlayer.seek(200);
-        fakeMediaPlayer.notifyMediaState();
+        ArgumentCaptor<IMediaPlayer.IMediaListener> listenerCaptor = ArgumentCaptor.forClass(IMediaPlayer.IMediaListener.class);
+        verify(fakeMediaPlayer, atLeastOnce()).addMediaStateListener(listenerCaptor.capture());
+        IMediaPlayer.IMediaListener listener = listenerCaptor.getValue();
 
-        // Reset FakeMediaPlayer, but do not notify, so that the new values can be verified after reinflation.
-        fakeMediaPlayer.seek(0);
-        fakeMediaPlayer.setCurrentMediaState(IMediaPlayer.IMediaListener.MediaState.IDLE);
+        doReturn(0)
+                .when(fakeMediaPlayer).getCurrentTrackIndex();
+
+        doReturn(200)
+                .when(fakeMediaPlayer).getCurrentSeekPosition();
+
+        doReturn(IMediaPlayer.IMediaListener.MediaState.PLAYING)
+                .when(fakeMediaPlayer).getCurrentMediaState();
+
+        // Snapshot the media state.
+        listener.updateMediaState(fakeMediaPlayer);
 
         // Reinflate
         // Dummy config
         ConfigurationChange configChange = mTestContext.getRootContext().createConfigurationChange()
                 .build();
+        
+        clearInvocations(fakeMediaPlayer);
 
         mTestContext.getRootContext().handleConfigurationChange(configChange);
 
-        Component component = mTestContext.getTestComponent();
-        onView(isRoot()).perform(waitFor(400));
-
-        // Assert properties after reinflation
-        assertThat(component, instanceOf(Video.class));
         // Check that the player plays from the position where it was before reinflation.
-        assertEquals(200, fakeMediaPlayer.getCurrentSeekPosition());
-        assertEquals(IMediaPlayer.IMediaListener.MediaState.PLAYING, fakeMediaPlayer.getCurrentMediaState());
+        verify(fakeMediaPlayer, timeout(1000)).seek(200);
+        verify(fakeMediaPlayer, timeout(1000)).play();
     }
 
     /**

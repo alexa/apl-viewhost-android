@@ -2,10 +2,13 @@
 # documentation: https://d.android.com/studio/projects/add-native-code.html
 
 # Sets the minimum version of CMake required to build the native library.
+include(FetchContent OPTIONAL RESULT_VARIABLE HAS_FETCH_CONTENT)
 
-cmake_minimum_required(VERSION 3.10.2)
+cmake_minimum_required(VERSION 3.18.1)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 project (discovery-jni VERSION 1.0.0 LANGUAGES C CXX)
 
 # set APL Core location
@@ -14,26 +17,16 @@ if (NOT APL_CORE_DIR)
 endif ()
 set(APL_PROJECT_DIR ${APL_CORE_DIR})
 
-# third party
-set(APL_PATCH_DIR "${APL_CORE_DIR}/patches")
-set(APL_DEPENDENCIES_DIR "${APL_CORE_DIR}/thirdparty")
-include(${APL_DEPENDENCIES_DIR}/thirdparty.cmake)
+# Tell core to compile alexa extensions.
+set(ENABLE_ALEXAEXTENSIONS ON)
+set(BUILD_ALEXAEXTENSIONS ON)
+set(ENABLE_PIC ON)
 
-# Extensions framework
-include_directories(${APL_CORE_DIR}/extensions/alexaext/include)
-
-set(EXTENSIONS_BUILD_DIR ${CMAKE_CURRENT_BINARY_DIR}/build-extensions)
-include(${APL_CORE_DIR}/options.cmake)
-include(${APL_CORE_DIR}/tools.cmake)
-
-# build folder
-add_subdirectory(${APL_CORE_DIR}/extensions ${EXTENSIONS_BUILD_DIR})
-
-# Extensions framework
-include_directories(${APL_CORE_DIR}/extensions/alexaext/include)
-
-target_compile_definitions(alexaext PUBLIC ALEXAEXTENSIONS)
-add_dependencies(alexaext rapidjson-build)
+FetchContent_Declare(
+        aplcore
+        SOURCE_DIR ${APL_CORE_DIR}
+)
+FetchContent_MakeAvailable(aplcore)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -59,30 +52,35 @@ add_library( # Sets the name of the library.
 # you want to add. CMake verifies that the library exists before
 # completing its build.
 
-find_library( # Sets the name of the path variable.
-        log-lib
+if (NOT ANDROID)
+    # Ensure jni.h is found
+    find_package(JNI REQUIRED)
+    include_directories(${JAVA_INCLUDE_PATH})
+    include_directories(${JAVA_INCLUDE_PATH2})
+else()
+    find_library( # Sets the name of the path variable.
+            log-lib
 
-        # Specifies the name of the NDK library that
-        # you want CMake to locate.
-        log)
+            # Specifies the name of the NDK library that
+            # you want CMake to locate.
+            log)
+
+    # Specifies libraries CMake should link to your target library. You
+    # can link multiple libraries, such as libraries you define in this
+    # build script, prebuilt third-party libraries, or system libraries.
+
+    target_link_libraries( # Specifies the target library.
+            discovery-jni
+
+            # Links the target library to the log library
+            # included in the NDK.
+            ${log-lib})
+endif()
 
 # Specifies a path to native header files.
 include_directories(src/main/cpp/include)
 
-include_directories(${RAPIDJSON_INCLUDE})
-
 # Common lib includes
 include_directories(../common/src/main/cpp/include)
-
-# Specifies libraries CMake should link to your target library. You
-# can link multiple libraries, such as libraries you define in this
-# build script, prebuilt third-party libraries, or system libraries.
-
-target_link_libraries( # Specifies the target library.
-        discovery-jni
-
-        # Links the target library to the log library
-        # included in the NDK.
-        ${log-lib})
 
 target_link_libraries(discovery-jni alexaext)

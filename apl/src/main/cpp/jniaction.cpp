@@ -3,13 +3,11 @@
  */
 
 #include <jni.h>
-#include <elf.h>
 
 #include "apl/apl.h"
 
 #include "jniutil.h"
 #include "jniaction.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -36,9 +34,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
         jboolean
-        action_OnLoad(JavaVM *vm, void __unused *reserved) {
+        action_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Action JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Action JNI environment.";
 
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -63,7 +61,7 @@ namespace apl {
                 || nullptr == ON_TERMINATE_CALLBACK
                 || nullptr == ON_THEN) {
 
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.Action";
                 return JNI_FALSE;
             }
@@ -76,8 +74,8 @@ namespace apl {
          * Release the class and method cache.
          */
         void
-        action_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Action JNI environment.";
+        action_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Action JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
@@ -96,7 +94,7 @@ namespace apl {
         Java_com_amazon_apl_android_Action_nInit(JNIEnv *env, jobject instance, jlong nativeHandle) {
             auto action = get<Action>(nativeHandle);
             if(!action) {
-                LOG(apl::LogLevel::WARN) << "Could not find action from handle " << nativeHandle;
+                LOG(apl::LogLevel::kWarn) << "Could not find action from handle " << nativeHandle;
                 return;
             }
 
@@ -140,7 +138,7 @@ namespace apl {
         Java_com_amazon_apl_android_Action_nIsPending(JNIEnv *env, jclass clazz, jlong nativeHandle) {
             auto action = get<Action>(nativeHandle);
             if(!action) {
-                LOG(apl::LogLevel::WARN) << "Could not find action from handle " << nativeHandle;
+                LOG(apl::LogLevel::kWarn) << "Could not find action from handle " << nativeHandle;
                 return static_cast<jboolean>(false);
             }
             return static_cast<jboolean>(action->isPending());
@@ -150,7 +148,7 @@ namespace apl {
         Java_com_amazon_apl_android_Action_nIsTerminated(JNIEnv *env, jclass clazz, jlong nativeHandle) {
             auto action = get<Action>(nativeHandle);
             if(!action) {
-                LOG(apl::LogLevel::WARN) << "Could not find action from handle " << nativeHandle;
+                LOG(apl::LogLevel::kWarn) << "Could not find action from handle " << nativeHandle;
                 return static_cast<jboolean>(false);
             }
             return static_cast<jboolean>(action->isTerminated());
@@ -160,7 +158,7 @@ namespace apl {
         Java_com_amazon_apl_android_Action_nIsResolved(JNIEnv *env, jclass clazz, jlong nativeHandle) {
             auto action = get<Action>(nativeHandle);
             if(!action) {
-                LOG(apl::LogLevel::WARN) << "Could not find action from handle " << nativeHandle;
+                LOG(apl::LogLevel::kWarn) << "Could not find action from handle " << nativeHandle;
                 return static_cast<jboolean>(false);
             }
             return static_cast<jboolean>(action->isResolved());

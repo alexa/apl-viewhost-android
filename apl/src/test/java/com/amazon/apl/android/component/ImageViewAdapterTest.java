@@ -62,7 +62,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ImageViewAdapterTest extends AbstractComponentViewAdapterTest<Image, APLImageView> {
@@ -169,7 +169,7 @@ public class ImageViewAdapterTest extends AbstractComponentViewAdapterTest<Image
         verify(mockBitmapCache).getBitmap(key);
         verify(mockTelemetryProvider).incrementCount(METRIC_CACHE_HIT);
         verify(mockTelemetryProvider, never()).incrementCount(METRIC_CACHE_MISS);
-        verifyZeroInteractions(mockImageLoader);
+        verifyNoInteractions(mockImageLoader);
     }
 
     @Test
@@ -484,7 +484,7 @@ public class ImageViewAdapterTest extends AbstractComponentViewAdapterTest<Image
 
         applyAllProperties();
 
-        verifyZeroInteractions(mockImageLoader);
+        verifyNoInteractions(mockImageLoader);
     }
 
     @Test

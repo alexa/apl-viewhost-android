@@ -5,7 +5,9 @@
 
 package com.amazon.apl.android;
 
-public class APLViewhostTest {
+import com.amazon.common.test.LeakRulesBaseClass;
+
+public class APLViewhostTest extends LeakRulesBaseClass {
     // Load the APL library.
     static {
         System.loadLibrary("common-jni");

@@ -29,6 +29,7 @@ import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.TestActivity;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.enums.RootProperty;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -50,7 +51,8 @@ import static org.junit.Assert.assertNotNull;
 /**
  * Like {@link AbstractComponentViewTest}, but for testing Components backed by a Dynamic DataSource
  */
-abstract class AbstractDynamicDataSourceComponentViewTest {
+abstract class AbstractDynamicDataSourceComponentViewTest extends LeakRulesBaseClass {
+
 
     // Load the APL library.
     static {

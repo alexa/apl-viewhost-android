@@ -14,7 +14,7 @@ public final class APLTestDocs {
     // can have optional template properties.
     public final static String COMPONENT_BASE_DOC = "{" +
             "  \"type\": \"APL\"," +
-            "  \"version\": \"1.0\"," +
+            "  \"version\": \"%s\"," +
             "  \"onConfigChange\": [\n" +
             "      {\n" +
             "          \"type\": \"SendEvent\",\n" +

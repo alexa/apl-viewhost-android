@@ -213,7 +213,7 @@ add_custom_target(generate-android-enums ALL
         ${APL_CORE_DIR}/aplcore/include/apl/touch/*.h
         ${APL_CORE_DIR}/aplcore/include/apl/focus/*.h
         DEPENDS enumgen
-)
+        )
 
 add_dependencies(apl-jni generate-android-enums)
 

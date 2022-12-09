@@ -37,6 +37,7 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
     private Map<String, IExtensionImageFilterCallback> mCallbacks = new HashMap<>();
     private IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
+    private String mLogId;
 
     /**
      * Callback to be invoked when all extensions which is required were loaded.
@@ -69,6 +70,7 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
 
     public void initializeExtensions(RootConfig rootConfig, Content content, @NonNull IExtensionGrantRequestCallback extensionGrantRequestCallback) {
         mExtensionGrantRequestCallback = extensionGrantRequestCallback;
+        mLogId = rootConfig.getSession().getLogId();
         nInitializeExtensions(getNativeHandle(), rootConfig.getNativeHandle(), content.getNativeHandle());
     }
 

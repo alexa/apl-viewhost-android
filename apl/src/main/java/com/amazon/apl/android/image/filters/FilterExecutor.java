@@ -7,6 +7,7 @@ package com.amazon.apl.android.image.filters;
 
 import android.graphics.Bitmap;
 
+import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
@@ -29,7 +30,6 @@ import java.util.concurrent.TimeoutException;
  * This class is responsible for applying all the filters to an Image.
  */
 public class FilterExecutor {
-    public static final int TIMEOUT_SECONDS = 60;
     private static final String TAG = "FilterExecutor";
 
     private final ExecutorService mExecutorService;
@@ -107,14 +107,14 @@ public class FilterExecutor {
             mFilterResultFutures.add(result);
         }
 
-        FilterResult ret = result.get(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        FilterResult ret = result.get(ConcurrencyUtils.LARGE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
         Bitmap resultBitmap = ret.isBitmap() ? ret.getBitmap() : null;
 
         // Free up any used bitmaps here
         Set<Bitmap> alreadyDisposedBitmaps = new HashSet<>();
         for (Future<FilterResult> future : mFilterResultFutures) {
             if (future.isDone()) {
-                FilterResult filterResult = future.get();
+                FilterResult filterResult = future.get(ConcurrencyUtils.LARGE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                 Bitmap toRecycle = filterResult.isBitmap() ? filterResult.getBitmap() : null;
 
                 if (toRecycle != null &&

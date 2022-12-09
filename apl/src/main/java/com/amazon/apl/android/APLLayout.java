@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -60,6 +61,7 @@ import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.KeyUtils;
 import com.amazon.apl.android.utils.LazyImageLoader;
 import com.amazon.apl.android.utils.TracePoint;
+import com.amazon.apl.android.utils.TransformUtils;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLExtensionView;
 import com.amazon.apl.android.views.APLImageView;
@@ -232,7 +234,6 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             throw new IllegalStateException("The APLController must be initialized.");
         }
 
-        setStaticTransformationsEnabled(true);
         setClipChildren(true);
         setClickable(true);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -420,17 +421,6 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             clear();
         }
     }
-
-    @Override
-    protected boolean getChildStaticTransformation(View child, @NonNull Transformation t) {
-        Component component = mAplViewPresenter.findComponent(child);
-        if (component != null) {
-            t.getMatrix().set(component.getTransform());
-            return true;
-        }
-        return false;
-    }
-
 
     @Nullable
     @VisibleForTesting
@@ -1287,6 +1277,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
     /**
      * Convenience method for visiting all Views in a given hierarchy via a Breadth-First Search.
+     * This includes views that have been detached.
      *
      * Similar to {@link #traverseComponentHierarchy(Component, Consumer)} except that this uses the
      * view hierarchy whereas the other uses displayed children hierarchy.
@@ -1303,10 +1294,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             View current = queue.poll();
             visitorOperation.accept(current);
             // Add the children to the queue
-            if (current instanceof ViewGroup && !(current instanceof APLExtensionView)) {
-                ViewGroup currentGroup = (ViewGroup) current;
-                for (int i = 0; i < currentGroup.getChildCount(); i++) {
-                    queue.add(currentGroup.getChildAt(i));
+            if (current instanceof APLAbsoluteLayout) {
+                APLAbsoluteLayout layout = (APLAbsoluteLayout) current;
+                for (View child : layout.getAttachedAndDetachedChildren()) {
+                    queue.add(child);
                 }
             }
         }
@@ -1331,6 +1322,19 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     @VisibleForTesting
     public Map<String, View> getViews() {
         return mViews;
+    }
+
+    @Override
+    protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
+        final Component childComponent = mAplViewPresenter.findComponent(child);
+        int saveCount = canvas.save();
+        if (childComponent != null && childComponent.hasTransform()) {
+            TransformUtils.applyChildTransformToParentCanvas(childComponent.getTransform(), child, canvas);
+        }
+        boolean result;
+        result = super.drawChild(canvas, child, drawingTime);
+        canvas.restoreToCount(saveCount);
+        return result;
     }
 }
 

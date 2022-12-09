@@ -21,6 +21,10 @@
 #include "jnitextmeasurecallback.h"
 #include "jniextensionmediator.h"
 
+#ifdef __ANDROID__
+#include "loggingbridge.h"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,6 +38,9 @@ namespace apl {
          */
         JNIEXPORT jint
         JNI_OnLoad(JavaVM *vm, void *reserved) {
+#ifdef __ANDROID__
+            apl::LoggerFactory::instance().initialize(std::make_shared<AndroidJniLogBridge>());
+#endif
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                 return -1;  //JNI_ERR
@@ -62,7 +69,7 @@ namespace apl {
                 return JNI_ERR;
             }
 
-            LOG(apl::LogLevel::DEBUG) << "Complete View Host JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Complete View Host JNI environment.";
 
             return JNI_VERSION_1_6;
         }

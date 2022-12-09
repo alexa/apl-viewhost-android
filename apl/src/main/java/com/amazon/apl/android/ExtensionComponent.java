@@ -33,13 +33,6 @@ public class ExtensionComponent extends Component {
     }
 
     /**
-     * @return The extension URI associated with this component.
-     */
-    public String getUri() {
-        return nGetUri(getNativeHandle());
-    }
-
-    /**
      * @return The resource identifier associated with the component.
      */
     public String getResourceId() {
@@ -68,7 +61,6 @@ public class ExtensionComponent extends Component {
     }
 
 
-    private static native String nGetUri(long nativeHandle);
     private static native void nUpdateExtensionResourceState(long nativeHandle, int state);
 
 }

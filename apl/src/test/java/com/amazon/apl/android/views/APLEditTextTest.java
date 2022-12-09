@@ -16,7 +16,7 @@ import org.mockito.Mock;
 
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class APLEditTextTest extends ViewhostRobolectricTest {
@@ -48,7 +48,7 @@ public class APLEditTextTest extends ViewhostRobolectricTest {
         when(mAPLEditTextView.getSelectionEnd()).thenReturn(1);
         mAPLEditTextView.dispatchKeyEvent(mockLeftKeyEvent);
         mAPLEditTextView.dispatchKeyEvent(mockUpKeyEvent);
-        verifyZeroInteractions(mockPresenter);
+        verifyNoInteractions(mockPresenter);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class APLEditTextTest extends ViewhostRobolectricTest {
         when(mAPLEditTextView.getSelectionEnd()).thenReturn(1);
         mAPLEditTextView.dispatchKeyEvent(mockRightKeyEvent);
         mAPLEditTextView.dispatchKeyEvent(mockDownKeyEvent);
-        verifyZeroInteractions(mockPresenter);
+        verifyNoInteractions(mockPresenter);
     }
 
     @Test

@@ -17,6 +17,7 @@ import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.espresso.APLMatchers;
+import com.amazon.apl.android.espresso.APLViewActions;
 import com.amazon.apl.android.espresso.APLViewIdlingResource;
 
 import org.json.JSONArray;
@@ -312,9 +313,7 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
         // Initial focus on first item
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
-        onView(isRoot())
-                .perform(waitFor(100));
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
 
         onView(APLMatchers.withText("Item 0"))
                 .check(matches(APLMatchers.withTextColor(Color.RED)))
@@ -322,7 +321,9 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
         // Delete the first item
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+
+        // Animation
         onView(isRoot())
                 .perform(waitFor(1000));
 
@@ -335,9 +336,7 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
         // Go down
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
-        onView(isRoot())
-                .perform(waitFor(100));
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
 
         // Third item is focused
         onView(APLMatchers.withText("Item 2"))
@@ -346,7 +345,9 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
         // Delete the third item
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+
+        // Animation
         onView(isRoot())
                 .perform(waitFor(1000));
 
@@ -359,9 +360,7 @@ public class SwipeAndDeleteItemSequenceViewTest extends AbstractDocViewTest {
 
         // Go up
         onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_UP));
-        onView(isRoot())
-                .perform(waitFor(100));
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_UP));
 
         // Second item is focused since third item was deleted
         onView(APLMatchers.withText("Item 1"))

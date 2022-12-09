@@ -24,8 +24,6 @@ import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static com.amazon.apl.android.espresso.APLViewActions.applyProperties;
 import static com.amazon.apl.android.espresso.APLViewActions.executeCommands;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doAnswer;
@@ -133,35 +131,5 @@ public class ImageViewTest extends AbstractComponentViewTest<APLImageView, Image
         onView(isRoot()).perform(waitFor(100));
 
         verify(mImageLoader, times(1)).clear(testView);
-    }
-
-    @Test
-    public void testView_layoutRequestsEnabledByDefault() throws Throwable {
-        onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(inflateWithOptions(getOptions(), REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
-                .check(hasRootContext());
-
-        APLImageView testView = getTestView();
-
-        activityRule.runOnUiThread(() -> {
-            testView.requestLayout();
-            assertTrue(testView.isLayoutRequested());
-        });
-    }
-
-    @Test
-    public void testView_layoutRequestsDisabled() throws Throwable {
-        onView(withId(com.amazon.apl.android.test.R.id.apl))
-                .perform(inflateWithOptions(getOptions(), REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES))
-                .check(hasRootContext());
-
-        APLImageView testView = getTestView();
-
-        activityRule.runOnUiThread(() -> {
-            testView.setLayoutRequestsEnabled(false);
-            testView.requestLayout();
-
-            assertFalse(testView.isLayoutRequested());
-        });
     }
 }

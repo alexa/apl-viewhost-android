@@ -14,6 +14,7 @@ import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.core.internal.deps.guava.base.Preconditions;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.ActivityTestRule;
 
@@ -25,6 +26,7 @@ import com.amazon.apl.android.Component;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.TestActivity;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -51,7 +53,7 @@ import static org.junit.Assert.assertNotNull;
  * where it will populate `APLTestContext` where it contains a reference
  * of the real RootContext of the application.
  */
-public abstract class AbstractDocViewTest {
+public abstract class AbstractDocViewTest extends LeakRulesBaseClass {
 
     // The document will reinflate on configuration change
     public static final String BASE_DOC_REINFLATE_SEND_EVENT_ARGUMENT = "reinflating the APL document";
@@ -109,11 +111,16 @@ public abstract class AbstractDocViewTest {
         if (mIdlingResource != null) {
             IdlingRegistry.getInstance().unregister(mIdlingResource);
         }
+
+        if (mTestContext != null) {
+            activityRule.getScenario().onActivity(activity -> {
+                mTestContext.getRootContext().finishDocument();
+            });
+        }
     }
 
-
     @Rule
-    public ActivityTestRule<TestActivity> activityRule = new ActivityTestRule<>(TestActivity.class);
+    public ActivityScenarioRule<TestActivity> activityRule = new ActivityScenarioRule<>(TestActivity.class);
 
     private class InflateAPLViewAction implements ViewAction {
         private final String mComponentProps;
@@ -165,12 +172,14 @@ public abstract class AbstractDocViewTest {
                 mTestContext.setRootConfig(mRootConfig);
             }
 
-            APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl);
-            try {
-                mAplController = APLController.renderDocument(mTestContext.getContent(), mTestContext.getAplOptions(), mTestContext.getRootConfig(), aplLayout.getPresenter());
-            } catch (APLController.APLException e) {
-                Assert.fail(e.getMessage());
-            }
+            activityRule.getScenario().onActivity(activity -> {
+                APLLayout aplLayout = activity.findViewById(com.amazon.apl.android.test.R.id.apl);
+                try {
+                    mAplController = APLController.renderDocument(mTestContext.getContent(), mTestContext.getAplOptions(), mTestContext.getRootConfig(), aplLayout.getPresenter());
+                } catch (APLController.APLException e) {
+                    Assert.fail(e.getMessage());
+                }
+            });
         }
     }
 

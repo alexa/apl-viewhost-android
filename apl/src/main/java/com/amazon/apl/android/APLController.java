@@ -16,12 +16,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.functional.Consumer;
-import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider.Type;
 import com.amazon.apl.android.scaling.Scaling;
@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -769,7 +770,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static synchronized boolean isInitialized(final ITelemetryProvider telemetryProvider) {
         try {
-            return sLibraryFuture != null && sLibraryFuture.get();
+            return sLibraryFuture != null && sLibraryFuture.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (final TimeoutException ex) {
+            final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
+                    ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);
+            telemetryProvider.incrementCount(metricId);
+            Log.wtf(TAG, String.format("Library failed to load with a %d timeout", ConcurrencyUtils.SMALL_TIMEOUT_SECONDS), ex);
         } catch (final ExecutionException | InterruptedException ex) {
             final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
                     ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);

@@ -5,7 +5,6 @@
 
 package com.amazon.apl.android.document;
 
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -25,7 +24,6 @@ import com.amazon.apl.android.TextLayoutFactory;
 import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.TextProxy;
 import com.amazon.apl.android.font.CompatFontResolver;
-import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -59,6 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
+// These tests heavily rely on the behaviour of Android TextPaint and TypeFace which isn't replicated 1-1 with Robolectric.
 @RunWith(AndroidJUnit4.class)
 public class TextMeasureTest extends APLViewhostTest {
     static {

@@ -380,7 +380,8 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         verify(mockView, never()).detachAllViews();
         verify(mockView, never()).attachView(any());
-        verify(mockView).invalidate();
+        verify(mockView, never()).requestLayout();
+        verify(mockView, never()).invalidate();
     }
 
     private void setupChildWithBounds(Rect bounds) {

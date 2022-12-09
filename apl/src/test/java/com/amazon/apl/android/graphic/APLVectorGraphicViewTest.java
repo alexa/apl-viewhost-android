@@ -4,6 +4,8 @@
  */
 package com.amazon.apl.android.graphic;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.util.Pair;
 
@@ -19,9 +21,12 @@ import com.amazon.apl.enums.VectorGraphicScale;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
@@ -29,10 +34,13 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.atLeastOnce;
 
 public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
-    @Mock
+    @Spy
     private Drawable mMockImageDrawable;
     @Mock
     private IAPLViewPresenter mMockPresenter;
+
+    @Mock
+    private IBitmapPool mMockBitmapPool;
 
     private static final int VIEW_SIZE = 100;  // 100 pixels per side
     private static final int VIEW_PADDING = 10; // 10 pixels of padding per side
@@ -42,7 +50,7 @@ public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
 
     @Before
     public void setUp() {
-        IBitmapFactory bitmapFactory = PooledBitmapFactory.create(mock(ITelemetryProvider.class), mock(IBitmapPool.class));
+        IBitmapFactory bitmapFactory = PooledBitmapFactory.create(mock(ITelemetryProvider.class), mMockBitmapPool);
         when(mMockPresenter.getBitmapFactory()).thenReturn(bitmapFactory);
         mAPLVectorGraphicView = spy(new APLVectorGraphicView(ViewhostRobolectricTest.getApplication().getApplicationContext(), mMockPresenter));
         mAPLVectorGraphicView.setFrame(0, 0, VIEW_SIZE, VIEW_SIZE);
@@ -51,6 +59,8 @@ public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
 
     @Test
     public void testOnDraw_intrinsicDrawableFits(){
+        when(mMockBitmapPool.get(anyInt(), anyInt(), any())).thenReturn(Bitmap.createBitmap(VIEW_INNER_SIZE, VIEW_INNER_SIZE, Bitmap.Config.ARGB_8888));
+
         mAPLVectorGraphicView.setScale(VectorGraphicScale.kVectorGraphicScaleBestFit);
 
         when(mMockImageDrawable.getIntrinsicWidth()).thenReturn(VIEW_INNER_SIZE);

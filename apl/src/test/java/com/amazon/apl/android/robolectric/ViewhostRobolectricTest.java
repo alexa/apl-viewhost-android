@@ -10,8 +10,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Typeface;
 
 import androidx.test.core.app.ApplicationProvider;
+
+import com.amazon.apl.android.utils.JniLoader;
 
 import org.junit.After;
 import org.junit.Before;
@@ -24,6 +27,7 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowBitmap;
 import org.robolectric.shadows.ShadowCanvas;
+import org.robolectric.shadows.ShadowLog;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -32,8 +36,13 @@ import java.nio.ByteBuffer;
 @Config(sdk = 22, manifest = Config.NONE)
 public abstract class ViewhostRobolectricTest {
 
+    static {
+        JniLoader.loadLibraries();
+    }
+
     @Before
     public final void setupViewhostRobolectricTest() {
+        ShadowLog.stream = System.out;
         MockitoAnnotations.initMocks(this);
     }
 

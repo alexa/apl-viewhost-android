@@ -10,11 +10,11 @@ import android.view.KeyEvent;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.KeyHandlerType;
 
+import static org.hamcrest.core.Is.is;
 import org.junit.Test;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.core.IsNull.nullValue;
 
 public class KeyboardTranslatorTest extends ViewhostRobolectricTest {
 

@@ -7,7 +7,6 @@
 
 #include "jniutil.h"
 #include "apl/apl.h"
-#include "loggingbridge.h"
 #include "codecvt"
 
 namespace apl {
@@ -170,6 +169,9 @@ namespace apl {
             return result;
         }
 
+        std::shared_ptr<EventCommandPropertyLookup> EventCommandPropertyLookup::instance = nullptr;
+        std::shared_ptr<ComponentPropertyLookup> ComponentPropertyLookup::instance = nullptr;
+        std::shared_ptr<GraphicPropertyLookup> GraphicPropertyLookup::instance = nullptr;
 
 #ifdef __cplusplus
         extern "C" {
@@ -183,13 +185,12 @@ namespace apl {
          */
         jboolean
         jniutil_OnLoad(JavaVM *vm, void *reserved) {
-            apl::LoggerFactory::instance().initialize(std::make_shared<AndroidJniLogBridge>());
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                 return JNI_FALSE;
             }
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Utils JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Utils JNI environment.";
 
             // For reading Integer and Boolean types
             JAVA_LANG_BOOLEAN = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/lang/Boolean")));
@@ -270,7 +271,7 @@ namespace apl {
                     JAVA_UTIL_HASHMAP_CONSTRUCTOR == nullptr ||
                     JAVA_UTIL_HASHMAP_PUT == nullptr
             ) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load classes for jniutils";
                 return JNI_FALSE;
             }
@@ -286,11 +287,6 @@ namespace apl {
 
         }
 
-
-        std::shared_ptr<EventCommandPropertyLookup> EventCommandPropertyLookup::instance = nullptr;
-        std::shared_ptr<ComponentPropertyLookup> ComponentPropertyLookup::instance = nullptr;
-        std::shared_ptr<GraphicPropertyLookup> GraphicPropertyLookup::instance = nullptr;
-
         /**
          * Converts an `apl::Object` into a Java Object. Because an apl::Object can be an array
          * of `apl::Object`s, all primitives are converted to the Java class primitive wrappers. For
@@ -305,55 +301,54 @@ namespace apl {
                 return NULL;
             }
 
-            switch(obj.getType()) {
-                case apl::Object::kBoolType: {
-                    return env->NewObject(JAVA_LANG_BOOLEAN, JAVA_LANG_BOOLEAN_CONSTRUCTOR, obj.getBoolean());
-                }
-                case apl::Object::kNumberType: {
-                    double integerPart;
-                    double value = obj.getDouble();
-                    if (std::modf(value, &integerPart) == 0.0) {
-                        auto asLong = static_cast<jlong>(integerPart);
-                        if (asLong > JAVA_INTEGER_MAX_VALUE ||
-                            asLong < JAVA_INTEGER_MIN_VALUE) {
-                            return env->NewObject(JAVA_LANG_LONG, JAVA_LANG_LONG_CONSTRUCTOR, asLong);
-                        } else {
-                            return env->NewObject(JAVA_LANG_INTEGER, JAVA_LANG_INTEGER_CONSTRUCTOR,
-                                                  static_cast<jint>(integerPart));
-                        }
-                    }
-                    return env->NewObject(JAVA_LANG_DOUBLE, JAVA_LANG_DOUBLE_CONSTRUCTOR,
-                            static_cast<jdouble>(value));
-                }
-                case apl::Object::kStringType: {
-                    return env->NewStringUTF(obj.asString().c_str());
-                }
-                case apl::Object::kArrayType: {
-                    auto& array = obj.getArray();
-                    jobjectArray objArray = env->NewObjectArray(array.size(), JAVA_LANG_OBJECT, nullptr);
-                    for(int i = 0; i < array.size(); i++) {
-                        jobject value = getJObject(env, array[i]);
-                        env->SetObjectArrayElement(objArray, i, value);
-                        env->DeleteLocalRef(value);
-                    }
-                    return objArray;
-                }
-                case apl::Object::kMapType: {
-                    auto& map = obj.getMap();
-                    jobject javaMap = env->NewObject(JAVA_UTIL_HASHMAP, JAVA_UTIL_HASHMAP_CONSTRUCTOR);
-                    for(auto& it : map) {
-                        jstring key = env->NewStringUTF(it.first.c_str());
-                        jobject jvalue = getJObject(env, it.second);
-                        env->CallObjectMethod(javaMap, JAVA_UTIL_HASHMAP_PUT, key, jvalue);
-                        env->DeleteLocalRef(key);
-                        env->DeleteLocalRef(jvalue);
-                    }
-                    return javaMap;
-                }
-                default:
-                    LOG(LogLevel::DEBUG) << "Type not supported";
-                    return nullptr;
+
+            if (obj.isBoolean()) {
+                return env->NewObject(JAVA_LANG_BOOLEAN, JAVA_LANG_BOOLEAN_CONSTRUCTOR, obj.getBoolean());
             }
+            else if (obj.isNumber()) {
+                double integerPart;
+                double value = obj.getDouble();
+                if (std::modf(value, &integerPart) == 0.0) {
+                    auto asLong = static_cast<jlong>(integerPart);
+                    if (asLong > JAVA_INTEGER_MAX_VALUE ||
+                        asLong < JAVA_INTEGER_MIN_VALUE) {
+                        return env->NewObject(JAVA_LANG_LONG, JAVA_LANG_LONG_CONSTRUCTOR, asLong);
+                    } else {
+                        return env->NewObject(JAVA_LANG_INTEGER, JAVA_LANG_INTEGER_CONSTRUCTOR,
+                                              static_cast<jint>(integerPart));
+                    }
+                }
+                return env->NewObject(JAVA_LANG_DOUBLE, JAVA_LANG_DOUBLE_CONSTRUCTOR,
+                        static_cast<jdouble>(value));
+            }
+            else if (obj.isString()) {
+                return env->NewStringUTF(obj.asString().c_str());
+            }
+            else if (obj.isArray()) {
+                auto& array = obj.getArray();
+                jobjectArray objArray = env->NewObjectArray(array.size(), JAVA_LANG_OBJECT, nullptr);
+                for(int i = 0; i < array.size(); i++) {
+                    jobject value = getJObject(env, array[i]);
+                    env->SetObjectArrayElement(objArray, i, value);
+                    env->DeleteLocalRef(value);
+                }
+                return objArray;
+            }
+            else if (obj.isMap()) {
+                auto& map = obj.getMap();
+                jobject javaMap = env->NewObject(JAVA_UTIL_HASHMAP, JAVA_UTIL_HASHMAP_CONSTRUCTOR);
+                for(auto& it : map) {
+                    jstring key = env->NewStringUTF(it.first.c_str());
+                    jobject jvalue = getJObject(env, it.second);
+                    env->CallObjectMethod(javaMap, JAVA_UTIL_HASHMAP_PUT, key, jvalue);
+                    env->DeleteLocalRef(key);
+                    env->DeleteLocalRef(jvalue);
+                }
+                return javaMap;
+            }
+
+            LOG(LogLevel::kDebug) << "Type not supported";
+            return nullptr;
         }
 
         JNIEXPORT jobject JNICALL
@@ -363,11 +358,25 @@ namespace apl {
             return getJObject(env, value);
         }
 
-        JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_PropertyMap_nGetType(JNIEnv *env, jclass clazz, jlong handle,
-                                                     jint propertyId) {
+        JNIEXPORT jboolean JNICALL
+        Java_com_amazon_apl_android_PropertyMap_nIsColor(JNIEnv *env, jclass clazz, jlong handle,
+                                                         jint propertyId) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            return static_cast<jint>(value.getType());
+            return value.is<Color>();
+        }
+
+        JNIEXPORT jboolean JNICALL
+        Java_com_amazon_apl_android_PropertyMap_nIsGradient(JNIEnv *env, jclass clazz, jlong handle,
+                                                         jint propertyId) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            return value.is<Gradient>();
+        }
+
+        JNIEXPORT jboolean JNICALL
+        Java_com_amazon_apl_android_PropertyMap_nIsGraphicPattern(JNIEnv *env, jclass clazz, jlong handle,
+                                                         jint propertyId) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            return value.is<GraphicPattern>();
         }
 
         JNIEXPORT jboolean JNICALL
@@ -403,10 +412,19 @@ namespace apl {
                                                               jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto transform = value.getTransform2D().get();
+            auto transform = value.get<Transform2D>().get();
             jfloatArray ret = env->NewFloatArray(6);
-            env->SetFloatArrayRegion(ret, 0, 6, transform.__elems_);
+            env->SetFloatArrayRegion(ret, 0, 6, transform.data());
             return ret;
+        }
+
+        JNIEXPORT jboolean JNICALL
+        Java_com_amazon_apl_android_PropertyMap_nHasTransform(JNIEnv *env, jclass clazz, jlong handle,
+                                                              jint propertyId) {
+            auto lookup = getLookup<PropertyLookup>(handle);
+            auto value = lookup->getObject(static_cast<int>(propertyId), handle);
+            auto transform = value.get<Transform2D>();
+            return static_cast<jboolean>(!transform.isIdentity());
         }
 
         JNIEXPORT jfloat JNICALL

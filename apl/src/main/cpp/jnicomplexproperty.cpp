@@ -3,10 +3,12 @@
  */
 
 #include <jni.h>
-#include <elf.h>
 
 #include <locale>
 #include <codecvt>
+#include <vector>
+#include <string>
+#include <memory>
 #include "jniutil.h"
 #include "jnicomplexproperty.h"
 
@@ -29,9 +31,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
         jboolean
-        complexproperty_OnLoad(JavaVM *vm, void __unused *reserved) {
+        complexproperty_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host ComplexProperty JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host ComplexProperty JNI environment.";
 
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -47,8 +49,8 @@ namespace apl {
          * Release the class and method cache.
          */
         void
-        complexproperty_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Component JNI environment.";
+        complexproperty_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Component JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
@@ -72,7 +74,7 @@ namespace apl {
                                                               jlong handle, jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            const auto& rect = value.getRect();
+            const auto& rect = value.get<Rect>();
             float buffer[4] = { rect.getLeft(),
                                 rect.getTop(),
                                 rect.getWidth(),
@@ -89,7 +91,7 @@ namespace apl {
                                                                 jlong handle, jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto radii = value.getRadii();
+            auto radii = value.get<Radii>();
             return static_cast<jfloat>(radii.topLeft());
         }
 
@@ -98,7 +100,7 @@ namespace apl {
                                                                  jlong handle, jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto radii = value.getRadii();
+            auto radii = value.get<Radii>();
             return static_cast<jfloat>(radii.topRight());
         }
 
@@ -107,7 +109,7 @@ namespace apl {
                                                                     jlong handle, jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto radii = value.getRadii();
+            auto radii = value.get<Radii>();
             return static_cast<jfloat>(radii.bottomRight());
         }
 
@@ -116,7 +118,7 @@ namespace apl {
                                                                    jlong handle, jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto radii = value.getRadii();
+            auto radii = value.get<Radii>();
             return static_cast<jfloat>(radii.bottomLeft());
         }
 
@@ -125,7 +127,7 @@ namespace apl {
                                                                   jlong handle, jint propertyId) {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
 
             // for emoji characters, rapidjson stores in 4-byte format
             // eg. U+1F33D -> \xF0\x9F\x8C\xBD
@@ -143,7 +145,7 @@ namespace apl {
                                                                        jlong handle,
                                                                        jint propertyId) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
             auto spans = styledText.getSpans();
             return static_cast<jint>(spans.size());
         }
@@ -154,7 +156,7 @@ namespace apl {
                                                                         jint propertyId,
                                                                         jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
             return static_cast<jint>(span.type);
@@ -166,7 +168,7 @@ namespace apl {
                                                                          jint propertyId,
                                                                          jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
             return static_cast<jint>(span.start);
@@ -178,7 +180,7 @@ namespace apl {
                                                                        jint propertyId,
                                                                        jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
             auto spans = styledText.getSpans();
             auto span = spans.at(static_cast<unsigned int>(index));
             return static_cast<jint>(span.end);
@@ -190,7 +192,7 @@ namespace apl {
                                                                        jlong handle,
                                                                        jint propertyId) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &styledText = value.getStyledText();
+            const auto &styledText = value.get<StyledText>();
             auto spans = styledText.getSpans();
             return (jlong) new StyledText::Iterator(styledText);
         }
@@ -274,7 +276,7 @@ namespace apl {
                                                                       jint propertyId,
                                                                       jint graphicPropertyKey) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGradient();
+            const auto &g = value.get<Gradient>();
 
             auto gradientArray = g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).getArray();
             int count = gradientArray.size();
@@ -294,7 +296,7 @@ namespace apl {
                                                                       jint propertyId,
                                                                       jint graphicPropertyKey) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGradient();
+            const auto &g = value.get<Gradient>();
 
             auto gradientArray = g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).getArray();
             int count = gradientArray.size();
@@ -313,7 +315,7 @@ namespace apl {
                                                                  jint propertyId, jint graphicPropertyKey) {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGradient();
+            const auto &g = value.get<Gradient>();
             return static_cast<jfloat>(g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).asNumber());
         }
 
@@ -322,7 +324,7 @@ namespace apl {
                                                                  jint propertyId, jint graphicPropertyKey) {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
-            const auto &g = value.getGradient();
+            const auto &g = value.get<Gradient>();
             return static_cast<jint>(g.getProperty(static_cast<GradientProperty>(graphicPropertyKey)).asInt());
         }
 
@@ -332,7 +334,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             return static_cast<jint>(f.getType());
         }
 
@@ -342,7 +344,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(kFilterPropertyKind).getInteger();
             return static_cast<jint>(val);
         }
@@ -352,7 +354,7 @@ namespace apl {
                                                                           jlong handle, jint propertyId, jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(kFilterPropertyUseColor).getBoolean();
             return static_cast<jboolean>(val);
         }
@@ -363,7 +365,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(kFilterPropertySigma).getDouble();
             return static_cast<jfloat>(val);
         }
@@ -374,7 +376,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             apl::Color color = f.getValue(kFilterPropertyColor).asColor();
             return static_cast<jlong>(color.get());
         }
@@ -385,7 +387,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             const auto &g = f.getValue(static_cast<FilterProperty>(filterPropertyId));
             return static_cast<jboolean>(!g.isNull());
         }
@@ -396,8 +398,8 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
-            const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
+            auto &f = array[index].get<Filter>();
+            const auto &g = f.getValue(kFilterPropertyGradient).get<Gradient>();
             return static_cast<jint>(g.getProperty(kGradientPropertyType).asInt());
         }
 
@@ -406,8 +408,8 @@ namespace apl {
                                                                          jlong handle, jint propertyId, jint gradientPropertyId, jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
-            const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
+            auto &f = array[index].get<Filter>();
+            const auto &g = f.getValue(kFilterPropertyGradient).get<Gradient>();
             return static_cast<jfloat>(g.getProperty(static_cast<GradientProperty>(gradientPropertyId)).asNumber());
         }
 
@@ -419,8 +421,8 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
-            const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
+            auto &f = array[index].get<Filter>();
+            const auto &g = f.getValue(kFilterPropertyGradient).get<Gradient>();
 
             apl::Object inputRangeObject = g.getProperty(kGradientPropertyInputRange);
             int inputCount = inputRangeObject.getArray().size();
@@ -442,8 +444,8 @@ namespace apl {
                                                                                jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
-            const auto &g = f.getValue(kFilterPropertyGradient).getGradient();
+            auto &f = array[index].get<Filter>();
+            const auto &g = f.getValue(kFilterPropertyGradient).get<Gradient>();
 
             apl::Object colorRangeObject = g.getProperty(kGradientPropertyColorRange);
             int colorCount = colorRangeObject.getArray().size();
@@ -466,7 +468,7 @@ namespace apl {
                                                                     jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asBoolean();
             return static_cast<jboolean>(val);
         }
@@ -479,7 +481,7 @@ namespace apl {
                                                                    jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asString();
             return env->NewStringUTF(val.c_str());
         }
@@ -491,7 +493,7 @@ namespace apl {
                                             jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey));
             return getJObject(env, val);
         }
@@ -524,7 +526,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asNumber();
             return static_cast<jfloat>(val);
         }
@@ -536,7 +538,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getFilter();
+            auto &f = array[index].get<Filter>();
             auto val = f.getValue(static_cast<FilterProperty>(filterPropertyKey)).asInt();
             return static_cast<jint>(val);
         }
@@ -548,7 +550,7 @@ namespace apl {
                                                                                      jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto source = array[index].getMediaSource();
+            auto source = array[index].get<MediaSource>();
             return static_cast<jint>(source.getDuration());
         }
 
@@ -559,7 +561,7 @@ namespace apl {
                                                                                    jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto source = array[index].getMediaSource();
+            auto source = array[index].get<MediaSource>();
             return static_cast<jint>(source.getOffset());
         }
 
@@ -570,7 +572,7 @@ namespace apl {
                                                                                         jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto source = array[index].getMediaSource();
+            auto source = array[index].get<MediaSource>();
             return static_cast<jint>(source.getRepeatCount());
         }
 
@@ -581,7 +583,7 @@ namespace apl {
                                                                                 jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto source = array[index].getMediaSource();
+            auto source = array[index].get<MediaSource>();
             return env->NewStringUTF(source.getUrl().c_str());
         }
 
@@ -607,7 +609,7 @@ namespace apl {
                                                                                 jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            const auto& source = array[index].getMediaSource();
+            const auto& source = array[index].get<MediaSource>();
             const auto& headers = source.getHeaders();
             return getStringArray(env, headers);
         }
@@ -630,11 +632,11 @@ namespace apl {
             const auto& value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             if (value.isArray()) {
                 const auto& array = value.getArray();
-                const auto& source = array[index].asURLRequest();
+                const auto& source = URLRequest::asURLRequest(array[index]);
                 const auto& headers = source.getHeaders();
                 return getStringArray(env, headers);
             } else {
-                const auto& source = value.asURLRequest();
+                const auto& source = URLRequest::asURLRequest(value);
                 const auto& headers = source.getHeaders();
                 return getStringArray(env, headers);
             }
@@ -648,10 +650,10 @@ namespace apl {
             const auto& value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             if (value.isArray()) {
                 const auto& array = value.getArray();
-                const auto& urlRequest = array[index].asURLRequest();
+                const auto& urlRequest = URLRequest::asURLRequest(array[index]);
                 return env->NewStringUTF(urlRequest.getUrl().c_str());
             } else {
-                const auto& urlRequest = value.asURLRequest();
+                const auto& urlRequest = URLRequest::asURLRequest(value);
                 return env->NewStringUTF(urlRequest.getUrl().c_str());
             }
         }
@@ -672,7 +674,7 @@ namespace apl {
                                                                                 jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto action = array[index].getAccessibilityAction();
+            auto action = array[index].get<AccessibilityAction>();
             return env->NewStringUTF(action->getName().c_str());
         }
 
@@ -683,7 +685,7 @@ namespace apl {
                                                                                                  jint index) {
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto action = array[index].getAccessibilityAction();
+            auto action = array[index].get<AccessibilityAction>();
             return env->NewStringUTF(action->getLabel().c_str());
         }
 
@@ -693,7 +695,7 @@ namespace apl {
 
             auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
             const auto &array = value.getArray();
-            auto &f = array[index].getGraphicFilter();
+            auto &f = array[index].get<GraphicFilter>();
 
             return static_cast<jint>(f.getType());
         }
@@ -704,7 +706,7 @@ namespace apl {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getGraphicFilter();
+            auto &f = array[index].get<GraphicFilter>();
             auto val = f.getValue(kGraphicPropertyFilterColor).getColor();
 
             return static_cast<jlong>(val);
@@ -716,7 +718,7 @@ namespace apl {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
             const auto& array = value.getArray();
-            auto &f = array[index].getGraphicFilter();
+            auto &f = array[index].get<GraphicFilter>();
             auto val = f.getValue(static_cast<GraphicFilterProperty>(graphicFilterPropertykey)).asNumber();
             return static_cast<jfloat>(val);
         }

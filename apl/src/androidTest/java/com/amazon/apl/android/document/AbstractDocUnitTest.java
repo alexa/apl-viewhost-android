@@ -16,8 +16,10 @@ import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.TestClock;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -40,7 +42,7 @@ import static org.mockito.Mockito.when;
  * It should not be used for view assertions (use AbstractDocViewTest instead).
  */
 @RunWith(AndroidJUnit4.class)
-public abstract class AbstractDocUnitTest {
+public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
 
     /**
      * Utility class for accessing variables inside lambdas
@@ -78,16 +80,8 @@ public abstract class AbstractDocUnitTest {
     protected IVisualContextListener mMockVisualContextListener;
 
     @Before
-    public void initChoreographer() {
+    public void init() {
         MockitoAnnotations.initMocks(this);
-        RootContext.APLChoreographer choreographer = mock(RootContext.APLChoreographer.class);
-        RootContext.APLChoreographer.setInstance(choreographer);
-    }
-
-    @After
-    public void teardown() {
-        // unset mocked Choreographer
-        RootContext.APLChoreographer.setInstance(null);
     }
 
     protected void loadDocument(String doc) {
@@ -139,7 +133,7 @@ public abstract class AbstractDocUnitTest {
 
         mRootContext.initTime();
         mTime = 100;
-        mRootContext.doFrame(mTime);
+        mRootContext.onTick(mTime);
     }
 
     /**
@@ -150,7 +144,7 @@ public abstract class AbstractDocUnitTest {
     protected void update(long delta) {
         if (mRootContext != null) {
             mTime += delta * 1000000;
-            mRootContext.doFrame(mTime);
+            mRootContext.onTick(mTime);
         }
     }
 
@@ -163,7 +157,9 @@ public abstract class AbstractDocUnitTest {
 
     protected APLOptions buildAplOptions() {
         if (mOptions == null)
-            mOptions = APLOptions.builder().build();
+            mOptions = APLOptions.builder()
+                    .aplClockProvider(callback -> new TestClock(callback))
+                    .build();
         return mOptions;
     }
 }

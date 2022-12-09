@@ -7,6 +7,7 @@ package com.amazon.apl.android.dynamicdatasource;
 
 import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -19,7 +20,7 @@ import java.util.Map;
  * Test implementation of index-based {@link IDataSourceFetchCallback}.
  * Used with implementations of {@link AbstractDynamicDataSourceComponentViewTest}.
  */
-public abstract class TestIndexBasedDataSourceFetchCallback implements IDataSourceFetchCallback {
+public abstract class TestIndexBasedDataSourceFetchCallback extends LeakRulesBaseClass implements IDataSourceFetchCallback {
 
     @Override
     public void onDataSourceFetchRequest(String type, Map<String, Object> eventPayload) {

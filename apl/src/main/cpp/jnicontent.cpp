@@ -3,13 +3,11 @@
  */
 
 #include <jni.h>
-#include <elf.h>
 #include <locale>
 #include <codecvt>
 #include "apl/apl.h"
 #include "jniutil.h"
 #include "jnicontent.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -41,9 +39,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
         jboolean
-        content_OnLoad(JavaVM *vm, void __unused *reserved) {
+        content_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Content JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Content JNI environment.";
 
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -72,7 +70,7 @@ namespace apl {
                 || nullptr == HASHSET_CONSTRUCTOR
                 || nullptr == HASHSET_ADD) {
 
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.content.Content";
                 return JNI_FALSE;
             }
@@ -85,8 +83,8 @@ namespace apl {
          * Release the class and method cache.
          */
         void
-        content_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Content JNI environment.";
+        content_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Content JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
@@ -167,10 +165,10 @@ namespace apl {
             }
 
             if (content->isError()) {
-                LOG(LogLevel::ERROR) << "Content Error";
+                LOG(LogLevel::kError) << "Content Error";
                 env->CallVoidMethod(instance, ON_ERROR);
             } else if (content->isReady()) {
-                LOG(LogLevel::DEBUG) << "Content Ready";
+                LOG(LogLevel::kDebug) << "Content Ready";
                 env->CallVoidMethod(instance, ON_READY);
             }
         }
@@ -196,7 +194,7 @@ namespace apl {
 
             auto content = apl::Content::create(converter.to_bytes(std::u16string(mainTemplate, mainTemplate+mainTemplateLen)));
             if (!content) {
-                LOG(LogLevel::ERROR) << "Error creating Content";
+                LOG(LogLevel::kError) << "Error creating Content";
                 return static_cast<jboolean>(false);
             }
 
@@ -368,7 +366,7 @@ namespace apl {
             auto content = get<Content>(contentHandle);
             auto rootConfig = get<RootConfig>(rootConfigHandle);
             if (content == NULL || rootConfig == NULL) {
-                LOG(LogLevel::ERROR) << "Error cannot get document background without content and rootConfig";
+                LOG(LogLevel::kError) << "Error cannot get document background without content and rootConfig";
                 return;
             }
 
@@ -383,14 +381,14 @@ namespace apl {
                 .mode(mode);
 
             auto background = content->getBackground(metrics, *rootConfig);
-            jboolean isGradient = background.isGradient();
-            jboolean isColor = background.isColor();
+            jboolean isGradient = background.is<Gradient>();
+            jboolean isColor = background.is<Color>();
             jint type = 0;
             jfloat angle = 0;
             jlong color = 0;
 
             if (isGradient) {
-                auto gradient = background.getGradient();
+                auto gradient = background.get<Gradient>();
                 type = gradient.getType();
                 angle = gradient.getAngle();
 
@@ -421,7 +419,7 @@ namespace apl {
                 jmethodID mid = env->GetMethodID(CONTENT_CLASS, "callbackBackgroundColor", "(J)V");
                 env->CallVoidMethod(obj, mid, color);
             } else {
-                LOG(LogLevel::ERROR) << "Error: document background should be color or gradient";
+                LOG(LogLevel::kError) << "Error: document background should be color or gradient";
             }
 
             env->ReleaseStringUTFChars(theme_, theme);

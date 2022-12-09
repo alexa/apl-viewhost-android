@@ -14,10 +14,10 @@ import androidx.test.espresso.UiController;
 import androidx.test.espresso.ViewAction;
 import androidx.test.espresso.ViewAssertion;
 import androidx.test.espresso.core.internal.deps.guava.base.Preconditions;
+import androidx.test.ext.junit.rules.ActivityScenarioRule;
 import androidx.test.filters.LargeTest;
 import androidx.test.filters.SmallTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.ActivityTestRule;
 
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
@@ -30,8 +30,10 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.TestActivity;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.hamcrest.Matcher;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -63,7 +65,7 @@ import static org.junit.Assert.fail;
  * OPTIONAL_PROPERTIES - Component properties that are optional and need not be set in the document.
  * CHILD_LAYOUT_PROPERTIES - Component properties that define children of the Component.
  */
-public abstract class AbstractComponentViewTest<V extends View, C extends Component> {
+public abstract class AbstractComponentViewTest<V extends View, C extends Component> extends LeakRulesBaseClass {
 
     // Load the APL library.
     static {
@@ -73,7 +75,7 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
     protected APLTestContext mTestContext;
 
     @Rule
-    public ActivityTestRule<TestActivity> activityRule = new ActivityTestRule<>(TestActivity.class);
+    public ActivityScenarioRule<TestActivity> activityRule = new ActivityScenarioRule<>(TestActivity.class);
 
 
     // Default required properties, default to empty.
@@ -91,18 +93,34 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
 
     abstract Class<V> getViewClass();
 
+    @After
+    public void FinishContext() {
+        if (mTestContext != null) {
+            activityRule.getScenario().onActivity(activity -> {
+                mTestContext.getRootContext().finishDocument();
+             });
+        }
+    }
+
     private class InflateAPLViewAction implements ViewAction {
-        public InflateAPLViewAction(APLOptions options, String componentProps) {
+        public InflateAPLViewAction(String aplVersion, APLOptions options, String componentProps) {
             mTestContext = new APLTestContext()
-                    .setDocument(COMPONENT_BASE_DOC, getComponentType(), componentProps, "")
+                    .setDocument(COMPONENT_BASE_DOC, aplVersion, getComponentType(), componentProps, "")
                     .setAplOptions(options)
                     .buildRootContextDependencies();
         }
 
-        public InflateAPLViewAction(RootConfig rootConfig, APLOptions options, String componentProps) {
+        public InflateAPLViewAction(String aplVersion, RootConfig rootConfig, APLOptions options, String componentProps) {
             mTestContext = new APLTestContext()
-                    .setDocument(COMPONENT_BASE_DOC, getComponentType(), componentProps, "")
+                    .setDocument(COMPONENT_BASE_DOC, aplVersion, getComponentType(), componentProps, "")
                     .setRootConfig(rootConfig)
+                    .setAplOptions(options)
+                    .buildRootContextDependencies();
+        }
+
+        public InflateAPLViewAction(String aplVersion, APLOptions options, String componentType, String componentProps) {
+            mTestContext = new APLTestContext()
+                    .setDocument(COMPONENT_BASE_DOC, aplVersion, componentType, componentProps, "")
                     .setAplOptions(options)
                     .buildRootContextDependencies();
         }
@@ -123,12 +141,14 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
             Content content = mTestContext.getContent();
             Assert.assertTrue("Failed to create Content", content.isReady());
 
-            APLLayout aplLayout = activityRule.getActivity().findViewById(com.amazon.apl.android.test.R.id.apl);
-            try {
-                APLController.renderDocument(content, mTestContext.getAplOptions(), mTestContext.getRootConfig(), aplLayout.getPresenter());
-            } catch (APLController.APLException e) {
-                Assert.fail(e.getMessage());
-            }
+            activityRule.getScenario().onActivity(activity -> {
+                APLLayout aplLayout = activity.findViewById(com.amazon.apl.android.test.R.id.apl);
+                try {
+                    APLController.renderDocument(content, mTestContext.getAplOptions(), mTestContext.getRootConfig(), aplLayout.getPresenter());
+                } catch (APLController.APLException e) {
+                    Assert.fail(e.getMessage());
+                }
+            });
         }
     }
 
@@ -176,7 +196,18 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
                 props.append(componentProps[i]);
             }
         }
-        return actionWithAssertions(new InflateAPLViewAction(options, props.toString()));
+        return actionWithAssertions(new InflateAPLViewAction("1.0", options, props.toString()));
+    }
+
+    ViewAction inflateWithOptions(String aplVersion, String componentType, APLOptions options, String... componentProps) {
+        StringBuilder props = new StringBuilder();
+        for (int i = 0; i < componentProps.length; i++) {
+            if (componentProps[i].length() > 0) {
+                props.append(",");
+                props.append(componentProps[i]);
+            }
+        }
+        return actionWithAssertions(new InflateAPLViewAction(aplVersion, options, componentType, props.toString()));
     }
 
     ViewAction inflateWithOptions(RootConfig rootConfig, APLOptions options, String... componentProps) {
@@ -187,7 +218,7 @@ public abstract class AbstractComponentViewTest<V extends View, C extends Compon
                 props.append(componentProps[i]);
             }
         }
-        return actionWithAssertions(new InflateAPLViewAction(rootConfig, options, props.toString()));
+        return actionWithAssertions(new InflateAPLViewAction("1.0", rootConfig, options, props.toString()));
     }
 
     ViewAssertion hasRootContext() {

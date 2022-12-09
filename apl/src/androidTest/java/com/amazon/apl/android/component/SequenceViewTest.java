@@ -32,6 +32,7 @@ import org.junit.Test;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.swipeDown;
 import static androidx.test.espresso.action.ViewActions.swipeUp;
+import static androidx.test.espresso.assertion.ViewAssertions.doesNotExist;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.isRoot;
@@ -40,6 +41,10 @@ import static com.amazon.apl.android.espresso.APLViewActions.executeCommands;
 import static com.amazon.apl.android.espresso.APLViewActions.waitFor;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.List;
 
 public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, MultiChildComponent> {
     @Before
@@ -430,6 +435,103 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         // Verify no update applied to child that had the same view type
         drawable = (APLGradientDrawable) (view.getChildAt(1)).getBackground();
         assertEquals(Color.BLUE, drawable.getBorderColor());
+    }
+
+    @Test
+    public void testAPLSequence_ClearsChildren() throws JSONException, InterruptedException {
+        // Create sequence item.
+        final JSONArray itemsArray = new JSONArray();
+        JSONObject item = new JSONObject();
+        item.put("id", "text1");
+        item.put("type", "Text");
+        item.put("text", "hello");
+        item.put("height", "50");
+        item.put("backgroundColor", "red");
+        itemsArray.put(item);
+
+        item = new JSONObject();
+        item.put("id", "text2");
+        item.put("type", "Text");
+        item.put("text", "hello");
+        item.put("height", "50");
+        item.put("backgroundColor", "red");
+        itemsArray.put(item);
+
+        final JSONObject sequenceObject = new JSONObject();
+        sequenceObject.put("id", "seq");
+        sequenceObject.put("type", "Sequence");
+        sequenceObject.put("scrollDirection", "horizontal");
+        sequenceObject.put("items", itemsArray);
+
+        item = new JSONObject();
+        item.put("id", "text3");
+        item.put("type", "Text");
+        item.put("text", "hello");
+        item.put("height", "50");
+        item.put("backgroundColor", "red");
+
+        final JSONArray containerArray = new JSONArray();
+        containerArray.put(sequenceObject);
+        containerArray.put(item);
+
+        final JSONObject containerObject = new JSONObject();
+        containerObject.put("id", "container");
+        containerObject.put("type", "Container");
+        containerObject.put("height", "30");
+        containerObject.put("items", containerArray);
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflateWithOptions("1.9", "Container", null,
+                        "\"item\": " + containerObject.toString()))
+                .check(hasRootContext());
+
+        // The above was the minimal document needed to reproduce the behaviour this test is for.
+
+        mIdlingResource = new APLViewIdlingResource(getTestView());
+        IdlingRegistry.getInstance().register(mIdlingResource);
+
+        final Component component = mTestContext.getTestComponent();
+        final Component sequenceComponent = component.getChildAt(0).getChildAt(0);
+        final List<Component> children = sequenceComponent.getAllChildren();
+
+        onView(withComponent(component))
+                .check(matches(isDisplayed()));
+
+        onView(withComponent(children.get(0)))
+                .check(matches(isDisplayed()));
+
+        assertNotNull(mTestContext.getPresenter().findView(children.get(0)));
+
+        final String setValueCommand = "[{\n" +
+                "  \"type\": \"SetValue\",\n" +
+                "  \"componentId\": \"%s\",\n" +
+                "  \"property\": \"height\",\n" +
+                "  \"value\": \"0\"\n" +
+                "}]\n";
+
+        // We first hide one of the sequence children. This causes the sequence to call onDisplayedChildrenChanged.
+        // We need onDisplayedChildrenChanged to be called for the sequence ONLY and not the parent container, so we still need a visible child.
+        // The shrunken view will become detached which is the trigger for the bug.
+        onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), String.format(setValueCommand, "text1")));
+
+        onView(withComponent(children.get(1)))
+                .check(matches(isDisplayed()));
+
+        // Verify that the detached view still exists.
+        assertNotNull(mTestContext.getPresenter().findView(children.get(0)));
+
+
+        // This should shrink the container and also remove any other views *except* the detached view, this is the bug.
+        onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), String.format(setValueCommand, "container")));
+
+        // There shouldn't be any sequence views.
+        onView(withComponent(sequenceComponent)).check(doesNotExist());
+        assertNull(mTestContext.getPresenter().findView(sequenceComponent));
+
+        for (int i = 0; i < children.size(); i++) {
+            // None of the children should have views either including the detached one.
+            assertNull(mTestContext.getPresenter().findView(children.get(i)));
+        }
     }
 
     /**

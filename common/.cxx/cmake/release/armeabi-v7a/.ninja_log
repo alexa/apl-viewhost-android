@@ -1,13 +1,3 @@
 # ninja log v5
-0	565	1645831786	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d8144e9bcc576910
-566	693	1645831786	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544
-0	18	0	clean	a2452a0b0dada58
-2	739	1646417426	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d8144e9bcc576910
-739	1205	1646417427	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544
-0	16	0	clean	a2452a0b0dada58
-1	628	1647045496	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d8144e9bcc576910
-628	1165	1647045496	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544
-0	12	0	clean	a2452a0b0dada58
-0	514	1660603383	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d8144e9bcc576910
-514	619	1660603383	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544
-15	154	1661554994	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544
+0	520	1670545364	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d8144e9bcc576910
+521	608	1670545365	../../../../build/intermediates/cmake/release/obj/armeabi-v7a/libcommon-jni.so	153a71f2424fd544

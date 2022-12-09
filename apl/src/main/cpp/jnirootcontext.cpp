@@ -12,9 +12,8 @@
 #include "jniutil.h"
 #include "jnimetricstransform.h"
 #include "jnitextmeasurecallback.h"
-#include "loggingbridge.h"
 #include "scaling.h"
-#include "touch/pointerevent.h"
+#include "apl/touch/pointerevent.h"
 #include <codecvt>
 
 namespace apl {
@@ -50,10 +49,7 @@ namespace apl {
          */
         jboolean
         rootcontext_OnLoad(JavaVM *vm, void *reserved) {
-
-            apl::LoggerFactory::instance().initialize(std::make_shared<AndroidJniLogBridge>());
-
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host RootContext JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host RootContext JNI environment.";
 
             JAVA_VM = vm;
             JNIEnv *env;
@@ -87,7 +83,7 @@ namespace apl {
                 || nullptr == ROOTCONTEXT_HANDLE_EVENT
                 || nullptr == ROOTCONTEXT_COMPONENT_HANDLE
                 ) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.RootContext";
                 return JNI_FALSE;
             }
@@ -103,7 +99,7 @@ namespace apl {
         void
         rootcontext_OnUnload(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Unloading RootContext JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Unloading RootContext JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;
@@ -178,7 +174,7 @@ namespace apl {
             // If the document states version 1.0, then set the old defaults
             // for backwards compatibility
             if(content->getAPLVersion() == "1.0") {
-                LOG(LogLevel::DEBUG) << "Setting APL 1.0 default property values";
+                LOG(LogLevel::kDebug) << "Setting APL 1.0 default property values";
                 Dimension _100p(DimensionType::Relative, 100);
                 rootConfig->defaultComponentSize(kComponentTypeSequence, _100p, _100p);
                 rootConfig->defaultComponentSize(kComponentTypeScrollView, _100p, _100p);
@@ -204,7 +200,7 @@ namespace apl {
             RootContextPtr context = RootContext::create(metrics, content, *rootConfig);
 
             if(!context) {
-                LOG(LogLevel::ERROR) << "Error creating RootContext";
+                LOG(LogLevel::kError) << "Error creating RootContext";
                 return static_cast<jlong>(0);
             }
             return createHandle<RootContext>(context);
@@ -259,7 +255,7 @@ namespace apl {
                 env->DeleteLocalRef(id);
                 if (env->ExceptionCheck()) {
                     env->ExceptionDescribe();
-                    LOG(apl::LogLevel::ERROR)
+                    LOG(apl::LogLevel::kError)
                             << " Failed to update component. type:" << component->getType()
                             << " id:" << component->getUniqueId();
                     env->ExceptionDescribe();
@@ -477,7 +473,7 @@ namespace apl {
                  * the frame loop will recover and will continue executing the remaining events.
                  */
                 if (env->ExceptionCheck()) {
-                    LOG(apl::LogLevel::ERROR)
+                    LOG(apl::LogLevel::kError)
                             << " Failed to handle event. Type:" << evt.getType();
                     env->ExceptionDescribe();
                     env->ExceptionClear();

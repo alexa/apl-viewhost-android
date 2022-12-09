@@ -8,7 +8,6 @@
 #include "apl/apl.h"
 #include "jniutil.h"
 #include "jnicontent.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {

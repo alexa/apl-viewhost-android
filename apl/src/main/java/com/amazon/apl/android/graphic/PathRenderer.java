@@ -30,7 +30,6 @@ import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.enums.GraphicPropertyKey;
-import com.amazon.apl.enums.ObjectType;
 
 /**
  * Renderer for an AlexaVectorGraphic. Adapted from {@link android.graphics.drawable.VectorDrawable}.
@@ -251,7 +250,7 @@ final class PathRenderer {
         canvas.concat(textTransform);
 
         Paint fillPaint = getPaintWithAccumulativeOpacity(textElement.getFillPaint(), stackedOpacity);
-        if(textElement.getFillType().equals(ObjectType.kGradientType)) {
+        if(textElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyFill)) {
             fillPaint.setShader(getShader(
                     textElement.getGradient(GraphicPropertyKey.kGraphicPropertyFill),
                     textElement.getTextBoundingBox(),
@@ -261,7 +260,7 @@ final class PathRenderer {
         canvas.drawText(textElement.getText(), textElement.getX(), textElement.getY(), fillPaint);
 
         Paint strokePaint = getPaintWithAccumulativeOpacity(textElement.getStrokePaint(), stackedOpacity);
-        if(textElement.getStrokeType().equals(ObjectType.kGradientType)) {
+        if(textElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyStroke)) {
             strokePaint.setShader(getShader(
                     textElement.getGradient(GraphicPropertyKey.kGraphicPropertyStroke),
                     textElement.getTextBoundingBox(),
@@ -311,7 +310,7 @@ final class PathRenderer {
         canvas.concat(scaledTransform);
 
         final Paint fillPaint = getPaintWithAccumulativeOpacity(pathElement.getFillPaint(), stackedOpacity);
-        if(ObjectType.kGradientType.equals(pathElement.getFillType())) {
+        if (pathElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyFill)) {
             Rect graphicBounds = getBounds(currentPath, pathElement.getRenderingContext());
             fillPaint.setShader(getShader(
                     pathElement.getGradient(GraphicPropertyKey.kGraphicPropertyFill),
@@ -331,7 +330,7 @@ final class PathRenderer {
         }
 
         strokePaint.setStrokeWidth(pathElement.getStrokeWidth());
-        if(ObjectType.kGradientType.equals(pathElement.getStrokeType())) {
+        if(pathElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyStroke)) {
             Rect graphicBounds = getBounds(currentPath, pathElement.getRenderingContext());
             strokePaint.setShader(getShader(
                     pathElement.getGradient(GraphicPropertyKey.kGraphicPropertyStroke),

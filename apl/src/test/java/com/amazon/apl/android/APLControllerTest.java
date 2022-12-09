@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -31,6 +32,8 @@ import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,7 +44,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -84,8 +87,11 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
         try {
-            when(mLibraryFuture.get()).thenReturn(true);
-        } catch (ExecutionException e) {
+            when(mLibraryFuture.get(
+                    any(long.class),
+                    any(TimeUnit.class)
+            )).thenReturn(true);
+        } catch (ExecutionException | TimeoutException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -103,6 +109,8 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.onDocumentRender(mRootContext);
         mController.onDocumentDisplayed();
+        Robolectric.flushForegroundThreadScheduler();
+
         InOrder inOrder = inOrder(mRootContext);
         inOrder.verify(mRootContext).getOptions();
         inOrder.verify(mRootContext).executeCommands(eq("commands"));
@@ -126,7 +134,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         mController.cancelExecution();
         mController.finishDocument();
 
-        verifyZeroInteractions(mRootContext);
+        verifyNoInteractions(mRootContext);
     }
 
     @Test
@@ -138,6 +146,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.onDocumentRender(mRootContext);
         mController.onDocumentDisplayed();
+        Robolectric.flushForegroundThreadScheduler();
 
         InOrder inOrder = inOrder(mRootContext);
         inOrder.verify(mRootContext).executeCommands(eq("a"));
@@ -158,7 +167,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
             outer.countDown();
         });
         thread.start();
-        verifyZeroInteractions(mRootContext);
+        verifyNoInteractions(mRootContext);
 
         mController.onDocumentDisplayed();
         outer.await();
@@ -185,6 +194,8 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         verify(mRootContext, never()).resumeDocument();
         // Document is displayed. After this all RootContext runnables should execute.
         mController.onDocumentDisplayed();
+        Robolectric.flushForegroundThreadScheduler();
+
         mController.resumeDocument();
         verify(mRootContext, times(2)).resumeDocument();
 

@@ -1,2 +1,19 @@
 ninja: Entering directory `/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a'
-ninja: no work to do.
+[1/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o
+[2/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o
+[3/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o
+[4/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o
+[5/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o
+[6/18] Building CXX object CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o
+[7/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o
+[8/18] Building CXX object CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o
+[9/18] Building CXX object CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o
+[10/18] Building CXX object CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o
+[11/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o
+[12/18] Building CXX object CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o
+[13/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o
+[14/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o
+[15/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o
+[16/18] Building CXX object build-extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o
+[17/18] Linking CXX static library build-extensions/alexaext/libalexaext.a
+[18/18] Linking CXX shared library ../../../../build/intermediates/cmake/debug/obj/arm64-v8a/libdiscovery-jni.so

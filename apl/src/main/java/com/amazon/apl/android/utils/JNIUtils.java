@@ -42,4 +42,13 @@ public class JNIUtils {
             return string;
         }
     }
+    /**
+     * check if a handle returned from Android native code is valid
+     * @param handle handle returned from android native code.
+     * @return true = valid, false = invalid
+     * */
+    public static boolean isHandleValid(long handle) {
+        return (handle != 0);
+    }
+
 }

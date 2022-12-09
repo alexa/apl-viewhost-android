@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.scaling.IMetricsTransform;
+import com.amazon.apl.android.utils.JNIUtils;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.common.BoundObject;
 
@@ -78,7 +79,12 @@ public class TextMeasureCallback extends BoundObject {
 
             TextMeasureCallback callback = new TextMeasureCallback(textMeasure, metricsTransform);
             long handle = callback.nCreate();
-            if (handle <= 0)
+
+            /*
+            Exposing handle validity testing logic as a utility
+            method for testability.
+            */
+            if (!JNIUtils.isHandleValid(handle))
                 return null;
             callback.bind(handle);
 
@@ -100,7 +106,12 @@ public class TextMeasureCallback extends BoundObject {
 
             TextMeasureCallback callback = new TextMeasureCallback(textMeasure, metricsTransform);
             long handle = callback.nCreateHandle(rootConfig.getNativeHandle());
-            if (handle <= 0)
+
+            /*
+            Exposing handle validity testing logic as a utility
+            method for testability.
+            */
+            if (!JNIUtils.isHandleValid(handle))
                 return null;
             callback.bind(handle);
 

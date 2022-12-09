@@ -27,7 +27,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
@@ -134,7 +134,7 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
         verify(successCallback).onSuccess(eq(mImportRequest), eq(mJSONData));
         verify(successCallbackTwo).onSuccess(eq(mImportRequestTwo), eq(mJSONData));
         verify(mPackageCache, times(2)).put(eq(Content.ImportRef.create("a", "1")), eq(mJSONData));
-        verifyZeroInteractions(failureCallback);
+        verifyNoInteractions(failureCallback);
     }
 
     @Test

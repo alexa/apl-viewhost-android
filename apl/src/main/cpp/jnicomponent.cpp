@@ -11,9 +11,7 @@
 #include "rapidjson/stringbuffer.h"
 #include "apl/apl.h"
 #include "jniutil.h"
-#include "apl/component/videocomponent.h"
 #include "jnimetricstransform.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -141,10 +139,12 @@ namespace apl {
 
         JNIEXPORT jobject JNICALL Java_com_amazon_apl_android_Video_nGetMediaPlayer(JNIEnv *env, jclass clazz,
                                                                                     jlong handle) {
-            auto c = get<VideoComponent>(handle);
-            auto player = std::dynamic_pointer_cast<AndroidMediaPlayer>(c->getMediaPlayer());
+            auto c = get<Component>(handle);
+
+            auto player = c->getMediaPlayer();
             if (player) {
-                return player->getInstance();
+                auto androidMediaPlayer = std::static_pointer_cast<AndroidMediaPlayer>(player);
+                return androidMediaPlayer->getInstance();
             }
             return nullptr;
         }

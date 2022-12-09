@@ -6,7 +6,11 @@
 package com.amazon.apl.android.espresso;
 
 import android.text.Layout;
+import android.text.ParcelableSpan;
+import android.text.Spannable;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.view.View;
 
 import com.amazon.apl.android.APLGradientDrawable;
@@ -96,6 +100,39 @@ public class APLMatchers {
             @Override
             public void describeTo(Description description) {
                 description.appendText("with text color: #" + Integer.toHexString(textColor));
+            }
+        };
+    }
+
+    /**
+     * Customized Matcher for {@link com.amazon.apl.android.views.APLTextView}
+     */
+    public static Matcher<View> withSpannableTextColor(final int expectedStart, final int expectedEnd, final int spanColor) {
+        return new TypeSafeMatcher<View>(APLTextView.class) {
+            @Override
+            protected boolean matchesSafely(View view) {
+                boolean isMatched = false;
+
+                Layout layout = ((APLTextView) view).getLayout();
+                Spannable spannable = (Spannable) layout.getText();
+                ForegroundColorSpan[] colorSpans = spannable.getSpans(0, spannable.length(), ForegroundColorSpan.class);
+
+                for (int i = 0 ; i < colorSpans.length ; i++) {
+                    int spanStart = spannable.getSpanStart(colorSpans[i]);
+                    int spanEnd = spannable.getSpanEnd(colorSpans[i]);
+
+                    isMatched = (colorSpans[i].getForegroundColor() == spanColor) &&
+                            (spanStart == expectedStart) &&
+                            (spanEnd == expectedEnd);
+                    if (isMatched) break;
+                }
+
+                return isMatched;
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("with spannable text color: #" + Integer.toHexString(spanColor));
             }
         };
     }

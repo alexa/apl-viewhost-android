@@ -33,7 +33,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video, View> {
@@ -189,7 +189,7 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
         refreshProperties(PropertyKey.kPropertyMuted);
         refreshProperties(PropertyKey.kPropertySource);
         // Verify no interactions with MediaPlayer from adapter during dynamic property updates.
-        verifyZeroInteractions(mMockMediaPlayer);
+        verifyNoInteractions(mMockMediaPlayer);
     }
 
     @Test

@@ -10,6 +10,7 @@ import android.graphics.Color;
 import androidx.annotation.Nullable;
 import android.util.Log;
 
+import static com.amazon.apl.android.utils.ConcurrencyUtils.LARGE_TIMEOUT_SECONDS;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.ColorFilterResult;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Base class for a FilterOperation.
@@ -81,8 +84,8 @@ public abstract class FilterOperation implements Callable<FilterResult> {
         }
 
         try {
-            return mSourceFutures.get(0).get();
-        } catch (ExecutionException | InterruptedException e) {
+            return mSourceFutures.get(0).get(LARGE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
             Log.e(TAG, "Exception retrieving source.", e);
             return new ColorFilterResult(Color.TRANSPARENT, mBitmapFactory);
         }
@@ -99,8 +102,8 @@ public abstract class FilterOperation implements Callable<FilterResult> {
         }
 
         try {
-            return mSourceFutures.get(1).get();
-        } catch (ExecutionException | InterruptedException e) {
+            return mSourceFutures.get(1).get(LARGE_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
             Log.e(TAG, "Exception retrieving destination.", e);
             return new ColorFilterResult(Color.TRANSPARENT, mBitmapFactory);
         }

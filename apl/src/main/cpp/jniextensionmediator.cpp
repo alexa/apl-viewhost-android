@@ -6,12 +6,10 @@
 #include <locale>
 #include <codecvt>
 #include "apl/apl.h"
-#include "apl/extension/extensioncomponent.h"
 #include "alexaext/alexaext.h"
 #include "jnidocumentsession.h"
 #include "jniutil.h"
 #include "jnicontent.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {

@@ -6,6 +6,7 @@
 package com.amazon.apl.android.component;
 
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.core.view.ViewCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
@@ -40,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -257,6 +259,17 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
         getView().performClick();
 
         verify(mMockPresenter).onClick(eq(getView()));
+    }
+
+
+    @Test
+    public void test_transform() {
+        ViewGroup parent = mock(ViewGroup.class);
+        V spyView = spy(mView);
+        when(spyView.getParent()).thenReturn(parent);
+        getAdapter().refreshProperties(component(), spyView, Arrays.asList(PropertyKey.kPropertyTransform));
+
+        verify(parent).invalidate();
     }
 
     // TODO tests for

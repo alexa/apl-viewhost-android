@@ -5,6 +5,8 @@
 
 package com.amazon.apl.android.component;
 
+import static android.os.Looper.getMainLooper;
+
 import android.net.Uri;
 
 import com.amazon.apl.android.RenderingContext;
@@ -21,6 +23,8 @@ import com.amazon.apl.enums.VectorGraphicScale;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.Robolectric;
+import org.robolectric.annotation.LooperMode;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -40,6 +44,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.robolectric.Shadows.shadowOf;
+import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
 
 public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTest<VectorGraphic, APLVectorGraphicView> {
 
@@ -74,6 +80,7 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     }
 
     @Test
+    @LooperMode(LEGACY)
     public void contentRetriever_fetchV2Called_success() {
         final String avgJson = "{}";
         final String source = "https://www.dummy.json";
@@ -92,6 +99,7 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     }
 
     @Test
+    @LooperMode(LEGACY)
     public void contentRetriever_fetchV2Called_failure() {
         final String avgJson = "{}";
         final String source = "https://www.dummy.json";
@@ -110,6 +118,7 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     }
 
     @Test
+    @LooperMode(LEGACY)
     public void contentRetriever_fetchV2Called_withHeaders() {
         final String avgJson = "{}";
         final String source = "https://www.dummy.json";

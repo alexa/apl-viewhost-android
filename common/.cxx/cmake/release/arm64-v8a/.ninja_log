@@ -1,13 +1,3 @@
 # ninja log v5
-0	429	1645831786	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	c9b50011c088b6ac
-429	555	1645831787	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb
-0	15	0	clean	a2452a0b0dada58
-3	420	1646417427	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	c9b50011c088b6ac
-420	517	1646417427	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb
-0	15	0	clean	a2452a0b0dada58
-1	451	1647045497	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	c9b50011c088b6ac
-451	544	1647045497	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb
-0	11	0	clean	a2452a0b0dada58
-0	425	1660603383	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	c9b50011c088b6ac
-425	532	1660603383	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb
-1	134	1661554994	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb
+0	411	1670545365	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	c9b50011c088b6ac
+412	503	1670545365	../../../../build/intermediates/cmake/release/obj/arm64-v8a/libcommon-jni.so	8ca2eaf8264ebefb

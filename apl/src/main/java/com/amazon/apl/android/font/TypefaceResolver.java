@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.collection.LruCache;
 
+import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.RuntimeConfig;
 
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * The ViewHost internal typeface resolver API.
@@ -73,9 +76,11 @@ public class TypefaceResolver {
         }
     }
 
-    private boolean waitUntilFontsAvailable()  {
+    private boolean waitUntilFontsAvailable() {
         try {
-            return mInitializeResolvers.get();
+            return mInitializeResolvers.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        } catch (final TimeoutException ex) {
+            Log.wtf(TAG, String.format("System fonts failed to load with a %d timeout", ConcurrencyUtils.SMALL_TIMEOUT_SECONDS), ex);
         } catch (final ExecutionException ex) {
             Log.e(TAG, "System fonts failed to load", ex);
         } catch (InterruptedException ex) {

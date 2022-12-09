@@ -24,9 +24,9 @@ import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.ColorUtils;
 import com.amazon.apl.android.utils.JNIUtils;
+import com.amazon.apl.enums.PropertyKey;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
-import com.amazon.apl.enums.ObjectType;
 
 import java.util.Objects;
 
@@ -69,9 +69,16 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
         return (T) nGet(getNativeHandle(), property.getIndex());
     }
 
-    @NonNull
-    public final ObjectType getType(K property) {
-        return ObjectType.valueOf(nGetType(getNativeHandle(), property.getIndex()));
+    public final boolean isColor(K property) {
+        return nIsColor(getNativeHandle(), property.getIndex());
+    }
+
+    public final boolean isGradient(K property) {
+        return nIsGradient(getNativeHandle(), property.getIndex());
+    }
+
+    public final boolean isGraphicPattern(K property) {
+        return nIsGraphicPattern(getNativeHandle(), property.getIndex());
     }
 
     @NonNull
@@ -205,11 +212,19 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
         return nHasProperty(getNativeHandle(), property.getIndex());
     }
 
+    public final boolean hasTransform() {
+        return nHasTransform(getNativeHandle(), PropertyKey.kPropertyTransform.getIndex());
+    }
+
     @NonNull
     private static native Object nGet(long nativeHandle, int propertyKey);
-    private static native int nGetType(long nativeHandle, int propertyKey);
+    private static native boolean nIsColor(long nativeHandle, int propertyKey);
+    private static native boolean nIsGradient(long nativeHandle, int propertyKey);
+    private static native boolean nIsGraphicPattern(long nativeHandle, int propertyKey);
+
     @NonNull
     private static native float[] nGetTransform(long nativeHandle, int propertyKey);
+    private static native boolean nHasTransform(long nativeHandle, int propertyKey);
     static native int nGetEnum(long nativeHandle, int propertyId);
     private static native boolean nHasProperty(long nativeHandle, int propertyKey);
     private static native int nGetInt(long nativeHandle, int propertyKey);

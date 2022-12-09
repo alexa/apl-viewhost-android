@@ -5,6 +5,9 @@
 
 package com.amazon.apl.android.media;
 
+import android.util.Log;
+
+import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.utils.HttpUtils;
@@ -172,8 +175,10 @@ public class LocalMediaPlayer extends MediaPlayer {
     private void runOrDeferFunction(String functionName, Runnable task) {
         // So queue all the operations until MediaPlayer is available.
         if (mWeakPlayer != null) {
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Calling " + functionName);
             task.run();
         } else {
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Queuing " + functionName);
             mQueuedTasks.add(task);
         }
     }

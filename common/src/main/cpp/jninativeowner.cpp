@@ -4,6 +4,7 @@
 
 #include <jni.h>
 #include <string>
+#include <memory>
 
 #include "jninativeowner.h"
 

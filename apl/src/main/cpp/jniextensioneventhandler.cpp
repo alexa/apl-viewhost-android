@@ -6,8 +6,6 @@
 #include "apl/apl.h"
 #include <random>
 #include "jniutil.h"
-#include "loggingbridge.h"
-
 
 namespace apl {
     namespace jni {

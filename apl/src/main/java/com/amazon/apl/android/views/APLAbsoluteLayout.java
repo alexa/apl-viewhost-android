@@ -13,14 +13,14 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Path;
 import android.graphics.RectF;
+
 import androidx.annotation.NonNull;
+
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Transformation;
 
-import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
@@ -28,13 +28,20 @@ import com.amazon.apl.android.primitive.Radii;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
+import com.amazon.apl.android.utils.TransformUtils;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScrollDirection;
 
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
-import static com.amazon.apl.android.providers.ITelemetryProvider.UNKNOWN_METRIC_ID;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Simple absolute layout.
@@ -50,20 +57,22 @@ public class APLAbsoluteLayout extends ViewGroup {
     private final ShadowBitmapRenderer mShadowRenderer;
     private Path mPath = new Path();
     private int cIncorrectlyClippedComponents;
+    private Map<Integer, WeakReference<View>> mDetachedViews = new HashMap<>();
+    private boolean mClipComponent;
 
     /**
      * Construct an absolute layout for a Component.
      *
-     * @param context   The Android Context.
+     * @param context The Android Context.
      */
     public APLAbsoluteLayout(Context context, IAPLViewPresenter presenter) {
         super(context);
         setClipChildren(false);
-        setStaticTransformationsEnabled(true);
         mPresenter = presenter;
         mShadowRenderer = presenter.getShadowRenderer();
         setOnHierarchyChangeListener(mPresenter);
         cIncorrectlyClippedComponents = ITelemetryProvider.UNKNOWN_METRIC_ID;
+        mClipComponent = false;
     }
 
     /**
@@ -82,8 +91,8 @@ public class APLAbsoluteLayout extends ViewGroup {
             return;
         }
         Rect bounds = component.getBounds();
-        int w = (int)bounds.getWidth();
-        int h = (int)bounds.getHeight();
+        int w = (int) bounds.getWidth();
+        int h = (int) bounds.getHeight();
         setMeasuredDimension(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
 
@@ -99,17 +108,6 @@ public class APLAbsoluteLayout extends ViewGroup {
         }
     }
 
-    @Override
-    protected boolean getChildStaticTransformation(View child, @NonNull Transformation t) {
-        Component component = mPresenter.findComponent(child);
-        if(component == null) {
-            return false;
-        }
-        Matrix m = component.getTransform();
-        t.getMatrix().set(m);
-
-        return true;
-    }
 
     /**
      * Returns a set of layout parameters that match the component bounds.
@@ -123,8 +121,8 @@ public class APLAbsoluteLayout extends ViewGroup {
             return new LayoutParams(0, 0, 0, 0);
         }
         Rect bounds = component.getBounds();
-        int w = (int)bounds.getWidth();
-        int h = (int)bounds.getHeight();
+        int w = (int) bounds.getWidth();
+        int h = (int) bounds.getHeight();
         return new LayoutParams(w, h, 0, 0);
     }
 
@@ -146,7 +144,7 @@ public class APLAbsoluteLayout extends ViewGroup {
             if (viewChild.getVisibility() != GONE) {
                 Component childComponent = mPresenter.findComponent(viewChild);
                 LayoutParams lp = (LayoutParams) viewChild.getLayoutParams();
-                int scrolledX =  lp.x - mScrollOffsetX;
+                int scrolledX = lp.x - mScrollOffsetX;
                 int scrolledY = lp.y - mScrollOffsetY;
                 viewChild.layout(scrolledX, scrolledY, scrolledX + lp.width, scrolledY + lp.height);
                 // There are situations when Core's component children count can
@@ -155,7 +153,7 @@ public class APLAbsoluteLayout extends ViewGroup {
                 // 1. SwipeAway (it adds new component on gesture start and removes one based on gesture been fulfilled or not)
                 // 2. When number of children is manipulated from core in lazy loading.
 
-                if(childComponent.shouldDrawBoxShadow()) {
+                if (childComponent.shouldDrawBoxShadow()) {
                     mShadowRenderer.prepareShadow(childComponent);
                 }
             }
@@ -184,7 +182,6 @@ public class APLAbsoluteLayout extends ViewGroup {
                 componentType == ComponentType.kComponentTypeGridSequence ||
                 componentType == ComponentType.kComponentTypePager ||
                 componentType == ComponentType.kComponentTypeScrollView) {
-            this.setClipChildren(true);
 
             resetPath();
             if (component.getProperties().hasProperty(PropertyKey.kPropertyBorderRadii)) {
@@ -193,8 +190,13 @@ public class APLAbsoluteLayout extends ViewGroup {
             } else {
                 mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
             }
+            for (int i = 0; i < this.getChildCount(); i++) {
+                View childView = this.getChildAt(i);
+                if (childView instanceof APLAbsoluteLayout) {
+                    ((APLAbsoluteLayout) childView).setClipChildren();
+                }
+            }
         } else if (isAtLeastAPL16) {
-            this.setClipChildren(true);
             resetPath();
             mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
         } else {
@@ -211,8 +213,13 @@ public class APLAbsoluteLayout extends ViewGroup {
                     telemetryProvider.incrementCount(cIncorrectlyClippedComponents, totalChildren - displayedChildren);
                 }
             }
+            if (mClipComponent) {
+                resetPath();
+                mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
+            } else {
+                mPath = null;
+            }
 
-            mPath = null;
         }
     }
 
@@ -251,14 +258,6 @@ public class APLAbsoluteLayout extends ViewGroup {
         updateScrollPosition(scrollPosition);
     }
 
-    @Override
-    protected void dispatchDraw(Canvas canvas) {
-        if (mPath != null) {
-            canvas.clipPath(mPath);
-        }
-        super.dispatchDraw(canvas);
-    }
-
     @NonNull
     @Override
     public ViewGroup.LayoutParams generateLayoutParams(AttributeSet attrs) {
@@ -294,6 +293,8 @@ public class APLAbsoluteLayout extends ViewGroup {
         }
         super.removeViewInLayout(view);
         setLayoutTransition(null);
+
+        mDetachedViews.remove(view.hashCode());
     }
 
     public void addViewInLayout(View view, LayoutParams params) {
@@ -307,25 +308,66 @@ public class APLAbsoluteLayout extends ViewGroup {
         this.addViewInLayout(view, -1, params, true);
     }
 
+    public Collection<View> getAttachedAndDetachedChildren() {
+        final int childCount = getChildCount();
+        final Collection<WeakReference<View>> detachedWeakViews = mDetachedViews.values();
+
+        List<View> views = new ArrayList<>(detachedWeakViews.size() + childCount);
+
+        for (int i = 0; i < childCount; i++) {
+            views.add(getChildAt(i));
+        }
+
+        for (WeakReference<View> weakView : detachedWeakViews) {
+            final View view = weakView.get();
+            if (view != null) {
+                views.add(view);
+            }
+        }
+
+        return views;
+    }
+
     public void detachAllViews() {
+        final int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            final View childView = getChildAt(i);
+            mDetachedViews.put(childView.hashCode(), new WeakReference<>(childView));
+        }
         detachAllViewsFromParent();
+    }
+
+    public void setClipChildren() {
+        mClipComponent = true;
     }
 
     public void removeDetachedView(View child) {
         removeDetachedView(child, false);
+        mDetachedViews.remove(child.hashCode());
     }
 
     public void attachView(View child) {
         attachViewToParent(child, -1, child.getLayoutParams());
+        mDetachedViews.remove(child.hashCode());
     }
 
     @Override
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
         final Component childComponent = mPresenter.findComponent(child);
-        if(childComponent != null && childComponent.shouldDrawBoxShadow()) {
+        if (childComponent != null && childComponent.shouldDrawBoxShadow()) {
             mShadowRenderer.drawShadow(canvas, childComponent, this);
         }
-        return super.drawChild(canvas, child, drawingTime);
+        int saveCount = canvas.save();
+        if (mPath != null) {
+            canvas.clipPath(mPath);
+        }
+        if (childComponent != null && childComponent.hasTransform()) {
+            TransformUtils.applyChildTransformToParentCanvas(childComponent.getTransform(), child, canvas);
+        }
+        boolean result;
+        result = super.drawChild(canvas, child, drawingTime);
+        canvas.restoreToCount(saveCount);
+        return result;
     }
 
     /**

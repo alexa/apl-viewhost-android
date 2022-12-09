@@ -6,8 +6,9 @@ package com.amazon.apl.android.providers.impl;
 
 import android.annotation.SuppressLint;
 import android.os.SystemClock;
-import androidx.annotation.VisibleForTesting;
 import android.util.Log;
+
+import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -22,8 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class LoggingTelemetryProvider implements ITelemetryProvider {
 
-    private static final String TAG = "LoggingTelemetryPrvdr";
-    private static final String REPORT_TITLE = "APL Telemetry Report\n";
+    private static final String TAG = "TelemetryReport";
     private static final String COUNT_LOG = " - success:";
     private static final String FAIL_LOG = "  fail:";
     private static final String TIMER_AVG_LOG = "  average:";
@@ -175,17 +175,18 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         logAndResetMetrics();
     }
 
-
     /**
      * Log metrics to standard out and reset all values.
      */
     @SuppressLint("DefaultLocale")
     private void logAndResetMetrics() {
-        StringBuilder builder = new StringBuilder(REPORT_TITLE);
+
         for (int i = 0; i < mMetrics.size(); i++) {
+            StringBuilder builder = new StringBuilder();
+
             Metric metric = mMetrics.get(i);
             // add use data
-            builder.append("\n").append(metric.metricName)
+            builder.append(metric.metricName)
                     .append(COUNT_LOG).append(metric.success)
                     .append(FAIL_LOG).append(metric.fail);
             // add timer data if any
@@ -201,8 +202,10 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
             }
             metric.success = 0;
             metric.fail = 0;
+
+            Log.i(TAG, builder.toString());
         }
-        Log.i(TAG, builder.toString());
+
         // Clear metrics
         mMetrics.clear();
         mIds.clear();
@@ -233,6 +236,20 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
      */
     public Metric getMetric(int id) {
         return mMetrics.get(id);
+    }
+
+
+    /**
+     * A synchronized method that returns a one-time copy of the metrics
+     *
+     * @return one-time copy of the mMetrics.
+     */
+    public synchronized List<Metric> getMetricsCopy() {
+        List<Metric> copyOfMetrics = Collections.synchronizedList(new ArrayList<>());
+        for (Metric metric: mMetrics){
+            copyOfMetrics.add(metric);
+        }
+        return copyOfMetrics;
     }
 
 }

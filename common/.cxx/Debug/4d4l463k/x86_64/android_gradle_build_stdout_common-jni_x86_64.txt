@@ -1,3 +1,0 @@
-ninja: Entering directory `/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/Debug/4d4l463k/x86_64'
-[1/2] Building CXX object CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o
-[2/2] Linking CXX shared library ../../../../build/intermediates/cxx/Debug/4d4l463k/obj/x86_64/libcommon-jni.so

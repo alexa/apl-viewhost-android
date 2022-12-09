@@ -13,6 +13,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.alexa.android.extension.discovery.ExtensionBinder.ConnectionCallback;
 import com.amazon.alexa.android.extension.discovery.test.TestService;
+import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +38,7 @@ import static org.junit.Assert.fail;
  */
 @SuppressWarnings({"ConstantConditions", "CheckStyle"})
 @RunWith(AndroidJUnit4.class)
-public class ExtensionBinderTest {
+public class ExtensionBinderTest extends LeakRulesBaseClass {
 
     private ExtensionBinder mDiscover = null;
     private DiscoveryCallback mCallback = null;

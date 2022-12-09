@@ -79,6 +79,7 @@ public class PagerPreserveTest extends AbstractDocViewTest {
      * the named sequencer "MAGIC"
      */
     @Test
+    @Ignore // Need to rewrite as a test that pumps APLCore deterministically.
     public void testAutoPage_preserve_with_reinflation() {
         // AutoPage command with duration of 1000 ms starts with initial page index 1
         onView(isRoot())

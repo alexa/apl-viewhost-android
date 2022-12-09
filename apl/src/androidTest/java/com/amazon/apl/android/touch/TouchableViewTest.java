@@ -21,13 +21,13 @@ import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.document.AbstractDocViewTest;
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.espresso.APLViewActions;
 
 import org.hamcrest.Matcher;
 import org.junit.Test;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
-import static androidx.test.espresso.action.ViewActions.pressKey;
 import static androidx.test.espresso.action.ViewActions.swipeLeft;
 import static androidx.test.espresso.action.ViewActions.swipeUp;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
@@ -490,27 +490,30 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
     public void testView_enterKeyPress() {
         inflate();
         // Focus the component with core.
-        onView(isRoot()).perform(pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
-        verifyClick(pressKey(KeyEvent.KEYCODE_ENTER));
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_DOWN));
+        verifyClick(APLViewActions.pressKey(KeyEvent.KEYCODE_ENTER));
     }
 
     @Test
     public void testView_dpadCenterKeyPress() {
         inflate();
         // gain initial focus
-        onView(withComponent(getTouchableComponent()))
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_RIGHT));
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_RIGHT));
 
-        verifyClick(pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
+        verifyClick(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_CENTER));
     }
 
     @Test
     public void testView_disabled() {
         inflateDisabled();
         onView(withComponent(getTouchableComponent()))
-                .perform(click())
-                .perform(pressKey(KeyEvent.KEYCODE_DPAD_CENTER))
-                .perform(pressKey(KeyEvent.KEYCODE_ENTER));
+                .perform(click());
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_DPAD_CENTER))
+                .perform(APLViewActions.pressKey(KeyEvent.KEYCODE_ENTER));
 
         // Frame is still black
         onView(withComponent(mTestContext.getTestComponent()))
@@ -541,12 +544,12 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         final View touchableView = mTestContext.getPresenter().findView(getTouchableComponent());
 
         // simulation of screen reader enabled
-        activityRule.getActivity().runOnUiThread(
-                () -> ViewCompat.onInitializeAccessibilityNodeInfo(touchableView, AccessibilityNodeInfoCompat.obtain(touchableView)));
+        activityRule.getScenario().onActivity(
+                activity -> ViewCompat.onInitializeAccessibilityNodeInfo(touchableView, AccessibilityNodeInfoCompat.obtain(touchableView)));
 
         // simulation of accessibility "activate' action
-        activityRule.getActivity().runOnUiThread(
-                () -> ViewCompat.performAccessibilityAction(touchableView, AccessibilityNodeInfoCompat.ACTION_CLICK, null));
+        activityRule.getScenario().onActivity(
+                activity -> ViewCompat.performAccessibilityAction(touchableView, AccessibilityNodeInfoCompat.ACTION_CLICK, null));
 
         onView(isRoot())
                 .perform(waitFor(100));
@@ -562,12 +565,12 @@ abstract class TouchableViewTest extends AbstractDocViewTest {
         final View touchableView = mTestContext.getPresenter().findView(getTouchableComponent());
 
         // simulation of screen reader enabled
-        activityRule.getActivity().runOnUiThread(
-                () -> ViewCompat.onInitializeAccessibilityNodeInfo(touchableView, AccessibilityNodeInfoCompat.obtain(touchableView)));
+        activityRule.getScenario().onActivity(
+                activity -> ViewCompat.onInitializeAccessibilityNodeInfo(touchableView, AccessibilityNodeInfoCompat.obtain(touchableView)));
 
         // simulation of accessibility "activate' action
-        activityRule.getActivity().runOnUiThread(
-                () -> ViewCompat.performAccessibilityAction(touchableView, AccessibilityNodeInfoCompat.ACTION_CLICK, null));
+        activityRule.getScenario().onActivity(
+                activity -> ViewCompat.performAccessibilityAction(touchableView, AccessibilityNodeInfoCompat.ACTION_CLICK, null));
 
         onView(isRoot())
                 .perform(waitFor(100));

@@ -2,9 +2,14 @@
  * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 #include <jni.h>
-#include <android/bitmap.h>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
+#include <cstdint>
+#include <stdint.h>
+
+#ifdef __ANDROID__
+#include <android/bitmap.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,7 +40,8 @@ extern "C" {
         initialSeed = seed;
     }
 
-    JNIEXPORT void JNICALL
+#ifdef __ANDROID__
+JNIEXPORT void JNICALL
     Java_com_amazon_apl_android_image_filters_NoiseFilterOperation_nativeNoiseFilter(
             JNIEnv *env,
             jclass type,
@@ -56,6 +62,7 @@ extern "C" {
             AndroidBitmap_unlockPixels(env, bitmap);
         }
     }
+#endif
 
     // reset states
     void reset() {

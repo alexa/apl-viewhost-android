@@ -9,7 +9,6 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 
 import com.amazon.apl.android.PropertyMap;
-import com.amazon.apl.enums.ObjectType;
 
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyFill;
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyFillOpacity;
@@ -40,13 +39,6 @@ interface RenderableGraphicElement {
     GraphicPattern getStrokeGraphicPattern();
 
     /**
-     * The type of the fill. Supported types are Color, Gradient, and Pattern.
-     */
-    default ObjectType getFillType() {
-        return getProperties().getType(kGraphicPropertyFill);
-    }
-
-    /**
      * The opacity of the element's fill.
      */
     default float getFillOpacity() {
@@ -65,13 +57,6 @@ interface RenderableGraphicElement {
      */
     default int getFillColor() {
         return getProperties().getColor(kGraphicPropertyFill);
-    }
-
-    /**
-     * The type of the type. Supported types are Color, Gradient, and Pattern.
-     */
-    default ObjectType getStrokeType() {
-        return getProperties().getType(kGraphicPropertyStroke);
     }
 
     /**
@@ -107,14 +92,11 @@ interface RenderableGraphicElement {
     default Paint getFillPaint() {
         Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         fillPaint.setStyle(Paint.Style.FILL);
-        final ObjectType type = getFillType();
-        if (ObjectType.kGraphicPatternType.equals(type)) {
-            fillPaint.setShader(PathRenderer.createPattern(getFillTransform(),
-                    getFillGraphicPattern()));
+        if (getProperties().isGraphicPattern(kGraphicPropertyFill)) {
+            fillPaint.setShader(PathRenderer.createPattern(getFillTransform(), getFillGraphicPattern()));
             fillPaint.setAlpha((int)(255 * getFillOpacity()));
-        } else if (ObjectType.kColorType.equals(type)) {
-            fillPaint.setColor(applyAlpha(getFillColor(),
-                    getFillOpacity()));
+        } else if (getProperties().isColor(kGraphicPropertyFill)) {
+            fillPaint.setColor(applyAlpha(getFillColor(), getFillOpacity()));
         } else {
             // gradient shader is applied during draw call.
             fillPaint.setAlpha((int)(255 * getFillOpacity()));
@@ -126,14 +108,12 @@ interface RenderableGraphicElement {
         Paint strokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         strokePaint.setStyle(Paint.Style.STROKE);
         strokePaint.setStrokeWidth(getStrokeWidth());
-        final ObjectType type = getStrokeType();
-        if (ObjectType.kGraphicPatternType.equals(type)) {
+        if (getProperties().isGraphicPattern(kGraphicPropertyStroke)) {
             strokePaint.setShader(PathRenderer.createPattern(getStrokeTransform(),
                     getStrokeGraphicPattern()));
             strokePaint.setAlpha((int)(255 * getStrokeOpacity()));
-        } else if (ObjectType.kColorType.equals(type)) {
-            strokePaint.setColor(applyAlpha(getStrokeColor(),
-                    getStrokeOpacity()));
+        } else if (getProperties().isColor(kGraphicPropertyStroke)) {
+            strokePaint.setColor(applyAlpha(getStrokeColor(), getStrokeOpacity()));
         } else {
             // gradient shader is applied during draw call.
             strokePaint.setAlpha((int)(255 * getStrokeOpacity()));

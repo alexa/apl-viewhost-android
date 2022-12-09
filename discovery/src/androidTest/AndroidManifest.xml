@@ -4,11 +4,18 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.amazon.alexa.android.extension.discovery">
 
 
     <!-- clients need permission-->
     <uses-permission android:name="com.amazon.alexa.extensions.permission.SKILL" />
+    <permission
+        android:name="com.amazon.alexa.extensions.permission.SKILL"
+        tools:node="remove" />
+    <permission
+        android:name="com.amazon.alexa.extensions.permission.EXTENSION"
+        tools:node="remove" />
 
     <!-- application for debug services tests-->
     <application>
@@ -17,7 +24,8 @@
         uri known to documents -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Simple"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
@@ -30,7 +38,8 @@
         uri known to documents -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Simple2"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
@@ -43,7 +52,8 @@
         defined in a resource file -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Multi"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
@@ -55,8 +65,9 @@
         <!-- An extension service supports may require runtime capabilities -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Capability"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
 
@@ -72,8 +83,9 @@
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Remote"
             android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
-            android:process="com.amazon.extension.testprocess">
-            <intent-filter>
+            android:process="com.amazon.extension.testprocess"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -84,8 +96,9 @@
         <!-- This test service returns null bind -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$FailCom"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -97,8 +110,9 @@
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$FailDisconnect"
             android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
-            android:process="com.amazon.extension.testprocessdisconnect">
-            <intent-filter>
+            android:process="com.amazon.extension.testprocessdisconnect"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -110,8 +124,9 @@
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$FailDied"
             android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
-            android:process="com.amazon.extension.testprocessdied">
-            <intent-filter>
+            android:process="com.amazon.extension.testprocessdied"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -122,8 +137,9 @@
         <!-- This test service used for mocking -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Latch"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -134,8 +150,9 @@
         <!-- This test service used for mocking -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$MultiLatch"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
             <meta-data
@@ -146,8 +163,9 @@
         <!-- This test service used for mocking -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$Deferred"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
 
@@ -162,8 +180,9 @@
         <!-- This test service used for mocking -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$DeferredMulti"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
 
@@ -178,8 +197,9 @@
         <!-- This test service used for mocking -->
         <service
             android:name="com.amazon.alexa.android.extension.discovery.test.TestService$DeferredMultiMismatch"
-            android:permission="com.amazon.alexa.extensions.permission.EXTENSION">
-            <intent-filter>
+            android:permission="com.amazon.alexa.extensions.permission.EXTENSION"
+            android:exported="true">
+        <intent-filter>
                 <action android:name="com.amazon.alexa.extensions.ACTION" />
             </intent-filter>
 

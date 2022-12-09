@@ -2,9 +2,14 @@
  * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 #include <jni.h>
-#include <android/bitmap.h>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
+#include <cstdint>
+#include <stdint.h>
+
+#ifdef __ANDROID__
+#include <android/bitmap.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,7 +17,8 @@ extern "C" {
 
     void boxBlur(uint32_t *src, uint32_t *dst, int width, int height, int blurRadius);
 
-    JNIEXPORT void JNICALL
+#ifdef __ANDROID__
+JNIEXPORT void JNICALL
     Java_com_amazon_apl_android_shadow_ShadowBoxBlur_nativeBoxBlur(
             JNIEnv *env,
             jclass type,
@@ -40,6 +46,7 @@ extern "C" {
             delete[] dst;
         }
     }
+#endif
 
     /**
     * Box-blur the given src pixels into the given dst. This is done by creating a 1-D filter matrix

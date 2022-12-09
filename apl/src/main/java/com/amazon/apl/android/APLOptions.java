@@ -129,6 +129,8 @@ public abstract class APLOptions {
     // Other
     public abstract IImageUriSchemeValidator getImageUriSchemeValidator();
 
+    public abstract IClockProvider getAplClockProvider();
+
     /**
      * @return options that are {@link IDocumentLifecycleListener}s.
      */
@@ -169,6 +171,7 @@ public abstract class APLOptions {
                 .ttsPlayerProvider(new NoOpTtsPlayerProvider())
                 .visualContextListener(visualContext -> {})
                 .dataSourceContextListener(dataSourceContext -> {})
+                .aplClockProvider(callback -> new APLChoreographer(callback))
                 .packageLoader((importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented."))
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
                 .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."));
@@ -368,6 +371,8 @@ public abstract class APLOptions {
         public abstract Builder avgRetriever(IContentRetriever<Uri, String> avgRetriever);
 
         public abstract Builder extensionRegistration(IExtensionRegistration registration);
+
+        public abstract Builder aplClockProvider(@NonNull  IClockProvider clockProvider);
 
         /**
          * Builds the options for this document.

@@ -10,7 +10,6 @@
 
 #include "jnirootconfig.h"
 #include "jniutil.h"
-#include "loggingbridge.h"
 
 namespace apl {
     namespace jni {
@@ -40,9 +39,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
          jboolean
-         rootconfig_OnLoad(JavaVM *vm, void __unused *reserved) {
+         rootconfig_OnLoad(JavaVM *vm, void *reserved) {
 
-             LOG(apl::LogLevel::DEBUG) << "Loading View Host RootConfig JNI environment.";
+             LOG(apl::LogLevel::kDebug) << "Loading View Host RootConfig JNI environment.";
 
              JNIEnv *env;
              if (vm ->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
@@ -62,7 +61,7 @@ namespace apl {
                 || nullptr == INTEGER_CLASS
                 || nullptr == INT_VALUE
                 ) {
-                LOG(apl::LogLevel::ERROR)
+                LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.RootContext";
                 return JNI_FALSE;
             }
@@ -71,9 +70,9 @@ namespace apl {
          }
 
          void
-         rootconfig_OnUnload(JavaVM *vm, void __unused *reserved) {
+         rootconfig_OnUnload(JavaVM *vm, void *reserved) {
 
-             LOG(apl::LogLevel::DEBUG) << "Unload View Host RootConfig JNI environment.";
+             LOG(apl::LogLevel::kDebug) << "Unload View Host RootConfig JNI environment.";
 
              JNIEnv *env;
              if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {

@@ -25,7 +25,6 @@ import java.util.Map;
 final class ExtensionBinder {
 
     private static final String TAG = "ExtensionBinder";
-    private static final boolean DEBUG = false;
 
     // Open bindings
     private final Map<String, ExtensionConnection> mBindings = new ArrayMap<>();
@@ -181,7 +180,7 @@ final class ExtensionBinder {
      * @return {@code true} if the service connection existed; {@code false} otherwise.
      */
     boolean unbind(@NonNull final Context context, @NonNull final String extensionURI) {
-        if (DEBUG) Log.d(TAG, "unbind: " + extensionURI);
+        if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "unbind: " + extensionURI);
 
         boolean result = false;
         ServiceConnection connection;
@@ -236,14 +235,14 @@ final class ExtensionBinder {
 
         @Override
         public void onServiceConnected(final ComponentName componentName, final IBinder service) {
-            if (DEBUG) Log.d(TAG, "onServiceConnected: " + componentName);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onServiceConnected: " + componentName);
 
             mCallback.bindingSuccess(service);
         }
 
         @Override
         public void onServiceDisconnected(final ComponentName componentName) {
-            if (DEBUG) Log.d(TAG, "onServiceDisconnected: " + componentName);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onServiceDisconnected: " + componentName);
 
             mCallback.bindingFailure(ConnectionCallback.FAIL_DISCONNECTED,
                     "binding terminated");
@@ -251,14 +250,14 @@ final class ExtensionBinder {
 
         @Override
         public void onBindingDied(final ComponentName componentName) {
-            if (DEBUG) Log.d(TAG, "onBindingDied: " + componentName);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onBindingDied: " + componentName);
             mCallback.bindingFailure(ConnectionCallback.FAIL_DIED, "binding died");
         }
 
 
         @Override
         public void onNullBinding(final ComponentName componentName) {
-            if (DEBUG) Log.d(TAG, "onNullBinding: " + componentName);
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "onNullBinding: " + componentName);
             mCallback.bindingFailure(ConnectionCallback.FAIL_COM, "null binding");
         }
 

@@ -424,6 +424,13 @@ public abstract class Component extends BoundObject {
     }
 
     /**
+     * @return true if the component has a transform applied, that is not an identity transform.
+     */
+    public final boolean hasTransform() {
+        return mProperties.hasTransform();
+    }
+
+    /**
      * @return The component's 2D transform.
      */
     public final Matrix getTransform() {

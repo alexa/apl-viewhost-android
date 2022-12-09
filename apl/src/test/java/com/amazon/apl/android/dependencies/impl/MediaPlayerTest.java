@@ -55,7 +55,7 @@ import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Robolectric.buildActivity;
 import static org.robolectric.Shadows.shadowOf;
@@ -384,8 +384,8 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         aplMediaPlayer.addMediaStateListener(mListener);
         aplMediaPlayer.unmute();
         // By default the MediaPlayer is unmuted. So call to unmute() is a no-op
-        verifyZeroInteractions(mediaPlayer);
-        verifyZeroInteractions(mListener);
+        verifyNoInteractions(mediaPlayer);
+        verifyNoInteractions(mListener);
         assertFalse(aplMediaPlayer.isMuted());
         // Mute the MediaPlayer
         aplMediaPlayer.mute();

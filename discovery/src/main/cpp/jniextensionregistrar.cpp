@@ -3,6 +3,8 @@
  */
 
 #include <jni.h>
+#include <string>
+#include <memory>
 #include "alexaext/alexaext.h"
 #include "jniextensionregistrar.h"
 #include "jninativeowner.h"

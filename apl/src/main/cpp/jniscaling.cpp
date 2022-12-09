@@ -4,12 +4,10 @@
 
 #include <jni.h>
 #include <string>
-#include <elf.h>
 
 #include "scaling.h"
 #include "jniscaling.h"
 #include "jniutil.h"
-#include "loggingbridge.h"
 #include "apl/apl.h"
 
 namespace apl {
@@ -31,9 +29,9 @@ namespace apl {
          * Create a class and method cache for calls to View Host.
          */
         jboolean
-        jniscaling_OnLoad(JavaVM *vm, void __unused *reserved) {
+        jniscaling_OnLoad(JavaVM *vm, void *reserved) {
 
-            LOG(apl::LogLevel::DEBUG) << "Loading View Host Metric JNI environment.";
+            LOG(apl::LogLevel::kDebug) << "Loading View Host Scaling JNI environment.";
 
             JNIEnv *env;
 
@@ -48,8 +46,8 @@ namespace apl {
          * Release the class and method cache.
          */
         void
-        jniscaling_OnUnload(JavaVM *vm, void __unused *reserved) {
-            LOG(apl::LogLevel::DEBUG) << "Unloading View Host Metric JNI environment.";
+        jniscaling_OnUnload(JavaVM *vm, void *reserved) {
+            LOG(apl::LogLevel::kDebug) << "Unloading View Host Scaling JNI environment.";
             apl::LoggerFactory::instance().reset();
 
             JNIEnv *env;

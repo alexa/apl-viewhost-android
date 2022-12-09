@@ -260,6 +260,7 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
 
     synchronized void onResourceReadyInternal(@NonNull final ActivityDescriptor activity, @NonNull final ResourceHolder resourceHolder) {
         if (!mConnected) {
+            Log.w(TAG, "Calling resourceAvailable when service is not connected");
             return;
         }
 
