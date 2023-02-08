@@ -88,6 +88,7 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
                     .offset(boundMediaSources.at(i).offset())
                     .repeatCount(boundMediaSources.at(i).repeatCount())
                     .headers(boundMediaSources.at(i).headers())
+                    .textTracks(boundMediaSources.at(i).textTracks())
                     .build();
             sources.add(source);
         }

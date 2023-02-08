@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.bitmap.IBitmapCache;
@@ -108,7 +109,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     private Integer mRenderDocumentTimer;
 
     /**
-     * Initialize the APL system resources.
+     * Start the initialization of the APL system resources. To check whether APL initialization has completed/was successful,
+     * call {@code waitForInitializeAPLToComplete}
      * @param context The App context
      * @param runtimeConfig Custom Runtime Configuration
      */
@@ -129,6 +131,16 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if (bitmapCache instanceof ComponentCallbacks2) {
             context.registerComponentCallbacks((ComponentCallbacks2) bitmapCache);
         }
+    }
+
+    /**
+     * Blocks on APL initialization. Must be preceded by a call to {@code initializeAPL}.
+     * @param telemetryProvider if provided, used to record metrics about AP
+     * @return whether APL was successfully initialized
+     */
+    public static synchronized boolean waitForInitializeAPLToComplete(@Nullable ITelemetryProvider telemetryProvider) {
+        ITelemetryProvider nonNullTelemetryProvider = telemetryProvider != null ? telemetryProvider : NoOpTelemetryProvider.getInstance();
+        return isInitialized(nonNullTelemetryProvider);
     }
 
     /**
@@ -565,7 +577,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     public void executeCommands(@NonNull String commands, @Nullable ExecuteCommandsCallback callback) {
         executeIfNotFinishedOnMyThread(rootContext -> {
             Action result = rootContext.executeCommands(commands);
-            if (callback != null && result != null) {
+            if (callback != null) {
                 callback.onExecuteCommands(result);
             }
         });
@@ -770,7 +782,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static synchronized boolean isInitialized(final ITelemetryProvider telemetryProvider) {
         try {
-            return sLibraryFuture != null && sLibraryFuture.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            if (sLibraryFuture != null) {
+                return sLibraryFuture.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            } else {
+                Log.e(TAG, "Checking whether APL isInitialized before calling initializeAPL");
+            }
         } catch (final TimeoutException ex) {
             final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
                     ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);

@@ -9,6 +9,8 @@ import com.google.auto.value.AutoValue;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.List;
+import com.amazon.apl.android.media.TextTrack;
 
 /**
  * MediaSource Property
@@ -29,6 +31,7 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
         public abstract int repeatCount();
         public abstract int offset();
         public abstract Map<String, String> headers();
+        public abstract List<TextTrack> textTracks();
         public static Builder builder() {
             return new AutoValue_MediaSources_MediaSource.Builder();
         }
@@ -40,6 +43,7 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
             public abstract Builder repeatCount(int repeatCount);
             public abstract Builder offset(int offset);
             public abstract Builder headers(Map<String, String> headers);
+            public abstract Builder textTracks(List<TextTrack> textTracks);
             public abstract MediaSource build();
         }
     }

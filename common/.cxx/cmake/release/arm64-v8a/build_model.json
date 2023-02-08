@@ -1,13 +1,17 @@
 {
   "abi": "ARM64_V8A",
-  "abiPlatformVersion": 22,
-  "buildSettings": {
-    "environmentVariables": []
+  "info": {
+    "abi": "ARM64_V8A",
+    "bitness": 64,
+    "deprecated": false,
+    "default": true
   },
+  "originalCxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
+  "cxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
+  "abiPlatformVersion": 22,
   "cmake": {
-    "cmakeArtifactsBaseFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
-    "cmakeServerLogFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a/cmake_server_log.txt",
     "cmakeWrappingBaseFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cxx/release/arm64-v8a",
+    "cmakeArtifactsBaseFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
     "effectiveConfiguration": {
       "name": "traditional-android-studio-cmake-environment",
       "description": "Composite reified CMakeSettings configuration",
@@ -17,7 +21,7 @@
       ],
       "buildRoot": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
       "cmakeToolchain": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
-      "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
+      "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake",
       "variables": [
         {
           "name": "CMAKE_FIND_ROOT_PATH",
@@ -60,8 +64,12 @@
           "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj/arm64-v8a"
         },
         {
+          "name": "CMAKE_RUNTIME_OUTPUT_DIRECTORY",
+          "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj/arm64-v8a"
+        },
+        {
           "name": "CMAKE_MAKE_PROGRAM",
-          "value": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja"
+          "value": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja"
         },
         {
           "name": "CMAKE_SYSTEM_NAME",
@@ -72,49 +80,77 @@
           "value": "22"
         }
       ]
-    }
+    },
+    "cmakeServerLogFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a/cmake_server_log.txt"
   },
-  "cxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
-  "info": {
-    "abi": "ARM64_V8A",
-    "bitness": 64,
-    "deprecated": false,
-    "default": true
-  },
-  "originalCxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/arm64-v8a",
   "variant": {
     "buildSystemArgumentList": [],
+    "cFlagsList": [],
+    "cppFlagsList": [
+      ""
+    ],
+    "variantName": "release",
+    "objFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj",
+    "soFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/lib",
+    "isDebuggableEnabled": false,
+    "validAbiList": [
+      "ARMEABI_V7A",
+      "ARM64_V8A",
+      "X86",
+      "X86_64"
+    ],
     "buildTargetSet": [
       "common-jni"
     ],
     "implicitBuildTargetSet": [],
-    "cFlagsList": [],
     "cmakeSettingsConfiguration": "android-gradle-plugin-predetermined-name",
-    "cppFlagsList": [
-      ""
-    ],
-    "isDebuggableEnabled": false,
     "module": {
-      "buildSystem": "CMAKE",
-      "cmake": {
-        "cmakeExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
-        "minimumCmakeVersion": "3.10.2",
-        "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja"
-      },
-      "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
       "cxxFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx",
-      "gradleModulePathName": ":common",
+      "splitsAbiFilterSet": [],
       "intermediatesFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates",
-      "makeFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-      "moduleBuildFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build.gradle",
+      "gradleModulePathName": ":common",
       "moduleRootFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common",
+      "moduleBuildFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build.gradle",
+      "makeFile": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
+      "buildSystem": "CMAKE",
+      "ndkFolder": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858",
+      "ndkVersion": "23.0.7599858",
+      "ndkSupportedAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
       "ndkDefaultAbiList": [
         "ARMEABI_V7A",
         "ARM64_V8A",
         "X86",
         "X86_64"
       ],
-      "ndkFolder": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858",
+      "ndkDefaultStl": "LIBCXX_STATIC",
+      "ndkMetaPlatforms": {
+        "min": 16,
+        "max": 31,
+        "aliases": {
+          "20": 19,
+          "25": 24,
+          "J": 16,
+          "J-MR1": 17,
+          "J-MR2": 18,
+          "K": 19,
+          "L": 21,
+          "L-MR1": 22,
+          "M": 23,
+          "N": 24,
+          "N-MR1": 24,
+          "O": 26,
+          "O-MR1": 27,
+          "P": 28,
+          "Q": 29,
+          "R": 30,
+          "S": 31
+        }
+      },
       "ndkMetaAbiList": [
         {
           "abi": "ARMEABI_V7A",
@@ -141,48 +177,15 @@
           "default": true
         }
       ],
-      "ndkMetaPlatforms": {
-        "min": 16,
-        "max": 31,
-        "aliases": {
-          "20": 19,
-          "25": 24,
-          "J": 16,
-          "J-MR1": 17,
-          "J-MR2": 18,
-          "K": 19,
-          "L": 21,
-          "L-MR1": 22,
-          "M": 23,
-          "N": 24,
-          "N-MR1": 24,
-          "O": 26,
-          "O-MR1": 27,
-          "P": 28,
-          "Q": 29,
-          "R": 30,
-          "S": 31
-        }
+      "originalCmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
+      "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
+      "cmake": {
+        "isValidCmakeAvailable": true,
+        "cmakeExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake",
+        "minimumCmakeVersion": "3.18.1",
+        "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja",
+        "isPreferCmakeFileApiEnabled": true
       },
-      "ndkSupportedAbiList": [
-        "ARMEABI_V7A",
-        "ARM64_V8A",
-        "X86",
-        "X86_64"
-      ],
-      "ndkDefaultStl": "LIBCXX_STATIC",
-      "ndkVersion": "23.0.7599858",
-      "project": {
-        "compilerSettingsCacheFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
-        "cxxFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
-        "isBuildOnlyTargetAbiEnabled": true,
-        "isCmakeBuildCohabitationEnabled": false,
-        "isNativeCompilerSettingsCacheEnabled": false,
-        "rootBuildGradleFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid",
-        "sdkFolder": "/Users/pranavsu/Library/Android/sdk",
-        "isPrefabEnabled": false
-      },
-      "splitsAbiFilterSet": [],
       "stlSharedObjectMap": {
         "LIBCXX_SHARED": {
           "ARMEABI_V7A": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot/usr/lib/arm-linux-androideabi/libc++_shared.so",
@@ -193,17 +196,24 @@
         "LIBCXX_STATIC": {},
         "NONE": {},
         "SYSTEM": {}
-      }
+      },
+      "project": {
+        "rootBuildGradleFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid",
+        "cxxFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
+        "compilerSettingsCacheFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
+        "sdkFolder": "/Users/pranavsu/Library/Android/sdk",
+        "isNativeCompilerSettingsCacheEnabled": false,
+        "isBuildOnlyTargetAbiEnabled": true,
+        "isCmakeBuildCohabitationEnabled": false,
+        "isPrefabEnabled": false,
+        "isV2NativeModelEnabled": true
+      },
+      "nativeBuildOutputLevel": "QUIET"
     },
-    "objFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj",
-    "variantName": "release",
-    "validAbiList": [
-      "ARMEABI_V7A",
-      "ARM64_V8A",
-      "X86"
-    ],
-    "prefabDirectory": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/prefab",
-    "prefabPackageDirectoryList": []
+    "prefabDirectory": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/prefab"
+  },
+  "buildSettings": {
+    "environmentVariables": []
   },
   "prefabFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/prefab/arm64-v8a"
 }

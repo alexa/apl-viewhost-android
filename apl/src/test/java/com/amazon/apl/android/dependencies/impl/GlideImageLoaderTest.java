@@ -40,6 +40,7 @@ import java.net.SocketTimeoutException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.RejectedExecutionException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -50,7 +51,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,6 +61,8 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
     private ITelemetryProvider mTelemetry;
     @Mock
     private IAPLViewPresenter mockPresenter;
+    @Mock
+    private RequestManager mRequestManager;
     
     private ImageView mImageView;
     private GlideImageLoader mImageLoader;
@@ -121,31 +123,14 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
 
     @Test
     public void clearImage() {
-        RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
-        RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
-        when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
+        // given
+        mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
 
-        imageLoader.loadImage(
-                IImageLoader.LoadImageParams.builder()
-                        .path(URL)
-                        .imageView(mImageView)
-                        .callback(mCallback)
-                        .needsScaling(NEEDS_SCALING)
-                        .headers(Collections.emptyMap())
-                        .allowUpscaling(false)
-                        .build());
+        // when
+        mImageLoader.clear(mImageView);
 
-        Target<?> target = imageLoader.getTargets().get(mImageView).get(0);
-
-        // into will clear the target first
-        verify(requestManager).clear(target);
-
-        // Now we want to explicitly clear the target
-        imageLoader.clear(mImageView);
-
-        verify(requestManager, times(2)).clear(target);
-        assertEquals(Collections.EMPTY_MAP, imageLoader.getTargets());
+        // verify
+        assertEquals(Collections.EMPTY_MAP, mImageLoader.getTargets());
     }
 
     @Test
@@ -172,7 +157,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
     public void loadImageCallback_InvokeOnErrorCase() {
         String errorMessage = "Network problem";
         GlideException glideException = new GlideException(errorMessage, new IOException("No connectivity to server"));
-        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mImageView, mCallback, URL, 100, 100);
+        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
         target.onLoadFailed(glideException, URL, target, NEEDS_SCALING);
 
         // Verify error callback with statuscode is called.
@@ -185,7 +170,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         String errorMessage = "Network problem";
         int errorCode = 401;
         GlideException glideException = new GlideException(errorMessage, new HttpException("Unauthorized", errorCode));
-        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mImageView, mCallback, URL, 100, 100);
+        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
         target.onLoadFailed(glideException, URL, target, NEEDS_SCALING);
 
         verify(mCallback).onError(glideException, errorCode, URL);
@@ -197,7 +182,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         String errorMessage = "File not found";
         int errorCode = 404;
         GlideException glideException = new GlideException(errorMessage, new FileNotFoundException(errorMessage));
-        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mImageView, mCallback, URL, 100, 100);
+        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
         target.onLoadFailed(glideException, URL, target, NEEDS_SCALING);
 
         verify(mCallback).onError(glideException, errorCode, URL);
@@ -209,7 +194,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         String errorMessage = "Network timeout";
         int errorCode = 408;
         GlideException glideException = new GlideException(errorMessage, new SocketTimeoutException(errorMessage));
-        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mImageView, mCallback, URL, 100, 100);
+        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
         target.onLoadFailed(glideException, URL, target, NEEDS_SCALING);
 
         verify(mCallback).onError(glideException, errorCode, URL);
@@ -220,7 +205,7 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
     public void loadImageCallback_InvokeOnErrorCase_nullException() {
         int errorCode = 0;
         GlideException glideException = null;
-        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mImageView, mCallback, URL, 100, 100);
+        GlideImageLoader.BitmapTarget target = mImageLoader.createTarget(mRequestManager, mImageView, mCallback, URL, 100, 100);
         target.onLoadFailed(glideException, URL, target, NEEDS_SCALING);
 
         verify(mCallback).onError(null, errorCode, URL);
@@ -233,18 +218,19 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
         Map<String, String> headers = Collections.singletonMap("key", "value");
 
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+                IImageLoader.LoadImageParams.builder()
                 .path(URL)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(NEEDS_SCALING)
                 .headers(headers)
                 .allowUpscaling(false)
-                .build());
+                .build(),
+            requestManager);
 
         // Then
         verify(spyBuilder).load(any(GlideUrl.class));
@@ -259,21 +245,49 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
         String urlWithoutScheme = "content://via.placeholder.com/300";
 
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
                 .path(urlWithoutScheme)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(NEEDS_SCALING)
                 .headers(Collections.emptyMap())
                 .allowUpscaling(false)
-                .build());
+                .build(),
+            requestManager);
 
         // Then
         verify(spyBuilder).load(any(String.class));
+    }
+
+    @Test(expected = Test.None.class)
+    public void loadImage_handlesRejectedExecutionException() {
+        // Given
+        RejectedExecutionException ex = new RejectedExecutionException();
+        RequestManager requestManager = spy(Glide.with(ViewhostRobolectricTest.getApplication().getApplicationContext()));
+        RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
+        when(spyBuilder.listener(any())).thenThrow(ex);
+        when(requestManager.asBitmap()).thenReturn(spyBuilder);
+
+        // When
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
+                .path(URL)
+                .imageView(mImageView)
+                .callback(mCallback)
+                .needsScaling(NEEDS_SCALING)
+                .headers(Collections.emptyMap())
+                .allowUpscaling(false)
+                .build(),
+            requestManager);
+
+        // Verify error callback is called.
+        verify(mCallback).onError(ex, URL);
+        verify(mTelemetry).incrementCount(cImageFail);
+
     }
 
     @Test
@@ -283,19 +297,21 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
 
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
         String urlWithoutScheme = "content://via.placeholder.com/300";
         Map<String, String> headers = Collections.singletonMap("key", "value");
 
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
                 .path(urlWithoutScheme)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(NEEDS_SCALING)
                 .headers(headers)
                 .allowUpscaling(false)
-                .build());
+                .build(),
+            requestManager
+        );
 
         // Then
         verify(spyBuilder).load(any(String.class));
@@ -311,17 +327,15 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
 
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(IImageLoader.LoadImageParams.builder()
                 .path(URL)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(NEEDS_SCALING)
                 .allowUpscaling(false)
                 .headers(Collections.emptyMap())
-                .build());
+                .build(), requestManager);
 
         // Then
         ArgumentCaptor<RequestOptions> requestOptionsCaptor = ArgumentCaptor.forClass(RequestOptions.class);
@@ -338,17 +352,17 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
 
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
                 .path(URL)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(NEEDS_SCALING)
                 .allowUpscaling(true)
                 .headers(Collections.emptyMap())
-                .build());
+                .build(),
+            requestManager);
 
         // Then
         ArgumentCaptor<RequestOptions> requestOptionsCaptor = ArgumentCaptor.forClass(RequestOptions.class);
@@ -365,22 +379,23 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
 
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
-
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
                 .path(URL)
                 .imageView(mImageView)
                 .callback(mCallback)
                 .needsScaling(false)
                 .allowUpscaling(true)
                 .headers(Collections.emptyMap())
-                .build());
+                .build(),
+            requestManager
+        );
 
 
         // Then
         CountDownLatch latch = new CountDownLatch(1);
-        Target<?> target = imageLoader.getTargets().get(mImageView).get(0);
+        Target<?> target = mImageLoader.getTargets().get(mImageView).get(0);
         target.getSize((int width, int height) -> {
             assertEquals(SimpleTarget.SIZE_ORIGINAL, width);
             assertEquals(SimpleTarget.SIZE_ORIGINAL, height);
@@ -400,21 +415,23 @@ public class GlideImageLoaderTest extends ViewhostRobolectricTest {
         RequestBuilder<Bitmap> spyBuilder = spy(requestManager.asBitmap());
         when(requestManager.asBitmap()).thenReturn(spyBuilder);
 
-        GlideImageLoader imageLoader = new GlideImageLoader(requestManager);
         ImageView imageView = new ImageView(ViewhostRobolectricTest.getApplication().getApplicationContext());
 
         // When
-        imageLoader.loadImage(IImageLoader.LoadImageParams.builder()
+        mImageLoader.loadImageInternal(
+            IImageLoader.LoadImageParams.builder()
                 .path(URL)
                 .imageView(imageView)
                 .callback(mCallback)
                 .needsScaling(true)
                 .allowUpscaling(false)
                 .headers(Collections.emptyMap())
-                .build());
+                .build(),
+            requestManager
+        );
 
         // Then
-        assertEquals(0, imageLoader.getTargets().size());
+        assertEquals(0, mImageLoader.getTargets().size());
     }
 
     private Bitmap createDummyBitmap() {

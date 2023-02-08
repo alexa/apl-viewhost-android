@@ -77,7 +77,7 @@
         },
         {
           "name": "APL_CORE_DIR",
-          "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library"
+          "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine"
         }
       ]
     }
@@ -92,7 +92,7 @@
   "originalCxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a",
   "variant": {
     "buildSystemArgumentList": [
-      "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library",
+      "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine",
       " -DCMAKE_VERBOSE_MAKEFILE\u003dON"
     ],
     "buildTargetSet": [

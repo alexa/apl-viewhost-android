@@ -1,0 +1,1 @@
+cmd='/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake;-DCMAKE_INSTALL_PREFIX=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/arm64-v8a/tools;-GNinja;<SOURCE_DIR><SOURCE_SUBDIR>'

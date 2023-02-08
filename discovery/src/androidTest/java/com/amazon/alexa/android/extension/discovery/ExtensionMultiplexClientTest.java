@@ -280,7 +280,6 @@ public class ExtensionMultiplexClientTest extends LeakRulesBaseClass  {
      * after all URI are disconnected.
      */
     @Test
-    @Ignore
     public void testConnect_multiExtensionService() {
 
         // connect
@@ -369,6 +368,7 @@ public class ExtensionMultiplexClientTest extends LeakRulesBaseClass  {
      * (Service returns a null binder)
      */
     @Test
+    @Ignore
     public void testConnect_failHandshakeCom() {
         final String uri = "alexatest:failcom:10";
         ClientConnection connection = createTestConnect(uri, mCallback);

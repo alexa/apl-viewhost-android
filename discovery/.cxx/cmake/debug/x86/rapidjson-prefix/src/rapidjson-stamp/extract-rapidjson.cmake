@@ -1,6 +1,6 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz" ABSOLUTE)
+get_filename_component(filename "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz" ABSOLUTE)
 get_filename_component(directory "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86/rapidjson-prefix/src/rapidjson" ABSOLUTE)
 
 message(STATUS "extracting...

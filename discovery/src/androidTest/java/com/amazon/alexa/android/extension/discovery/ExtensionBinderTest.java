@@ -6,6 +6,7 @@ package com.amazon.alexa.android.extension.discovery;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.os.Build;
 import android.os.IBinder;
 
 import androidx.test.InstrumentationRegistry;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -274,6 +276,11 @@ public class ExtensionBinderTest extends LeakRulesBaseClass {
      */
     @Test
     public void testBind_failCom() {
+        assumeTrue(
+                "bindService does not calls onNullBinding on Nogut",
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        );
+
         boolean attempted = mDiscover.bind(mAppContext, "alexatest:failcom:10", mCallback);
         assertTrue("Service bind failed attempt", attempted);
         assertOnLatch(mCallback.lBindingFail, "Expect Fail");

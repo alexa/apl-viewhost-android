@@ -246,64 +246,58 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         setAccessibilityManager((AccessibilityManager) getContext().getSystemService(Context.ACCESSIBILITY_SERVICE));
 
+        // Set default density and shape to match the screen
+        mDpi = context.getResources().getDisplayMetrics().densityDpi;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            mShape = context.getResources().getConfiguration().isScreenRound()
+                    ? ScreenShape.ROUND
+                    : ScreenShape.RECTANGLE;
+        }
+
         // Styled properties.
-        if (attrs == null) {
-            mBackgroundDrawable = new LayerDrawable(new Drawable[]{
-                    new ColorDrawable(mDeviceBackgroundColor),
-                    new ColorDrawable(Color.TRANSPARENT)
-            });
-            mBackgroundDrawable.setId(1, DOCUMENT_BACKGROUND_LAYER_ID);
-            return; // no styles, exit method
+        if (attrs != null) {
+            TypedArray a = context.getTheme().obtainStyledAttributes(
+                    attrs, R.styleable.APLLayout, 0, 0);
+
+            try {
+                int attr = R.styleable.APLLayout_aplTheme;
+                if (a.hasValue(attr)) {
+                    int theme = a.getInteger(attr, 0);
+                    mTheme = Theme.values()[theme].toString();
+                }
+
+                attr = R.styleable.APLLayout_isRound;
+                if (a.hasValue(attr)) {
+                    mShape = a.getBoolean(attr, mShape == ScreenShape.ROUND)
+                            ? ScreenShape.ROUND
+                            : ScreenShape.RECTANGLE;
+                }
+
+                attr = R.styleable.APLLayout_mode;
+                if (a.hasValue(attr)) {
+                    int mode = a.getInteger(attr, 0);
+                    mMode = ViewportMode.values()[mode];
+                }
+
+                attr = R.styleable.APLLayout_dpi;
+                if (a.hasValue(attr)) {
+                    mDpi = a.getInteger(attr, mDpi);
+                }
+
+                attr = R.styleable.APLLayout_defaultBackground;
+                if (a.hasValue(attr)) {
+                    mDeviceBackgroundColor = a.getColor(attr, mDeviceBackgroundColor);
+                }
+            } finally {
+                a.recycle();
+            }
         }
 
-        TypedArray a = context.getTheme().obtainStyledAttributes(
-                attrs, R.styleable.APLLayout, 0, 0);
-
-        try {
-            int attr = R.styleable.APLLayout_aplTheme;
-            if (a.hasValue(attr)) {
-                int theme = a.getInteger(attr, 0);
-                mTheme = Theme.values()[theme].toString();
-            }
-
-            // If shape is not specified, we can fallback into Android Resources configuration
-            attr = R.styleable.APLLayout_isRound;
-            if (a.hasValue(attr)) {
-                boolean isRound = a.getBoolean(attr, false);
-                mShape = isRound ? ScreenShape.ROUND : ScreenShape.RECTANGLE;
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                mShape = context.getResources().getConfiguration().isScreenRound()
-                        ? ScreenShape.ROUND
-                        : ScreenShape.RECTANGLE;
-            }
-
-            attr = R.styleable.APLLayout_mode;
-            if (a.hasValue(attr)) {
-                int mode = a.getInteger(attr, 0);
-                mMode = ViewportMode.values()[mode];
-            }
-
-            // If dpi is not specified, we can fallback into Display metrics
-            attr = R.styleable.APLLayout_dpi;
-            if (a.hasValue(attr)) {
-                mDpi = a.getInteger(attr, 0);
-            } else {
-                mDpi = context.getResources().getDisplayMetrics().densityDpi;
-            }
-
-            attr = R.styleable.APLLayout_defaultBackground;
-            if (a.hasValue(attr)) {
-                mDeviceBackgroundColor = a.getColor(attr, mDeviceBackgroundColor);
-            }
-
-            mBackgroundDrawable = new LayerDrawable(new Drawable[]{
-                    new ColorDrawable(mDeviceBackgroundColor),
-                    new ColorDrawable(Color.TRANSPARENT)
-            });
-            mBackgroundDrawable.setId(1, DOCUMENT_BACKGROUND_LAYER_ID);
-        } finally {
-            a.recycle();
-        }
+        mBackgroundDrawable = new LayerDrawable(new Drawable[]{
+                new ColorDrawable(mDeviceBackgroundColor),
+                new ColorDrawable(Color.TRANSPARENT)
+        });
+        mBackgroundDrawable.setId(1, DOCUMENT_BACKGROUND_LAYER_ID);
     }
 
     @Override

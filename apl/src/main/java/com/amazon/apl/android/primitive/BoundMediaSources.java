@@ -5,13 +5,16 @@
 
 package com.amazon.apl.android.primitive;
 
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.android.utils.HttpUtils;
 import com.amazon.apl.enums.APLEnum;
 import com.google.auto.value.AutoValue;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
 
 /**
  * MediaSource Property
@@ -32,6 +35,7 @@ public abstract class BoundMediaSources implements IterableProperty<BoundMediaSo
         public abstract int repeatCount();
         public abstract int offset();
         public abstract Map<String, String> headers();
+        public abstract List<TextTrack> textTracks();
         public static Builder builder() {
             return new AutoValue_BoundMediaSources_MediaSource.Builder();
         }
@@ -43,6 +47,7 @@ public abstract class BoundMediaSources implements IterableProperty<BoundMediaSo
             abstract Builder repeatCount(int repeatCount);
             abstract Builder offset(int offset);
             abstract Builder headers(Map<String, String> headers);
+            abstract Builder textTracks(List<TextTrack> textTracks);
             abstract MediaSource build();
         }
     }
@@ -65,6 +70,7 @@ public abstract class BoundMediaSources implements IterableProperty<BoundMediaSo
                     .offset(nGetMediaSourceOffsetAt(getNativeHandle(), getIndex(), index))
                     .repeatCount(nGetMediaSourceRepeatCountAt(getNativeHandle(), getIndex(), index))
                     .headers(HttpUtils.listToHeadersMap(nGetMediaSourceHeadersAt(getNativeHandle(), getIndex(), index)))
+                    .textTracks(Arrays.asList(nGetMediaSourceTextTracksAt(getNativeHandle(), getIndex(), index)))
                     .build();
         }
     }
@@ -74,4 +80,5 @@ public abstract class BoundMediaSources implements IterableProperty<BoundMediaSo
     private static native int nGetMediaSourceDurationAt(long componentHandle, int propertyKey, int index);
     private static native int nGetMediaSourceRepeatCountAt(long componentHandle, int propertyKey, int index);
     private static native int nGetMediaSourceOffsetAt(long componentHandle, int propertyKey, int index);
+    private static native TextTrack[] nGetMediaSourceTextTracksAt(long componentHandle, int propertyKey, int index);
 }

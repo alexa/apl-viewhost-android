@@ -15,7 +15,7 @@ arguments :
 -DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
 -DCMAKE_SYSTEM_NAME=Android
 -DCMAKE_SYSTEM_VERSION=22
--DAPL_CORE_DIR=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library
+-DAPL_CORE_DIR=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine
 -B/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86
 -GNinja
 jvmArgs : 

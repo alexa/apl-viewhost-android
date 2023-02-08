@@ -59,11 +59,11 @@ if (NOT ANDROID)
     include_directories(${JAVA_INCLUDE_PATH2})
 else()
     find_library( # Sets the name of the path variable.
-            log-lib
+        log-lib
 
-            # Specifies the name of the NDK library that
-            # you want CMake to locate.
-            log)
+        # Specifies the name of the NDK library that
+        # you want CMake to locate.
+        log)
 
     # Specifies libraries CMake should link to your target library. You
     # can link multiple libraries, such as libraries you define in this

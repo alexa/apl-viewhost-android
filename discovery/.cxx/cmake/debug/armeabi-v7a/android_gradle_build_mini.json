@@ -5,13 +5,13 @@
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/thirdparty/thirdparty.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/thirdparty/googletest-CMakeLists.txt.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/options.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/aplcore/include/apl/apl_config.h.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/tools.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/CMakeLists.txt",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/CMakeLists.txt"
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/thirdparty.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-CMakeLists.txt.in",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/options.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/include/apl/apl_config.h.in",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/tools.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
   ],
   "cleanCommands": [
     "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a\" clean"

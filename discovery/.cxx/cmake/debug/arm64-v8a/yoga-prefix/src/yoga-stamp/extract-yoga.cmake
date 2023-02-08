@@ -1,6 +1,6 @@
 # Make file names absolute:
 #
-get_filename_component(filename "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz" ABSOLUTE)
+get_filename_component(filename "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/yoga-1.19.0.tar.gz" ABSOLUTE)
 get_filename_component(directory "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga" ABSOLUTE)
 
 message(STATUS "extracting...

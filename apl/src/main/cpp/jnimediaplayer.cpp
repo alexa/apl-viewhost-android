@@ -18,6 +18,8 @@ namespace apl {
 
         static jclass MEDIAPLAYER_CLASS;
         static jclass MEDIATRACK_CLASS;
+        static jclass TEXTTRACK_CLASS;
+        static jclass TEXTTYPE_CLASS;
         static jmethodID MEDIAPLAYER_RELEASE;
         static jmethodID MEDIAPLAYER_PLAY;
         static jmethodID MEDIAPLAYER_PAUSE;
@@ -28,6 +30,8 @@ namespace apl {
         static jmethodID MEDIAPLAYER_MUTE;
         static jmethodID MEDIAPLAYER_UNMUTE;
         static jmethodID MEDIATRACK_CONSTRUCTOR;
+        static jmethodID TEXTTRACK_CONSTRUCTOR;
+        static jmethodID TEXTTYPE_VALUEOF;
         static jmethodID MEDIAPLAYER_SET_TRACK_LIST;
         static jmethodID MEDIAPLAYER_SET_TRACK_INDEX;
         static jmethodID MEDIAPLAYER_SET_AUDIO_TRACK;
@@ -51,9 +55,16 @@ namespace apl {
                     env->FindClass("com/amazon/apl/android/media/MediaPlayer")));
             MEDIATRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("com/amazon/apl/android/media/MediaTrack")));
+            TEXTTRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
+                    env->FindClass("com/amazon/apl/android/media/TextTrack")));
+            TEXTTYPE_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
+                    env->FindClass("com/amazon/apl/enums/TextTrackType")));
 
             MEDIATRACK_CONSTRUCTOR = env->GetMethodID(MEDIATRACK_CLASS, "<init>",
-                                                      "(Ljava/lang/String;[Ljava/lang/String;III)V");
+                                                      "(Ljava/lang/String;[Ljava/lang/String;III[Lcom/amazon/apl/android/media/TextTrack;)V");
+            TEXTTRACK_CONSTRUCTOR = env->GetMethodID(TEXTTRACK_CLASS, "<init>",
+                                                      "(Lcom/amazon/apl/enums/TextTrackType;Ljava/lang/String;Ljava/lang/String;)V");
+            TEXTTYPE_VALUEOF = env->GetStaticMethodID(TEXTTYPE_CLASS,"valueOf", "(I)Lcom/amazon/apl/enums/TextTrackType;");
             MEDIAPLAYER_SET_TRACK_LIST = env->GetMethodID(MEDIAPLAYER_CLASS, "setTrackList",
                                                           "(Ljava/util/List;)V");
             MEDIAPLAYER_SET_TRACK_INDEX = env->GetMethodID(MEDIAPLAYER_CLASS, "setTrackIndex",
@@ -71,6 +82,7 @@ namespace apl {
 
             if (nullptr == MEDIAPLAYER_VM_REFERENCE
                 || nullptr == MEDIATRACK_CONSTRUCTOR
+                || nullptr == TEXTTRACK_CONSTRUCTOR
                 || nullptr == MEDIAPLAYER_SET_TRACK_LIST
                 || nullptr == MEDIAPLAYER_SET_TRACK_INDEX
                 || nullptr == MEDIAPLAYER_SET_AUDIO_TRACK
@@ -170,11 +182,33 @@ namespace apl {
             for (auto &track : trackList) {
                 auto url = env->NewStringUTF(track.url.c_str());
                 const auto &headers = track.headers;
+                int trackSize = track.textTracks.size();
+                auto textTrackObjectArray = env->NewObjectArray(trackSize, TEXTTRACK_CLASS,
+                                                                nullptr);
+                for (int i = 0; i < trackSize; i++) {
+                    auto textUrl = env->NewStringUTF(track.textTracks[i].url.c_str());
+                    auto textDescription = env->NewStringUTF(
+                            track.textTracks[i].description.c_str());
+                    auto textTrackObj = env->NewObject(TEXTTRACK_CLASS, TEXTTRACK_CONSTRUCTOR,
+                                                       env->CallStaticObjectMethod(TEXTTYPE_CLASS,
+                                                                                   TEXTTYPE_VALUEOF,
+                                                                                   0),
+                                                       textUrl, textDescription);
+                    env->SetObjectArrayElement(textTrackObjectArray, i, textTrackObj);
+                    env->DeleteLocalRef(textUrl);
+                    env->DeleteLocalRef(textDescription);
+                    env->DeleteLocalRef(textTrackObj);
+                }
+
                 auto trackObj = env->NewObject(MEDIATRACK_CLASS, MEDIATRACK_CONSTRUCTOR, url,
                                                getStringArray(env, headers), track.offset,
-                                               track.duration, track.repeatCount);
-                env->CallBooleanMethod(arrayObject, env->GetMethodID(clazz, "add", "(Ljava/lang/Object;)Z"), trackObj);
+                                               track.duration, track.repeatCount,
+                                               textTrackObjectArray);
+                env->CallBooleanMethod(arrayObject,
+                                       env->GetMethodID(clazz, "add", "(Ljava/lang/Object;)Z"),
+                                       trackObj);
                 env->DeleteLocalRef(url);
+                env->DeleteLocalRef(textTrackObjectArray);
                 env->DeleteLocalRef(trackObj);
             }
             env->CallVoidMethod(mInstance, MEDIAPLAYER_SET_TRACK_LIST, arrayObject);

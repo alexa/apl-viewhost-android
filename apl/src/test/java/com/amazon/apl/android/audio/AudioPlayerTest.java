@@ -9,6 +9,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,16 +17,21 @@ import static org.mockito.Mockito.when;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Action;
 import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.ITtsPlayer;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
+import com.amazon.apl.android.utils.TestClock;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
@@ -73,7 +79,17 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
             "      \"speech\": \"speech.mp3\"," +
             "      \"id\": \"hello\"," +
             "      \"textAlign\": \"center\"," +
-            "      \"textAlignVertical\": \"center\"" +
+            "      \"textAlignVertical\": \"center\"," +
+            "      \"onSpeechMark\": [" +
+            "        {" +
+            "          \"type\": \"SendEvent\"," +
+            "          \"sequencer\": \"SPEECHMARK_SEQUENCER\"," +
+            "          \"arguments\": [" +
+            "            \"${event.markType}\"," +
+            "            \"${event.markValue}\"" +
+            "          ]" +
+            "        }" +
+            "      ]" +
             "    }" +
             "  }" +
             "}";
@@ -84,6 +100,42 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
             "    \"componentId\": \"hello\"" +
             "  }" +
             "]";
+
+    // Represents Polly-generated speech marks based on the SSML:
+    // <speak><mark name="color:red"/> red</speak>
+    private static final String EXAMPLE_SPEECH_MARKS = "[" +
+        "  {" +
+        "    \"time\": 0," +
+        "    \"type\": \"sentence\"," +
+        "    \"start\": 32," +
+        "    \"end\": 35," +
+        "    \"value\": \"red\"" +
+        "  }," +
+        "  {" +
+        "    \"time\": 50," +
+        "    \"type\": \"ssml\"," +
+        "    \"start\": 7," +
+        "    \"end\": 31," +
+        "    \"value\": \"color:red\"" +
+        "  }," +
+        "  {" +
+        "    \"time\": 50," +
+        "    \"type\": \"word\"," +
+        "    \"start\": 32," +
+        "    \"end\": 35," +
+        "    \"value\": \"red\"" +
+        "  }," +
+        "  {" +
+        "    \"time\": 50," +
+        "    \"type\": \"viseme\"," +
+        "    \"value\": \"r\"" +
+        "  }," +
+        "  {" +
+        "    \"time\": 150," +
+        "    \"type\": \"viseme\"," +
+        "    \"value\": \"E\"" +
+        "  }" +
+        "]";
 
     // Wait basically forever for some multi-threaded effect that takes non-zero time. This
     // is 100x longer than the expected duration of any effect in this test, since there is
@@ -101,6 +153,9 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
     private final IAudioPlayerFactory mMockAudioPlayerFactory = mock(IAudioPlayerFactory.class);
     private final ITtsPlayerProvider mMockPlayerProvider = mock(ITtsPlayerProvider.class);
     private final PassThroughTtsPlayer mPlayer = mock(PassThroughTtsPlayer.class, Mockito.CALLS_REAL_METHODS);
+
+    // Mock callback for observing speech marks
+    private final ISendEventCallbackV2 mMockSendEventCallback = mock(ISendEventCallbackV2.class);
 
     /**
      * Wraps command execution in a future.
@@ -128,7 +183,11 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
         when(mMockPlayerProvider.getPlayer()).thenReturn(mPlayer);
         mRootConfig = RootConfig.create("Unit Test", "1.0")
                 .audioPlayerFactory(mMockAudioPlayerFactory);
-        loadDocument(MINIMAL_DOCUMENT);
+        APLOptions options = APLOptions.builder()
+                .aplClockProvider(callback -> new TestClock(callback))
+                .sendEventCallbackV2(mMockSendEventCallback)
+                .build();
+        loadDocument(MINIMAL_DOCUMENT, options);
     }
 
     @Test
@@ -309,7 +368,43 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
         // now give core a chance to run so it can process the state updates and resolve the action
         update(5);
 
-         assertTrue(result.get(FOREVER_WAIT_SECONDS, TimeUnit.SECONDS));
+        assertTrue(result.get(FOREVER_WAIT_SECONDS, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testSpeechMarksHandler() throws ExecutionException, InterruptedException, TimeoutException, JSONException {
+        Future<Boolean> result = executeCommandsWithFutureResult(MINIMAL_COMMAND);
+        mPlayer.simulateState(ITtsPlayer.IStateChangeListener.AudioPlayerState.STATE_IDLE);
+        mPlayer.simulateState(ITtsPlayer.IStateChangeListener.AudioPlayerState.STATE_PREPARING);
+        mPlayer.simulateState(ITtsPlayer.IStateChangeListener.AudioPlayerState.STATE_READY);
+        mPlayer.simulateSpeechMarks(EXAMPLE_SPEECH_MARKS);
+        Robolectric.flushForegroundThreadScheduler();
+
+        // Allow some time for core to start playback
+        update(5);
+        assertTrue(mPlayer.isPlaying());
+
+        // AudioPlayer relies on actual elapsed time, so wait enough time for the last of the
+        // speech marks in EXAMPLE_SPEECH_MARKS (which is at least 150ms)
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(() -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+        Robolectric.flushForegroundThreadScheduler();
+
+        // Allow core to trigger the onSpeechMark callbacks
+        update(5);
+        
+        InOrder inOrder = Mockito.inOrder(mRootContext, mMockSendEventCallback);
+        verify(mMockSendEventCallback).onSendEvent(eq(new String[]{"sentence", "red"}), any(), any(), any());
+        verify(mMockSendEventCallback).onSendEvent(eq(new String[]{"ssml", "color:red"}), any(), any(), any());
+        verify(mMockSendEventCallback).onSendEvent(eq(new String[]{"word", "red"}), any(), any(), any());
+        verify(mMockSendEventCallback).onSendEvent(eq(new String[]{"viseme", "r"}), any(), any(), any());
+        verify(mMockSendEventCallback).onSendEvent(eq(new String[]{"viseme", "E"}), any(), any(), any());
     }
 
     public class PassThroughTtsPlayer implements ITtsPlayer {
@@ -380,6 +475,15 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
                 mSpeechMarksListener.onSpeechMark(mark);
             } catch (JSONException e) {
                 e.printStackTrace();
+            }
+        }
+
+        public void simulateSpeechMarks(String marks) throws JSONException {
+            JSONArray jsonArray = new JSONArray(marks);
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                ISpeechMarksListener.SpeechMark mark = ISpeechMarksListener.SpeechMark.create(jsonObject);
+                mSpeechMarksListener.onSpeechMark(mark);
             }
         }
 

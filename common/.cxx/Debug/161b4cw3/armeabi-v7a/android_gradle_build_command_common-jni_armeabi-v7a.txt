@@ -1,0 +1,7 @@
+Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja
+arguments : 
+-C
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/Debug/161b4cw3/armeabi-v7a
+common-jni
+jvmArgs : 
+

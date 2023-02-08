@@ -1,0 +1,13 @@
+# ninja log v5
+0	397	1671143125	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d7a7bcfe865aff2d
+398	511	1671143126	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/armeabi-v7a/libcommon-jni.so	fe76849565665bb0
+2	79	1671240571	build.ninja	73840ce33208abc6
+0	12	0	clean	ba4b903905e82655
+0	16	0	clean	ba4b903905e82655
+0	71	1671241119	build.ninja	73840ce33208abc6
+0	450	1671241119	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d7a7bcfe865aff2d
+451	561	1671241119	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/armeabi-v7a/libcommon-jni.so	fe76849565665bb0
+1	72	1671754375	build.ninja	73840ce33208abc6
+1	350	1671754375	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	d7a7bcfe865aff2d
+351	452	1671754375	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/armeabi-v7a/libcommon-jni.so	fe76849565665bb0
+1	109	1674600340	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/armeabi-v7a/libcommon-jni.so	fe76849565665bb0

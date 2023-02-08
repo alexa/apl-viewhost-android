@@ -14,6 +14,7 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.Video;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
@@ -21,6 +22,7 @@ import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.RootProperty;
+import com.amazon.apl.enums.TextTrackType;
 import com.amazon.apl.enums.VideoScale;
 
 import org.junit.Before;
@@ -43,12 +45,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class VideoTest extends AbstractComponentUnitTest<View, Video> {
     private static final String DUMMY_URL =
             "http://videotest.invalid/video-sample.mp4";
     private static final String DUMMY_DESCRIPTION = "Testing video component";
+    private static final String DUMMY_TEXT_TRACK_URL = "https://videotest.invalid/video-capion.srt";
+    private static final String DUMMY_TEXT_TRACK_DESCRIPTION = "Testing textrack in video component";
+    private static final String DUMMY_TEXT_TRACK_TYPE = "caption";
 
     @Override
     String getComponentType() {
@@ -74,6 +81,13 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
                         "        {\n" +
                         "          \"url\": \"" + DUMMY_URL + "\",\n" +
                         "          \"description\": \"" + DUMMY_DESCRIPTION + "\",\n" +
+                        "          \"textTrack\": [\n" +
+                        "          {\n" +
+                        "          \"url\": \"" + DUMMY_TEXT_TRACK_URL + "\",\n" +
+                        "          \"description\": \"" + DUMMY_TEXT_TRACK_DESCRIPTION + "\",\n" +
+                        "          \"type\": \"" + DUMMY_TEXT_TRACK_TYPE + "\"\n" +
+                        "          }\n" +
+                        "          ],\n" +
                         "          \"duration\": 30000,\n" +
                         "          \"repeatCount\": 5,\n" +
                         "          \"offset\": 3000\n" +
@@ -102,15 +116,20 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
         assertTrue(component.shouldAutoPlay());
         assertEquals(VideoScale.kVideoScaleBestFill, component.getVideoScale());
         MediaSources sources = MediaSources.create();
+        List<TextTrack> testTrack = new ArrayList<TextTrack>();
+        TextTrack track = new TextTrack(TextTrackType.kTextTrackTypeCaption, DUMMY_TEXT_TRACK_URL, DUMMY_TEXT_TRACK_DESCRIPTION);
+        testTrack.add(track);
         sources.add(MediaSources.MediaSource.builder()
                 .url(DUMMY_URL)
                 .duration(30000)
                 .repeatCount(5)
                 .offset(3000)
                 .headers(new HashMap<>())
+                .textTracks(testTrack)
                 .build());
         assertEquals(1, sources.size());
         assertEquals(DUMMY_URL, sources.at(0).url());
+        assertEquals(DUMMY_TEXT_TRACK_URL, sources.at(0).textTracks().get(0).getUrl());
         assertEquals(30000, sources.at(0).duration());
         assertEquals(5, sources.at(0).repeatCount());
         assertEquals(3000, sources.at(0).offset());
@@ -198,7 +217,6 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
             "  }" +
             "}";
 
-
     @Test
     public void testMedia_Source() {
         inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
@@ -214,6 +232,17 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
         ArgumentCaptor<MediaSources> argumentCaptor = ArgumentCaptor.forClass(MediaSources.class);
         verify(mockMediaPlayer, times(container.getChildCount())).setMediaSources(argumentCaptor.capture());
         assertEquals("URL1", argumentCaptor.getValue().at(0).url());
+    }
+
+    @Test
+    public void testGetMediaSources() {
+        String doc = buildDocument(REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES, OPTIONAL_TEMPLATE_PROPERTIES);
+        inflateDocument(doc);
+        Video component = getTestComponent();
+        MediaSources mediaSources = component.getMediaSources();
+        assertEquals(DUMMY_TEXT_TRACK_URL, mediaSources.at(0).textTracks().get(0).getUrl());
+        assertEquals(DUMMY_TEXT_TRACK_DESCRIPTION, mediaSources.at(0).textTracks().get(0).getDescription());
+        assertEquals(TextTrackType.kTextTrackTypeCaption, mediaSources.at(0).textTracks().get(0).getType());
     }
 
     @Test

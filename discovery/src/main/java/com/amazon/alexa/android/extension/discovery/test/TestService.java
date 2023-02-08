@@ -221,7 +221,6 @@ public final class TestService {
 
         public Latch() {
             super();
-            latch();
             latchService = this;
         }
 

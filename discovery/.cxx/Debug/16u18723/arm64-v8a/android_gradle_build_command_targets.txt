@@ -1,8 +1,0 @@
-Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
-arguments : 
--C
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/16u18723/arm64-v8a
-alexaext
-discovery-jni
-jvmArgs : 
-

@@ -1,0 +1,3 @@
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/x86_64/CMakeFiles/rebuild_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/x86_64/CMakeFiles/edit_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/x86_64/CMakeFiles/common-jni.dir

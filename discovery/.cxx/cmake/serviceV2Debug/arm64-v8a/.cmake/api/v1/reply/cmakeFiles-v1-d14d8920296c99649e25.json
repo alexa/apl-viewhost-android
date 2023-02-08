@@ -1,0 +1,513 @@
+{
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FetchContent.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/CMakeFiles/3.18.1-g262b901/CMakeSystem.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/CMakeFiles/3.18.1-g262b901/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/CMakeFiles/3.18.1-g262b901/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Linux.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Internal/CMakeCheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android-Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android-Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/Platform/Android-Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FetchContent/CMakeLists.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FetchContent.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/options.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/include/apl/apl_config.h.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/components.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/clang.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/thirdparty.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/ExternalProject.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/rapidjson-apl.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FetchContent/CMakeLists.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/aplrapidjsonConfig.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/RepositoryInfo.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/ExternalProject-verify.cmake.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/_deps/aplcore-build/yoga-prefix/tmp/yoga-cfgcmd.txt.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FetchContent/CMakeLists.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-CMakeLists.txt.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/doxygen.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindDoxygen.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/tools.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/_deps/aplcore-build/enumgen-prefix/tmp/enumgen-cfgcmd.txt.in"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/googletest-src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakeDependentOption.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/googletest-src/googletest/CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/serviceV2Debug/arm64-v8a/googletest-src/googletest/cmake/internal_utils.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPythonInterp.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/alexaextConfig.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/target_sources_local.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindGit.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/buildTimeConstants.cpp.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/apl.pc.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/aplcoreConfig.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/action/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/animation/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/audio/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/command/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/component/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/content/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datagrammar/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datasource/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/document/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/engine/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/extension/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/focus/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/graphic/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/livedata/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/media/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/primitives/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/scaling/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/time/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/touch/CMakeLists.txt"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/utils/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/arm64-v8a",
+		"source" : "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

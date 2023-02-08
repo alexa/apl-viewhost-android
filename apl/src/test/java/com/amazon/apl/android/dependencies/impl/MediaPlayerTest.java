@@ -14,10 +14,12 @@ import android.view.TextureView;
 
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState;
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.VideoScale;
+import com.amazon.apl.enums.TextTrackType;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,11 +35,13 @@ import org.robolectric.shadows.ShadowMediaPlayer.State;
 import org.robolectric.shadows.util.DataSource;
 import org.robolectric.util.Scheduler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.END;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.IDLE;
@@ -156,11 +160,23 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     public void testPlay_singleTrack_withHeaders() {
         Log.d(TAG, "Testing play_singleTrack");
         Map<String, String> headers = Collections.singletonMap("headerKey", "headerValue");
-        setupMediaSources(1, 0, 0, 0, headers);
+        setupMediaSources(1, 0, 0, 0, headers, null);
         initExpectedStatesForPlay();
         mAplMediaPlayer.setMediaSources(mMediaSources);
         testPlayInternal();
     }
+
+    @Test
+    public void testPlay_singleTrack_withTextTrack() {
+        Log.d(TAG, "Testing play_singleTrack");
+        List<TextTrack> textTracks = new ArrayList<TextTrack>();
+        textTracks.add(new TextTrack(TextTrackType.kTextTrackTypeCaption, "file://intro.mp4", "intro caption"));
+        setupMediaSources(1, 0, 0, 0, Collections.emptyMap(), textTracks);
+        initExpectedStatesForPlay();
+        mAplMediaPlayer.setMediaSources(mMediaSources);
+        testPlayInternal();
+    }
+
 
     @Test
     public void testPlay_multipleTracks() {
@@ -513,10 +529,10 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     }
 
     private void setupMediaSources(int count, int duration, int repeatCount, int offset) {
-        setupMediaSources(count, duration, repeatCount, offset, Collections.emptyMap());
+        setupMediaSources(count, duration, repeatCount, offset, Collections.emptyMap(), null);
     }
 
-    private void setupMediaSources(int count, int duration, int repeatCount, int offset, Map<String, String> headers) {
+    private void setupMediaSources(int count, int duration, int repeatCount, int offset, Map<String, String> headers, List<TextTrack> textTracks) {
         mMediaSources = mock(MediaSources.class);
         MediaSources.MediaSource mediaSource = mock(MediaSources.MediaSource.class);
         when(mediaSource.url()).thenReturn(VIDEO_URL);
@@ -524,6 +540,7 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
         when(mediaSource.repeatCount()).thenReturn(repeatCount);
         when(mediaSource.offset()).thenReturn(offset);
         when(mediaSource.headers()).thenReturn(headers);
+        when(mediaSource.textTracks()).thenReturn(textTracks);
 
         when(mMediaSources.size()).thenReturn(count);
         when(mMediaSources.at(anyInt())).thenReturn(mediaSource);

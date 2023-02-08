@@ -1,0 +1,19 @@
+# ninja log v5
+2	710	1674523819	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o	b90bb51c18f3db72
+2	785	1674523819	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o	4842a28cf44d32f6
+785	1549	1674523820	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o	852be8232853f908
+712	1988	1674523820	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o	bc5cf9fe2bb49592
+3	2060	1674523820	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o	29ff570962547488
+0	3001	1674523821	CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o	863cad265ed501c0
+3	3247	1674523821	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o	c3c07b678de76d86
+1	3292	1674523822	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o	4f97b50f27484245
+1	3521	1674523822	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o	428646c305410493
+0	3741	1674523822	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o	d5c240806ba55e5e
+2	5045	1674523823	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o	747b299040e31cb
+2	5874	1674523824	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o	4622f8ce061b8df4
+0	5921	1674523824	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o	b60034556d016941
+3	6770	1674523825	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o	19c28c531bc2af6e
+1	6899	1674523825	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o	85531e8ab94b2015
+1	8459	1674523827	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o	644a12d82c4f44c0
+8459	8539	1674523827	_deps/aplcore-build/extensions/alexaext/libalexaext.a	785f03b3456862c8
+8539	8711	1674523827	../../../../build/intermediates/cmake/standardRelease/obj/x86/libdiscovery-jni.so	1ee7b5f53af1cb42

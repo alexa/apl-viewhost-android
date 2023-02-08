@@ -6,7 +6,7 @@ project(googletest-unpack NONE)
 
 include(ExternalProject)
 ExternalProject_Add(googletest
-      URL /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/googletest-release-1.8.1.tar.gz
+      URL /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz
       URL_MD5 2e6fbeb6a91310a16efe181886c59596
       SOURCE_DIR        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-src"
       BINARY_DIR        "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-build"

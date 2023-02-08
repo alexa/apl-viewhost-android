@@ -91,12 +91,22 @@ public interface ITtsPlayer {
                     markType = MarkType.SENTENCE;
                 } else if (type.equalsIgnoreCase("ssml")) {
                     markType = MarkType.SSML;
+                } else if (type.equalsIgnoreCase("viseme")) {
+                    markType = MarkType.VISEME;
                 }
+
+                int start = 0;
+                int end = 0;
+                if (markType == MarkType.SENTENCE || markType == MarkType.WORD || markType == MarkType.SSML) {
+                    start = obj.getInt("start");
+                    end = obj.getInt("end");
+                }
+
                 return new SpeechMark(
                         obj.getString("value"),
                         obj.getLong("time"),
-                        obj.getInt("start"),
-                        obj.getInt("end"),
+                        start,
+                        end,
                         markType);
             }
 
@@ -115,7 +125,7 @@ public interface ITtsPlayer {
         }
 
         enum MarkType {
-            UNKNOWN, WORD, SENTENCE, SSML
+            UNKNOWN, WORD, SENTENCE, SSML, VISEME
         }
     }
 

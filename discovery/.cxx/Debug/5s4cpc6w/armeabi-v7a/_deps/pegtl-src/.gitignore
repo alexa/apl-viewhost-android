@@ -1,0 +1,6 @@
+*~
+build
+private
+.vscode
+.idea
+cmake-build-debug

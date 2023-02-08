@@ -1,0 +1,19 @@
+# ninja log v5
+5	1273	1674523798	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o	9ddb7e05871dea43
+2	1471	1674523798	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o	3f4bd741a5275c46
+1471	2695	1674523799	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o	543894f47a792ef2
+1274	3447	1674523800	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o	dee6bc0c26419a8d
+5	3666	1674523800	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o	36ad8afeda178572
+0	5224	1674523802	CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o	5b2a4a01f3610902
+7	5663	1674523802	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o	a598b7917247fd6b
+1	5900	1674523802	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o	44f70f41487c35bd
+2	6113	1674523802	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o	7810627e0a15f2a7
+1	6212	1674523803	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o	ebe71263dc454df1
+4	7642	1674523804	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o	f0e9469d95eb15d1
+1	8147	1674523804	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o	3565eed68bca6bc8
+3	8498	1674523805	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o	6c6e7205a76544e3
+7	9888	1674523806	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o	4058be01454cb776
+2	10197	1674523806	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o	3da5de9107aec1ec
+2	11931	1674523808	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o	d40ec0f471037876
+11931	12465	1674523809	_deps/aplcore-build/extensions/alexaext/libalexaext.a	785f03b3456862c8
+12465	12593	1674523809	../../../../build/intermediates/cmake/standardRelease/obj/armeabi-v7a/libdiscovery-jni.so	82482a6729542622

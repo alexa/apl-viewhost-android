@@ -1,0 +1,157 @@
+{
+	"backtrace" : 6,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"ExternalProject_Add",
+			"include"
+		],
+		"files" : 
+		[
+			"/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/share/cmake-3.18/Modules/ExternalProject.cmake",
+			"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/thirdparty.cmake",
+			"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/components.cmake",
+			"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 3
+			},
+			{
+				"command" : 2,
+				"file" : 3,
+				"line" : 39,
+				"parent" : 0
+			},
+			{
+				"file" : 2,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 86,
+				"parent" : 2
+			},
+			{
+				"file" : 1,
+				"parent" : 3
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 75,
+				"parent" : 4
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 3174,
+				"parent" : 5
+			}
+		]
+	},
+	"folder" : 
+	{
+		"name" : "ExternalProjectTargets/yoga"
+	},
+	"id" : "yoga::@12185f704ca61bd63646",
+	"name" : "yoga",
+	"paths" : 
+	{
+		"build" : "_deps/aplcore-build",
+		"source" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"name" : "CMake Rules",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 6,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/CMakeFiles/yoga",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/CMakeFiles/yoga.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/CMakeFiles/yoga-complete.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-install.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-download.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-update.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-patch.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-configure.rule",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : ".cxx/cmake/standardRelease/arm64-v8a/_deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-build.rule",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "UTILITY"
+}

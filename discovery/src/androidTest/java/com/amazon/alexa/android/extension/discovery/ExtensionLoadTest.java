@@ -15,7 +15,6 @@ import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -64,7 +63,6 @@ public class ExtensionLoadTest extends LeakRulesBaseClass  {
 
 
     @MediumTest
-    @Ignore //Failing, disabling for now
     @Test
     public void testMany_connectThenDisconnect() {
         final String uri = "alexatest:latch:10";
@@ -126,7 +124,6 @@ public class ExtensionLoadTest extends LeakRulesBaseClass  {
 
 
     @MediumTest
-    @Ignore //Failing, disabling for now
     @Test
     public void testMany_connectOrder() {
         final String uri = "alexatest:latch:10";

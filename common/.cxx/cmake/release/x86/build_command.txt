@@ -1,4 +1,4 @@
-                Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake
+                    Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake
 arguments : 
 -H/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common
 -DCMAKE_FIND_ROOT_PATH=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/prefab/x86/prefab
@@ -11,11 +11,14 @@ arguments :
 -DCMAKE_ANDROID_NDK=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 -DCMAKE_LIBRARY_OUTPUT_DIRECTORY=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj/x86
--DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/build/intermediates/cmake/release/obj/x86
+-DCMAKE_MAKE_PROGRAM=/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja
 -DCMAKE_SYSTEM_NAME=Android
 -DCMAKE_SYSTEM_VERSION=22
 -B/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/x86
 -GNinja
 jvmArgs : 
 
-Build command args:
+
+                    Build command args: []
+                    Version: 1

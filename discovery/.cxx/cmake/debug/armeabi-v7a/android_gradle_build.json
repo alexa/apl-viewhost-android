@@ -1,8 +1,8 @@
 {
   "stringTable": {
     "0": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a",
-    "1": "--target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS -I../../../../../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info -fPIC -std=gnu++11",
-    "2": "--target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -I/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include -Iaplcore/include -I/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -fno-exceptions -O0 -fno-limit-debug-info -fPIC -Werror -std=gnu++11",
+    "1": "--target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -Ddiscovery_jni_EXPORTS -I../../../../../../APLCoreEngine/extensions/alexaext/include -Iaplcore/include -I../../../../src/main/cpp/include -Irapidjson-prefix/src/rapidjson/include -I../../../../../common/src/main/cpp/include -I/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info -fPIC -std=gnu++11",
+    "2": "--target=armv7-none-linux-androideabi22 --gcc-toolchain=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64 --sysroot=/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot -DALEXAEXTENSIONS -I/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include -Iaplcore/include -I/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include -Irapidjson-prefix/src/rapidjson/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info -fPIC -Werror -std=gnu++11",
     "3": "null"
   },
   "buildFiles": [
@@ -11,13 +11,13 @@
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake",
     "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/thirdparty/thirdparty.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/thirdparty/googletest-CMakeLists.txt.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/options.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/aplcore/include/apl/apl_config.h.in",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/tools.cmake",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/CMakeLists.txt",
-    "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/CMakeLists.txt"
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/thirdparty.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-CMakeLists.txt.in",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/options.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/include/apl/apl_config.h.in",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/tools.cmake",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
+    "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/CMakeLists.txt"
   ],
   "cleanCommands": [
     "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja -C \"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/armeabi-v7a\" clean"
@@ -409,57 +409,57 @@
       "artifactName": "alexaext",
       "files": [
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/APLWebflowExtension/AplWebflowBase.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLWebflowExtension/AplWebflowBase.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/APLWebflowExtension/AplWebflowExtension.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLWebflowExtension/AplWebflowExtension.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/executor.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/executor.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/extensionmessage.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/extensionmessage.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/extensionregistrar.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/extensionregistrar.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/localextensionproxy.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/localextensionproxy.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/random.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/random.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         },
         {
-          "src": "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/src/sessiondescriptor.cpp",
+          "src": "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/src/sessiondescriptor.cpp",
           "flagsOrdinal": 2,
           "workingDirectoryOrdinal": 0
         }

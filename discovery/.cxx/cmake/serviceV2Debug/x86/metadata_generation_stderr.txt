@@ -1,0 +1,14 @@
+CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  .cxx/cmake/serviceV2Debug/x86/CMakeFiles/3.18.1-g262b901/CMakeSystem.cmake:6 (include)
+  CMakeLists.txt:12 (project)
+
+
+Using Clang
+WARNPlease install Doxygen to generate the documentation
+Building enumgen

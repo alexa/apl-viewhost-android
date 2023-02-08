@@ -1,0 +1,11 @@
+# ninja log v5
+0	82	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-mkdir	2341c8392278f7c2
+82	216	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-download	8179d5c3371048af
+216	243	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-update	f6cbfe05dd6749e6
+243	274	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-patch	6e92d1071c2b8aa
+274	299	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-configure	ac07c762466953f
+299	325	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-build	38eb3b821fa5c2b9
+325	350	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-install	82ee3b03d19e4c1f
+350	376	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-test	15ab8851fc38ecf0
+376	412	1674523792	CMakeFiles/rapidjson-populate-complete	f592f15c1f842864
+376	412	1674523792	rapidjson-populate-prefix/src/rapidjson-populate-stamp/rapidjson-populate-done	f592f15c1f842864

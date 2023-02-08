@@ -1,4 +1,4 @@
-# Install script for directory: /Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions
+# Install script for directory: /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

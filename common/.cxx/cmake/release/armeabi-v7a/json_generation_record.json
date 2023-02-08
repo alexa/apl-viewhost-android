@@ -3,48 +3,21 @@
     "level": "INFO",
     "message": "Start JSON generation. Platform version: 22 min SDK version: armeabi-v7a",
     "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
-  },
-  {
-    "level": "INFO",
-    "message": "Gradle local properties file not found at /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/local.properties",
-    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
-  },
-  {
-    "level": "INFO",
-    "message": "Trying to locate CMake in local SDK repository.",
-    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
-  },
-  {
-    "level": "INFO",
-    "message": "- CMake found in SDK at \u0027/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404\u0027 had version \u00273.10.2\u0027",
-    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
-  },
-  {
-    "level": "INFO",
-    "message": "CMake \u00273.18.1\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
-    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
-  },
-  {
-    "level": "INFO",
-    "message": "CMake \u00273.22.1\u0027 found in SDK did not match requested version \u00273.10.2\u0027.",
-    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
+    "tag": "release|armeabi-v7a",
+    "diagnosticCode": "UNKNOWN"
   },
   {
     "level": "INFO",
     "message": "JSON \u0027/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/armeabi-v7a/android_gradle_build.json\u0027 was up-to-date",
     "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
+    "tag": "release|armeabi-v7a",
+    "diagnosticCode": "UNKNOWN"
   },
   {
     "level": "INFO",
     "message": "JSON generation completed without problems",
     "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/CMakeLists.txt",
-    "tag": "release|armeabi-v7a"
+    "tag": "release|armeabi-v7a",
+    "diagnosticCode": "UNKNOWN"
   }
 ]

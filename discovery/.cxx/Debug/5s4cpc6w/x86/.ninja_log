@@ -1,0 +1,20 @@
+# ninja log v5
+6479	6591	1675292201	_deps/aplcore-build/extensions/alexaext/libalexaext.a	2d7f8ae8b539062f
+964	1762	1671241141	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/sessiondescriptor.cpp.o	f64b05e9ce46dd80
+8	3124	1675292197	CMakeFiles/discovery-jni.dir/src/main/cpp/jnidiscovery.cpp.o	a77e11cfcc123c1c
+6	5769	1675292200	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMetricsExtension/AplMetricsExtension.cpp.o	eb09a2778760230f
+5	6479	1675292201	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp.o	a867f30fe503cf24
+10	3543	1675292198	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionexecutor.cpp.o	b46364fb5bc0b3b
+5	801	1671241140	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/executor.cpp.o	f3b0f090734e4a17
+14	3449	1675292198	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionresource.cpp.o	adf5a8d78e5b29b0
+7	745	1675292195	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowBase.cpp.o	b68c464870384e47
+8	4280	1675292199	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp.o	9511f3347001e1d
+15	2101	1671754395	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionmessage.cpp.o	5391aa65ad0c183f
+5	5483	1675292200	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp.o	eeb37da604693caa
+11	4345	1675292199	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionproxy.cpp.o	4522e8db6773881a
+13	3353	1675292198	CMakeFiles/discovery-jni.dir/src/main/cpp/jniextensionregistrar.cpp.o	b170effc00718954
+7	4908	1675292199	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/APLWebflowExtension/AplWebflowExtension.cpp.o	e94c56af3af9a50f
+6591	6700	1675292201	../../../../build/intermediates/cxx/Debug/5s4cpc6w/obj/x86/libdiscovery-jni.so	cebbf005a85a3d7d
+17	3040	1671754396	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/extensionregistrar.cpp.o	f25869e28639ede6
+801	2095	1671241142	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/random.cpp.o	4ff9424c5acb90bd
+17	5325	1671754398	_deps/aplcore-build/extensions/alexaext/CMakeFiles/alexaext.dir/src/localextensionproxy.cpp.o	8ad6eccc4d67a436

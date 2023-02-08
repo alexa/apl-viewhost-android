@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" STREQUAL "")
+if("/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
-  message(FATAL_ERROR "File not found: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz")
+if(NOT EXISTS "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz")
+  message(FATAL_ERROR "File not found: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -21,13 +21,13 @@ if("28b3c455d9ec392dd4230402383a8c6f" STREQUAL "")
 endif()
 
 message(STATUS "verifying file...
-     file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz'")
+     file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz'")
 
-file("MD5" "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz" actual_value)
+file("MD5" "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz" actual_value)
 
 if(NOT "${actual_value}" STREQUAL "28b3c455d9ec392dd4230402383a8c6f")
   message(FATAL_ERROR "error: MD5 hash of
-  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/pegtl-2.8.3.tar.gz
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/pegtl-2.8.3.tar.gz
 does not match expected value
   expected: '28b3c455d9ec392dd4230402383a8c6f'
     actual: '${actual_value}'

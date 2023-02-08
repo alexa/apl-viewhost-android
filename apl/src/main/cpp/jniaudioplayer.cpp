@@ -49,7 +49,7 @@ namespace apl {
 
             MEDIATRACK_CONSTRUCTOR = env->GetMethodID(MEDIATRACK_CLASS,
                                                       "<init>",
-                                                      "(Ljava/lang/String;[Ljava/lang/String;III)V");
+                                                      "(Ljava/lang/String;[Ljava/lang/String;III[Lcom/amazon/apl/android/media/TextTrack;)V");
 
             AUDIOPLAYER_SET_TRACK = env->GetMethodID(
                     AUDIOPLAYER_CLASS,
@@ -130,7 +130,7 @@ namespace apl {
             const auto &headers = track.headers;
             auto trackObj = env->NewObject(MEDIATRACK_CLASS, MEDIATRACK_CONSTRUCTOR, url,
                                            getStringArray(env, headers), track.offset, track.duration,
-                                           track.repeatCount);
+                                           track.repeatCount, nullptr);
 
             env->CallVoidMethod(mInstance, AUDIOPLAYER_SET_TRACK, trackObj);
             env->DeleteLocalRef(url);

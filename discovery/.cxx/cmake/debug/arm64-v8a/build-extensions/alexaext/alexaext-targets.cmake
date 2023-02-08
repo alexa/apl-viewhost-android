@@ -46,7 +46,7 @@ add_library(alexa::extensions STATIC IMPORTED)
 
 set_target_properties(alexa::extensions PROPERTIES
   INTERFACE_COMPILE_DEFINITIONS "ALEXAEXTENSIONS"
-  INTERFACE_INCLUDE_DIRECTORIES "/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include;/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include;/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"
 )
 
 # Import target "alexa::extensions" for configuration "Debug"

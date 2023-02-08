@@ -20,9 +20,12 @@ extern "C" {
     static const int CHANNEL_MIN = 0;
 
     static int initialSeed = 42;            // initial seed value for softRandom
-    static int currentSeed = initialSeed;   // current seed value
-    static int generate = 0;                // flag for gaussianRand
-    static float z1 = 0.0f;                 // variable for gaussianRand
+
+    // Volatile is needed here to prevent compiler optimizations that cause a Heisenbug.
+    // The compiler optimizations causes the MASK in softRandom to not be applied.
+    static volatile int currentSeed = initialSeed;   // current seed value
+    static int generate = 0;                         // flag for gaussianRand
+    static float z1 = 0.0f;                          // variable for gaussianRand
 
     void reset();
     void noiseFilter(uint32_t *src, int width, int height, int sigma, bool useColor, bool isUniform);

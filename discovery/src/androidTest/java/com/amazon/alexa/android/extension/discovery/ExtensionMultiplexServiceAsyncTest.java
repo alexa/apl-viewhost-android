@@ -4,6 +4,10 @@
  */
 package com.amazon.alexa.android.extension.discovery;
 
+import static org.junit.Assume.assumeTrue;
+
+import android.os.Build;
+
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.alexa.android.extension.discovery.test.TestService;
@@ -26,5 +30,12 @@ public class ExtensionMultiplexServiceAsyncTest extends ExtensionMultiplexServic
         // the Service creation via intent, and Mokito doesn't like mocking/spyinng on
         // the singletons or abstract classes.
         TestService.testAsync = true;
+
+        assumeTrue(
+                "Async message processing on a specific " +
+                        "Looper is not on Android versions earlier than Pie.",
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        );
+
     }
 }

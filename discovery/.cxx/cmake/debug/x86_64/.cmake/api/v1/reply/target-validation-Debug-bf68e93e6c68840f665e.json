@@ -1,0 +1,71 @@
+{
+	"backtrace" : 3,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_custom_target",
+			"include",
+			"add_dependencies"
+		],
+		"files" : 
+		[
+			"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/components.cmake",
+			"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 34,
+				"parent" : 0
+			},
+			{
+				"file" : 0,
+				"parent" : 1
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 130,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 146,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 138,
+				"parent" : 2
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 4,
+			"id" : "target_validate_forbidden_functions::@12185f704ca61bd63646"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "target_validate_includes::@12185f704ca61bd63646"
+		}
+	],
+	"id" : "validation::@12185f704ca61bd63646",
+	"name" : "validation",
+	"paths" : 
+	{
+		"build" : "_deps/aplcore-build",
+		"source" : "/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

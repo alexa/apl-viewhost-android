@@ -16,6 +16,8 @@ import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.blender.Blender;
+import com.amazon.apl.android.image.filters.blender.BlenderFactory;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.enums.BlendMode;
 
@@ -34,6 +36,9 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
     static {
         mModeActorMap.put(BlendMode.kBlendModeNormal, ScriptIntrinsicBlend::forEachSrcOver);
         mModeActorMap.put(BlendMode.kBlendModeMultiply, ScriptIntrinsicBlend::forEachMultiply);
+        mModeActorMap.put(BlendMode.kBlendModeSourceAtop, ScriptIntrinsicBlend::forEachSrcAtop);
+        mModeActorMap.put(BlendMode.kBlendModeSourceIn, ScriptIntrinsicBlend::forEachSrcIn);
+        mModeActorMap.put(BlendMode.kBlendModeSourceOut, ScriptIntrinsicBlend::forEachSrcOut);
     }
 
     BlendFilterOperation(List<Future<FilterResult>> sourceFutures, Filters.Filter filter, IBitmapFactory bitmapFactory, @NonNull RenderScriptWrapper renderScript) {
@@ -84,7 +89,7 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
             // If renderscript hasn't been implemented yet, we fallback to the slower Blender implementation.
             if (getScriptActor() == null) {
                 FilterBitmaps bitmaps = createFilterBitmaps();
-                return new BitmapFilterResult(Blender.performBlending(bitmaps.source(), bitmaps.destination(), bitmaps.result(), getFilter().blendMode()), getBitmapFactory());
+                return new BitmapFilterResult(BlenderFactory.getBlender(getFilter().blendMode()).performBlending(bitmaps.source(), bitmaps.destination(), bitmaps.result()), getBitmapFactory());
             } else {
                 return super.call();
             }

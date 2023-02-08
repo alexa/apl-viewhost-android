@@ -176,6 +176,9 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
             case SENTENCE:
                 markType = SpeechMarkType.kSpeechMarkSentence;
                 break;
+            case VISEME:
+                markType = SpeechMarkType.kSpeechMarkViseme;
+                break;
             case SSML:
                 markType = SpeechMarkType.kSpeechMarkSSML;
                 break;

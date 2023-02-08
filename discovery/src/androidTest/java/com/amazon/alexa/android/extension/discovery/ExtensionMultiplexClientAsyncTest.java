@@ -4,15 +4,18 @@
  */
 package com.amazon.alexa.android.extension.discovery;
 
+import android.os.Build;
 import android.os.HandlerThread;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ClientConnection;
 import com.amazon.alexa.android.extension.discovery.ExtensionMultiplexClient.ConnectionCallback;
+import com.amazon.alexa.android.extension.discovery.test.TestService;
 
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 
 
 /**
@@ -21,6 +24,18 @@ import static org.junit.Assert.assertNotNull;
  */
 @RunWith(AndroidJUnit4.class)
 public class ExtensionMultiplexClientAsyncTest extends ExtensionMultiplexClientTest {
+
+    @Override
+    public void doBefore() {
+        super.doBefore();
+
+        assumeTrue(
+                "Async message processing on a specific " +
+                        "Looper is not on Android versions earlier than Pie.",
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+        );
+
+    }
 
     @Override
     protected ClientConnection createTestConnect(String uri, ConnectionCallback callback) {

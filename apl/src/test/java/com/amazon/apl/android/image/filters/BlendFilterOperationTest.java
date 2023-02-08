@@ -90,6 +90,66 @@ public class BlendFilterOperationTest extends RenderScriptOperationTest<BlendFil
     }
 
     @Test
+    public void test_mode_source_atop() {
+        init(Arrays.asList(createDummyBitmap(), createDummyBitmap()),
+                Filters.Filter.builder()
+                        .filterType(FilterType.kFilterTypeBlend)
+                        .source(0)
+                        .destination(1)
+                        .blendMode(BlendMode.kBlendModeSourceAtop)
+                        .build());
+        Bitmap source = getSourceAt(0).getBitmap();
+        Bitmap dest = getSourceAt(1).getBitmap();
+        when(mRenderScript.createFromBitmap(eq(source), any(), anyInt())).thenReturn(mAllocIn);
+        when(mRenderScript.createFromBitmap(eq(dest), any(), anyInt())).thenReturn(mAllocOut);
+
+        FilterResult result = getFilterOperation().call();
+        assertNotNull(result.getBitmap());
+
+        verify(mScriptIntrinsic).forEachSrcAtop(eq(mAllocIn), eq(mAllocOut));
+    }
+
+    @Test
+    public void test_mode_source_in() {
+        init(Arrays.asList(createDummyBitmap(), createDummyBitmap()),
+                Filters.Filter.builder()
+                        .filterType(FilterType.kFilterTypeBlend)
+                        .source(0)
+                        .destination(1)
+                        .blendMode(BlendMode.kBlendModeSourceIn)
+                        .build());
+        Bitmap source = getSourceAt(0).getBitmap();
+        Bitmap dest = getSourceAt(1).getBitmap();
+        when(mRenderScript.createFromBitmap(eq(source), any(), anyInt())).thenReturn(mAllocIn);
+        when(mRenderScript.createFromBitmap(eq(dest), any(), anyInt())).thenReturn(mAllocOut);
+
+        FilterResult result = getFilterOperation().call();
+        assertNotNull(result.getBitmap());
+
+        verify(mScriptIntrinsic).forEachSrcIn(eq(mAllocIn), eq(mAllocOut));
+    }
+
+    @Test
+    public void test_mode_source_out() {
+        init(Arrays.asList(createDummyBitmap(), createDummyBitmap()),
+                Filters.Filter.builder()
+                        .filterType(FilterType.kFilterTypeBlend)
+                        .source(0)
+                        .destination(1)
+                        .blendMode(BlendMode.kBlendModeSourceOut)
+                        .build());
+        Bitmap source = getSourceAt(0).getBitmap();
+        Bitmap dest = getSourceAt(1).getBitmap();
+        when(mRenderScript.createFromBitmap(eq(source), any(), anyInt())).thenReturn(mAllocIn);
+        when(mRenderScript.createFromBitmap(eq(dest), any(), anyInt())).thenReturn(mAllocOut);
+
+        FilterResult result = getFilterOperation().call();
+        assertNotNull(result.getBitmap());
+
+        verify(mScriptIntrinsic).forEachSrcOut(eq(mAllocIn), eq(mAllocOut));
+    }
+
+    @Test
     public void test_getWithException_returnsTransparentBitmap() throws Exception {
         Future<FilterResult> thrownFuture = mock(Future.class);
         when(thrownFuture.get(any(long.class), any(TimeUnit.class))).thenThrow(new ExecutionException("thrown", new Exception()));

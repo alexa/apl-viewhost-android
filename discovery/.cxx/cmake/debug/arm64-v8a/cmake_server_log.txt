@@ -51,7 +51,7 @@ CMAKE SERVER: {
     "-DCMAKE_MAKE_PROGRAM\u003d/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
     "-DCMAKE_SYSTEM_NAME\u003dAndroid",
     "-DCMAKE_SYSTEM_VERSION\u003d22",
-    "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library"
+    "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine"
   ]
 }
 
@@ -61,7 +61,7 @@ CMAKE SERVER:
 
 CMAKE SERVER: [== "CMake Server" ==[
 
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  .cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  CMakeLists.txt:9 (project)\n\n","title":"Warning","type":"message"}
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake:94 (include)\n  CMakeLists.txt:9 (project)\n\n","title":"Warning","type":"message"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 
@@ -72,7 +72,7 @@ CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599
   CMake's built-in compiler identification.
 Call Stack (most recent call first):
   /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
-  .cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake:94 (include)
   CMakeLists.txt:9 (project)
 
 CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
@@ -82,9 +82,535 @@ CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599
   CMake's built-in compiler identification.
 Call Stack (most recent call first):
   /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
-  .cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake:94 (include)
   CMakeLists.txt:9 (project)
 
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang
+CMAKE SERVER: Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":33,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang -- works","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang -- works
+CMAKE SERVER: Check for working C compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang -- works
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting C compiler ABI info","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting C compiler ABI info
+CMAKE SERVER: Detecting C compiler ABI info
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":65,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting C compiler ABI info - done","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting C compiler ABI info - done
+CMAKE SERVER: Detecting C compiler ABI info - done
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting C compile features","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting C compile features
+CMAKE SERVER: Detecting C compile features
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":96,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":126,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":155,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting C compile features - done","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting C compile features - done
+CMAKE SERVER: Detecting C compile features - done
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
+CMAKE SERVER: Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":184,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ -- works","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ -- works
+CMAKE SERVER: Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ -- works
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting CXX compiler ABI info","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting CXX compiler ABI info
+CMAKE SERVER: Detecting CXX compiler ABI info
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":211,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting CXX compiler ABI info - done","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting CXX compiler ABI info - done
+CMAKE SERVER: Detecting CXX compiler ABI info - done
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting CXX compile features","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting CXX compile features
+CMAKE SERVER: Detecting CXX compile features
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":237,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":262,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":287,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):\n  An old version of CMake is being used that cannot automatically detect\n  compiler attributes.  Compiler identification is being bypassed.  Some\n  values may be wrong or missing.  Update to CMake 3.19 or newer to use\n  CMake's built-in compiler identification.\nCall Stack (most recent call first):\n  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)\n  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)\n\n","title":"Warning","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: CMake Warning at /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake:416 (message):
+  An old version of CMake is being used that cannot automatically detect
+  compiler attributes.  Compiler identification is being bypassed.  Some
+  values may be wrong or missing.  Update to CMake 3.19 or newer to use
+  CMake's built-in compiler identification.
+Call Stack (most recent call first):
+  /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake:55 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake:6 (include)
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/CMakeFiles/CMakeTmp/CMakeLists.txt:2 (project)
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":311,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"Detecting CXX compile features - done","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: Detecting CXX compile features - done
+CMAKE SERVER: Detecting CXX compile features - done
+CMAKE SERVER: 
+
+CMAKE SERVER: [== "CMake Server" ==[
+
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"VERBOSEUsingyogaincludedirectory=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga","type":"message"}
+
+CMAKE SERVER: ]== "CMake Server" ==]
+
+CMAKE SERVER: VERBOSEUsingyogaincludedirectory=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga
+CMAKE SERVER: VERBOSEUsingyogaincludedirectory=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga
 CMAKE SERVER: 
 
 CMAKE SERVER: [== "CMake Server" ==[
@@ -95,36 +621,6 @@ CMAKE SERVER: ]== "CMake Server" ==]
 
 CMAKE SERVER: VERBOSEUsingyogalib=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/lib/libyogacore.a
 CMAKE SERVER: VERBOSEUsingyogalib=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/lib/libyogacore.a
-CMAKE SERVER: 
-
-CMAKE SERVER: [== "CMake Server" ==[
-
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"VERBOSEYoga include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga","type":"message"}
-
-CMAKE SERVER: ]== "CMake Server" ==]
-
-CMAKE SERVER: VERBOSEYoga include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga
-CMAKE SERVER: VERBOSEYoga include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga
-CMAKE SERVER: 
-
-CMAKE SERVER: [== "CMake Server" ==[
-
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"VERBOSEPEGTL include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl/include","type":"message"}
-
-CMAKE SERVER: ]== "CMake Server" ==]
-
-CMAKE SERVER: VERBOSEPEGTL include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl/include
-CMAKE SERVER: VERBOSEPEGTL include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl/include
-CMAKE SERVER: 
-
-CMAKE SERVER: [== "CMake Server" ==[
-
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","message":"VERBOSERapidjson include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include","type":"message"}
-
-CMAKE SERVER: ]== "CMake Server" ==]
-
-CMAKE SERVER: VERBOSERapidjson include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include
-CMAKE SERVER: VERBOSERapidjson include directory /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include
 CMAKE SERVER: -- Configuring done
 
 CMAKE SERVER: -- Configuring done
@@ -134,14 +630,71 @@ CMAKE SERVER: -- Generating done
 CMAKE SERVER: -- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-download
 
 CMAKE SERVER: -- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-download
-CMAKE SERVER: ninja: no work to do.
+CMAKE SERVER: [1/9] Creating directories for 'googletest'
 
-CMAKE SERVER: ninja: no work to do.
+CMAKE SERVER: [1/9] Creating directories for 'googletest'
+CMAKE SERVER: [2/9] Performing download step (verify and extract) for 'googletest'
+
+CMAKE SERVER: [2/9] Performing download step (verify and extract) for 'googletest'
+CMAKE SERVER: -- verifying file...
+
+CMAKE SERVER: -- verifying file...
+CMAKE SERVER:      file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
+
+CMAKE SERVER:      file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
+CMAKE SERVER: -- verifying file... done
+
+CMAKE SERVER: -- verifying file... done
+CMAKE SERVER: -- extracting...
+
+CMAKE SERVER: -- extracting...
+CMAKE SERVER:      src='/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
+
+CMAKE SERVER:      src='/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
+CMAKE SERVER:      dst='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-src'
+
+CMAKE SERVER:      dst='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/googletest-src'
+CMAKE SERVER: -- extracting... [tar xfz]
+
+CMAKE SERVER: -- extracting... [tar xfz]
+CMAKE SERVER: -- extracting... [analysis]
+
+CMAKE SERVER: -- extracting... [analysis]
+CMAKE SERVER: -- extracting... [rename]
+
+CMAKE SERVER: -- extracting... [rename]
+CMAKE SERVER: -- extracting... [clean up]
+
+CMAKE SERVER: -- extracting... [clean up]
+CMAKE SERVER: -- extracting... done
+
+CMAKE SERVER: -- extracting... done
+CMAKE SERVER: [3/9] No update step for 'googletest'
+
+CMAKE SERVER: [3/9] No update step for 'googletest'
+CMAKE SERVER: [4/9] No patch step for 'googletest'
+
+CMAKE SERVER: [4/9] No patch step for 'googletest'
+CMAKE SERVER: [5/9] No configure step for 'googletest'
+
+CMAKE SERVER: [5/9] No configure step for 'googletest'
+CMAKE SERVER: [6/9] No build step for 'googletest'
+
+CMAKE SERVER: [6/9] No build step for 'googletest'
+CMAKE SERVER: [7/9] No install step for 'googletest'
+
+CMAKE SERVER: [7/9] No install step for 'googletest'
+CMAKE SERVER: [8/9] No test step for 'googletest'
+
+CMAKE SERVER: [8/9] No test step for 'googletest'
+CMAKE SERVER: [9/9] Completed 'googletest'
+
+CMAKE SERVER: [9/9] Completed 'googletest'
 CMAKE SERVER: 
 
 CMAKE SERVER: [== "CMake Server" ==[
 
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":599,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":334,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 
@@ -149,7 +702,7 @@ CMAKE SERVER:
 
 CMAKE SERVER: [== "CMake Server" ==[
 
-CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":899,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
+CMAKE SERVER: {"cookie":"","inReplyTo":"configure","progressCurrent":356,"progressMaximum":1000,"progressMessage":"Configuring","progressMinimum":0,"type":"progress"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 
@@ -252,7 +805,7 @@ CMAKE SERVER:
 
 CMAKE SERVER: [== "CMake Server" ==[
 
-CMAKE SERVER: {"buildFiles":[{"isCMake":true,"isTemporary":false,"sources":["/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in"]},{"isCMake":false,"isTemporary":false,"sources":["CMakeLists.txt","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake","../../apl-core-library/thirdparty/thirdparty.cmake","../../apl-core-library/thirdparty/googletest-CMakeLists.txt.in","../../apl-core-library/options.cmake","../../apl-core-library/aplcore/include/apl/apl_config.h.in","../../apl-core-library/tools.cmake","../../apl-core-library/extensions/CMakeLists.txt","../../apl-core-library/extensions/alexaext/CMakeLists.txt"]},{"isCMake":false,"isTemporary":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCCompiler.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake",".cxx/cmake/debug/arm64-v8a/yoga-prefix/tmp/yoga-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/tmp/pegtl-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/tmp/enumgen-cfgcmd.txt.in"]}],"cmakeRootDirectory":"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10","cookie":"","inReplyTo":"cmakeInputs","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"reply"}
+CMAKE SERVER: {"buildFiles":[{"isCMake":true,"isTemporary":false,"sources":["/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineSystem.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystem.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInitialize.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Initialize.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-C.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCXXCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Determine-CXX.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android/Determine-Compiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeFindBinUtils.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-FindBinUtils.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeSystemSpecificInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeGenericSystem.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Linux.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/UnixPaths.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/GNU.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/CMakeCommonCompilerMacros.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-C.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompilerABI.c","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-C-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCCompiler.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeLanguageInformation.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang-CXX.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Platform/Android-Clang.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCommonLanguageInclude.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCXXCompiler.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeTestCompilerCommon.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompilerABI.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeParseImplicitLinkInfo.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompilerABI.cpp","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeDetermineCompileFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Internal/FeatureTesting.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-FeatureTests.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/Compiler/Clang-CXX-TestableFeatures.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/CMakeCXXCompiler.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject.cmake","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/RepositoryInfo.txt.in","/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10/Modules/ExternalProject-verify.cmake.in"]},{"isCMake":false,"isTemporary":false,"sources":["CMakeLists.txt","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android-legacy.toolchain.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/platforms.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/compiler_id.cmake","/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake","../../APLCoreEngine/thirdparty/thirdparty.cmake","../../APLCoreEngine/thirdparty/googletest-CMakeLists.txt.in","../../APLCoreEngine/options.cmake","../../APLCoreEngine/aplcore/include/apl/apl_config.h.in","../../APLCoreEngine/tools.cmake","../../APLCoreEngine/extensions/CMakeLists.txt","../../APLCoreEngine/extensions/alexaext/CMakeLists.txt"]},{"isCMake":false,"isTemporary":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeSystem.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCCompiler.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.c",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.c",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.c",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCCompiler.cmake",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.cxx",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.cxx",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.cxx",".cxx/cmake/debug/arm64-v8a/CMakeFiles/feature_tests.cxx",".cxx/cmake/debug/arm64-v8a/CMakeFiles/3.10.2/CMakeCXXCompiler.cmake",".cxx/cmake/debug/arm64-v8a/yoga-prefix/tmp/yoga-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/tmp/pegtl-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/tmp/rapidjson-cfgcmd.txt.in",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/tmp/enumgen-cfgcmd.txt.in"]}],"cmakeRootDirectory":"/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/share/cmake-3.10","cookie":"","inReplyTo":"cmakeInputs","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"reply"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 
@@ -266,7 +819,7 @@ CMAKE SERVER:
 
 CMAKE SERVER: [== "CMake Server" ==[
 
-CMAKE SERVER: {"configurations":[{"name":"Debug","projects":[{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","name":"AlexaExt","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -fno-exceptions -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions","name":"Extensions","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -fno-exceptions -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","name":"discovery-jni","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj/arm64-v8a/libdiscovery-jni.so"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info  -fPIC   -std=gnu++11","defines":["ALEXAEXTENSIONS","discovery_jni_EXPORTS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../common/src/main/cpp/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include"}],"isGenerated":false,"language":"CXX","sources":["src/main/cpp/jnidiscovery.cpp","src/main/cpp/jniextensionexecutor.cpp","src/main/cpp/jniextensionproxy.cpp","src/main/cpp/jniextensionregistrar.cpp","src/main/cpp/jniextensionresource.cpp"]}],"fullName":"libdiscovery-jni.so","linkFlags":"-static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments","linkLibraries":"-llog build-extensions/alexaext/libalexaext.a -latomic -lm","linkerLanguage":"CXX","name":"discovery-jni","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"SHARED_LIBRARY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-complete.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"]}],"fullName":"pegtl","name":"pegtl","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen",".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen-complete.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule"]}],"fullName":"enumgen","name":"enumgen","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga",".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga-complete.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-install.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-download.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-update.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-patch.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-configure.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-build.rule"]}],"fullName":"yoga","name":"yoga","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-build",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-build.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"]}],"fullName":"rapidjson-build","name":"rapidjson-build","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-complete.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"]}],"fullName":"rapidjson","name":"rapidjson","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-build",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-build.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"]}],"fullName":"pegtl-build","name":"pegtl-build","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -fno-exceptions -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/apl-core-library/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]}]}],"cookie":"","inReplyTo":"codemodel","type":"reply"}
+CMAKE SERVER: {"configurations":[{"name":"Debug","projects":[{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","name":"AlexaExt","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions","name":"Extensions","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","name":"discovery-jni","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","targets":[{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj/arm64-v8a/libdiscovery-jni.so"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info  -fPIC   -std=gnu++11","defines":["ALEXAEXTENSIONS","discovery_jni_EXPORTS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/src/main/cpp/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../common/src/main/cpp/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include"}],"isGenerated":false,"language":"CXX","sources":["src/main/cpp/jnidiscovery.cpp","src/main/cpp/jniextensionexecutor.cpp","src/main/cpp/jniextensionproxy.cpp","src/main/cpp/jniextensionregistrar.cpp","src/main/cpp/jniextensionresource.cpp"]}],"fullName":"libdiscovery-jni.so","linkFlags":"-static-libstdc++ -Wl,--build-id=sha1 -Wl,--no-rosegment -Wl,--fatal-warnings -Wl,--no-undefined -Qunused-arguments","linkLibraries":"-llog build-extensions/alexaext/libalexaext.a -latomic -lm","linkerLanguage":"CXX","name":"discovery-jni","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"SHARED_LIBRARY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-complete.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-install.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule"]}],"fullName":"pegtl","name":"pegtl","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen",".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/enumgen-complete.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-install.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-mkdir.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-download.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-update.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-patch.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-configure.rule",".cxx/cmake/debug/arm64-v8a/enumgen-prefix/src/enumgen-stamp/enumgen-build.rule"]}],"fullName":"enumgen","name":"enumgen","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga",".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/yoga-complete.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-install.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-mkdir.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-download.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-update.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-patch.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-configure.rule",".cxx/cmake/debug/arm64-v8a/yoga-prefix/src/yoga-stamp/yoga-build.rule"]}],"fullName":"yoga","name":"yoga","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-build",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-build.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule"]}],"fullName":"rapidjson-build","name":"rapidjson-build","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson.rule",".cxx/cmake/debug/arm64-v8a/CMakeFiles/rapidjson-complete.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-install.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-mkdir.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-download.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-update.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-patch.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-configure.rule",".cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson-stamp/rapidjson-build.rule"]}],"fullName":"rapidjson","name":"rapidjson","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a","fileGroups":[{"isGenerated":true,"sources":[".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-build",".cxx/cmake/debug/arm64-v8a/CMakeFiles/pegtl-build.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-build.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-configure.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-update.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-patch.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-download.rule",".cxx/cmake/debug/arm64-v8a/pegtl-prefix/src/pegtl-stamp/pegtl-mkdir.rule"]}],"fullName":"pegtl-build","name":"pegtl-build","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery","type":"UTILITY"},{"artifacts":["/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext/libalexaext.a"],"buildDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/build-extensions/alexaext","fileGroups":[{"compileFlags":"-g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security  -std=c++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS=On -DALEXAEXTENSIONS=1 -O0 -fno-limit-debug-info  -fPIC   -Werror -std=gnu++11","defines":["ALEXAEXTENSIONS"],"includePath":[{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/aplcore/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext/include"},{"path":"/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/arm64-v8a/rapidjson-prefix/src/rapidjson/include"}],"isGenerated":false,"language":"CXX","sources":["src/APLAudioPlayerExtension/AplAudioPlayerExtension.cpp","src/APLE2EEncryptionExtension/AplE2eEncryptionExtension.cpp","src/APLWebflowExtension/AplWebflowBase.cpp","src/APLWebflowExtension/AplWebflowExtension.cpp","src/APLMusicAlarmExtension/AplMusicAlarmExtension.cpp","src/executor.cpp","src/extensionmessage.cpp","src/extensionregistrar.cpp","src/localextensionproxy.cpp","src/random.cpp","src/sessiondescriptor.cpp"]}],"fullName":"libalexaext.a","linkerLanguage":"CXX","name":"alexaext","sourceDirectory":"/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/alexaext","sysroot":"/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/sysroot","type":"STATIC_LIBRARY"}]}]}],"cookie":"","inReplyTo":"codemodel","type":"reply"}
 
 CMAKE SERVER: ]== "CMake Server" ==]
 

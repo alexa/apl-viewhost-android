@@ -9,6 +9,8 @@ import android.os.Looper;
 
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import static com.amazon.apl.android.APLController.setLibraryFuture;
+import static junit.framework.TestCase.assertNull;
+
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.bitmap.IBitmapPool;
@@ -34,8 +36,11 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
@@ -329,5 +334,64 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         verify(mViewPresenter).addDocumentLifecycleListener(mockTelemetry);
         verify(mContentCompleteCallback).onComplete();
+    }
+
+    @Test
+    public void testExecuteCommandsCallback_is_called_when_action_is_null() throws InterruptedException {
+        // Setup RootContext to return null action
+        when(mRootContext.executeCommands(any(String.class))).thenReturn(null);
+        IAPLController.ExecuteCommandsCallback callback = mock(IAPLController.ExecuteCommandsCallback.class);
+        // Act
+        mController.onDocumentDisplayed();
+        mController.executeCommands("commands", callback);
+        // Verify that callback is still called with null action
+        verify(callback).onExecuteCommands(null);
+    }
+
+    @Test
+    public void waitForAPLInitialize_futureSet_futureCheckedTrueReturned() {
+        final AtomicBoolean futureValChecked = new AtomicBoolean(false);
+
+        Future f = new Future() {
+            @Override
+            public boolean cancel(boolean b) {
+                return false;
+            }
+
+            @Override
+            public boolean isCancelled() {
+                return false;
+            }
+
+            @Override
+            public boolean isDone() {
+                return false;
+            }
+
+            @Override
+            public Object get() throws ExecutionException, InterruptedException {
+                futureValChecked.set(true);
+                return true;
+            }
+
+            @Override
+            public Object get(long l, TimeUnit timeUnit) throws ExecutionException, InterruptedException, TimeoutException {
+                futureValChecked.set(true);
+                return true;
+            }
+        };
+
+        setLibraryFuture(f);
+
+        assertTrue(APLController.waitForInitializeAPLToComplete(null));
+        assertTrue(futureValChecked.get());
+    }
+    
+    @Test
+    public void waitForAPLInitialize_initializeAPLNotCalledFirst_falseReturned() {
+        // mimic initializeAPL not being called
+        setLibraryFuture(null);
+
+        assertFalse(APLController.waitForInitializeAPLToComplete(mock(ITelemetryProvider.class)));
     }
 }

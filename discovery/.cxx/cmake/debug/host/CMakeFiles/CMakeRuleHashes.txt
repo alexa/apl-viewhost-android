@@ -1,0 +1,14 @@
+# Hashes of file build rules.
+5fcdb7530573a395e833ae602a2a5e4a _deps/aplcore-build/CMakeFiles/target_validate_forbidden_functions
+5fcdb7530573a395e833ae602a2a5e4a _deps/aplcore-build/CMakeFiles/target_validate_includes
+5fcdb7530573a395e833ae602a2a5e4a _deps/aplcore-build/CMakeFiles/yoga
+40f2398e8cf2b97804aaa158ed7fde66 _deps/aplcore-build/CMakeFiles/yoga-complete
+412d3fa2d2c2cf4ef796809b9e1e37b5 _deps/aplcore-build/forbidden_function_validation
+dfbc7f6f72461407c3002446200e01aa _deps/aplcore-build/include_validation
+61a6ee0af1f1894c2b620b7881a0397a _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-build
+10830a80b921697c53ca0be621b1d20e _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-configure
+640630ad3473e498cd10df07a7292575 _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-download
+6c2cd42537730668faa4c6c89cdcae72 _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-install
+b8988e0adfa253ce952415892f4a7008 _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-mkdir
+cf239ae9c8133503f04394806ac95879 _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-patch
+788cf628a5372cf7a69fbfa58b33db66 _deps/aplcore-build/yoga-prefix/src/yoga-stamp/yoga-update

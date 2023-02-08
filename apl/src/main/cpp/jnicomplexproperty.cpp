@@ -27,12 +27,16 @@ namespace apl {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
+
+        static jclass TEXTTRACK_CLASS;
+        static jclass TEXTTYPE_CLASS;
+        static jmethodID TEXTTRACK_CONSTRUCTOR;
+        static jmethodID TEXTTYPE_VALUEOF;
         /**
          * Create a class and method cache for calls to View Host.
          */
         jboolean
         complexproperty_OnLoad(JavaVM *vm, void *reserved) {
-
             LOG(apl::LogLevel::kDebug) << "Loading View Host ComplexProperty JNI environment.";
 
             JNIEnv *env;
@@ -42,6 +46,14 @@ namespace apl {
 
             JAVA_LANG_STRING = reinterpret_cast<jclass>(env->NewGlobalRef(env->FindClass("java/lang/String")));
 
+            TEXTTRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
+                    env->FindClass("com/amazon/apl/android/media/TextTrack")));
+            TEXTTYPE_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
+                    env->FindClass("com/amazon/apl/enums/TextTrackType")));
+
+            TEXTTRACK_CONSTRUCTOR = env->GetMethodID(TEXTTRACK_CLASS, "<init>",
+                                                     "(Lcom/amazon/apl/enums/TextTrackType;Ljava/lang/String;Ljava/lang/String;)V");
+            TEXTTYPE_VALUEOF = env->GetStaticMethodID(TEXTTYPE_CLASS,"valueOf", "(I)Lcom/amazon/apl/enums/TextTrackType;");
             return JNI_TRUE;
         }
 
@@ -575,6 +587,37 @@ namespace apl {
             auto source = array[index].get<MediaSource>();
             return static_cast<jint>(source.getRepeatCount());
         }
+
+        JNIEXPORT jobjectArray JNICALL
+        Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceTextTracksAt(JNIEnv *env, jclass clazz,
+                                                                                             jlong handle,
+                                                                                             jint propertyId,
+                                                                                             jint index) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            const auto& array = value.getArray();
+            const auto& source = array[index].get<MediaSource>();
+            const auto& textTracks = source.getTextTracks();
+
+            jobjectArray textTrackObjectArray = env->NewObjectArray(textTracks.size(),TEXTTRACK_CLASS, nullptr);
+
+            for (int i = 0; i < textTracks.size(); i++) {
+                auto textUrl = env->NewStringUTF(textTracks[i].url.c_str());
+                auto textDescription = env->NewStringUTF(
+                        textTracks[i].description.c_str());
+                auto textTrackObj = env->NewObject(TEXTTRACK_CLASS, TEXTTRACK_CONSTRUCTOR,
+                                                   env->CallStaticObjectMethod(TEXTTYPE_CLASS,
+                                                                               TEXTTYPE_VALUEOF,
+                                                                               0),
+                                                   textUrl, textDescription);
+                env->SetObjectArrayElement(textTrackObjectArray, i, textTrackObj);
+                env->DeleteLocalRef(textUrl);
+                env->DeleteLocalRef(textDescription);
+                env->DeleteLocalRef(textTrackObj);
+            }
+
+            return textTrackObjectArray;
+        }
+
 
         JNIEXPORT jstring JNICALL
         Java_com_amazon_apl_android_primitive_BoundMediaSources_nGetMediaSourceUrlAt(JNIEnv *env, jclass clazz,

@@ -35,7 +35,7 @@ public interface IAPLController {
      * Callback for the Action associated with invoking ExecuteCommands.
      */
     interface ExecuteCommandsCallback {
-        void onExecuteCommands(@NonNull Action action);
+        void onExecuteCommands(@Nullable Action action);
     }
 
     /**

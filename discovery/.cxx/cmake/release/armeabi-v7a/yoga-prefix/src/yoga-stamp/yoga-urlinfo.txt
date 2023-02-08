@@ -1,3 +1,0 @@
-repository='external project URL'
-module='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/yoga-1.19.0.tar.gz'
-tag='MD5=284d6752a3fea3937a1abd49e826b109'

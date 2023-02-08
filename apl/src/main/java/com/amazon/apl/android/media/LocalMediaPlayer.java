@@ -17,6 +17,8 @@ import java.lang.ref.WeakReference;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class LocalMediaPlayer extends MediaPlayer {
     private static final String TAG = "LocalMediaPlayer";
@@ -98,6 +100,7 @@ public class LocalMediaPlayer extends MediaPlayer {
                     .offset(mediaTrack.getOffset())
                     .repeatCount(mediaTrack.getRepeatCount())
                     .headers(HttpUtils.listToHeadersMap(mediaTrack.getHeaders()))
+                    .textTracks(Arrays.asList(mediaTrack.getTextTracks()))
                     .build();
             sources.add(source);
         }

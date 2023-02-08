@@ -77,7 +77,7 @@
         },
         {
           "name": "APL_CORE_DIR",
-          "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library"
+          "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine"
         }
       ]
     }
@@ -92,7 +92,7 @@
   "originalCxxBuildFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86",
   "variant": {
     "buildSystemArgumentList": [
-      "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library",
+      "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine",
       " -DCMAKE_VERBOSE_MAKEFILE\u003dON"
     ],
     "buildTargetSet": [
@@ -191,6 +191,7 @@
       "project": {
         "compilerSettingsCacheFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
         "cxxFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/.cxx",
+        "ideBuildTargetAbi": "x86",
         "isBuildOnlyTargetAbiEnabled": true,
         "isCmakeBuildCohabitationEnabled": false,
         "isNativeCompilerSettingsCacheEnabled": false,
@@ -214,8 +215,6 @@
     "objFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj",
     "variantName": "debug",
     "validAbiList": [
-      "ARMEABI_V7A",
-      "ARM64_V8A",
       "X86"
     ],
     "prefabDirectory": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/prefab",

@@ -1,3 +1,3 @@
 # ninja log v5
-0	434	1670545366	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	fad20dd451e52d42
-435	527	1670545366	../../../../build/intermediates/cmake/release/obj/x86/libcommon-jni.so	f5bc8761c2bc2d2
+0	423	1674523780	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	382ec2db62bc6370
+424	517	1674523780	../../../../build/intermediates/cmake/release/obj/x86/libcommon-jni.so	1ec9a2ecba37a1b9

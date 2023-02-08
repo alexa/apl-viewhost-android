@@ -1,0 +1,3 @@
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86/_deps/pegtl-subbuild/CMakeFiles/rebuild_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86/_deps/pegtl-subbuild/CMakeFiles/edit_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86/_deps/pegtl-subbuild/CMakeFiles/pegtl-populate.dir

@@ -3,12 +3,12 @@
 
 cmake_minimum_required(VERSION 3.5)
 
-if("/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz" STREQUAL "")
+if("/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz" STREQUAL "")
   message(FATAL_ERROR "LOCAL can't be empty")
 endif()
 
-if(NOT EXISTS "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz")
-  message(FATAL_ERROR "File not found: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz")
+if(NOT EXISTS "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz")
+  message(FATAL_ERROR "File not found: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz")
 endif()
 
 if("MD5" STREQUAL "")
@@ -21,13 +21,13 @@ if("badd12c511e081fec6c89c43a7027bce" STREQUAL "")
 endif()
 
 message(STATUS "verifying file...
-     file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz'")
+     file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz'")
 
-file("MD5" "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz" actual_value)
+file("MD5" "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz" actual_value)
 
 if(NOT "${actual_value}" STREQUAL "badd12c511e081fec6c89c43a7027bce")
   message(FATAL_ERROR "error: MD5 hash of
-  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../apl-core-library/thirdparty/rapidjson-v1.1.0.tar.gz
+  /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/rapidjson-v1.1.0.tar.gz
 does not match expected value
   expected: 'badd12c511e081fec6c89c43a7027bce'
     actual: '${actual_value}'

@@ -1,0 +1,14 @@
+# Target labels
+ googletest
+# Source files and their labels
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/CMakeFiles/googletest
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/CMakeFiles/googletest.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/CMakeFiles/googletest-complete.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-install.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-mkdir.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-download.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-update.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-patch.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-configure.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-build.rule
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/googletest-download/googletest-prefix/src/googletest-stamp/googletest-test.rule

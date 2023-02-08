@@ -1,0 +1,11 @@
+# ninja log v5
+0	457	1671143568	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	fbc7b306bb17a41a
+458	590	1671143568	../../../../build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so	6e4232e6bef522ed
+2	757	1671241396	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	fbc7b306bb17a41a
+757	919	1671241396	../../../../build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so	6e4232e6bef522ed
+1	316	1674154368	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	fbc7b306bb17a41a
+316	419	1674154368	../../../../build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so	6e4232e6bef522ed
+2	102	1674173436	../../../../build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so	6e4232e6bef522ed
+0	23	0	clean	ba4b903905e82655
+1	434	1674176424	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	fbc7b306bb17a41a
+434	543	1674176424	../../../../build/intermediates/cmake/debug/obj/x86_64/libcommon-jni.so	6e4232e6bef522ed

@@ -21,11 +21,11 @@
       ],
       "buildRoot": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64",
       "cmakeToolchain": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
-      "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
+      "cmakeExecutable": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake",
       "variables": [
         {
           "name": "CMAKE_CXX_FLAGS",
-          "value": "-std\u003dc++11 -frtti -fexceptions -DBUILD_ALEXAEXTENSIONS\u003dOn -DALEXAEXTENSIONS\u003d1"
+          "value": "-std\u003dc++11 -fno-rtti -fno-exceptions"
         },
         {
           "name": "CMAKE_FIND_ROOT_PATH",
@@ -73,7 +73,7 @@
         },
         {
           "name": "CMAKE_MAKE_PROGRAM",
-          "value": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja"
+          "value": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja"
         },
         {
           "name": "CMAKE_SYSTEM_NAME",
@@ -86,6 +86,10 @@
         {
           "name": "APL_CORE_DIR",
           "value": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine"
+        },
+        {
+          "name": "CMAKE_VERBOSE_MAKEFILE",
+          "value": "ON"
         }
       ]
     },
@@ -94,15 +98,13 @@
   "variant": {
     "buildSystemArgumentList": [
       "-DAPL_CORE_DIR\u003d/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine",
-      " -DCMAKE_VERBOSE_MAKEFILE\u003dON"
+      "-DCMAKE_VERBOSE_MAKEFILE\u003dON"
     ],
     "cFlagsList": [],
     "cppFlagsList": [
       "-std\u003dc++11",
-      "-frtti",
-      "-fexceptions",
-      "-DBUILD_ALEXAEXTENSIONS\u003dOn",
-      "-DALEXAEXTENSIONS\u003d1"
+      "-fno-rtti",
+      "-fno-exceptions"
     ],
     "variantName": "debug",
     "objFolder": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/debug/obj",
@@ -197,9 +199,9 @@
       "cmakeToolchainFile": "/Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/build/cmake/android.toolchain.cmake",
       "cmake": {
         "isValidCmakeAvailable": true,
-        "cmakeExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/cmake",
-        "minimumCmakeVersion": "3.10.2",
-        "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja",
+        "cmakeExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake",
+        "minimumCmakeVersion": "3.18.1",
+        "ninjaExe": "/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja",
         "isPreferCmakeFileApiEnabled": true
       },
       "stlSharedObjectMap": {

@@ -582,13 +582,6 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         Component component = null;
         ComponentType type = ComponentType.valueOf(typeId);
         switch (type) {
-            case kComponentTypeSequence:
-            case kComponentTypeGridSequence:
-            case kComponentTypeContainer:
-            case kComponentTypeScrollView:
-            case kComponentTypeTouchWrapper:
-                component = new MultiChildComponent(nativeHandle, componentId, getRenderingContext());
-                break;
             case kComponentTypePager:
                 component = new Pager(nativeHandle, componentId, getRenderingContext());
                 break;
@@ -614,6 +607,10 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
                 component = (Boolean) mRootConfig.getProperty(RootProperty.kDisallowEditText) ?
                     new NoOpComponent(nativeHandle, componentId, getRenderingContext()) :
                     new EditText(nativeHandle, componentId, getRenderingContext());
+                break;
+            default:
+                component = new MultiChildComponent(nativeHandle, componentId, getRenderingContext());
+                break;
         }
 
         //TODO remove this, component should not have ref to RootContext

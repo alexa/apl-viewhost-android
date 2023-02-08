@@ -1,4 +1,4 @@
-Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.10.2.4988404/bin/ninja
+Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja
 arguments : 
 -C
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/x86_64

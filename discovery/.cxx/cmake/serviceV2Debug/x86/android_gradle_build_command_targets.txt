@@ -1,0 +1,8 @@
+Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja
+arguments : 
+-C
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/x86
+alexaext
+discovery-jni
+jvmArgs : 
+
