@@ -18,6 +18,7 @@ import com.amazon.apl.enums.TextAlign;
 import com.amazon.apl.enums.TextAlignVertical;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import static com.amazon.apl.enums.PropertyKey.kPropertyText;
 import static org.junit.Assert.assertEquals;
@@ -111,4 +112,33 @@ public class TextTest extends AbstractComponentUnitTest<APLTextView, Text> {
         assertEquals(LayoutDirection.kLayoutDirectionRTL, proxy.getLayoutDirection());
     }
 
+    @Test
+    public void test_GetCharacterOffsetByRange() {
+        String doc = buildDocument("\"text\": \"Abcdef役場産業課および\"");
+        inflateDocument(doc, null);
+
+        Text component = getTestComponent();
+
+        // Existing behaviour for ASCII
+        assertForCalculateCharacterOffsetByRange(component, 0, 0, 0, 0);
+        assertForCalculateCharacterOffsetByRange(component, 1, 1, 1, 1);
+        assertForCalculateCharacterOffsetByRange(component, 0, 5, 0, 5);
+        assertForCalculateCharacterOffsetByRange(component, 1, 5, 1, 5);
+
+        // 3 byte characters.
+        assertForCalculateCharacterOffsetByRange(component,6, 6, 6, 8);
+        assertForCalculateCharacterOffsetByRange(component,7, 7,9, 11);
+        assertForCalculateCharacterOffsetByRange(component,0, 9, 0, 17);
+
+        //Invalid Range
+        assertEquals(-1, component.calculateCharacterOffsetByRange(16, 16));
+    }
+
+    // Existing behaviour is (start + end) / 2 but this assumes all characters are a single byte.
+    // So we want to keep the same behaviour but adjust it to work with multibyte characters.
+    private void assertForCalculateCharacterOffsetByRange(Text component,
+                                                          int characterRangeStart, int characterRangeEnd,
+                                                          int rangeStart, int rangeEnd) {
+        assertEquals((characterRangeStart + characterRangeEnd) / 2, component.calculateCharacterOffsetByRange(rangeStart, rangeEnd));
+    }
 }

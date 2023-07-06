@@ -15,6 +15,8 @@
 
 namespace apl {
 
-const char *sCoreRepositoryVersion = "apl-2023.2-01.24.2023-4-g33062ef6";
+const char *sCoreRepositoryVersion = "apl-2023.3-05.09.2023-5-g6710785a-dirty";
+
+int kEvaluationDepthLimit = 5;
 
 } // namespace apl

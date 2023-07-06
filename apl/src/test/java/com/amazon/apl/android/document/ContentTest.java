@@ -1215,7 +1215,7 @@ public class ContentTest extends ViewhostRobolectricTest {
         assertFalse("Expected document not error.", content.isError());
 
         verifySuccessTelemetry();
-        verifyImportsTelemetry(3);
+        verifyImportsTelemetry(1);
     }
 
     // used as abstraction for user doc sample

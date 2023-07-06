@@ -14,14 +14,14 @@ import java.util.Map;
 
 
 /**
- * APL Set Page Event
+ * APL Send Event
  * See @{link <a https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-standard-commands.html#sendevent-command>
  * APL Command Specification</a>}
  */
 public class SendEvent extends Event {
     private static final String TAG = "SendEvent";
 
-    private final ISendEventCallbackV2 mSendEventCallback;
+    private ISendEventCallbackV2 mSendEventCallback;
 
     /**
      * Constructs the Event.
@@ -61,5 +61,12 @@ public class SendEvent extends Event {
     @Override
     public void terminate() {
 
+    }
+
+    /**
+     * A helper function for the new viewhost abstraction to take over handling of this event
+     */
+    public void overrideCallback(ISendEventCallbackV2 callback) {
+        mSendEventCallback = callback;
     }
 }

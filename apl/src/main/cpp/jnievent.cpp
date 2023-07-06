@@ -7,6 +7,7 @@
 #include "jnievent.h"
 #include "jniutil.h"
 #include "jnimetricstransform.h"
+#include "jnidocumentcontext.h"
 
 namespace apl {
     namespace jni {
@@ -90,6 +91,14 @@ namespace apl {
                                                    jlong eventHandle) {
             auto event = get<Event>(eventHandle);
             return static_cast<jint>(event->getType());
+        }
+
+        JNIEXPORT jlong JNICALL
+        Java_com_amazon_apl_android_Event_nGetDocumentContextId(JNIEnv *env,
+                                                               jclass clazz,
+                                                               jlong eventHandle) {
+            auto event = get<Event>(eventHandle);
+            return getDocumentContextId(event->getDocument());
         }
 
         JNIEXPORT jstring JNICALL

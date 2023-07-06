@@ -36,7 +36,133 @@
   },
   {
     "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/action/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/audio/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
     "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/command/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/component/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/content/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datagrammar/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datasource/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/document/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/embed/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/engine/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/extension/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/focus/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/graphic/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/media/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/primitives/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/time/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/touch/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/utils/CMakeLists.txt",
+    "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
+    "tag": "serviceV2Debug|arm64-v8a",
+    "diagnosticCode": "UNKNOWN"
+  },
+  {
+    "level": "INFO",
+    "message": "  - /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/extensions/CMakeLists.txt",
     "file": "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/CMakeLists.txt",
     "tag": "serviceV2Debug|arm64-v8a",
     "diagnosticCode": "UNKNOWN"

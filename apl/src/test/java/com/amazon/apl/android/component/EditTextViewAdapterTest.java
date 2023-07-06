@@ -30,6 +30,7 @@ import com.amazon.apl.enums.SubmitKeyType;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -275,6 +276,18 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
             getView().setText(testCase.first);
             assertEquals(testCase.second, getView().getText().toString());
         }
+    }
+
+    @Test
+    public void testEmojis(){
+        applyAllProperties();
+        // This should not crash and render properly
+        getView().setText("\uD83D\uDE20"); //Angry Emoji > 0xFFFF
+        assertEquals("\uD83D\uDE20", getView().getText().toString()); //Persevere Emoji > 0xFFFF
+        getView().getText().append("\uD83D\uDE23");
+        assertEquals("\uD83D\uDE20\uD83D\uDE23", getView().getText().toString());
+        getView().getText().append("\uD83D\uDE24"); //Face with look of triumph > 0xFFFF
+        assertEquals("\uD83D\uDE20\uD83D\uDE23\uD83D\uDE24", getView().getText().toString());
     }
 
     @Test

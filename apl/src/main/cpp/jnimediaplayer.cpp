@@ -27,6 +27,7 @@ namespace apl {
         static jmethodID MEDIAPLAYER_PREVIOUS;
         static jmethodID MEDIAPLAYER_REWIND;
         static jmethodID MEDIAPLAYER_SEEK;
+        static jmethodID MEDIAPLAYER_SEEK_TO;
         static jmethodID MEDIAPLAYER_MUTE;
         static jmethodID MEDIAPLAYER_UNMUTE;
         static jmethodID MEDIATRACK_CONSTRUCTOR;
@@ -57,14 +58,11 @@ namespace apl {
                     env->FindClass("com/amazon/apl/android/media/MediaTrack")));
             TEXTTRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("com/amazon/apl/android/media/TextTrack")));
-            TEXTTYPE_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
-                    env->FindClass("com/amazon/apl/enums/TextTrackType")));
 
             MEDIATRACK_CONSTRUCTOR = env->GetMethodID(MEDIATRACK_CLASS, "<init>",
                                                       "(Ljava/lang/String;[Ljava/lang/String;III[Lcom/amazon/apl/android/media/TextTrack;)V");
             TEXTTRACK_CONSTRUCTOR = env->GetMethodID(TEXTTRACK_CLASS, "<init>",
-                                                      "(Lcom/amazon/apl/enums/TextTrackType;Ljava/lang/String;Ljava/lang/String;)V");
-            TEXTTYPE_VALUEOF = env->GetStaticMethodID(TEXTTYPE_CLASS,"valueOf", "(I)Lcom/amazon/apl/enums/TextTrackType;");
+                                                     "(ILjava/lang/String;Ljava/lang/String;)V");
             MEDIAPLAYER_SET_TRACK_LIST = env->GetMethodID(MEDIAPLAYER_CLASS, "setTrackList",
                                                           "(Ljava/util/List;)V");
             MEDIAPLAYER_SET_TRACK_INDEX = env->GetMethodID(MEDIAPLAYER_CLASS, "setTrackIndex",
@@ -78,6 +76,7 @@ namespace apl {
             MEDIAPLAYER_PREVIOUS = env->GetMethodID(MEDIAPLAYER_CLASS, "previous","()V");
             MEDIAPLAYER_REWIND = env->GetMethodID(MEDIAPLAYER_CLASS, "rewind","()V");
             MEDIAPLAYER_SEEK = env->GetMethodID(MEDIAPLAYER_CLASS, "seek", "(I)V");
+            MEDIAPLAYER_SEEK_TO = env->GetMethodID(MEDIAPLAYER_CLASS, "seekTo", "(I)V");
             MEDIAPLAYER_SET_MUTE = env->GetMethodID(MEDIAPLAYER_CLASS, "setMute", "(Z)V");
 
             if (nullptr == MEDIAPLAYER_VM_REFERENCE
@@ -93,6 +92,7 @@ namespace apl {
                 || nullptr == MEDIAPLAYER_PREVIOUS
                 || nullptr == MEDIAPLAYER_REWIND
                 || nullptr == MEDIAPLAYER_SEEK
+                || nullptr == MEDIAPLAYER_SEEK_TO
                 || nullptr == MEDIAPLAYER_SET_MUTE) {
                 return JNI_FALSE;
             }
@@ -189,10 +189,9 @@ namespace apl {
                     auto textUrl = env->NewStringUTF(track.textTracks[i].url.c_str());
                     auto textDescription = env->NewStringUTF(
                             track.textTracks[i].description.c_str());
+                    int textType = static_cast<int>(track.textTracks[i].type);
                     auto textTrackObj = env->NewObject(TEXTTRACK_CLASS, TEXTTRACK_CONSTRUCTOR,
-                                                       env->CallStaticObjectMethod(TEXTTYPE_CLASS,
-                                                                                   TEXTTYPE_VALUEOF,
-                                                                                   0),
+                                                       textType,
                                                        textUrl, textDescription);
                     env->SetObjectArrayElement(textTrackObjectArray, i, textTrackObj);
                     env->DeleteLocalRef(textUrl);
@@ -320,6 +319,21 @@ namespace apl {
             resolveExistingAction();
 
             env->CallVoidMethod(mInstance, MEDIAPLAYER_SEEK, offset);
+        }
+
+        void
+        AndroidMediaPlayer::seekTo(int offset) {
+            JNIEnv *env;
+            if (MEDIAPLAYER_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env),
+                                                 JNI_VERSION_1_6) != JNI_OK) {
+                LOG(apl::LogLevel::kError) << "Environment failure, cannot proceed";
+                return;
+            }
+
+            if (!isActive()) return;
+            resolveExistingAction();
+
+            env->CallVoidMethod(mInstance, MEDIAPLAYER_SEEK_TO, offset);
         }
 
         void

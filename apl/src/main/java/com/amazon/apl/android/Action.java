@@ -8,6 +8,7 @@ package com.amazon.apl.android;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.amazon.apl.viewhost.internal.DocumentContext;
 import com.amazon.common.BoundObject;
 
 import java.lang.ref.WeakReference;
@@ -19,14 +20,17 @@ public class Action extends BoundObject {
     @Nullable
     private Runnable thenCallback;
     private final WeakReference<RootContext> mWeakRootContext;
+    private final WeakReference<DocumentContext> mWeakDocumentContext;
 
-    public Action(long handle, RootContext rootContext) {
+    public Action(long handle, RootContext rootContext, DocumentContext documentContext) {
         bind(handle);
         nInit(getNativeHandle());
         mWeakRootContext = new WeakReference<>(rootContext);
-        rootContext.addPending(this);
+        mWeakDocumentContext = new WeakReference<>(documentContext);
+        if (rootContext != null) {
+            rootContext.addPending(this);
+        }
     }
-
     /**
      * Will call `Runnable.run` when this action has been terminated, for example,
      * if `RootContext.cancelExecution` is called.
@@ -74,6 +78,7 @@ public class Action extends BoundObject {
             rootContext.removePending(this);
         }
         mWeakRootContext.clear();
+        mWeakDocumentContext.clear();
     }
 
     /**

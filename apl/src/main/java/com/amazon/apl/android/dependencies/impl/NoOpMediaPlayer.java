@@ -89,6 +89,11 @@ public class NoOpMediaPlayer implements IMediaPlayer {
     }
 
     @Override
+    public void seekTo(int msec) {
+
+    }
+
+    @Override
     public void rewind() {
 
     }

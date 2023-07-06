@@ -42,6 +42,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -81,12 +84,15 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private IContentCompleteCallback mContentCompleteCallback;
     @Mock
     private DocumentSession mDocumentSession;
+    @Mock
+    private ITelemetryProvider mTelemetryProvider;
 
     private APLController mController;
 
     @Before
     public void setup() {
         mController = new APLController(mRootContext, mContent);
+        when(mOptions.getTelemetryProvider()).thenReturn(mTelemetryProvider);
         when(mRootContext.executeCommands(any())).thenReturn(mAction);
         when(mRootContext.getOptions()).thenReturn(mOptions);
         when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
@@ -113,7 +119,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         mController.cancelExecution();
 
         mController.onDocumentRender(mRootContext);
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         Robolectric.flushForegroundThreadScheduler();
 
         InOrder inOrder = inOrder(mRootContext);
@@ -150,7 +156,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         mController.executeCommands("b", null);
 
         mController.onDocumentRender(mRootContext);
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         Robolectric.flushForegroundThreadScheduler();
 
         InOrder inOrder = inOrder(mRootContext);
@@ -174,7 +180,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         thread.start();
         verifyNoInteractions(mRootContext);
 
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         outer.await();
         shadowOf(Looper.getMainLooper()).idle();
         verify(mRootContext).executeCommands(eq("commands"));
@@ -183,7 +189,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
     @Test
     public void testActionCallbackInvoked() throws InterruptedException {
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         CountDownLatch latch = new CountDownLatch(1);
         mController.executeCommands("commands", action -> {
             assertEquals(mAction, action);
@@ -198,7 +204,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         mController.resumeDocument();
         verify(mRootContext, never()).resumeDocument();
         // Document is displayed. After this all RootContext runnables should execute.
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         Robolectric.flushForegroundThreadScheduler();
 
         mController.resumeDocument();
@@ -227,12 +233,36 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
     @Test
     public void testDisplayStateChanges() {
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         mController.updateDisplayState(DisplayState.kDisplayStateBackground);
         verify(mRootContext).updateDisplayState(eq(DisplayState.kDisplayStateBackground));
 
         mController.updateDisplayState(DisplayState.kDisplayStateForeground);
         verify(mRootContext).updateDisplayState(eq(DisplayState.kDisplayStateForeground));
+    }
+
+    @Test
+    public void testOnDocumentDisplayedStopTimer() {
+        APLOptions aplOptions = APLOptions.builder()
+                .contentCompleteCallback(mContentCompleteCallback)
+                .telemetryProvider(mTelemetryProvider).build();
+
+        when(mTelemetryProvider.createMetricId(anyString(), anyString(), eq(ITelemetryProvider.Type.COUNTER)))
+                .thenReturn(1);
+
+        APLController controller = (APLController)APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(aplOptions)
+                .contentCreator(((aplDocument, options, callbackV2, session) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .documentSession(mDocumentSession)
+                .render();
+
+        controller.onDocumentRender(mRootContext);
+
+        controller.onDocumentDisplayed(System.currentTimeMillis());
+        verify(mTelemetryProvider).stopTimer(anyInt(), any(TimeUnit.class), anyLong());
     }
 
     @Test
@@ -342,7 +372,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         when(mRootContext.executeCommands(any(String.class))).thenReturn(null);
         IAPLController.ExecuteCommandsCallback callback = mock(IAPLController.ExecuteCommandsCallback.class);
         // Act
-        mController.onDocumentDisplayed();
+        mController.onDocumentDisplayed(System.currentTimeMillis());
         mController.executeCommands("commands", callback);
         // Verify that callback is still called with null action
         verify(callback).onExecuteCommands(null);

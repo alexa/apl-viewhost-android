@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.primitive.Rect;
-import com.amazon.apl.android.primitive.StyledText;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.text.LineSpan;
 import com.amazon.apl.enums.PropertyKey;
@@ -167,6 +166,31 @@ public class Text extends Component {
         return new android.graphics.Rect(left, top, right, bottom);
     }
 
+    public int calculateCharacterOffsetByRange(int rangeStart, int rangeEnd) {
+        // rangeStart and rangeEnd are byte ranges, so we need to convert them to character ranges.
+
+        // Since the ranges are inclusive, we need to add 1 to turn it into a size.
+        int rangeSize = (rangeEnd - rangeStart) + 1;
+
+        // Count the number of utf8 codepoints between 0 and rangeStart.
+        int characterRangeStart = nCountCharactersInRange(getNativeHandle(), 0, rangeStart);
+
+        // Similar to the above, we also need to count the number of utf8 codepoints for rangeEnd. However, we know the number of code points
+        // for rangeStart, so we just need to count the ones between rangeStart and rangeEnd.
+        int characterRangeCount = nCountCharactersInRange(getNativeHandle(), rangeStart, rangeSize);
+
+        // Subtract 1 to turn it back into an inclusive range.
+        int characterRangeEnd = (characterRangeStart + characterRangeCount - 1);
+
+        // -1 is a failure due to formatting or bad range.
+        if (characterRangeStart == -1 || characterRangeCount == -1) {
+            return -1;
+        }
+
+        // Keeping previous behaviour to get the character offset in the middle of the range.
+        return (characterRangeStart + characterRangeEnd) / 2;
+    }
+
     /**
      * Gets the line number by range
      */
@@ -177,7 +201,7 @@ public class Text extends Component {
             return -1;
         }
 
-        return textLayout.getLineForOffset((rangeStart + rangeEnd)/2);
+        return textLayout.getLineForOffset(calculateCharacterOffsetByRange(rangeStart, rangeEnd));
     }
 
     private Layout getTextLayout() {
@@ -208,4 +232,6 @@ public class Text extends Component {
     public String getText() {
         return getProxy().getStyledText().getUnprocessedText();
     }
+
+    private static native int nCountCharactersInRange(long nativeHandle, int index, int count);
 }

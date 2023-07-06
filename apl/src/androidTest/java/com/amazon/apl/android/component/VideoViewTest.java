@@ -270,6 +270,9 @@ public class VideoViewTest extends AbstractComponentViewTest<View, Video> {
         fakeMediaPlayer.seek(currentSeekPosition);
         assertEquals(currentTrackIndex, fakeMediaPlayer.getCurrentTrackIndex());
         assertEquals(currentSeekPosition, fakeMediaPlayer.getCurrentSeekPosition());
+
+        fakeMediaPlayer.seekTo(currentSeekPosition);
+        assertEquals(currentSeekPosition, fakeMediaPlayer.getCurrentSeekPosition());
     }
 
     private void verifyAddMediaStateListener(FakeMediaPlayer fakeMediaPlayer,
@@ -368,6 +371,11 @@ public class VideoViewTest extends AbstractComponentViewTest<View, Video> {
         @Override
         public void seek(int msec) {
             mCurrentSeekPosition = msec;
+        }
+
+        @Override
+        public void seekTo(int msec) {
+            seek(msec);
         }
 
         @Override

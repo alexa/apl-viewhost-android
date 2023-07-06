@@ -217,6 +217,8 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         DocumentState documentState = new DocumentState(ctx, mContent);
         ctx = RootContext.createFromCachedDocumentState(documentState, mPresenter);
 
+        verify(mPresenter, times(2)).preDocumentRender();
+
         // The factory created a new callback from the previous native object
         verify(mFactorySpy).create(eq(mRootConfig), eq(ctx.getRenderingContext().getMetricsTransform()), any(TextMeasure.class));
         assertEquals(address, mCallback.getNativeAddress());

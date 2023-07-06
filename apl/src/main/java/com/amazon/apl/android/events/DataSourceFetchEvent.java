@@ -22,7 +22,7 @@ public class DataSourceFetchEvent extends Event {
 
     private static final String TAG = "DataSourceFetchEvent";
 
-    private final IDataSourceFetchCallback mDataSourceFetchCallback;
+    private IDataSourceFetchCallback mDataSourceFetchCallback;
 
     private DataSourceFetchEvent(
             final long nativeHandle,
@@ -50,5 +50,12 @@ public class DataSourceFetchEvent extends Event {
     @Override
     public void terminate() {
         // Do nothing.
+    }
+
+    /**
+     * A helper function for the new viewhost abstraction to take over handling of this event
+     */
+    public void overrideCallback(IDataSourceFetchCallback callback) {
+        mDataSourceFetchCallback = callback;
     }
 }

@@ -85,7 +85,7 @@ public class ExtensionClientTest extends ViewhostRobolectricTest {
         assertEquals(mUri, jsonObject.getString("uri"));
         JSONObject settingsJson = jsonObject.optJSONObject("settings");
         assertEquals("bar", settingsJson.getString("foo"));
-        assertEquals(1.0, jsonObject.opt("flags"));
+        assertEquals(1, jsonObject.opt("flags"));
         assertEquals("1.0", jsonObject.getString("version"));
         assertEquals("Register", jsonObject.getString("method"));
     }

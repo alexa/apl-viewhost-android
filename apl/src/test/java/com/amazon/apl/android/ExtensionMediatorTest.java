@@ -24,6 +24,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -128,6 +129,23 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     }
 
     @Test
+    public void testInitializeExtensions_without_rootConfig_specific_grantedExtensions_loads_only_those_extensions() throws InterruptedException {
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+        mediator.initializeExtensions(new HashMap<>(), content, (uri) -> {
+            if ("alexaext:myextA:10".equals(uri)) {
+                return true;
+            }
+            return false;
+        });
+        mediator.loadExtensions(new HashMap<>(), content, mOnCompleteCallback);
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+        verify(mExtensionProvider).hasExtension("alexaext:myextA:10");
+        verify(mExtensionProvider, never()).hasExtension("alexaext:myextB:10");
+    }
+
+    @Test
     public void testExecutor() throws InterruptedException {
         // given
         RootConfig rootConfig = RootConfig.create();
@@ -141,6 +159,29 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
         // when
         mediator.initializeExtensions(rootConfig, content, uri -> true);
         mediator.loadExtensions(rootConfig, content, mOnCompleteCallback);
+
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+
+        shadowOf(getMainLooper()).idle();
+
+        // then: should not segfault in JNI native code
+        verify(extension).initialize(any(), any());
+        verify(extension).onRegistered(eq(TestLiveDataLocalExtension.URI), anyString());
+    }
+
+    @Test
+    public void testExecutorWithoutRootConfig() throws InterruptedException {
+        // given
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
+        LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
+        extensionRegistrar.registerExtension(legacyLocalExtensionProxy);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+
+        // when
+        mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
+        mediator.loadExtensions(new HashMap<>(), content, mOnCompleteCallback);
 
         mCallbackLatch.await(2, TimeUnit.SECONDS);
 

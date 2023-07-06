@@ -21,6 +21,7 @@ import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.os.Build;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -302,29 +303,47 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
     @Override
     protected void onAttachedToWindow() {
+        Log.i(TAG, "super.onAttachedToWindow() called");
         super.onAttachedToWindow();
+        Log.i(TAG, "super.onAttachedToWindow() completed successfully");
         registerTimeZoneReceiver();
         registerAccessibilityListener();
     }
 
     @Override
     protected void onDetachedFromWindow() {
+        Log.i(TAG, "super.onDetachedFromWindow() called");
         super.onDetachedFromWindow();
-        getContext().unregisterReceiver(mTimezoneReceiver);
+        Log.i(TAG, "super.onDetachedFromWindow() completed successfully");
+        unregisterTimeZoneReceiver();
         mAccessibilityManager.removeAccessibilityStateChangeListener(this);
     }
 
+    private void unregisterTimeZoneReceiver() {
+        Log.i(TAG, "Unregistering mTimezoneReceiver from context: " + mTimezoneReceiver.toString());
+        try {
+            getContext().unregisterReceiver(mTimezoneReceiver);
+        } catch (final Exception e) {
+            Log.wtf(TAG, "Error while unregistering mTimezoneReceiver", e);
+        }
+        Log.i(TAG, "Unregistered mTimezoneReceiver successfully");
+    }
+
     private void registerTimeZoneReceiver() {
+        Log.i(TAG, "registerTimeZoneReceiver() called");
         // Update current time if we're being attached.
         if (mRootContext != null) {
             Calendar now = Calendar.getInstance();
             long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
             mRootContext.setLocalTimeAdjustment(offset);
         }
+        Log.i(TAG, "Adding timezone actions on filter");
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
         filter.addAction(Intent.ACTION_TIME_CHANGED);
+        Log.i(TAG, "Registering mTimezoneReceiver on context: " + mTimezoneReceiver.toString());
         getContext().registerReceiver(mTimezoneReceiver, filter);
+        Log.i(TAG, "Registered mTimezoneReceiver successfully");
     }
 
     @VisibleForTesting
@@ -480,6 +499,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         private int tRenderDocument = ITelemetryProvider.UNKNOWN_METRIC_ID;
         // start time of the Document Render "time to glass"
         private long mRenderStartTime;
+        private boolean mIsRenderStartTimeSet = false;
 
         private ShadowBitmapRenderer mShadowRenderer;
         @NonNull
@@ -608,7 +628,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         @Override
         public void preDocumentRender() {
-            mRenderStartTime = System.currentTimeMillis();
+            mIsRenderStartTimeSet = true;
+            mRenderStartTime = SystemClock.elapsedRealtime();
         }
 
         @Override
@@ -634,7 +655,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             tRenderDocument = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
                     ITelemetryProvider.RENDER_DOCUMENT, TIMER);
 
-            long seedTime = System.currentTimeMillis() - mRenderStartTime;
+            long seedTime = (mIsRenderStartTimeSet ? SystemClock.elapsedRealtime() - mRenderStartTime : 0);
+            mIsRenderStartTimeSet = false;
             mTelemetryProvider.startTimer(tRenderDocument, TimeUnit.MILLISECONDS, seedTime);
 
             APLLayout.this.onDocumentRender(rootContext);
@@ -672,7 +694,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         @Override
         public void onDocumentDisplayed() {
-            final long documentDisplayedTime = System.currentTimeMillis();
+            final long documentDisplayedTime = SystemClock.elapsedRealtime();
 
             if (tRenderDocument != ITelemetryProvider.UNKNOWN_METRIC_ID) {
                 mTelemetryProvider.stopTimer(tRenderDocument);
@@ -992,11 +1014,23 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 for (int i = 0; i < count; i++) {
                     final View child = getChildAt(i);
                     if (child.getVisibility() != GONE) {
+
                         // Place the child.
-                        IMetricsTransform transform = mRootContext.getMetricsTransform();
+
                         final FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) child.getLayoutParams();
-                        int left = lp.leftMargin + transform.getViewportOffsetX();
-                        int top = lp.rightMargin + transform.getViewportOffsetY();
+
+                        int left = lp.leftMargin;
+                        int top = lp.rightMargin;
+
+                        // When APLController.getRuntimeConfig().isClearViewsOnFinish() == false, onFinish()
+                        // will not clear() views. So control may reach here while mRootContext is null
+                        if (mRootContext != null) {
+                            IMetricsTransform transform = mRootContext.getMetricsTransform();
+                            left += transform.getViewportOffsetX();
+                            top += transform.getViewportOffsetY();
+                        } else {
+                            Log.w(TAG, "Got onLayout() when mRootContext was null, skipping applying transforms");
+                        }
 
                         child.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY),
                                 MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
@@ -1066,8 +1100,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     @UiThread
     private void updateViewInLayout(@NonNull Component component, @NonNull View view) {
         Rect bounds = component.getBounds();
-        int w = (int) bounds.getWidth();
-        int h = (int) bounds.getHeight();
+        int w = bounds.intWidth();
+        int h = bounds.intHeight();
         int l = bounds.intLeft();
         int t = bounds.intTop();
 

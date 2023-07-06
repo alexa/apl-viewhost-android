@@ -50,13 +50,6 @@ namespace apl {
             ON_TERMINATE_CALLBACK = env->GetMethodID(ACTION_CLASS, "onTerminate", "()V");
             ON_THEN = env->GetMethodID(ACTION_CLASS, "onThen", "()V");
 
-            Action::setUserDataReleaseCallback([](void* ptr) {
-                auto* data = reinterpret_cast<rapidjson::Document*>(ptr);
-                if(data) {
-                    delete data;
-                }
-            });
-
             if (nullptr == ACTION_CLASS
                 || nullptr == ON_TERMINATE_CALLBACK
                 || nullptr == ON_THEN) {

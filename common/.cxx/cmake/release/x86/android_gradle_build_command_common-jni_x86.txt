@@ -1,7 +1,0 @@
-Executable : /Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/ninja
-arguments : 
--C
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/cmake/release/x86
-common-jni
-jvmArgs : 
-

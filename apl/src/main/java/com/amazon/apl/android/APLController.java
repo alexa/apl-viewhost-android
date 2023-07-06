@@ -8,6 +8,7 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.MainThread;
@@ -31,6 +32,7 @@ import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.enums.DisplayState;
+import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.common.NativeBinding;
 
 import java.util.Map;
@@ -185,6 +187,10 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, Session session);
     }
 
+    private void initializeDocumentManager(@NonNull final RootConfig rootConfig, @NonNull EmbeddedDocumentFactory embeddedDocumentFactory) {
+        rootConfig.setDocumentManager(embeddedDocumentFactory, mMainHandler);
+    }
+
     /**
      * Internal constructor for an APLController.
      *
@@ -216,6 +222,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
         aplLayout.setAgentName(rootConfig);
         final APLController aplController = new APLController(contentCreator);
+
+        if(options.getEmbeddedDocumentFactory() != null) {
+            aplController.initializeDocumentManager(rootConfig, options.getEmbeddedDocumentFactory());
+        }
+
         if (!isInitialized(options.getTelemetryProvider())) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
             aplController.onDocumentFinish();
@@ -224,7 +235,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
         final ITelemetryProvider telemetryProvider = options.getTelemetryProvider();
         aplController.mRenderDocumentTimer = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, TAG + "." + ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
-        long seed = System.currentTimeMillis() - startTime;
+        long seed = SystemClock.elapsedRealtime() - startTime;
         telemetryProvider.startTimer(aplController.mRenderDocumentTimer, TimeUnit.MILLISECONDS, seed);
 
         final IAPLViewPresenter presenter = aplLayout.getPresenter();
@@ -748,11 +759,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     }
 
     @Override
-    public void onDocumentDisplayed() {
+    public void onDocumentDisplayed(long documentDisplayedTime) {
         mIsDisplayed.set(true);
         ITelemetryProvider telemetryProvider = getTelemetryProvider();
         if (telemetryProvider != null && mRenderDocumentTimer != null) {
-            telemetryProvider.stopTimer(mRenderDocumentTimer);
+            telemetryProvider.stopTimer(mRenderDocumentTimer, TimeUnit.MILLISECONDS, documentDisplayedTime);
             mRenderDocumentTimer = null;
         }
 
@@ -816,7 +827,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         private RootConfig rootConfig;
         private APLOptions aplOptions;
         private APLLayout aplLayout;
-        private long startTime = System.currentTimeMillis();
+        private long startTime = SystemClock.elapsedRealtime();
         private InflationErrorCallback errorCallback = exception -> Log.e(TAG, "Exception inflating document!", exception);
         private IContentCreator contentCreator = Content::create;
         private boolean disableAsyncInflate;
@@ -863,8 +874,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         }
 
         /**
-         * Sets the start time for this document for performance measurements.
-         * Defaults to {@link System#currentTimeMillis()}.
+         * Sets the start time (based on the elapsed boot time) for this document for performance measurements.
+         * Defaults to {@link SystemClock#elapsedRealtime()}.
          * @param startTime the start time in milliseconds
          * @return          this builder
          */

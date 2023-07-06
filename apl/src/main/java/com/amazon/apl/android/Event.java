@@ -139,6 +139,12 @@ public abstract class Event extends BoundObject {
                 transform.toCore(height));
     }
 
+    /**
+     * @return The identifier of the document context associated with this event
+     */
+    public long getDocumentContextId() {
+        return nGetDocumentContextId(getNativeHandle());
+    }
 
     @NonNull
     public String debug() {
@@ -165,6 +171,8 @@ public abstract class Event extends BoundObject {
     private native void nInit(long nativeHandle);
 
     private static native int nGetType(long nativeHandle);
+
+    private static native long nGetDocumentContextId(long nativeHandle);
 
     @NonNull
     private static native String nGetComponentId(long nativeHandle);

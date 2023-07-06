@@ -5,9 +5,8 @@
 
 package com.amazon.apl.android.component;
 
-import static android.os.Looper.getMainLooper;
-
 import android.net.Uri;
+import android.os.Looper;
 
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.VectorGraphic;
@@ -23,6 +22,7 @@ import com.amazon.apl.enums.VectorGraphicScale;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.Robolectric;
 import org.robolectric.annotation.LooperMode;
 
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -115,11 +116,12 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
         verify(mContentRetriever).fetchV2(eq(Uri.parse(source)), anyMap(), any(), any());
 
         verify(component(), never()).updateGraphic(avgJson);
+        assertNull(getView().getDrawable());
     }
 
     @Test
     @LooperMode(LEGACY)
-    public void contentRetriever_fetchV2Called_withHeaders() {
+    public void contentRetriever_fetchV2Called_withHeaders() throws InterruptedException {
         final String avgJson = "{}";
         final String source = "https://www.dummy.json";
         final String headerKey = "headerKey";
@@ -144,6 +146,26 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
         assertTrue(headerResult.containsKey(headerKey));
         assertEquals(headerValue, headerResult.get(headerKey));
         verify(component()).updateGraphic(avgJson);
+        Robolectric.flushForegroundThreadScheduler();
+        assertNotNull(getView().getDrawable());
+
+        Mockito.reset(mContentRetriever);
+        CountDownLatch inner = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            IContentRetriever.FailureCallbackV2<Uri> callback = invocation.getArgument(3);
+            Thread t = new Thread(() -> {
+                callback.onFailure(invocation.getArgument(0), "", 0);
+                inner.countDown();
+            });
+            t.start();
+            return null;
+        }).when(mContentRetriever).fetchV2(eq(Uri.parse(source)), anyMap(), any(), any());
+        when(component().getSourceRequest()).thenReturn(request);
+        refreshProperties(PropertyKey.kPropertySource);
+        inner.await();
+        verify(mContentRetriever).fetchV2(eq(Uri.parse(source)), anyMap(), any(), any());
+        shadowOf(Looper.getMainLooper()).idle();
+        assertNull(getView().getDrawable());
     }
 
     @Test
@@ -157,7 +179,9 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     @Test
     public void testRefreshProperties_null_drawable_creates_drawable() {
         assertNull(getView().getDrawable());
+        when(component().hasGraphic()).thenReturn(true);
         refreshProperties(getView(), PropertyKey.kPropertyGraphic);
+        when(component().hasGraphic()).thenReturn(false);
         assertNotNull(getView().getDrawable());
     }
 

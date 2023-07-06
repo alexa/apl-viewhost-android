@@ -33,7 +33,7 @@ public class MediaSourcesTest extends ViewhostRobolectricTest {
         HEADERS_MAP.put("key2", "value2");
         MediaSources mediaSources = MediaSources.create();
         List<TextTrack> testTrack = new ArrayList<TextTrack>();
-        TextTrack track = new TextTrack(TextTrackType.kTextTrackTypeCaption, DUMMY_TEXT_TRACK_URL, DUMMY_TEXT_TRACK_DESCRIPTION);
+        TextTrack track = new TextTrack(TextTrackType.kTextTrackTypeCaption.getIndex(), DUMMY_TEXT_TRACK_URL, DUMMY_TEXT_TRACK_DESCRIPTION);
         testTrack.add(track);
         assertEquals(0, mediaSources.size());
         MediaSources.MediaSource mediaSource = MediaSources.MediaSource.builder()

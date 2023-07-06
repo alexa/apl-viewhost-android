@@ -1,12 +1,3 @@
 # ninja log v5
-0	443	1671143127	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	ccc58f00c2745b86
-443	553	1671143127	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779
-1	433	1671240481	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	ccc58f00c2745b86
-433	532	1671240481	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779
-0	18	0	clean	ba4b903905e82655
-0	16	0	clean	ba4b903905e82655
-1	417	1671241120	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	ccc58f00c2745b86
-417	541	1671241121	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779
-1	327	1671754376	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	ccc58f00c2745b86
-327	413	1671754376	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779
-1	87	1674600340	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779
+0	330	1685054003	CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o	ccc58f00c2745b86
+330	432	1685054003	../../../../build/intermediates/cxx/Debug/161b4cw3/obj/x86/libcommon-jni.so	f1da5abf8aa48779

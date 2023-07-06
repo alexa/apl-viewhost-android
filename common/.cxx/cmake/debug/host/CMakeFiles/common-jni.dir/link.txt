@@ -1,1 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/c++  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX13.1.sdk -mmacosx-version-min=12.6 -dynamiclib -Wl,-headerpad_max_install_names -o libcommon-jni.dylib -install_name @rpath/libcommon-jni.dylib "CMakeFiles/common-jni.dir/src/main/cpp/jninativeowner.cpp.o" 

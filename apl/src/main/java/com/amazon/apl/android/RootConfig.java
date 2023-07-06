@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import android.content.Context;
+import android.os.Handler;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,8 @@ import com.amazon.apl.android.audio.IAudioPlayerFactory;
 import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
+import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
+import com.amazon.apl.viewhost.internal.DocumentManager;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.APLEnum;
 import com.amazon.apl.enums.AnimationQuality;
@@ -64,6 +67,8 @@ public class RootConfig extends BoundObject {
      * Factory for creating MediaPlayer
      */
     private MediaPlayerFactoryProxy mMediaPlayerFactoryProxy;
+
+    private DocumentManager mDocumentManager;
 
     /**
      * Creates a default RootConfig.
@@ -590,6 +595,14 @@ public class RootConfig extends BoundObject {
         return mAudioPlayerFactoryProxy;
     }
 
+    /**
+     * Gets DocumentManager instance.
+     * @return DocumentManager
+     */
+    public DocumentManager getDocumentManager() {
+        return mDocumentManager;
+    }
+
     public Collection<IDocumentLifecycleListener> getDocumentLifecycleListeners() {
         Collection<IDocumentLifecycleListener> listeners = new LinkedList<>();
         listeners.add(getExtensionMediator());
@@ -634,6 +647,12 @@ public class RootConfig extends BoundObject {
         // A reference to the factory needs to be held in the Java layer, else it would be cleaned.
         mAudioPlayerFactoryProxy = new AudioPlayerFactoryProxy(audioPlayerFactory);
         nAudioPlayerFactory(getNativeHandle(), mAudioPlayerFactoryProxy.getNativeHandle());
+        return this;
+    }
+
+    public RootConfig setDocumentManager(@NonNull EmbeddedDocumentFactory embeddedDocumentFactory, @NonNull Handler handler) {
+        mDocumentManager = new DocumentManager(embeddedDocumentFactory, handler);
+        nSetDocumentManager(getNativeHandle(), mDocumentManager.getNativeHandle());
         return this;
     }
 
@@ -921,4 +940,7 @@ public class RootConfig extends BoundObject {
     private static native void nAudioPlayerFactory(long nativehandle, long factoryHandler);
 
     private static native void nMediaPlayerFactory(long nativehandle, long factoryHandler);
+
+    private static native void nSetDocumentManager(long nativehandle, long documentManagerHandle);
+
 }

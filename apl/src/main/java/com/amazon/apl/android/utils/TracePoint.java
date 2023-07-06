@@ -24,6 +24,7 @@ public enum TracePoint {
     ROOT_CONTEXT_AUDIOPLAYER_TIMEUPDATE("RootContext", "audioPlayerOnTimeUpdate"),
     ROOT_CONTEXT_NOTIFY_VISUAL_CONTEXT("RootContext", "notifyVisualContext"),
     ROOT_CONTEXT_NOTIFY_DATA_SOURCE_CONTEXT("RootContext", "notifyDataSourceContext"),
+    ROOT_CONTEXT_NEW_VIEWHOST_TICK("RootContext", "newViewhostTick"),
 
     // Viewhost updates
     ROOT_CONTEXT_ON_COMPONENT_CHANGE("RootContext", "onComponentChange"),

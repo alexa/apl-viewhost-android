@@ -17,8 +17,7 @@ import com.amazon.apl.enums.EventProperty;
  *     APL Command Specification</a>}
  */
 public class OpenURLEvent extends Event {
-
-    private static IOpenUrlCallback mOpenURLCallback;
+    private IOpenUrlCallback mOpenURLCallback;
 
     /**
      * Constructs the Event.
@@ -56,5 +55,12 @@ public class OpenURLEvent extends Event {
     @Override
     public void terminate() {
 
+    }
+
+    /**
+     * A helper function for the new viewhost abstraction to take over handling of this event
+     */
+    public void overrideCallback(IOpenUrlCallback callback) {
+        mOpenURLCallback = callback;
     }
 }

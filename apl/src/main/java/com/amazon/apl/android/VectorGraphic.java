@@ -109,6 +109,13 @@ public class VectorGraphic extends Component{
         return mGraphicContainerElement;
     }
 
+    /**
+        Reset the cached root to AVG, so a new root can be created.
+     */
+    public void resetGraphicContainerElement() {
+        mGraphicContainerElement = null;
+    }
+
     private native long nGetGraphic(long nativeHandle, int propertyKey);
 
     private native Set<Integer> nGetDirtyGraphics(long nativeHandle);

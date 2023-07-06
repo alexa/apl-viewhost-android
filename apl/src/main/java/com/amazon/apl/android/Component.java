@@ -30,6 +30,7 @@ import com.amazon.apl.enums.UpdateType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
@@ -175,7 +176,7 @@ public abstract class Component extends BoundObject {
         if (child != null) {
             return child;
         }
-        Log.wtf(TAG, this + ". getChildById returned null for id: " + componentId);
+        Log.e(TAG, this + ". getChildById returned null for id: " + componentId);
         return null;
     }
 
@@ -257,7 +258,7 @@ public abstract class Component extends BoundObject {
     }
 
     public void update(@NonNull UpdateType updateType, String value) {
-        nUpdate(getNativeHandle(), updateType.getIndex(), value);
+        nUpdate(getNativeHandle(), updateType.getIndex(), (value + "\0").getBytes(StandardCharsets.UTF_8));
     }
 
     public void update(@NonNull UpdateType updateType, boolean value) {
@@ -590,7 +591,7 @@ public abstract class Component extends BoundObject {
 
     private static native void nUpdate(long nativeHandle, int updateId, int value);
 
-    private static native void nUpdate(long nativeHandle, int updateId, String value);
+    private static native void nUpdate(long nativeHandle, int updateId, byte[] value);
 
     private static native boolean nCheckDirtyProperty(long nativeHandle, int propIndex);
 

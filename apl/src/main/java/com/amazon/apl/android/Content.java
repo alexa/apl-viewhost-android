@@ -8,6 +8,7 @@ package com.amazon.apl.android;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -107,7 +108,7 @@ public final class Content extends BoundObject {
         cContentError = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_CONTENT_ERROR, COUNTER);
         cContentImportRequests = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_CONTENT_IMPORT_REQUESTS, COUNTER);
 
-        long currentTime = System.nanoTime();
+        long currentTime = SystemClock.elapsedRealtimeNanos();
         mTelemetryProvider.startTimer(tContentCreate, NANOSECONDS, currentTime - entryTime);
         mDataRetriever = dataRetriever;
         setPackageLoader(packageLoader);
@@ -191,7 +192,7 @@ public final class Content extends BoundObject {
     @NonNull
     @Deprecated
     public static Content create(@NonNull final String mainTemplate, final Callback callback) throws ContentException {
-        long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
+        long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         return createContent(mainTemplate, null, callback, null, entryTime, new Session());
     }
 
@@ -208,7 +209,7 @@ public final class Content extends BoundObject {
      */
     @Deprecated
     public static Content create(@NonNull final String mainTemplate, @NonNull final APLOptions aplOptions, final Callback callback) throws ContentException {
-        long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
+        long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
         return createContent(mainTemplate, aplOptions, callback, null, entryTime, new Session());
     }
@@ -224,7 +225,7 @@ public final class Content extends BoundObject {
     @Deprecated
     @NonNull
     public static Content create(final String mainTemplate) throws ContentException {
-        long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
+        long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         return createContent(mainTemplate, null, null, null, entryTime, new Session());
     }
 
@@ -240,7 +241,7 @@ public final class Content extends BoundObject {
     @Deprecated
     @NonNull
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions) throws ContentException {
-        long entryTime = System.nanoTime(); // Must remain first for accurate telemetry!
+        long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
         return createContent(mainTemplate, aplOptions, null, null, entryTime, new Session());
     }
@@ -256,7 +257,7 @@ public final class Content extends BoundObject {
      */
     @Nullable
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session) {
-        long entryTime = System.nanoTime();
+        long entryTime = SystemClock.elapsedRealtimeNanos();
         try {
             return createContent(mainTemplate, aplOptions, null, callback, entryTime, session);
         } catch (ContentException e) {
@@ -425,11 +426,11 @@ public final class Content extends BoundObject {
 
         if (notifyPackages) {
             for (ImportRequest importRequest : getRequestedPackages()) {
-                final long startTime = System.nanoTime();
+                final long startTime = SystemClock.elapsedRealtimeNanos();
                 mPackageLoader.fetch(importRequest,
                         (ImportRequest request, APLJSONData result) -> this.handleImportSuccess(request, result, startTime),
                         (ImportRequest request, String message) -> {
-                            final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            final long duration = NANOSECONDS.toMillis(SystemClock.elapsedRealtimeNanos() - startTime);
                             Log.e(TAG, String.format("Unable to load content for request: %s. Failed in %d milliseconds. %s",
                                     request,
                                     duration,
@@ -440,18 +441,18 @@ public final class Content extends BoundObject {
         }
         if (notifyData) {
             for (String parameter : mParameters) {
-                final long startTime = System.nanoTime();
+                final long startTime = SystemClock.elapsedRealtimeNanos();
 
                 mDataRetriever.fetch(parameter,
                         (String param, String result) -> {
-                            final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            final long duration = NANOSECONDS.toMillis(SystemClock.elapsedRealtimeNanos() - startTime);
                             Log.i(TAG, String.format("Param '%s' took %d milliseconds to fetch.",
                                     param,
                                     duration));
                             this.handleDataSuccess(param, result);
                         },
                         (String param, String message) -> {
-                            final long duration =  NANOSECONDS.toMillis(System.nanoTime() - startTime);
+                            final long duration =  NANOSECONDS.toMillis(SystemClock.elapsedRealtimeNanos() - startTime);
                             Log.e(TAG, String.format("Unable to fetch parameter: %s. Failed in %d milliseconds. %s",
                                     param,
                                     duration,
@@ -463,7 +464,7 @@ public final class Content extends BoundObject {
     }
 
     private void handleImportSuccess(ImportRequest request, APLJSONData result, final long startTime) {
-        final long duration = NANOSECONDS.toMillis(System.nanoTime() - startTime);
+        final long duration = NANOSECONDS.toMillis(SystemClock.elapsedRealtimeNanos() - startTime);
         Log.i(TAG, String.format("Package '%s' took %d milliseconds to download.",
                 request.getPackageName(),
                 duration));

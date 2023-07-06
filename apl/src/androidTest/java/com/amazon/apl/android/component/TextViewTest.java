@@ -26,6 +26,12 @@ import com.amazon.apl.android.views.APLTextView;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -409,5 +415,65 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
         Layout actualLayout = getTestView().getLayout();
 
         assertNotEquals(actualLayout, originalLayout);
+    }
+
+    @Test
+    public void testView_updateTime_localTime_format() throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss");
+        String beforeDateString = formatter.format(new Date());
+        Date before = formatter.parse(beforeDateString);
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"${Time.format('DD-MM-YYYY hh:mm:ss', localTime)}\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout originalLayout = getTestView().getLayout();
+        Date after = new Date();
+        Date actualDate = formatter.parse(originalLayout.getText().toString());
+        assertTrue(before.getTime() <= actualDate.getTime());
+        assertTrue(actualDate.getTime() <= after.getTime());
+    }
+
+    @Test
+    public void testView_updateTime_utcTime() {
+        Date before = new Date();
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"${utcTime}\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+        Date after = new Date();
+
+        Layout originalLayout = getTestView().getLayout();
+        assertTrue(before.getTime() <= Long.parseLong(originalLayout.getText().toString()));
+        assertTrue(Long.parseLong(originalLayout.getText().toString()) <= after.getTime());
+    }
+
+    @Test
+    public void testView_updateTime_localTime() {
+        Date before = new Date();
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"${localTime}\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout originalLayout = getTestView().getLayout();
+        Date after = new Date();
+        Date actualDate = new Date(Long.parseLong(originalLayout.getText().toString()));
+        Calendar now = Calendar.getInstance();
+        long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
+        assertTrue(before.getTime() <= actualDate.getTime() - offset);
+        assertTrue(actualDate.getTime() - offset <= after.getTime());
+    }
+
+    @Test
+    public void testView_updateTime_elapsedTime() {
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"${elapsedTime}\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        Layout originalLayout = getTestView().getLayout();
+        assertEquals("0", originalLayout.getText().toString());
+        onView(isRoot())
+                .perform(waitFor(500));
+        Layout newLayout = getTestView().getLayout();
+        assertTrue( 400 <= Integer.parseInt(newLayout.getText().toString()));
+        assertTrue(Integer.parseInt(newLayout.getText().toString()) <= 600);
     }
 }

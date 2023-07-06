@@ -56,8 +56,8 @@ public class APLExtensionView extends FrameLayout {
             return;
         }
         Rect bounds = component.getBounds();
-        int w = (int) bounds.getWidth();
-        int h = (int) bounds.getHeight();
+        int w = bounds.intWidth();
+        int h = bounds.intHeight();
 
         // The extension view may be a ViewGroup of any Android Views.  Set this
         // container to exactly match the Component, and let Android layout the children.
@@ -80,8 +80,8 @@ public class APLExtensionView extends FrameLayout {
             return new FrameLayout.LayoutParams(0, 0);
         }
         Rect bounds = component.getBounds();
-        int w = (int) bounds.getWidth();
-        int h = (int) bounds.getHeight();
+        int w = bounds.intWidth();
+        int h = bounds.intHeight();
         return new FrameLayout.LayoutParams(w, h);
     }
 

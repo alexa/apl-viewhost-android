@@ -48,6 +48,8 @@ namespace apl {
 
             void seek( int offset ) override;
 
+            void seekTo( int offset );
+
             void setTrackIndex(int trackIndex) override;
 
             void setAudioTrack(AudioTrack audioTrack) override;

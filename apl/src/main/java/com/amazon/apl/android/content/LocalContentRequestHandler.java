@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Supports retrieving String assets from a file stored on the device. Uses {@link ContentResolver}.
  */
-public class LocalContentRequestHandler implements ContentRetriever.RequestHandler<String> {
+public class LocalContentRequestHandler<T> implements ContentRetriever.RequestHandler<T> {
     private final ContentResolver mContentResolver;
 
     /**
@@ -39,11 +39,15 @@ public class LocalContentRequestHandler implements ContentRetriever.RequestHandl
     }
 
     @Override
-    public void fetch(@NonNull Uri source, @NonNull IContentRetriever.SuccessCallback<Uri, String> successCallback, @NonNull IContentRetriever.FailureCallback<Uri> failureCallback) {
+    public void fetch(@NonNull Uri source, @NonNull IContentRetriever.SuccessCallback<Uri, T> successCallback, @NonNull IContentRetriever.FailureCallback<Uri> failureCallback) {
         try (InputStream inputStream = mContentResolver.openInputStream(source)) {
-            successCallback.onSuccess(source, FileUtils.readString(source.getPath(), inputStream));
+            successCallback.onSuccess(source, getResponse(inputStream, source));
         } catch (IOException e) {
             failureCallback.onFailure(source, e.getMessage());
         }
+    }
+
+    public <T> T getResponse(final InputStream inputStream, final Uri source) throws IOException {
+        return (T) FileUtils.readString(source.getPath(), inputStream);
     }
 }

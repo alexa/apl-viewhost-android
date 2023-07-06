@@ -1,3 +1,0 @@
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/host/_deps/rapidjson-subbuild/CMakeFiles/rapidjson-populate.dir
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/host/_deps/rapidjson-subbuild/CMakeFiles/edit_cache.dir
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/debug/host/_deps/rapidjson-subbuild/CMakeFiles/rebuild_cache.dir

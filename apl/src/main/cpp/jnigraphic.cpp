@@ -167,12 +167,18 @@ namespace apl {
         }
 
         JNIEXPORT jobject JNICALL
-        Java_com_amazon_apl_android_VectorGraphic_nGetDirtyGraphics(JNIEnv *env, jobject instance, jlong componentHandle) {
+        Java_com_amazon_apl_android_VectorGraphic_nGetDirtyGraphics(JNIEnv *env, jobject instance,
+                                                                    jlong componentHandle) {
             auto g = get<Component>(componentHandle);
-            auto graphic = g->getCalculated(kPropertyGraphic).get<Graphic>();
-            auto dirtyChildren = graphic->getDirty();
+            auto graphicProperty = g->getCalculated(kPropertyGraphic);
             jobject javaSet = env->NewObject(HASHSET_CLASS, HASHSET_CONSTRUCTOR);
-            for (const auto& it : dirtyChildren) {
+            if (graphicProperty.isNull()) {
+                return javaSet;
+            }
+
+            auto graphic = graphicProperty.get<Graphic>();
+            auto dirtyChildren = graphic->getDirty();
+            for (const auto &it : dirtyChildren) {
                 auto val = getJObject(env, it->getId());
                 env->CallBooleanMethod(javaSet, HASHSET_ADD, val);
             }

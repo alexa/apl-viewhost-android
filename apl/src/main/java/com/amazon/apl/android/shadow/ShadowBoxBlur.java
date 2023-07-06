@@ -35,9 +35,7 @@ public class ShadowBoxBlur {
             Log.w(TAG, "blurRadius must be > 0, was given " + blurRadius);
             return;
         }
-        final long start = System.currentTimeMillis();
         nativeBoxBlur(bitmap, blurRadius);
-        final long end = System.currentTimeMillis();
     }
 
     private static native void nativeBoxBlur(Bitmap in, int blurRadius);

@@ -9,6 +9,7 @@
 #include <list>
 #include <queue>
 
+#include "jnidocumentcontext.h"
 #include "jniutil.h"
 #include "jnimetricstransform.h"
 #include "jnitextmeasurecallback.h"
@@ -359,16 +360,15 @@ namespace apl {
                                                                  jlong handle,
                                                                  jstring commands_) {
             auto rc = get<RootContext>(handle);
-            auto* doc = new rapidjson::Document();
+            auto doc = rapidjson::Document();
             const char* commands = env->GetStringUTFChars(commands_, nullptr);
-            doc->Parse(commands);
+            doc.Parse(commands);
             env->ReleaseStringUTFChars(commands_, commands);
-            apl::Object obj = apl::Object(*doc);
+            apl::Object obj = apl::Object(std::move(doc));
             auto action = rc->executeCommands(obj, false);
             if (action == nullptr) {
                 return 0;
             }
-            action->setUserData(doc);
             // The action is always bound to a jniaction, which adds its own then callback.
             // No need to do it here.
 

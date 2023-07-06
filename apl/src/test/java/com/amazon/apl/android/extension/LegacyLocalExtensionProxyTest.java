@@ -10,6 +10,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -218,6 +220,33 @@ public class LegacyLocalExtensionProxyTest extends ViewhostRobolectricTest {
         assertEquals(1, captor.getValue().size());
         assertTrue(captor.getValue().containsKey("test"));
         assertEquals("test", captor.getValue().get("test"));
+    }
+
+    @Test
+    public void testSendExtensionEvent_nullActivity_eventNotHandled() {
+        IExtension extension = mock(IExtension.class);
+        IExtensionEventCallback callback = mock(IExtensionEventCallback.class);
+        when(extension.getCallback()).thenReturn(callback);
+        when(extension.getUri()).thenReturn(URI);
+
+        LegacyLocalExtensionProxy proxy = spy(new LegacyLocalExtensionProxy(extension));
+        proxy.sendExtensionEvent("ABC", new HashMap<>());
+
+        verify(proxy, times(0)).invokeExtensionEventHandler(any(), any());
+    }
+
+    @Test
+    public void testSendExtensionEvent_setActivity_eventHandled() {
+        IExtension extension = mock(IExtension.class);
+        IExtensionEventCallback callback = mock(IExtensionEventCallback.class);
+        when(extension.getCallback()).thenReturn(callback);
+        when(extension.getUri()).thenReturn(URI);
+
+        LegacyLocalExtensionProxy proxy = spy(new LegacyLocalExtensionProxy(extension));
+        proxy.setActivity(new ActivityDescriptor(URI, new SessionDescriptor("TEST"), "TEST"));
+        proxy.sendExtensionEvent("ABC", new HashMap<>());
+
+        verify(proxy).invokeExtensionEventHandler(any(), any());
     }
 
     @Test

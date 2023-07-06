@@ -43,7 +43,10 @@ add_library(
         src/main/cpp/jniaudioplayer.cpp
         src/main/cpp/jniaudioplayerfactory.cpp
         src/main/cpp/jnicontent.cpp
+        src/main/cpp/jnidocumentcontext.cpp
+        src/main/cpp/jnidocumentmanager.cpp
         src/main/cpp/jnidocumentsession.cpp
+        src/main/cpp/jniembeddeddocumentrequest.cpp
         src/main/cpp/jniextensionclient.cpp
         src/main/cpp/jniextensioncommand.cpp
         src/main/cpp/jniextensioncomponent.cpp
@@ -66,6 +69,7 @@ add_library(
         src/main/cpp/jnitextmeasurecallback.cpp
         src/main/cpp/jnishadowblur.cpp
         src/main/cpp/jninoisefilter.cpp
+        src/main/cpp/jnitext.cpp
 )
 
 # Specifies a path to native header files.

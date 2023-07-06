@@ -6,6 +6,7 @@ package com.amazon.apl.android.dependencies.impl;
 
 import com.amazon.apl.android.providers.ITelemetryProvider.Type;
 import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
+import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,8 +19,7 @@ import static junit.framework.TestCase.fail;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
-public class LoggingTelemetryTest {
-
+public class LoggingTelemetryTest extends ViewhostRobolectricTest {
 
     private final static String DOMAIN = "DOMAIN";
     private final static String METRIC_COUNTER = "METRIC_COUNTER";
@@ -30,7 +30,6 @@ public class LoggingTelemetryTest {
     private LoggingTelemetryProvider tProvider;
     private int tCounter;
     private int tTimer;
-
 
     @Before
     public void before() {
@@ -56,7 +55,6 @@ public class LoggingTelemetryTest {
         assertEquals(tTimer, tTime);
     }
 
-
     @Test
     public void testCounter_increment() {
 
@@ -70,13 +68,10 @@ public class LoggingTelemetryTest {
         assertEquals(0, m.startTime);
         assertEquals(0, m.totalTime);
         assertEquals("DOMAIN.METRIC_COUNTER", m.metricName);
-
     }
-
 
     @Test
     public void testCounter_fail() {
-
         for (int i = 0; i < 11; i++) {
             tProvider.fail(tCounter);
         }
@@ -87,23 +82,15 @@ public class LoggingTelemetryTest {
         assertEquals(0, m.startTime);
         assertEquals(0, m.totalTime);
         assertEquals("DOMAIN.METRIC_COUNTER", m.metricName);
-
     }
-
 
     @Test
     public void testTimer_start() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
 
-        long start = System.nanoTime();
         tProvider.startTimer(tTimer);
-        long next = System.nanoTime();
 
-        // validate start time, account for system call overhead by
-        // clamping within timestamp
-        assertTrue(m.startTime > start);
-        assertTrue(m.startTime < next);
-
+        assertTrue(m.startTime != 0);
         assertEquals(0, m.success);
         assertEquals(0, m.fail);
         assertEquals(0, m.totalTime);
@@ -113,7 +100,6 @@ public class LoggingTelemetryTest {
     public void testTimer_stop() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
 
-        long start = System.nanoTime();
         tProvider.startTimer(tTimer);
         try {
             Thread.sleep(2);
@@ -121,15 +107,11 @@ public class LoggingTelemetryTest {
             fail(e.getMessage());
         }
         tProvider.stopTimer(tTimer);
-        long stop = System.nanoTime();
 
         assertEquals(1, m.success);
         assertEquals(0, m.fail);
 
-        // validate totalTime, account for system call overhead by
-        // clamping within timed max, and absolute known min
-        assertTrue(stop - start > m.totalTime);
-        assertTrue(m.totalTime > TWO_MILI);
+        assertTrue(m.totalTime >= TWO_MILI);
     }
 
     @Test
@@ -176,7 +158,6 @@ public class LoggingTelemetryTest {
         assertEquals(0, m.fail);
     }
 
-
     @Test
     public void testTimer_fail() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
@@ -192,7 +173,6 @@ public class LoggingTelemetryTest {
     public void testTimer_startFail() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
 
-        long start = System.nanoTime();
         tProvider.startTimer(tTimer);
         try {
             Thread.sleep(2);
@@ -200,7 +180,6 @@ public class LoggingTelemetryTest {
             fail(e.getMessage());
         }
         tProvider.stopTimer(tTimer);
-        long stop = System.nanoTime();
         tProvider.startTimer(tTimer);
         tProvider.fail(tTimer);
 
@@ -208,43 +187,83 @@ public class LoggingTelemetryTest {
         assertEquals(1, m.success);
         assertEquals(1, m.fail);
         assertEquals(0, m.startTime);
-        // validate totalTime, account for system call overhead by
-        // clamping within timed max, and absolute known min
-        assertTrue(stop - start > m.totalTime);
-        assertTrue(m.totalTime > TWO_MILI);
-
+        assertTrue(m.totalTime >= TWO_MILI);
     }
 
     @Test
     public void testTimer_elapsedTimeStart() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
 
-        long start = System.nanoTime();
         tProvider.startTimer(tTimer, TimeUnit.SECONDS, 2);
-        long next = System.nanoTime();
 
-        // validate start time, account for system call overhead by
-        // clamping within timestamp
-        assertTrue(m.startTime > start - TWO_SEC);
-        assertTrue(m.startTime < next - TWO_SEC);
+        assertTrue(m.startTime != 0);
+        assertEquals(TimeUnit.SECONDS.toNanos(2), m.seedTime);
     }
 
     @Test
     public void testTimer_elapsedTimeStop() {
         LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
 
-        long start = System.nanoTime();
         tProvider.startTimer(tTimer, TimeUnit.SECONDS, 2);
         tProvider.stopTimer(tTimer);
-        long stop = System.nanoTime();
 
         assertEquals(1, m.success);
         assertEquals(0, m.fail);
 
-        // validate totalTime, account for system call overhead by
-        // clamping within timed max, and absolute known min
-        assertTrue(stop - start + TWO_SEC > m.totalTime);
-        assertTrue(m.totalTime > TWO_SEC);
+        assertTrue(m.totalTime >= TWO_SEC);
     }
 
+    @Test
+    public void testTimer_elapsedTimeStopWithEndtime() {
+        LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
+
+        tProvider.startTimer(tTimer, TimeUnit.SECONDS, 2);
+        long start = m.startTime + TWO_SEC;
+        tProvider.stopTimer(tTimer, TimeUnit.NANOSECONDS, start);
+
+        assertEquals(1, m.success);
+        assertEquals(0, m.fail);
+
+        assertEquals(TWO_SEC * 2, m.totalTime);
+    }
+
+    @Test
+    public void testTimer_StopWithEndtime() {
+        LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
+
+        tProvider.startTimer(tTimer);
+        long start = m.startTime + TWO_SEC;
+        tProvider.stopTimer(tTimer, TimeUnit.NANOSECONDS, start);
+
+        assertEquals(1, m.success);
+        assertEquals(0, m.fail);
+
+        assertEquals(TWO_SEC, m.totalTime);
+    }
+
+    @Test
+    public void testTimer_StopWithEndtimeInSeconds() {
+        LoggingTelemetryProvider.Metric m = tProvider.getMetric(tTimer);
+
+        tProvider.startTimer(tTimer);
+        long startNanos = m.startTime;
+        long startMillis = TimeUnit.NANOSECONDS.toMillis(startNanos);
+        long endMillis = TimeUnit.SECONDS.toMillis(2) + startMillis;
+        tProvider.stopTimer(tTimer, TimeUnit.MILLISECONDS, endMillis);
+
+        assertEquals(1, m.success);
+        assertEquals(0, m.fail);
+
+        assertEquals(TimeUnit.MILLISECONDS.toNanos(endMillis) - startNanos, m.totalTime);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTimer_StartWithInvalidMetricId() throws AssertionError {
+        tProvider.startTimer(-1);
+    }
+
+    @Test(expected = IndexOutOfBoundsException.class)
+    public void testTimer_StopWithInvalidMetricId() throws AssertionError {
+        tProvider.stopTimer(-1);
+    }
 }

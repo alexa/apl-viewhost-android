@@ -118,7 +118,7 @@ namespace alexaext {
                 jstring jUri = env->NewStringUTF(uri.c_str());
                 ExtensionProxyPtr proxyPtr;
                 auto proxyHandle = env->CallLongMethod(localRef, EXTENSIONREGISTRAR_CREATE_PROXY, jUri);
-                if (proxyHandle > 0) proxyPtr = apl::jni::get<alexaext::ExtensionProxy>(proxyHandle);
+                if (proxyHandle != 0) proxyPtr = apl::jni::get<alexaext::ExtensionProxy>(proxyHandle);
 
                 env->DeleteLocalRef(localRef);
                 env->DeleteLocalRef(jUri);

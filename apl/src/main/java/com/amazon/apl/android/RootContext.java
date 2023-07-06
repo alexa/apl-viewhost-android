@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import android.os.Looper;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
@@ -53,12 +54,15 @@ import com.amazon.apl.enums.EventType;
 import com.amazon.apl.enums.FocusDirection;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.RootProperty;
+import com.amazon.apl.viewhost.Viewhost;
+import com.amazon.apl.viewhost.internal.ViewhostImpl;
 import com.amazon.common.BoundObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -162,6 +166,12 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
     private final IClock mAplClock;
 
     /**
+     * We need to hold a reference to Content to ensure that it gets cleaned up *after* the RootContext.
+     * Cleaning up *before* the RootContext can cause some resources C++ needs to be deleted prematurely.
+     */
+    private final Content mContent;
+
+    /**
      * Construct a new RootContext object.
      *
      * @param metrics       the viewport metrics
@@ -179,6 +189,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
             mAplClock = options.getAplClockProvider().create(this);
+            mContent = content;
             mTelemetryProvider = mOptions.getTelemetryProvider();
             mViewPresenter = viewPresenter;
             mRootConfig = rootConfig;
@@ -188,7 +199,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             mTextMeasureCallback = TextMeasureCallback.factory().create(mMetricsTransform, new TextMeasure(mRenderingContext));
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
-            final long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
+            final long nativeHandle = createHandle(metrics, rootConfig, mTextMeasureCallback);
             mTextMeasureCallback.onRootContextCreated();
             bind(nativeHandle);
             inflate();
@@ -206,6 +217,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
                         @NonNull IAPLViewPresenter viewPresenter,
                         @NonNull MetricsTransform metricsTransform,
                         @NonNull RootConfig rootConfig,
+                        @NonNull Content content,
                         long nativeHandle) {
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
@@ -215,6 +227,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             mMetricsTransform = metricsTransform;
             mRootConfig = rootConfig;
             mViewPresenter = viewPresenter;
+            mContent = content;
             bind(nativeHandle);
             mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(nGetVersionCode(nativeHandle)),
                     options, rootConfig, metricsTransform);
@@ -272,13 +285,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      * Creates a RootContext from metrics, content and root config information.
      *
      * @param metrics    the viewport metrics
-     * @param content    the content
      * @param rootConfig the root config
      * @param textMeasureCallback the callback for text measurement
      * @return a non-zero handle if created, 0 if failed.
      */
-    private long createHandle(ViewportMetrics metrics, Content content,
-                              RootConfig rootConfig, TextMeasureCallback textMeasureCallback) {
+    private long createHandle(ViewportMetrics metrics, RootConfig rootConfig, TextMeasureCallback textMeasureCallback) {
         final Scaling scaling = metrics.scaling();
         boolean retry;
         long rootContextHandle;
@@ -286,7 +297,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             final ViewportMetrics scaledMetrics = mMetricsTransform.getScaledMetrics();
             mTelemetryProvider.startTimer(tInflate);
             rootContextHandle = nCreate(
-                    content.getNativeHandle(),
+                    mContent.getNativeHandle(),
                     rootConfig.getNativeHandle(),
                     textMeasureCallback.getNativeHandle(),
                     scaledMetrics.width(),
@@ -416,7 +427,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      * @return a new {@link RootContext} from {@link DocumentState} and {@link IAPLViewPresenter}
      */
     public static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState, @NonNull IAPLViewPresenter viewPresenter) {
-        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getNativeHandle());
+        // Recording the mRenderStartTime when we are trying to restore the document from cache.
+        viewPresenter.preDocumentRender();
+        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getContent(), documentState.getNativeHandle());
     }
 
     public RenderingContext getRenderingContext() {
@@ -468,6 +481,13 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
 
             // clean up Components
             mAplComponents.clear();
+
+            //send notification to runtime
+            Viewhost viewhost = mOptions.getViewhost();
+            if (viewhost instanceof ViewhostImpl) {
+                ViewhostImpl viewhostImpl = (ViewhostImpl)viewhost;
+                viewhostImpl.notifyRootContextFinished();
+            }
         }
     }
 
@@ -665,7 +685,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         if (handle == 0) {
             return null;
         }
-        Action action = new Action(handle, this);
+        Action action = new Action(handle, this, null);
         return action;
     }
 
@@ -680,7 +700,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         if (handle == 0) {
             return null;
         } else {
-            return new Action(handle, this);
+            return new Action(handle, this, null);
         }
     }
 
@@ -805,6 +825,18 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
     @SuppressWarnings("unused")
     private void callbackHandleEvent(long eventHandle, int eventType) {
         Event event = buildEvent(eventHandle, eventType);
+
+        // Apply new viewhost logic to events, so that they can be routed appropriately
+        Viewhost viewhost = mOptions.getViewhost();
+        if (viewhost instanceof ViewhostImpl) {
+            ViewhostImpl viewhostImpl = (ViewhostImpl)viewhost;
+            if (!viewhostImpl.interceptEventIfNeeded(event)) {
+                // Skip executing this event
+                Log.i(TAG, "Viewhost skipped execution of " + event.getType().toString());
+                return;
+            }
+        }
+
         event.execute();
     }
 
@@ -840,7 +872,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      * TODO consider moving this to a worker thread with the payload String if it is too expensive.
      */
     private void notifyVisualContext() {
-        mLastVisualContextUpdateTime = System.currentTimeMillis();
+        mLastVisualContextUpdateTime = SystemClock.elapsedRealtime();
         try {
             mOptions.getVisualContextListener()
                     .onVisualContextUpdate(
@@ -857,7 +889,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      * Works on same logic as visual context, so any update on visual context may also apply on data source context.
      *                            */
     private void notifyDataSourceContext() {
-        mLastDataSourceUpdateTime = System.currentTimeMillis();
+        mLastDataSourceUpdateTime = SystemClock.elapsedRealtime();
         try {
             mOptions.getDataSourceContextListener()
                     .onDataSourceContextUpdate(
@@ -1003,10 +1035,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
     private void coreFrameUpdate(long time) {
         long nativeHandle = getNativeHandle();
 
-        long now = System.currentTimeMillis();
+        long currentUtcTime = System.currentTimeMillis();
+        long now = SystemClock.elapsedRealtime();
 
         mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_UPDATE_TIME);
-        updateTime(nativeHandle, time, now);
+        updateTime(nativeHandle, time, currentUtcTime);
         mAplTrace.endTrace();
 
         mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_CLEAR_PENDING);
@@ -1036,12 +1069,25 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             notifyDataSourceContext();
         }
         mAplTrace.endTrace();
+
+        // Allow embedded documents a chance to update their visual and data source context
+        ViewhostImpl viewhost = (ViewhostImpl)mOptions.getViewhost();
+        if (viewhost != null) {
+            mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_NEW_VIEWHOST_TICK);
+            viewhost.tick();
+            mAplTrace.endTrace();
+        }
     }
 
     private void checkDataSourceErrors(final long nativeHandle) {
         final Object errors = nGetDataSourceErrors(nativeHandle);
         if (errors != null) {
             mOptions.getDataSourceErrorCallback().onDataSourceError(errors);
+        }
+        //check for errors in embedded docs
+        ViewhostImpl viewhost = (ViewhostImpl)mOptions.getViewhost();
+        if (viewhost != null) {
+            viewhost.checkAndReportDataSourceErrors();
         }
     }
 

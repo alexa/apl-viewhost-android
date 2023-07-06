@@ -117,7 +117,7 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
         assertEquals(VideoScale.kVideoScaleBestFill, component.getVideoScale());
         MediaSources sources = MediaSources.create();
         List<TextTrack> testTrack = new ArrayList<TextTrack>();
-        TextTrack track = new TextTrack(TextTrackType.kTextTrackTypeCaption, DUMMY_TEXT_TRACK_URL, DUMMY_TEXT_TRACK_DESCRIPTION);
+        TextTrack track = new TextTrack(TextTrackType.kTextTrackTypeCaption.getIndex(), DUMMY_TEXT_TRACK_URL, DUMMY_TEXT_TRACK_DESCRIPTION);
         testTrack.add(track);
         sources.add(MediaSources.MediaSource.builder()
                 .url(DUMMY_URL)

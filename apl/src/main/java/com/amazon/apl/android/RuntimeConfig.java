@@ -43,6 +43,8 @@ public abstract class RuntimeConfig {
      */
     public abstract boolean isClearViewsOnFinish();
 
+    public abstract boolean isEmbeddedFontResolverEnabled();
+
     /**
      * @return gets a builder for {@link RuntimeConfig} with default implementation
      */
@@ -54,6 +56,7 @@ public abstract class RuntimeConfig {
                 .preloadingFontsEnabled(true)
                 .bitmapCache(bitmapCache)
                 .bitmapPool(bitmapPool)
+                .embeddedFontResolverEnabled(true)
                 .clearViewsOnFinish(true);
     }
 
@@ -104,6 +107,15 @@ public abstract class RuntimeConfig {
          * @return this builder
          */
         public abstract Builder clearViewsOnFinish(boolean clearViewsOnFinish);
+
+        /**
+         * Defaults to true.
+         * Flag to enable the embedded font resolver which is used if the configured one cannot
+         * resolve a requested font.
+         * @param enableEmbeddedFontResolver true if the embedded font resolver should be used
+         * @return this builder
+         */
+        public abstract Builder embeddedFontResolverEnabled(boolean enableEmbeddedFontResolver);
 
         /**
          * Builds the config

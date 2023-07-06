@@ -91,8 +91,8 @@ public class APLAbsoluteLayout extends ViewGroup {
             return;
         }
         Rect bounds = component.getBounds();
-        int w = (int) bounds.getWidth();
-        int h = (int) bounds.getHeight();
+        int w = bounds.intWidth();
+        int h = bounds.intHeight();
         setMeasuredDimension(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY),
                 MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY));
 
@@ -121,8 +121,8 @@ public class APLAbsoluteLayout extends ViewGroup {
             return new LayoutParams(0, 0, 0, 0);
         }
         Rect bounds = component.getBounds();
-        int w = (int) bounds.getWidth();
-        int h = (int) bounds.getHeight();
+        int w = bounds.intWidth();
+        int h = bounds.intHeight();
         return new LayoutParams(w, h, 0, 0);
     }
 

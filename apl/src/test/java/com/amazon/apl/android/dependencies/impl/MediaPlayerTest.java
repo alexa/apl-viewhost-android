@@ -170,7 +170,7 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     public void testPlay_singleTrack_withTextTrack() {
         Log.d(TAG, "Testing play_singleTrack");
         List<TextTrack> textTracks = new ArrayList<TextTrack>();
-        textTracks.add(new TextTrack(TextTrackType.kTextTrackTypeCaption, "file://intro.mp4", "intro caption"));
+        textTracks.add(new TextTrack(TextTrackType.kTextTrackTypeCaption.getIndex(), "file://intro.mp4", "intro caption"));
         setupMediaSources(1, 0, 0, 0, Collections.emptyMap(), textTracks);
         initExpectedStatesForPlay();
         mAplMediaPlayer.setMediaSources(mMediaSources);
@@ -345,6 +345,30 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
 
         // try to seek further than the track duration, this should
         mAplMediaPlayer.seek(TRACK_TOTAL_DURATION_MS * 2);
+        checkState(State.STARTED, PLAYING);
+        mScheduler.advanceBy(TRACK_TOTAL_DURATION_MS, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
+    public void testSeekTo() {
+        Log.d(TAG, "Testing seekTo");
+        setupMediaSources(2, 0, 0, 0);
+        Collections.addAll(mExpectedStates, PLAYING, TRACK_UPDATE, END, IDLE, RELEASED);
+        mAplMediaPlayer.setMediaSources(mMediaSources);
+        checkState(State.IDLE, IDLE);
+
+        mAplMediaPlayer.seekTo(0);
+        checkState(State.PREPARING, PREPARING);
+        mScheduler.advanceBy(PREPARATION_DELAY_MS, TimeUnit.MILLISECONDS);
+        checkState(State.STARTED, PLAYING);
+
+        mAplMediaPlayer.seekTo(TRACK_HALF_DURATION_MS);
+        checkState(State.STARTED, PLAYING);
+        mScheduler.advanceBy(TRACK_HALF_DURATION_MS + PREPARATION_DELAY_MS, TimeUnit.MILLISECONDS);
+        checkState(State.STARTED, PLAYING);
+
+        // try to seek further than the track duration, this should
+        mAplMediaPlayer.seekTo(TRACK_TOTAL_DURATION_MS * 2);
         checkState(State.STARTED, PLAYING);
         mScheduler.advanceBy(TRACK_TOTAL_DURATION_MS, TimeUnit.MILLISECONDS);
     }

@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import com.amazon.alexaext.ActivityDescriptor;
 import com.amazon.alexaext.ExtensionProxy;
@@ -30,11 +31,17 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
     private ILegacyLocalExtension mLegacyLocalExtension;
 
     /**
-     * @deprecated Here hor backwards compatibility only.
+     * @deprecated Here for backwards compatibility only.
      */
     @Nullable
     @Deprecated
     private ActivityDescriptor mCachedDescriptor;
+
+    @VisibleForTesting
+    @Deprecated
+    public void setActivity(ActivityDescriptor activity) {
+        mCachedDescriptor = activity;
+    }
 
     public LegacyLocalExtensionProxy(IExtension extension) {
         super(extension.getUri());
@@ -242,7 +249,7 @@ public class LegacyLocalExtensionProxy extends ExtensionProxy {
      * @return true if event handled, false otherwise.
      */
     public boolean sendExtensionEvent(String name, Map<String, Object> parameters) {
-        if (mCachedDescriptor != null) {
+        if (mCachedDescriptor == null) {
             return false;
         }
         try {

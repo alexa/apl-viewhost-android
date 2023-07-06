@@ -9,6 +9,8 @@
 #include "jniextensionproxy.h"
 #include "jniextensionresource.h"
 #include "jninativeowner.h"
+#include <codecvt>
+#include <locale>
 
 namespace alexaext {
     namespace jni {
@@ -155,6 +157,28 @@ namespace alexaext {
             env->DeleteGlobalRef(EXTENSIONPROXY_CLASS);
             env->DeleteGlobalRef(ACTIVITY_DESCRIPTOR_CLASS);
             env->DeleteGlobalRef(SESSION_DESCRIPTOR_CLASS);
+        }
+
+        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+
+        /**
+         * Convert a Java string into a std::string in UTF-8 encoding
+         * @param env The Java environment
+         * @param value The string to convert
+         * @return The std::string
+         */
+        std::string getStdStringViaConverter(JNIEnv *env, jstring value) {
+            // for emoji characters, GetStringUTFChars returns the surrogate pair
+            // eg. U+1F33D -> \uD83C\uDF3D
+            // so get UTF-16 using GetStringChars and convert it to UTF-8 manually
+            const jchar* utf16String = env->GetStringChars(value, nullptr);
+            jsize utf16StringLength = env->GetStringLength(value);
+
+            std::string utf8String = converter.to_bytes(std::u16string(utf16String, utf16String+utf16StringLength));
+
+            env->ReleaseStringChars(value, utf16String);
+
+            return utf8String;
         }
 
 
@@ -658,9 +682,10 @@ namespace alexaext {
             CREATE_ACTIVITY_DESCRIPTOR();
 
             auto proxy = apl::jni::get<AndroidExtensionProxy>(handler_);
-            const auto event = env->GetStringUTFChars(event_, nullptr);
+
+            const std::string event = getStdStringViaConverter(env, event_);
+
             jboolean result = static_cast<jboolean>(proxy->invokeExtensionEventHandler(activityDescriptor, event));
-            env->ReleaseStringUTFChars(event_, event);
             return result;
         }
 
@@ -674,9 +699,8 @@ namespace alexaext {
             CREATE_ACTIVITY_DESCRIPTOR();
 
             auto proxy = apl::jni::get<AndroidExtensionProxy>(handler_);
-            const auto liveDataUpdate = env->GetStringUTFChars(liveDataUpdate_, nullptr);
+            const std::string liveDataUpdate = getStdStringViaConverter(env, liveDataUpdate_);
             jboolean result = static_cast<jboolean>(proxy->invokeLiveDataUpdate(activityDescriptor, liveDataUpdate));
-            env->ReleaseStringUTFChars(liveDataUpdate_, liveDataUpdate);
             return result;
         }
 
@@ -703,9 +727,8 @@ namespace alexaext {
                                                                   jstring commandResult_) {
             CREATE_ACTIVITY_DESCRIPTOR();
             auto proxy = apl::jni::get<AndroidExtensionProxy>(handler_);
-            const auto commandResult = env->GetStringUTFChars(commandResult_, nullptr);
+            const std::string commandResult = getStdStringViaConverter(env, commandResult_);
             proxy->commandResult(activityDescriptor, commandResult);
-            env->ReleaseStringUTFChars(commandResult_, commandResult);
         }
 
         JNIEXPORT jstring JNICALL

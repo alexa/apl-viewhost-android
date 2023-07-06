@@ -5,6 +5,8 @@
 
 package com.amazon.apl.android.providers;
 
+import android.os.SystemClock;
+
 import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.IDocumentLifecycleListener;
 
@@ -56,18 +58,29 @@ public interface ITelemetryProvider extends IDocumentLifecycleListener {
      * Start a timer for a metric, with an initial seeded elapsed time value. For example,
      * a timer may be started with an elapsed time of 10sec.
      *
-     * @param metricId    The metric identifier.
-     * @param timeUnit    The time unit of the elapsed time.
-     * @param elapsedTime The elapsed time.
+     * @param metricId              The metric identifier.
+     * @param timeUnit              The time unit of the elapsed time.
+     * @param initialElapsedTime    The initial elapsed time.
      */
-    void startTimer(int metricId, TimeUnit timeUnit, long elapsedTime);
+    void startTimer(int metricId, TimeUnit timeUnit, long initialElapsedTime);
 
     /**
      * End a timer for a metric.
      *
-     * @param metricId The metric identifier..
+     * @param metricId The metric identifier.
      */
     void stopTimer(int metricId);
+
+    /**
+     * End a timer for a metric.
+     *
+     * @param metricId  The metric identifier.
+     * @param timeUnit  The time unit of the time the timer should be stopped at.
+     * @param endTime   The time to stop the timer at. Should be taken from {@link SystemClock#elapsedRealtime()}.
+     */
+    default void stopTimer(int metricId, TimeUnit timeUnit, long endTime) {
+        stopTimer(metricId);
+    }
 
     /**
      * Cancels an active metric timer.

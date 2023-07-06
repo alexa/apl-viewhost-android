@@ -37,7 +37,6 @@ import com.amazon.apl.enums.VideoScale;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +60,8 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
         STOP,
         // Perform seek on the current track
         SEEK,
+        // Perform seekTo on the current track
+        SEEK_TO,
         // Next/Previous/Set a track from the provided list
         USER_TRACK_UPDATE,
         // Player has finished playing current track along with it's repeat count, move to the next track
@@ -215,10 +216,7 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
      */
     @Override
     public void play() {
-        if (mAction == Action.PLAY) {
-            return;
-        }
-        if (mAction == Action.SEEK) {
+        if (mAction == Action.PLAY || mAction == Action.SEEK || mAction == Action.SEEK_TO) {
             return;
         }
 
@@ -327,6 +325,22 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
             }
         } catch (Exception e) {
             onPlayerError("Media player error on seek", e);
+        }
+
+    }
+
+    @Override
+    public void seekTo(int msec) {
+        try {
+            if (!isPlayerReady()) {
+                mCurrentSeekPosition = msec;
+                mAction = Action.SEEK_TO;
+                preparePlayer();
+            } else {
+                seekToInternal(msec, mLoopCount, Action.SEEK_TO, android.media.MediaPlayer.SEEK_PREVIOUS_SYNC);
+            }
+        } catch (Exception e) {
+            onPlayerError("Media player error on seekTo", e);
         }
 
     }
@@ -470,16 +484,25 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
 
     private void seekInternal(int position, int loopCount, Action action)
             throws IllegalStateException {
+        MediaSource mediaSource = mSources.at(mCurrentTrackIndex);
+        position += mediaSource.offset();
+        seekToInternal(position, loopCount, action, android.media.MediaPlayer.SEEK_CLOSEST);
+    }
+
+    private void seekToInternal(int position, int loopCount, Action action, int mode)
+            throws IllegalStateException {
         mAction = action;
         mLoopCount = loopCount;
         MediaSource mediaSource = mSources.at(mCurrentTrackIndex);
-        position += mediaSource.offset();
         int trackDuration = mediaSource.duration() <= 0 ?
                 Integer.MAX_VALUE : mediaSource.duration();
-
-        position = position >= trackDuration ? trackDuration : position;
+        if(position <= mediaSource.offset()) {
+            position = mediaSource.offset();
+        } else if (position >= trackDuration) {
+            position = trackDuration;
+        }
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O) {
-            mMediaPlayer.seekTo(position, android.media.MediaPlayer.SEEK_CLOSEST);
+            mMediaPlayer.seekTo(position, mode);
         } else {
             mMediaPlayer.seekTo(position);
         }
@@ -636,10 +659,10 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
     @SuppressWarnings("FieldCanBeLocal")
     private final OnPreparedListener mOnPreparedListener = mp -> {
         mCurrentState = MediaState.READY;
-        if (mAction == Action.PLAY || mAction == Action.INTERNAL_TRACK_UPDATE || mAction == Action.SEEK) {
+        if (mAction == Action.PLAY || mAction == Action.INTERNAL_TRACK_UPDATE || mAction == Action.SEEK || mAction == Action.SEEK_TO) {
             try {
                 MediaSource mediaSource = mSources.at(mCurrentTrackIndex);
-                if (mAction == Action.SEEK) {
+                if (mAction == Action.SEEK || mAction == Action.SEEK_TO) {
                     mAction = Action.PLAY;
                     seekInternal(mCurrentSeekPosition, mLoopCount, mAction);
                 } else if (mediaSource.offset() > 0) {
@@ -673,7 +696,7 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
         public void onSurfaceTextureAvailable(SurfaceTexture texture, int width, int height) {
             mSurface = new Surface(texture);
 
-            if (mAction == Action.PLAY || mAction == Action.SEEK) {
+            if (mAction == Action.PLAY || mAction == Action.SEEK || mAction == Action.SEEK_TO) {
                 try {
                     preparePlayer();
                 } catch (Exception e) {

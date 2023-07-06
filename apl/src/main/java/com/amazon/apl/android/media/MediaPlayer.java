@@ -39,6 +39,8 @@ public abstract class MediaPlayer extends BoundObject implements IMediaPlayer.IM
 
     public abstract void seek(int offset);
 
+    public abstract void seekTo(int offset);
+
     public abstract void setTrackList(List<MediaTrack> trackList);
 
     public abstract void setTrackIndex(int trackIndex);

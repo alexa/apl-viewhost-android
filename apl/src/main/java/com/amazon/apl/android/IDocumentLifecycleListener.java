@@ -35,7 +35,7 @@ public interface IDocumentLifecycleListener {
     /**
      * Callback for when the document is visible to the user.
      *
-     * @param utcTime Time of document being displayed in milliseconds elapsed since the Unix epoch in UTC. 
+     * @param documentDisplayedTime Time of document being displayed in milliseconds elapsed since the system booted (elapsedRealtime).
      */
     default void onDocumentDisplayed(long documentDisplayedTime) { onDocumentDisplayed(); }
 

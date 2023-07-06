@@ -8,40 +8,8 @@
 -- Check for working CXX compiler: /Users/pranavsu/Library/Android/sdk/ndk/23.0.7599858/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
--- Configuring done
--- Generating done
--- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/arm64-v8a/googletest-download
-[1/9] Creating directories for 'googletest'
-[2/9] Performing download step (verify and extract) for 'googletest'
--- verifying file...
-     file='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/../../APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
--- verifying file... done
--- extracting...
-     src='/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/thirdparty/googletest-release-1.8.1.tar.gz'
-     dst='/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/arm64-v8a/googletest-src'
--- extracting... [tar xfz]
--- extracting... [analysis]
--- extracting... [rename]
--- extracting... [clean up]
--- extracting... done
-[3/9] No update step for 'googletest'
-[4/9] No patch step for 'googletest'
-[5/9] No configure step for 'googletest'
-[6/9] No build step for 'googletest'
-[7/9] No install step for 'googletest'
-[8/9] No test step for 'googletest'
-[9/9] Completed 'googletest'
--- Found PythonInterp: /usr/local/bin/python3.9 (found version "3.9.16") 
--- Looking for pthread.h
--- Looking for pthread.h - found
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD
--- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
--- Check if compiler accepts -pthread
--- Check if compiler accepts -pthread - yes
--- Found Threads: TRUE  
--- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
--- Found Git: /usr/local/bin/git (found version "2.39.0") 
--- Core Repository Version apl-2023.1-11.24.2022-12-g2f78e503
--- Configuring done
--- Generating done
--- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/arm64-v8a
+-- Evaluation depth limit set to 5
+-- Configuring incomplete, errors occurred!
+See also "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/arm64-v8a/googletest-download/CMakeFiles/CMakeOutput.log".
+-- Configuring incomplete, errors occurred!
+See also "/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/arm64-v8a/CMakeFiles/CMakeOutput.log".

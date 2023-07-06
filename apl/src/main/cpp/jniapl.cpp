@@ -7,6 +7,8 @@
 
 #include "jniaudioplayer.h"
 #include "jniaudioplayerfactory.h"
+#include "jnidocumentmanager.h"
+#include "jniembeddeddocumentrequest.h"
 #include "jnimediaplayer.h"
 #include "jnimediaplayerfactory.h"
 #include "jnirootcontext.h"
@@ -59,13 +61,15 @@ namespace apl {
             jboolean audioFactoryLoaded = audioplayerfactory_OnLoad(vm, reserved);
             jboolean audioPlayerLoaded = audioplayer_OnLoad(vm, reserved);
             jboolean mediaplayerLoaded = mediaplayer_OnLoad(vm, reserved);
+            jboolean documentmanagerLoaded = documentmanager_OnLoad(vm, reserved);
             jboolean mediaplayerFactoryLoaded = mediaplayerfactory_OnLoad(vm, reserved);
 
             if (!driverLoaded || !contentLoaded || !rootconfigLoaded
                 || !complexpropertyLoaded || !eventLoaded || !actionLoaded || !graphicLoaded
                 || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded
                 || !localExtensionMediatorLoaded || !audioFactoryLoaded || !audioPlayerLoaded
-                || !localExtensionMediatorLoaded || !mediaplayerLoaded || !mediaplayerFactoryLoaded)  {
+                || !localExtensionMediatorLoaded || !mediaplayerLoaded || !mediaplayerFactoryLoaded
+                || !documentmanagerLoaded)  {
                 return JNI_ERR;
             }
 
@@ -94,6 +98,7 @@ namespace apl {
             audioplayer_OnUnload(vm, reserved);
             mediaplayer_OnUnload(vm, reserved);
             mediaplayerfactory_OnUnload(vm, reserved);
+            documentmanager_OnUnload(vm, reserved);
         }
 
     } //namespace jni

@@ -5,6 +5,8 @@
 
 package com.amazon.apl.android;
 
+import static com.amazon.apl.enums.ComponentType.kComponentTypeText;
+
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -16,10 +18,15 @@ import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import java.util.Calendar;
+import java.util.Date;
 
 public class RootContextTest extends AbstractDocUnitTest {
 
@@ -81,5 +88,57 @@ public class RootContextTest extends AbstractDocUnitTest {
         // Repeating the resume has no effect
         mRootContext.resumeDocument();
         inOrder.verify(mAPLPresenter, never()).onDocumentResumed();
+    }
+
+    private final String TIME_DOC = "{\n" +
+            "    \"type\": \"APL\",\n" +
+            "    \"version\": \"1.0\",\n" +
+            "    \"mainTemplate\": {\n" +
+            "        \"item\": {\n" +
+            "            \"type\": \"Text\",\n" +
+            "            \"id\": \"text\",\n" +
+            "            \"text\": \"%s\"\n" +
+            "        }\n" +
+            "    }\n" +
+            "}";
+
+    @Test
+    public void test_updateTime_localTime() {
+        Date before = new Date();
+        loadDocument(String.format(TIME_DOC, "${localTime}"));
+        Date after = new Date();
+        // Local time should be the current time in the local timezone
+        Component component = mRootContext.findComponentById("text");
+        assertEquals(kComponentTypeText, component.getComponentType());
+        Calendar now = Calendar.getInstance();
+        long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
+        assertTrue(before.getTime() <= Long.parseLong(((Text) component).getText()) - offset);
+        assertTrue(Long.parseLong(((Text) component).getText()) - offset <= after.getTime());
+    }
+
+    @Test
+    public void test_updateTime_utcTime() {
+        // UTC time should be the utc time
+        Date before = new Date();
+        loadDocument(String.format(TIME_DOC, "${utcTime}"));
+        Date after = new Date();
+        Component component = mRootContext.findComponentById("text");
+        assertEquals(kComponentTypeText, component.getComponentType());
+        assertTrue(before.getTime() <= Long.parseLong(((Text) component).getText()));
+        assertTrue(Long.parseLong(((Text) component).getText()) <= after.getTime());
+    }
+
+    @Test
+    public void test_updateTime_localTime_elapsedTime() {
+        // Elapsed time should be 0 initially
+        loadDocument(String.format(TIME_DOC, "${elapsedTime}"));
+        Component component = mRootContext.findComponentById("text");
+        assertEquals(kComponentTypeText, component.getComponentType());
+        assertEquals("0", ((Text)component).getText());
+        update(500);
+        // Elapsed time should be updated to 500 now
+        component = mRootContext.findComponentById("text");
+        assertEquals(kComponentTypeText, component.getComponentType());
+        assertEquals("500", ((Text)component).getText());
     }
 }

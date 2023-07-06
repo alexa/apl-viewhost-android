@@ -16,6 +16,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
 import android.view.accessibility.AccessibilityManager;
 
 import com.amazon.apl.android.bitmap.IBitmapCache;
@@ -24,11 +25,13 @@ import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.helper.LinearGradientWrapper;
 import com.amazon.apl.android.helper.RadialGradientWrapper;
 import com.amazon.apl.android.primitive.Gradient;
+import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
+import com.amazon.apl.android.views.APLImageView;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.GradientType;
 import com.amazon.apl.enums.PropertyKey;
@@ -39,9 +42,9 @@ import com.google.common.collect.ImmutableMap;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.internal.matchers.Any;
 import org.robolectric.RuntimeEnvironment;
 
 import java.util.Arrays;
@@ -262,8 +265,30 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
         APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
         view.getPresenter().onComponentChange(graphic, Arrays.asList(new PropertyKey[]{ }));
-
         verify(gce).applyDirtyProperties(any(Set.class));
+    }
+
+    @Test
+    public void testRoundingOfLayoutParams() {
+        APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
+        Image imageComponent = mock(Image.class);
+        APLImageView imageView = mock(APLImageView.class);
+        ArgumentCaptor<APLLayoutParams> layoutParamsCapture = ArgumentCaptor.forClass(APLLayoutParams.class);
+
+        when(imageComponent.getBounds()).thenReturn(Rect.builder().height(0.9f).width(1.2f).left(1).top(1).build());
+        when(imageComponent.getParentId()).thenReturn(null);
+
+        // Just needs to be non-null.
+        when(imageView.getParent()).thenReturn(mock(ViewParent.class));
+
+        view.getPresenter().updateViewInLayout(imageComponent, imageView);
+
+        verify(imageView).setLayoutParams(layoutParamsCapture.capture());
+
+        APLLayoutParams params = layoutParamsCapture.getValue();
+
+        assertEquals(1, params.width);
+        assertEquals(1, params.height);
     }
 
     @Test
@@ -518,5 +543,11 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
         verify(accessibilityManager).addAccessibilityStateChangeListener(aplLayout);
         aplLayout.onDetachedFromWindow();
         verify(accessibilityManager).removeAccessibilityStateChangeListener(aplLayout);
+    }
+
+    @Test(expected = Test.None.class)
+    public void test_onDetachedFromWindow_doesntThrowExceptionWhenTimeZoneNotRegistered() {
+        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        aplLayout.onDetachedFromWindow();
     }
 }

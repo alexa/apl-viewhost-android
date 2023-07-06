@@ -113,6 +113,13 @@ public interface IMediaPlayer<T extends View> {
     void seek(int msec);
 
     /**
+     * Change the media playback position.
+     *
+     * @param msec The desired offset to set in the milliseconds. This offset is absolute value.
+     */
+     default void seekTo(int msec) {}
+
+    /**
      * Rewind the current media track to its start.
      */
     void rewind();

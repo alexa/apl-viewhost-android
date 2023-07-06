@@ -9,6 +9,7 @@
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datagrammar/CMakeLists.txt
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/datasource/CMakeLists.txt
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/document/CMakeLists.txt
+/Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/embed/CMakeLists.txt
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/engine/CMakeLists.txt
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/extension/CMakeLists.txt
 /Volumes/workplace/APLViewhostAndroid/src/APLCoreEngine/aplcore/src/focus/CMakeLists.txt

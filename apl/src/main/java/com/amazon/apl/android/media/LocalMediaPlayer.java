@@ -91,6 +91,16 @@ public class LocalMediaPlayer extends MediaPlayer {
     }
 
     @Override
+    public void seekTo(int offset) {
+        runOrDeferFunction("seekTo", () -> {
+            IMediaPlayer player = mWeakPlayer.get();
+            if (player != null) {
+                player.seekTo(offset);
+            }
+        });
+    }
+
+    @Override
     public void setTrackList(List<MediaTrack> trackList) {
         MediaSources sources = MediaSources.create();
         for (MediaTrack mediaTrack : trackList) {

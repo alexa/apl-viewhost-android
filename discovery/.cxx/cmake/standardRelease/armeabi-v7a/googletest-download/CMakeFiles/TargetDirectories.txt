@@ -1,3 +1,0 @@
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/armeabi-v7a/googletest-download/CMakeFiles/rebuild_cache.dir
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/armeabi-v7a/googletest-download/CMakeFiles/edit_cache.dir
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardRelease/armeabi-v7a/googletest-download/CMakeFiles/googletest.dir

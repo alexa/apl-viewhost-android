@@ -5,8 +5,6 @@
 package com.amazon.apl.android;
 
 import android.graphics.Bitmap;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -27,7 +25,7 @@ import java.util.Map;
 /**
  * Protected API. This class mediates message passing between Extension and the APL engine.
  */
-class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
+public class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
         IExtensionImageFilterCallback, IDocumentLifecycleListener {
 
     ExtensionResourceProvider extensionResourceProvider;
@@ -36,7 +34,6 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
     private static final String TAG = "ExtensionMediator";
     private Map<String, IExtensionImageFilterCallback> mCallbacks = new HashMap<>();
     private IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
-    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
     private String mLogId;
 
     /**
@@ -74,9 +71,19 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
         nInitializeExtensions(getNativeHandle(), rootConfig.getNativeHandle(), content.getNativeHandle());
     }
 
+    public void initializeExtensions(Map<String, Object> extensionFlags, Content content, @NonNull IExtensionGrantRequestCallback extensionGrantRequestCallback) {
+        mExtensionGrantRequestCallback = extensionGrantRequestCallback;
+        nInitializeExtensions(getNativeHandle(), extensionFlags, content.getNativeHandle());
+    }
+
     public void loadExtensions(RootConfig rootConfig, Content content, Runnable onComplete) {
         mOnCompleteCallback = onComplete;
         nLoadExtensions(getNativeHandle(), rootConfig.getNativeHandle(), content.getNativeHandle());
+    }
+
+    public void loadExtensions(Map<String, Object> extensionFlags, Content content, Runnable onComplete) {
+        mOnCompleteCallback = onComplete;
+        nLoadExtensions(getNativeHandle(), extensionFlags, content.getNativeHandle());
     }
 
     // TODO: Not used. We will likely not need IExtensionEventCallback after resource holder stuff are in.
@@ -146,7 +153,9 @@ class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
 
     private native long nCreate(long providerHandler_, long resourceProviderHandler_, long executorHandler_, long sessionHandler_);
     private static native void nInitializeExtensions(long mediatorHandler_, long rootConfigHandler_, long contentHandler_);
+    private static native void nInitializeExtensions(long mediatorHandler_, Object flags_, long contentHandler_);
     private static native void nLoadExtensions(long mediatorHandler_, long rootConfigHandler_, long contentHandler_);
+    private static native void nLoadExtensions(long mediatorHandler_, Object flags_, long contentHandler_);
     private static native void nEnable(long mediatorHandler_, boolean enabled);
     private static native void nOnSessionEnded(long mediatorHandler_);
 }

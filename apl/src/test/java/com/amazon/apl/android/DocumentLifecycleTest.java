@@ -84,7 +84,7 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
         assertTrue(listenerA.isDocumentRenderCalled);
         assertTrue(listenerB.isDocumentRenderCalled);
 
-        mPresenter.onDocumentDisplayed();
+        mPresenter.onDocumentDisplayed(System.currentTimeMillis());
         assertTrue(listenerA.isDocumentDisplayedCalled);
         assertTrue(listenerB.isDocumentDisplayedCalled);
 
@@ -112,7 +112,7 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
         assertTrue(listener.isDocumentFinishCalled);
 
         mPresenter.onDocumentRender(mRootContext);
-        mPresenter.onDocumentDisplayed();
+        mPresenter.onDocumentDisplayed(System.currentTimeMillis());
         mPresenter.onDocumentPaused();
         mPresenter.onDocumentResumed();
         mPresenter.onDocumentFinish();
@@ -146,7 +146,7 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
         assertFalse(listener.isLegacyMethodCalled);
 
         mPresenter.onDocumentRender(mRootContext);
-        mPresenter.onDocumentDisplayed();
+        mPresenter.onDocumentDisplayed(System.currentTimeMillis());
 
         assertTrue(listener.isNewMethodCalled);
         assertFalse(listener.isLegacyMethodCalled);

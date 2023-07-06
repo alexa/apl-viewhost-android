@@ -29,9 +29,7 @@ namespace apl {
 
 
         static jclass TEXTTRACK_CLASS;
-        static jclass TEXTTYPE_CLASS;
         static jmethodID TEXTTRACK_CONSTRUCTOR;
-        static jmethodID TEXTTYPE_VALUEOF;
         /**
          * Create a class and method cache for calls to View Host.
          */
@@ -48,12 +46,8 @@ namespace apl {
 
             TEXTTRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("com/amazon/apl/android/media/TextTrack")));
-            TEXTTYPE_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
-                    env->FindClass("com/amazon/apl/enums/TextTrackType")));
-
             TEXTTRACK_CONSTRUCTOR = env->GetMethodID(TEXTTRACK_CLASS, "<init>",
-                                                     "(Lcom/amazon/apl/enums/TextTrackType;Ljava/lang/String;Ljava/lang/String;)V");
-            TEXTTYPE_VALUEOF = env->GetStaticMethodID(TEXTTYPE_CLASS,"valueOf", "(I)Lcom/amazon/apl/enums/TextTrackType;");
+                                                     "(ILjava/lang/String;Ljava/lang/String;)V");
             return JNI_TRUE;
         }
 
@@ -604,10 +598,9 @@ namespace apl {
                 auto textUrl = env->NewStringUTF(textTracks[i].url.c_str());
                 auto textDescription = env->NewStringUTF(
                         textTracks[i].description.c_str());
+                int textType = static_cast<int>(textTracks[i].type);
                 auto textTrackObj = env->NewObject(TEXTTRACK_CLASS, TEXTTRACK_CONSTRUCTOR,
-                                                   env->CallStaticObjectMethod(TEXTTYPE_CLASS,
-                                                                               TEXTTYPE_VALUEOF,
-                                                                               0),
+                                                  textType,
                                                    textUrl, textDescription);
                 env->SetObjectArrayElement(textTrackObjectArray, i, textTrackObj);
                 env->DeleteLocalRef(textUrl);

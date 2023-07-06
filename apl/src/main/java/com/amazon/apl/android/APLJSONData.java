@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android;
 
+import android.util.Log;
 import com.amazon.common.BoundObject;
 
 /**
@@ -24,6 +25,10 @@ public class APLJSONData extends BoundObject {
         return new APLJSONData(inString);
     }
 
+    static public APLJSONData create(byte[] utf8) {
+        return new APLJSONData(utf8);
+    }
+
     /**
      * Construct JSONData from a String.
      */
@@ -34,6 +39,16 @@ public class APLJSONData extends BoundObject {
     }
 
     /**
+     * Construct JSONData from a byte array of raw UTF8 data.  No verification is performed.
+     * @param utf8 The raw data
+     */
+    private APLJSONData(byte[] utf8) {
+        long handle = nCreateWithByteArray(utf8);
+        bind(handle);
+        mSize = utf8.length;
+    }
+
+    /**
      * @return the size of the String used to create this JsonData.
      */
     public int getSize() {
@@ -41,4 +56,6 @@ public class APLJSONData extends BoundObject {
     }
 
     private static native long nCreate(String data);
+
+    private static native long nCreateWithByteArray(byte[] byteArray);
 }

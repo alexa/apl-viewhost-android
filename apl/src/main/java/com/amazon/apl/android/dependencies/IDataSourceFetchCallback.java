@@ -5,8 +5,6 @@
 
 package com.amazon.apl.android.dependencies;
 
-import org.json.JSONException;
-
 import java.util.Map;
 
 public interface IDataSourceFetchCallback {

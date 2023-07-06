@@ -10,7 +10,6 @@ import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 
 import java.util.ArrayList;
@@ -40,18 +39,16 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         // return the location in the metrics collection
         Metric metric = new Metric();
         metric.metricName = idOf(domain, metricName);
+        int index = mMetrics.size();
         mMetrics.add(metric);
-        int index = mMetrics.indexOf(metric);
         mIds.add(index, metric.metricName);
         return index;
     }
-
 
     @Override
     public synchronized int getMetricId(String domain, String metricName) {
         return mIds.indexOf(idOf(domain, metricName));
     }
-
 
     /**
      * Creates a string identifier for a metric domain and name.
@@ -72,39 +69,26 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
      */
     @Override
     public synchronized void startTimer(int metricId) {
-        Metric metric = mMetrics.get(metricId);
-        if (metric != null) {
-            if (metric.startTime == 0) {
-                metric.startTime = realtimeNanos();
-            }
-        } else if (BuildConfig.DEBUG) {
-            throw new AssertionError("Invalid metric id:" + metricId
-                    + " name" + mIds.get(metricId));
-        }
+        startTimer(metricId, TimeUnit.NANOSECONDS, 0);
     }
-
 
     /**
      * Start a timer for a metric, with an initial seeded elapsed time value. For example,
      * a timer may be started with an elapsed time of 10sec.
      *
-     * @param metricId    The metric identifier.
-     * @param timeUnit    The time unit of the elapsed time.
-     * @param elapsedTime The elapsed time.
+     * @param metricId           The metric identifier.
+     * @param timeUnit           The time unit of the elapsed time.
+     * @param initialElapsedTime The initial elapsed time.
      */
     @Override
-    public synchronized void startTimer(int metricId, TimeUnit timeUnit, long elapsedTime) {
+    public synchronized void startTimer(int metricId, TimeUnit timeUnit, long initialElapsedTime) {
         Metric metric = mMetrics.get(metricId);
-        if (metric != null) {
-            if (metric.startTime == 0) {
-                metric.startTime = realtimeNanos() - timeUnit.toNanos(elapsedTime);
-            }
-        } else if (BuildConfig.DEBUG) {
-            throw new AssertionError("Invalid metric id:" + metricId
-                    + " name" + mIds.get(metricId));
+
+        if (metric.startTime == 0) {
+            metric.startTime = realtimeNanos();
+            metric.seedTime = timeUnit.toNanos(initialElapsedTime);
         }
     }
-
 
     /**
      * Stops a running timer and adds the elapsed time to the total time. If the
@@ -114,19 +98,28 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
      */
     @Override
     public synchronized void stopTimer(int metricId) {
-
         long endTime = realtimeNanos();
-        Metric metric = mMetrics.get(metricId);
-        if (metric != null && metric.startTime != 0) {
-            metric.totalTime += (endTime - metric.startTime);
-            metric.success++;
-            metric.startTime = 0; // reset time
-        } else if (BuildConfig.DEBUG) {
-            throw new AssertionError("Invalid metric id:" + metricId
-                    + " name" + mIds.get(metricId));
-        }
+        stopTimer(metricId, TimeUnit.NANOSECONDS, endTime);
     }
 
+    /**
+     * End a timer for a metric.
+     *
+     * @param metricId  The metric identifier.
+     * @param timeUnit  The time unit of the time the timer should be stopped at.
+     * @param endTime   The time to stop the timer at.
+     */
+    @Override
+    public synchronized void stopTimer(int metricId, TimeUnit timeUnit, long endTime) {
+        Metric metric = mMetrics.get(metricId);
+        if (metric.startTime != 0) {
+            metric.totalTime += timeUnit.toNanos(endTime) - (metric.startTime - metric.seedTime);
+            metric.success++;
+
+            metric.seedTime = 0;
+            metric.startTime = 0; // reset time
+        }
+    }
 
     /**
      * Fails an active metric timer, increments the fail success, and
@@ -137,13 +130,8 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     @Override
     public synchronized void fail(int metricId) {
         Metric metric = mMetrics.get(metricId);
-        if (metric != null) {
-            metric.fail++;
-            metric.startTime = 0;  // end timer
-        } else if (BuildConfig.DEBUG) {
-            throw new AssertionError("Invalid metric id:" + metricId
-                    + " name" + mIds.get(metricId));
-        }
+        metric.fail++;
+        metric.startTime = 0;  // end timer
     }
 
     /**
@@ -159,12 +147,7 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     @Override
     public synchronized void incrementCount(int metricId, int by) {
         Metric metric = mMetrics.get(metricId);
-        if (metric != null) {
-            metric.success += by;
-        } else if (BuildConfig.DEBUG) {
-            throw new AssertionError("Invalid metric id:" + metricId
-                    + " name" + mIds.get(metricId));
-        }
+        metric.success += by;
     }
 
     /**
@@ -180,7 +163,6 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
      */
     @SuppressLint("DefaultLocale")
     private void logAndResetMetrics() {
-
         for (int i = 0; i < mMetrics.size(); i++) {
             StringBuilder builder = new StringBuilder();
 
@@ -221,12 +203,12 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
      */
     public class Metric {
         public String metricName;
+        public long seedTime = 0;
         public long startTime = 0;
         public long totalTime = 0;
         public int success = 0;
         public int fail = 0;
     }
-
 
     /**
      * Get the simple metric model associated with the metric Id.
@@ -237,7 +219,6 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     public Metric getMetric(int id) {
         return mMetrics.get(id);
     }
-
 
     /**
      * A synchronized method that returns a one-time copy of the metrics
@@ -251,5 +232,4 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         }
         return copyOfMetrics;
     }
-
 }

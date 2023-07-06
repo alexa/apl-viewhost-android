@@ -1,0 +1,3 @@
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Release/arm64-v8a/_deps/aplcore-subbuild/CMakeFiles/rebuild_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Release/arm64-v8a/_deps/aplcore-subbuild/CMakeFiles/edit_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Release/arm64-v8a/_deps/aplcore-subbuild/CMakeFiles/aplcore-populate.dir

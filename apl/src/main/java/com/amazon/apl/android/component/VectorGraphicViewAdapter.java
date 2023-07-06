@@ -25,6 +25,7 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
     private VectorGraphicViewAdapter() {
         super();
         putPropertyFunction(PropertyKey.kPropertyGraphic, this::applyDirtyGraphics);
+        putPropertyFunction(PropertyKey.kPropertySource, this::applySource);
     }
 
     public static VectorGraphicViewAdapter getInstance() {
@@ -51,18 +52,36 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
         view.setAlign(component.getAlign());
         view.setScaleType(ImageView.ScaleType.MATRIX);
 
+        applySource(component, view);
+    }
+
+    private void applySource(VectorGraphic component, APLVectorGraphicView view) {
+
         if (component.hasGraphic()) {
+            component.resetGraphicContainerElement();
             createVectorDrawable(component, view);
         } else {
             UrlRequests.UrlRequest source = component.getSourceRequest();
             if (!TextUtils.isEmpty(source.url())) {
+
                 component.getContentRetriever().fetchV2(Uri.parse(source.url()), source.headers(),
-                        (request, result) -> view.post(() -> component.updateGraphic(result)),
-                        (request, message, errorCode) -> Log.e(TAG, "Unable to open source " + message + " with errorCode " + errorCode));
+                        (request, result) -> view.post(() -> updateGraphic(component, view, result)),
+                        (request, message, errorCode) -> {
+                            Log.e(TAG, "Unable to open source " + request.getPath() + " with error " + message);
+                            view.post(() -> resetDrawableGraphics(component, view));
+                        });
             } else {
                 Log.e(TAG, "Not a proper vector graphic source");
+                resetDrawableGraphics(component, view);
             }
         }
+
+    }
+
+    private void updateGraphic(VectorGraphic component, APLVectorGraphicView view, String graphicString) {
+        component.resetGraphicContainerElement();
+        component.updateGraphic(graphicString);
+        createVectorDrawable(component, view);
     }
 
     void createVectorDrawable(VectorGraphic component, APLVectorGraphicView view) {
@@ -70,10 +89,16 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
         view.setImageDrawable(vectorDrawable);
     }
 
+    void resetDrawableGraphics(VectorGraphic component, APLVectorGraphicView view) {
+        component.resetGraphicContainerElement();
+        view.setImageDrawable(null);
+    }
+
     void applyDirtyGraphics(VectorGraphic component, APLVectorGraphicView view) {
         AlexaVectorDrawable vectorDrawable = (AlexaVectorDrawable) view.getDrawable();
         if (vectorDrawable == null) {
-            createVectorDrawable(component, view);
+            if (component.hasGraphic())
+                createVectorDrawable(component, view);
         } else {
             vectorDrawable.updateDirtyGraphics(component.getDirtyGraphics());
         }

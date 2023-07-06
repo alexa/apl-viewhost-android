@@ -4,9 +4,10 @@
 
 #include <jni.h>
 #include <string>
-
+#include <jnidocumentmanager.h>
 #include "apl/apl.h"
 #include "apl/dynamicdata.h"
+#include "apl/embed/documentmanager.h"
 
 #include "jnirootconfig.h"
 #include "jniutil.h"
@@ -505,6 +506,13 @@ namespace apl {
                                                                     jlong nativeHandler) {
             auto rc = get<RootConfig>(nativeHandle);
             rc->mediaPlayerFactory(get<MediaPlayerFactory>(nativeHandler));
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nSetDocumentManager(JNIEnv *env, jclass clazz, jlong nativeHandle, jlong managerHandle) {
+            auto rc = get<RootConfig>(nativeHandle);
+            auto documentManager = get<DocumentManager>(managerHandle);
+            rc->documentManager(documentManager);
         }
 #ifdef __cplusplus
         }

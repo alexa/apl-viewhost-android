@@ -42,6 +42,9 @@ import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTtsPlayerProvider;
+import com.amazon.apl.viewhost.Viewhost;
+import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
+import com.amazon.apl.viewhost.config.NoOpEmbeddedDocumentFactory;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 
@@ -71,6 +74,12 @@ public abstract class APLOptions {
     // Providers
     public abstract ITelemetryProvider getTelemetryProvider();
     public abstract IImageLoaderProvider getImageProvider();
+
+    @Nullable
+    public abstract EmbeddedDocumentFactory getEmbeddedDocumentFactory();
+
+    @Nullable
+    public abstract Viewhost getViewhost();
 
     /**
      * Get the specified MediaPlayerProvider
@@ -174,7 +183,8 @@ public abstract class APLOptions {
                 .aplClockProvider(callback -> new APLChoreographer(callback))
                 .packageLoader((importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented."))
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
-                .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."));
+                .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."))
+                .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory());
     }
 
     @AutoValue.Builder
@@ -373,6 +383,20 @@ public abstract class APLOptions {
         public abstract Builder extensionRegistration(IExtensionRegistration registration);
 
         public abstract Builder aplClockProvider(@NonNull  IClockProvider clockProvider);
+
+        /**
+         * Allow runtime to fulfill embedded document requests
+         * @param embeddedDocumentFactory handler of embedded document requests
+         * @return this builder
+         */
+        public abstract Builder embeddedDocumentFactory(@NonNull EmbeddedDocumentFactory embeddedDocumentFactory);
+
+        /**
+         * Bridge new viewhost abstraction with legacy rendering pathway.
+         * @param viewhost
+         * @return this builder
+         */
+        public abstract Builder viewhost(Viewhost viewhost);
 
         /**
          * Builds the options for this document.

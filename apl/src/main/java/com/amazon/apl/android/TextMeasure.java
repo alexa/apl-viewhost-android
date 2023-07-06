@@ -4,6 +4,7 @@
  */
 package com.amazon.apl.android;
 
+import android.os.SystemClock;
 import android.text.Layout;
 
 import androidx.annotation.NonNull;
@@ -108,13 +109,13 @@ public class TextMeasure {
         // If at some point we want to track successive measures we should be specific about their impact on performance
         // as a long-running document could accrue many of these without any performance concerns.
         if (mIsInitialRenderPass) {
-            start = System.currentTimeMillis();
+            start = SystemClock.elapsedRealtime();
             mTelemetry.incrementCount(cMeasureText);
         }
 
         final float[] measurement = transformAndMeasure(componentType, widthDp, heightDp, widthMode, heightMode);
         if (mIsInitialRenderPass) {
-            long duration = System.currentTimeMillis() - start;
+            long duration = SystemClock.elapsedRealtime() - start;
             mTelemetry.incrementCount(cMeasureTextTotalTime, (int) duration);
         }
 

@@ -500,6 +500,24 @@ namespace apl {
             return createHandle(std::make_shared<JsonData>(std::move(jsonData)));
         }
 
+        JNIEXPORT jlong JNICALL
+        Java_com_amazon_apl_android_APLJSONData_nCreateWithByteArray(JNIEnv *env, jclass clazz, jbyteArray byteArray) {
+                auto elements = env->GetByteArrayElements(byteArray, nullptr);
+                auto length = static_cast<std::string::size_type>(env->GetArrayLength(byteArray));
+
+                rapidjson::Document doc;
+                rapidjson::ParseResult ok = doc.Parse<
+                        rapidjson::kParseValidateEncodingFlag | rapidjson::kParseStopWhenDoneFlag>(
+                        reinterpret_cast<const char *>(elements), length);
+                env->ReleaseByteArrayElements(byteArray, elements, JNI_ABORT);
+                if (ok.IsError()) {
+                    LOG(apl::LogLevel::ERROR)
+                            << "Parsing error: " << rapidjson::GetParseError_En(ok.Code());
+                }
+                auto jsonData = JsonData(std::move(doc));
+                return createHandle(std::make_shared<JsonData>(std::move(jsonData)));
+        }
+
 
 #pragma clang diagnostic pop
 

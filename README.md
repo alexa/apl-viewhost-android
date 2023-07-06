@@ -1,4 +1,4 @@
-# Alexa Presentation Language (APL) ViewHost Android version 2023.1
+# Alexa Presentation Language (APL) ViewHost Android version 2023.2
 
 APLViewHostAndroid is a view host implementation for the Android Platform. It consists of
 a thin JNI layer that interacts with APL Core Engine for component inflation and command

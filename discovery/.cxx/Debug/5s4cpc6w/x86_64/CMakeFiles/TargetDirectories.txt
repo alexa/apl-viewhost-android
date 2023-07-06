@@ -104,6 +104,12 @@
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/document/CMakeFiles/list_install_components.dir
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/document/CMakeFiles/rebuild_cache.dir
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/document/CMakeFiles/edit_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/install/local.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/install/strip.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/install.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/list_install_components.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/rebuild_cache.dir
+/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/embed/CMakeFiles/edit_cache.dir
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/engine/CMakeFiles/install/local.dir
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/engine/CMakeFiles/install/strip.dir
 /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/Debug/5s4cpc6w/x86_64/_deps/aplcore-build/aplcore/src/engine/CMakeFiles/install.dir

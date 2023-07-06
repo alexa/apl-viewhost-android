@@ -77,13 +77,13 @@ namespace apl {
         }
 
         JNIEXPORT void JNICALL
-        Java_com_amazon_apl_android_Component_nUpdate__JILjava_lang_String_2(JNIEnv *env, jclass clazz, jlong handle,
-                                                                              jint updateType, jstring value) {
+        Java_com_amazon_apl_android_Component_nUpdate__JI_3B(JNIEnv *env, jclass clazz, jlong handle,
+        jint updateType, jbyteArray value) {
             auto c = get<Component>(handle);
             auto ut = static_cast<UpdateType >(static_cast<int>(updateType));
-            const char *expression = env->GetStringUTFChars(value, nullptr);
-            c->update(ut, expression);
-            env->ReleaseStringUTFChars(value, expression);
+            jbyte * expression = env->GetByteArrayElements(value, nullptr);
+            c->update(ut, reinterpret_cast<char *>(expression));
+            env->ReleaseByteArrayElements(value, expression, 0);
         }
 
         JNIEXPORT jint JNICALL

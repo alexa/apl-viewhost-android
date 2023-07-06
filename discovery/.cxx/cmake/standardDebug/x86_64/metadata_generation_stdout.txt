@@ -1,9 +1,10 @@
+-- Evaluation depth limit set to 5
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardDebug/x86_64/googletest-download
 ninja: no work to do.
 -- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
--- Core Repository Version apl-2023.2-01.24.2023-4-g33062ef6
+-- Core Repository Version apl-2023.3-05.09.2023-5-g6710785a-dirty
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/standardDebug/x86_64

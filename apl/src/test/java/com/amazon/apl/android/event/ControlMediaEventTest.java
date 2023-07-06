@@ -146,6 +146,13 @@ public class ControlMediaEventTest extends AbstractDocUnitTest {
     }
 
     @Test
+    public void testCommands_seekTo() {
+        mRootContext.executeCommands(getCommand("seekTo", 500));
+        update(100); // executes play media command
+        verify(mMockPlayer).seekTo(500);
+    }
+
+    @Test
     public void testCommands_setTrack() {
         mRootContext.executeCommands(getCommand("setTrack", 1));
         update(100); // executes play media command
