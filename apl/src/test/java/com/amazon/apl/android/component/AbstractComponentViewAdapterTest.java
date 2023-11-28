@@ -15,9 +15,11 @@ import com.amazon.apl.android.APLAccessibilityDelegate;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RenderingContext;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.enums.Display;
@@ -29,6 +31,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.robolectric.RuntimeEnvironment;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +57,16 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
     AccessibilitySettingsUtil mockAccessibilitySettingsUtil;
     @Mock
     RenderingContext mRenderingContext;
+    @Mock
+    private ShadowBitmapRenderer mockShadowRenderer;
+
+    AccessibilityActions.AccessibilityAction mScrollBackwardAction;
+    AccessibilityActions.AccessibilityAction mScrollForwardAction;
+    AccessibilityActions mBothDirectionAccessbilityActions;
+    AccessibilityActions mForwardOnlyAccessbilityActions;
+    AccessibilityActions mBackwardOnlyAccessbilityActions;
+
+    private ShadowCache mBitmapCache;
     
     V getView() {
         return mView;
@@ -80,7 +93,39 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
     @Before
     public void setup() throws Exception {
         mView = createView();
+        mBitmapCache = new ShadowCache();
         when(mMockPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mockShadowRenderer.getCache()).thenReturn(mBitmapCache);
+        when(mMockPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
+        mScrollBackwardAction = AccessibilityActions.AccessibilityAction.create("scrollbackward", "scrollbackward");
+        mScrollForwardAction = AccessibilityActions.AccessibilityAction.create("scrollforward", "scrollforward");
+        mBothDirectionAccessbilityActions = new AccessibilityActions() {
+            @Override
+            public List<AccessibilityAction> list() {
+                List<AccessibilityAction> accessibilityActionList = new ArrayList<>();
+                accessibilityActionList.add(mScrollBackwardAction);
+                accessibilityActionList.add(mScrollForwardAction);
+                return accessibilityActionList;
+            }
+        };
+
+        mForwardOnlyAccessbilityActions = new AccessibilityActions() {
+            @Override
+            public List<AccessibilityAction> list() {
+                List<AccessibilityAction> accessibilityActionList = new ArrayList<>();
+                accessibilityActionList.add(mScrollForwardAction);
+                return accessibilityActionList;
+            }
+        };
+
+        mBackwardOnlyAccessbilityActions = new AccessibilityActions() {
+            @Override
+            public List<AccessibilityAction> list() {
+                List<AccessibilityAction> accessibilityActionList = new ArrayList<>();
+                accessibilityActionList.add(mScrollBackwardAction);
+                return accessibilityActionList;
+            }
+        };
         setupMockComponent(component());
 
         setScreenReaderEnabled(false);

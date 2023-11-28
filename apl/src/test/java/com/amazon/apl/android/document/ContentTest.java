@@ -1170,8 +1170,8 @@ public class ContentTest extends ViewhostRobolectricTest {
     }
 
     /**
-     * Test multiple ImportRequest for same package name and version but different source,
-     * for such duplicate requests package should be added only once to the Content.
+     * Test multiple imports for same package name and version but different source. We
+     * expect this to be de-duplicated on the core side and we only get one ImportRequest.
      */
     @Test
     public void testDocument_duplicateImports() {

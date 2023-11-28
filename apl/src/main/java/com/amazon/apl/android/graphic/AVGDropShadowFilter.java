@@ -26,16 +26,28 @@ public class AVGDropShadowFilter implements AVGFilter {
      */
     private static final int ALPHA_BITMASK = 0xFF000000;
 
+    // As per official android guidelines, Paints should be reused.
+    final Paint mShadowPaint = new Paint();
+    final Paint mTransferPaint = new Paint();
+
     private final int mColor;
     private final float mRadius;
     private final float mHorizontalOffset;
     private final float mVerticalOffset;
+
+    private float mLastScaledRadius = -1;
 
     public AVGDropShadowFilter(int color, float radius, float horizontalOffset, float verticalOffset) {
         mColor = color;
         mRadius = radius;
         mHorizontalOffset = horizontalOffset;
         mVerticalOffset = verticalOffset;
+
+        // Fix the alpha component, which will be calculated in the PorterDuffColorFilter
+        mTransferPaint.setColor(mColor | ALPHA_BITMASK);
+        // Fix the color of src, but take the alpha component from the src color
+        mTransferPaint.setColorFilter(new PorterDuffColorFilter(~ALPHA_BITMASK | mColor, PorterDuff.Mode.DST_IN));
+        mTransferPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OVER));
     }
 
 
@@ -53,23 +65,23 @@ public class AVGDropShadowFilter implements AVGFilter {
         if(scaledRadius < 0) return;
 
         final Canvas canvas = new Canvas(bitmap);
-        final Paint shadowPaint = new Paint();
-        if (scaledRadius != 0) {
-            shadowPaint.setMaskFilter(new BlurMaskFilter(scaledRadius, BlurMaskFilter.Blur.NORMAL));
-        }
-        int[] offsetXY = new int[2]; // will be filled out by extractAlpha
-        final Bitmap alphaBlurredBitmap = bitmap.extractAlpha(shadowPaint, offsetXY);
-        final Paint transferPaint = new Paint();
 
-        // Fix the alpha component, which will be calculated in the PorterDuffColorFilter
-        transferPaint.setColor(mColor | ALPHA_BITMASK);
-        // Fix the color of src, but take the alpha component from the src color
-        transferPaint.setColorFilter(new PorterDuffColorFilter(~ALPHA_BITMASK | mColor, PorterDuff.Mode.DST_IN));
-        transferPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.DST_OVER));
+        if (mLastScaledRadius != scaledRadius) {
+            if (scaledRadius != 0) {
+                mShadowPaint.setMaskFilter(new BlurMaskFilter(scaledRadius, BlurMaskFilter.Blur.NORMAL));
+            } else {
+                // Clear the mask filter.
+                mShadowPaint.setMaskFilter(null);
+            }
+            mLastScaledRadius = scaledRadius;
+        }
+
+        int[] offsetXY = new int[2]; // will be filled out by extractAlpha
+        final Bitmap alphaBlurredBitmap = bitmap.extractAlpha(mShadowPaint, offsetXY);
 
         canvas.translate(mHorizontalOffset * xScale, mVerticalOffset * yScale);
 
-        canvas.drawBitmap(alphaBlurredBitmap, offsetXY[0], offsetXY[1], transferPaint);
+        canvas.drawBitmap(alphaBlurredBitmap, offsetXY[0], offsetXY[1], mTransferPaint);
         alphaBlurredBitmap.recycle();
     }
 }

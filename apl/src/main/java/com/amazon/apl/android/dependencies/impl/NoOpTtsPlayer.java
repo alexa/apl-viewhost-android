@@ -6,6 +6,7 @@
 package com.amazon.apl.android.dependencies.impl;
 
 import com.amazon.apl.android.dependencies.ITtsPlayer;
+import com.amazon.apl.android.media.TextTrack;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -22,6 +23,14 @@ public class NoOpTtsPlayer implements ITtsPlayer {
 
     @Override
     public void prepare(String source, URL url) {
+    }
+
+    @Override
+    public void prepare(String source, InputStream stream, TextTrack textTrack) {
+    }
+
+    @Override
+    public void prepare(String source, URL url, TextTrack textTrack) {
     }
 
     @Override

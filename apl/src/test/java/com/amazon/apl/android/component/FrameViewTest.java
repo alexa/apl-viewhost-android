@@ -6,6 +6,9 @@ package com.amazon.apl.android.component;
 
 
 import android.graphics.Color;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.os.Build;
 
 import com.amazon.apl.android.views.APLAbsoluteLayout;
@@ -69,18 +72,25 @@ public class FrameViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, 
         // Covered by FrameViewAdapterTest
     }
 
+    private ShapeDrawable getBackground() {
+        LayerDrawable parentLayout = (LayerDrawable)getTestView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        return (ShapeDrawable)borderInset.getDrawable();
+    }
+
+    private ShapeDrawable getBorder() {
+        return (ShapeDrawable) ((LayerDrawable)getTestView().getBackground()).getDrawable(0);
+    }
+
     @Test
     public void testView_dynamicBackgroundColor() {
         inflate(REQUIRED_PROPERTIES, CHILD_LAYOUT_PROPERTIES);
 
         APLAbsoluteLayout view = getTestView();
         for (String expectedColor : COLORS.keySet()) {
-
             executeCommands(setValueCommand("backgroundColor", expectedColor));
-
-            APLGradientDrawable drawable = (APLGradientDrawable) view.getBackground();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                assertEquals((int)COLORS.get(expectedColor), drawable.getColor().getDefaultColor());
+                assertEquals((int)COLORS.get(expectedColor), getBackground().getPaint().getColor());
             }
         }
     }
@@ -89,12 +99,9 @@ public class FrameViewTest extends AbstractComponentViewTest<APLAbsoluteLayout, 
     public void testView_dynamicBorderColor() {
         inflate(REQUIRED_PROPERTIES, CHILD_LAYOUT_PROPERTIES);
 
-        APLAbsoluteLayout view = getTestView();
         for (String expectedColor : COLORS.keySet()) {
             executeCommands(setValueCommand("borderColor", expectedColor));
-
-            APLGradientDrawable drawable = (APLGradientDrawable) view.getBackground();
-            assertEquals((int)COLORS.get(expectedColor), drawable.getBorderColor());
+            assertEquals((int)COLORS.get(expectedColor), getBorder().getPaint().getColor());
         }
     }
 }

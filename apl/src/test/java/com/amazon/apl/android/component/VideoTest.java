@@ -246,16 +246,8 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
     }
 
     @Test
-    public void testDisallowVideo_True() {
-        mRootConfig = mRootConfig.set(RootProperty.kDisallowVideo, true);
-        inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
-        AbstractMediaPlayerProvider mediaPlayerProvider = getTestComponent().getMediaPlayerProvider();
-        assertTrue(mediaPlayerProvider instanceof NoOpMediaPlayerProvider);
-    }
-
-    @Test
-    public void testDisallowVideo_False() {
-        mRootConfig = mRootConfig.mediaPlayerFactory(new RuntimeMediaPlayerFactory(new MediaPlayerProvider())).set(RootProperty.kDisallowVideo, false);
+    public void testMediaPlayerProvider() {
+        mRootConfig = mRootConfig.mediaPlayerFactory(new RuntimeMediaPlayerFactory(new MediaPlayerProvider()));
         inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
         AbstractMediaPlayerProvider mediaPlayerProvider = getTestComponent().getMediaPlayerProvider();
         assertTrue(mediaPlayerProvider instanceof MediaPlayerProvider);

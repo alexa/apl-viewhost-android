@@ -5,8 +5,10 @@
 package com.amazon.apl.android.media;
 import com.amazon.apl.enums.TextTrackType;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class TextTrack {
     TextTrackType type;
     private final String url;

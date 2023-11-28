@@ -34,20 +34,20 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
     private static final String TAG = "ExtensionMediator";
     private Map<String, IExtensionImageFilterCallback> mCallbacks = new HashMap<>();
     private IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
+    private ILoadExtensionCallback mLoadExtensionCallback;
     private String mLogId;
 
     /**
      * Callback to be invoked when all extensions which is required were loaded.
      */
-    public interface ExtensionMediatorCallback {
-        void onLoaded();
+    public interface ILoadExtensionCallback {
+        Runnable onSuccess();
+        Runnable onFailure();
     }
 
     public interface IExtensionGrantRequestCallback {
         boolean isExtensionGranted(final String uri);
     }
-
-    private Runnable mOnCompleteCallback;
 
     public static ExtensionMediator create(@NonNull final ExtensionRegistrar registrar, @NonNull DocumentSession session) {
         ExtensionResourceProvider resourceProvider = new ExtensionResourceProvider();
@@ -76,13 +76,13 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
         nInitializeExtensions(getNativeHandle(), extensionFlags, content.getNativeHandle());
     }
 
-    public void loadExtensions(RootConfig rootConfig, Content content, Runnable onComplete) {
-        mOnCompleteCallback = onComplete;
+    public void loadExtensions(RootConfig rootConfig, Content content, @NonNull ILoadExtensionCallback callback) {
+        mLoadExtensionCallback = callback;
         nLoadExtensions(getNativeHandle(), rootConfig.getNativeHandle(), content.getNativeHandle());
     }
 
-    public void loadExtensions(Map<String, Object> extensionFlags, Content content, Runnable onComplete) {
-        mOnCompleteCallback = onComplete;
+    public void loadExtensions(Map<String, Object> extensionFlags, Content content, @NonNull ILoadExtensionCallback callback) {
+        mLoadExtensionCallback = callback;
         nLoadExtensions(getNativeHandle(), extensionFlags, content.getNativeHandle());
     }
 
@@ -97,10 +97,16 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
 
     @NonNull
     @SuppressWarnings("unused")
-    private void onExtensionsLoaded() {
-        if (mOnCompleteCallback != null) {
-            mOnCompleteCallback.run();
-            mOnCompleteCallback = null;
+    protected void onExtensionsLoaded(boolean success) {
+        if (mLoadExtensionCallback != null) {
+            if (success) {
+                mLoadExtensionCallback.onSuccess().run();
+            } else {
+                Log.i(TAG, "Required extensions failed to load.");
+                mLoadExtensionCallback.onFailure().run();
+            }
+
+            mLoadExtensionCallback = null;
         } else {
             Log.wtf(TAG, "OnComplete already called for this document.");
         }

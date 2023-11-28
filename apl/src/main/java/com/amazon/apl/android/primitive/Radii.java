@@ -48,6 +48,24 @@ public abstract class Radii {
                 .build();
     }
 
+    public static Radii create(float radius) {
+        return Radii.builder()
+                .topLeft(radius)
+                .topRight(radius)
+                .bottomRight(radius)
+                .bottomLeft(radius)
+                .build();
+    }
+
+    public Radii inset(float inset) {
+        return Radii.builder()
+                .topLeft(Math.max(0, topLeft() - inset))
+                .topRight(Math.max(0, topRight() - inset))
+                .bottomRight(Math.max(0, bottomRight() - inset))
+                .bottomLeft(Math.max(0, bottomLeft() - inset))
+                .build();
+    }
+
     /**
      * Convenience method to convert the radii to an 8 float array in the order:
      *      topLeft, topRight, bottomRight, bottomLeft

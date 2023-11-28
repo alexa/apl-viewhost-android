@@ -6,12 +6,14 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.MultiChildComponent;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
@@ -19,8 +21,10 @@ import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScrollDirection;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -151,7 +155,7 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
         }
 
         layout.detachAllViews();
-
+        clearShadowReferences(presenter, children, childViews);
         // Avoiding this call will keep children in memory for a Sequence/GridSequence component but leave them
         // unattached to the ViewHierarchy
         ComponentType componentType = component.getComponentType();
@@ -178,6 +182,36 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
 
         layout.requestLayout();
         layout.invalidate();
+    }
+
+    private void clearShadowReferences(IAPLViewPresenter presenter, List<Component> displayedChildren, List<View> childViews) {
+        // Iterate over the cached components with shadows and clear strong references
+        // to the shadow bitmaps for those components whose parent chain is being removed
+        // because it is not in displayed children
+        ShadowCache cache = presenter.getShadowRenderer().getCache();
+        Iterator<WeakReference<Component>> iterator = cache.getComponents();
+        while (iterator.hasNext()) {
+            Component cachedComponent = iterator.next().get();
+            if (cachedComponent != null) {
+                for (View childView : childViews) {
+                    Component childComponent = presenter.findComponent(childView);
+                    if (!displayedChildren.contains(childComponent)) {
+                        Component component = cachedComponent;
+                        // Traverse up the parent chain to find if sub-tree is no longer in displayed children
+                        while (component != null && component != childComponent) {
+                            component = component.getParent();
+                        }
+                        if (component == childComponent) {
+                            cachedComponent.setShadowBitmap(null);
+                            iterator.remove();
+                            break;
+                        }
+                    }
+                }
+            } else {
+                iterator.remove();
+            }
+        }
     }
 
     private void updateScrollPosition(MultiChildComponent component, APLAbsoluteLayout layout) {

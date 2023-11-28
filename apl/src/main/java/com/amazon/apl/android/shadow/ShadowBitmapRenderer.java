@@ -23,9 +23,8 @@ import android.view.View;
 import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
-import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
-import com.amazon.apl.android.bitmap.LruBitmapCache;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.primitive.Rect;
 
 import java.util.HashMap;
@@ -41,12 +40,16 @@ public class ShadowBitmapRenderer {
 
     private final Paint mShadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.DITHER_FLAG);
     private final Map<Bitmap, BlurAsyncTask> mAsyncTasks = new HashMap<>();
-    private final IBitmapCache mCache;
+    private final ShadowCache mCache;
     private final IBitmapFactory mBitmapFactory;
 
-    public ShadowBitmapRenderer(IBitmapCache cache, IBitmapFactory bitmapFactory) {
+    public ShadowBitmapRenderer(ShadowCache cache, IBitmapFactory bitmapFactory) {
         mCache = cache;
         mBitmapFactory = bitmapFactory;
+    }
+
+    public ShadowCache getCache() {
+        return mCache;
     }
 
     /**
@@ -67,10 +70,12 @@ public class ShadowBitmapRenderer {
             return;
         }
 
-        if(getShadowFromCache(component) != null) {
+        Bitmap shadow = getShadowFromCache(component);
+        if(shadow != null) {
+            // Hold a strong reference in the component since mCache holds weak references.
+            component.setShadowBitmap(shadow);
             return;
         }
-
         final ShadowBitmapKey key = new ShadowBitmapKey(component);
         final RectF shadowRect = component.getShadowRect();
         final int shadowBlurRadius = component.getShadowRadius();
@@ -117,7 +122,9 @@ public class ShadowBitmapRenderer {
                 mAsyncTasks.remove(shadowBitmap);
             });
         }
-        mCache.putBitmap(key, shadowBitmap);
+        // Hold a strong reference in the component since mCache holds weak references.
+        component.setShadowBitmap(shadowBitmap);
+        mCache.putShadow(key, component);
     }
 
     /**
@@ -130,7 +137,7 @@ public class ShadowBitmapRenderer {
     @VisibleForTesting
     Bitmap getShadowFromCache(final Component component) {
         final ShadowBitmapKey key = new ShadowBitmapKey(component);
-        return mCache.getBitmap(key);
+        return mCache.getShadow(key);
     }
 
     private void blurAsync(final Bitmap bitmap, final int blurRadius, final Runnable onFinish) {
@@ -231,6 +238,7 @@ public class ShadowBitmapRenderer {
                 async.listeners.clear();
             }
         }
+        mCache.clear();
     }
 
     static class BlurAsyncTask extends AsyncTask<Bitmap, Void, Void> {

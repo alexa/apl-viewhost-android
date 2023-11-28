@@ -15,6 +15,7 @@ import android.graphics.Path;
 import android.graphics.RectF;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
 
 import android.util.AttributeSet;
 import android.util.Log;
@@ -23,6 +24,7 @@ import android.view.ViewGroup;
 
 import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
+import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.primitive.Radii;
 import com.amazon.apl.android.primitive.Rect;
@@ -56,6 +58,7 @@ public class APLAbsoluteLayout extends ViewGroup {
 
     private final ShadowBitmapRenderer mShadowRenderer;
     private Path mPath = new Path();
+    private boolean mNeedClippingPathUpdate = false;
     private int cIncorrectlyClippedComponents;
     private Map<Integer, WeakReference<View>> mDetachedViews = new HashMap<>();
     private boolean mClipComponent;
@@ -160,10 +163,7 @@ public class APLAbsoluteLayout extends ViewGroup {
         }
     }
 
-    @Override
-    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
-        super.onSizeChanged(width, height, oldWidth, oldHeight);
-
+    private void calculateClippingPath(int width, int height) {
         Component component = mPresenter.findComponent(this);
         if (component == null) {
             return;
@@ -178,15 +178,22 @@ public class APLAbsoluteLayout extends ViewGroup {
         // clipping the children of components that previously didn't clip their children
         // to the parent bounds.
         if (componentType == ComponentType.kComponentTypeFrame ||
-                componentType == ComponentType.kComponentTypeSequence ||
-                componentType == ComponentType.kComponentTypeGridSequence ||
-                componentType == ComponentType.kComponentTypePager ||
-                componentType == ComponentType.kComponentTypeScrollView) {
+            componentType == ComponentType.kComponentTypeSequence ||
+            componentType == ComponentType.kComponentTypeGridSequence ||
+            componentType == ComponentType.kComponentTypePager ||
+            componentType == ComponentType.kComponentTypeScrollView) {
 
             resetPath();
             if (component.getProperties().hasProperty(PropertyKey.kPropertyBorderRadii)) {
                 Radii radii = component.getProperties().getRadii(PropertyKey.kPropertyBorderRadii);
-                mPath.addRoundRect(new RectF(0, 0, width, height), radii.toFloatArray(), Path.Direction.CW);
+                RectF clippingRegion = new RectF(0, 0, width, height);
+                // Clipping of children should take into account border width
+                if (component.getProperties().hasProperty(PropertyKey.kPropertyBorderWidth)) {
+                    int inset = component.getProperties().getDimension(PropertyKey.kPropertyBorderWidth).intValue();
+                    clippingRegion.inset(inset, inset);
+                    radii = radii.inset(inset);
+                }
+                mPath.addRoundRect(clippingRegion, radii.toFloatArray(), Path.Direction.CW);
             } else {
                 mPath.addRect(new RectF(0, 0, width, height), Path.Direction.CW);
             }
@@ -219,8 +226,13 @@ public class APLAbsoluteLayout extends ViewGroup {
             } else {
                 mPath = null;
             }
-
         }
+    }
+
+    @Override
+    protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
+        super.onSizeChanged(width, height, oldWidth, oldHeight);
+        calculateClippingPath(width, height);
     }
 
     private void resetPath() {
@@ -351,6 +363,15 @@ public class APLAbsoluteLayout extends ViewGroup {
         mDetachedViews.remove(child.hashCode());
     }
 
+    public void requestChildClippingPathUpdate() {
+        mNeedClippingPathUpdate = true;
+    }
+
+    @VisibleForTesting
+    public boolean isChildClippingPathUpdateRequested() {
+        return mNeedClippingPathUpdate;
+    }
+
     @Override
     protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
         final Component childComponent = mPresenter.findComponent(child);
@@ -358,6 +379,20 @@ public class APLAbsoluteLayout extends ViewGroup {
             mShadowRenderer.drawShadow(canvas, childComponent, this);
         }
         int saveCount = canvas.save();
+
+        if (mNeedClippingPathUpdate) {
+            // Only place where we can actually update clipping path, because of how layout pass processed
+            Component component = mPresenter.findComponent(this);
+            if (component == null) {
+                return false;
+            }
+
+            Rect innerBounds = component.getBounds();
+            calculateClippingPath(innerBounds.intWidth(), innerBounds.intHeight());
+
+            mNeedClippingPathUpdate = false;
+        }
+
         if (mPath != null) {
             canvas.clipPath(mPath);
         }

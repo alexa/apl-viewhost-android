@@ -65,7 +65,7 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
             "          \"type\": \"path\"," +
             "          \"fill\": \"blue\"," +
             "          \"fillOpacity\": 0.3," +
-            "          \"pathData\": \"M15.67\"," +
+            "          \"pathData\": \"M15,67\"," +
             "          \"stroke\": \"red\"," +
             "          \"strokeDashArray\": [1,3,5,6]," +
             "          \"strokeDashOffset\": 3," +
@@ -73,192 +73,6 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
             "          \"strokeLineJoin\": \"round\"," +
             "          \"strokeLineCap\": \"round\"," +
             "          \"pathLength\":20" +
-            "    }" +
-            "  ]" +
-            "}";
-
-    private static final String VALID_ARC_COMMAND_SYNAX_PATH = "{" +
-            "  \"type\": \"AVG\"," +
-            "  \"version\": \"1.0\"," +
-            "  \"height\": 24," +
-            "  \"width\": 24," +
-            "  \"items\": [" +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"pathData\": \"M0,0 a1 1 0 00-1.05.1 A1 2 3 1,1,5 6 7 8 9 1,1,5 6\"" +
-            "    }" +
-            "  ]" +
-            "}";
-
-    private static final String PATTERNS_FOR_AVG_PATH = "{" +
-            "  \"type\": \"AVG\"," +
-            "  \"version\": \"1.0\"," +
-            "  \"height\": 24," +
-            "  \"width\": 24," +
-            "  \"resources\": [{" +
-            "    \"patterns\": {" +
-            "     \"RedCircle\": {" +
-            "       \"type\": \"pattern\"," +
-            "       \"width\": 8," +
-            "       \"height\": 8," +
-            "       \"items\": [" +
-            "         {" +
-            "         \"type\": \"path\"," +
-            "         \"pathData\": \"M0,4 a4,4,0,1,1,8,0 a4,4,0,1,1,-8,0\"," +
-            "         \"fill\": \"red\"" +
-            "         }" +
-            "       ]" +
-            "     }" +
-            "    }" +
-            "  }]," +
-            "  \"items\": [" +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@RedCircle\"," +
-            "          \"strokeTransform\": \"rotate(45)\"," +
-            "          \"fill\": \"@RedCircle\"," +
-            "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"," +
-            "          \"stroke\": \"red\"" +
-            "    }" +
-            "  ]" +
-            "}";
-
-    private static final String GRADIENTS_FOR_AVG_PATH = "{" +
-            "  \"type\": \"AVG\"," +
-            "  \"version\": \"1.0\"," +
-            "  \"height\": 24," +
-            "  \"width\": 24," +
-            "  \"resources\": [{" +
-            "       \"gradients\": {" +
-            "            \"linearGradient\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                0.5492504222972973," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"#ffffffff\"," +
-            "                \"#ff0000ff\"," +
-            "                \"#000000ff\"" +
-            "              ]," +
-            "              \"type\": \"linear\"," +
-            "              \"x1\": 0.3," +
-            "              \"y1\": 0.4," +
-            "              \"x2\": 0.7," +
-            "              \"y2\": 0.5" +
-            "            }," +
-            "            \"radialGradient\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"black\"," +
-            "                \"white\"" +
-            "              ]," +
-            "              \"type\": \"radial\"," +
-            "              \"centerX\": 0.6," +
-            "              \"centerY\": 0.4," +
-            "              \"radius\": 1" +
-            "            }," +
-            "            \"spreadMethodPad\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"#ff0000ff\"," +
-            "                \"#ffffffff\"" +
-            "              ]," +
-            "              \"spreadMethod\": \"pad\"," +
-            "              \"type\": \"linear\"," +
-            "              \"x1\": 0.40127709565476446," +
-            "              \"y1\": 0.4059174391256225," +
-            "              \"x2\": 0.6081258206624885," +
-            "              \"y2\": 0.6039892388973439" +
-            "            }," +
-            "            \"spreadMethodReflect\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"#ff0000ff\"," +
-            "                \"#ffffffff\"" +
-            "              ]," +
-            "              \"spreadMethod\": \"reflect\"," +
-            "              \"type\": \"linear\"," +
-            "              \"x1\": 0.40127709565476446," +
-            "              \"y1\": 0.4059174391256225," +
-            "              \"x2\": 0.6081258206624885," +
-            "              \"y2\": 0.6039892388973439" +
-            "            }," +
-            "            \"spreadMethodRepeat\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"#ff0000ff\"," +
-            "                \"#ffffffff\"" +
-            "              ]," +
-            "              \"spreadMethod\": \"repeat\"," +
-            "              \"type\": \"linear\"," +
-            "              \"x1\": 0.40127709565476446," +
-            "              \"y1\": 0.4059174391256225," +
-            "              \"x2\": 0.6081258206624885," +
-            "              \"y2\": 0.6039892388973439" +
-            "            }" +
-            "       }" +
-            "  }]," +
-            "  \"items\": [" +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@linearGradient\"," +
-            "          \"strokeTransform\": \"rotate(45)\"," +
-            "          \"fill\": \"@linearGradient\"," +
-            "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"" +
-            "    }," +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@radialGradient\"," +
-            "          \"strokeTransform\": \"rotate(45)\"," +
-            "          \"fill\": \"@radialGradient\"," +
-            "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"" +
-            "    }," +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@spreadMethodPad\"," +
-            "          \"fill\": \"@spreadMethodPad\"," +
-            "          \"pathData\": \"M15.67\"" +
-            "    }," +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@spreadMethodReflect\"," +
-            "          \"fill\": \"@spreadMethodReflect\"," +
-            "          \"pathData\": \"M15.67\"" +
-            "    }," +
-            "    {" +
-            "          \"type\": \"path\"," +
-            "          \"stroke\": \"@spreadMethodRepeat\"," +
-            "          \"fill\": \"@spreadMethodRepeat\"," +
-            "          \"pathData\": \"M15.67\"" +
-            "    }" +
-            "  ]" +
-            "}";
-
-    final String AVG_PATH_WITHOUT_MOVE_COMMAND = "{" +
-            "  \"type\": \"AVG\"," +
-            "  \"version\": \"1.1\"," +
-            "  \"height\": 24," +
-            "  \"width\": 24," +
-            "  \"items\": [" +
-            "    {" +
-            "      \"type\": \"path\"," +
-            "      \"pathData\": \"H0,0\"" +
             "    }" +
             "  ]" +
             "}";
@@ -276,11 +90,11 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
 
         GraphicPathElement avgPathElement = (GraphicPathElement) element;
 
-        Paint fillPaint = avgPathElement.getFillPaint();
+        Paint fillPaint = avgPathElement.getFillPaint(1f);
         assertTrue(compareColors(Color.BLUE, fillPaint.getColor()));
         assertEquals((int) (OPAQUE * .3), fillPaint.getAlpha());
-        assertEquals("M15.67", avgPathElement.getPathData());
-        Paint strokePaint = avgPathElement.getStrokePaint();
+        assertEquals("M15,67", avgPathElement.getPathData());
+        Paint strokePaint = avgPathElement.getStrokePaint(1f);
         assertTrue(compareColors(Color.RED, strokePaint.getColor()));
         assertEquals(OPAQUE, strokePaint.getAlpha());
         assertEquals(1, strokePaint.getStrokeWidth(), 0.1);

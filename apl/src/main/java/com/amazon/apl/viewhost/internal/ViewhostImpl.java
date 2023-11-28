@@ -14,12 +14,14 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.DocumentSession;
 import com.amazon.apl.android.Event;
 import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.ExtensionMediator.ILoadExtensionCallback;
 import com.amazon.apl.android.Session;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
+import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.events.SendEvent;
 import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.viewhost.DocumentHandle;
@@ -45,13 +47,13 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import lombok.NonNull;
 
 /**
  * Internal implementation of the viewhost
@@ -84,14 +86,11 @@ public class ViewhostImpl extends Viewhost {
 
     @Override
     public PreparedDocument prepare(final PrepareDocumentRequest request) {
-        //For first iteration of M1 milestone we are keeping the content creation in this block. May move it later
+        // For first iteration of M1 milestone we are keeping the content creation in this block. May move it later
         String document = request.getDocument() != null ? ((JsonStringDecodable) request.getDocument()).getString() : EMPTY;
         APLOptions options = createAPLOptions(request);
 
-        ExtensionRegistrar registrar = mConfig.getExtensionRegistrar();
-        final ExtensionMediator mediator = (registrar != null) ? ExtensionMediator.create(registrar, DocumentSession.create()) : null;
         DocumentHandleImpl handle = new DocumentHandleImpl(this, mCoreWorker);
-        handle.setExtensionMediator(mediator);
         Content.create(document, options, new Content.CallbackV2() {
 
             @Override
@@ -101,13 +100,19 @@ public class ViewhostImpl extends Viewhost {
                 if (documentOptions != null) {
                     handle.setDocumentOptions(documentOptions);
                 }
+
+                // Fetch the registrar in the following order of preference:
+                //      1. DocumentOptions
+                //      2. Viewhost Config
+                final ExtensionRegistrar registrar = (documentOptions != null) ? documentOptions.getExtensionRegistrar() : mConfig.getExtensionRegistrar();
+
+                final ExtensionMediator mediator = (registrar != null) ? ExtensionMediator.create(registrar, DocumentSession.create()) : null;
+                if (mediator != null) {
+                    handle.setExtensionMediator(mediator);
+                }
+
                 if (mediator != null && documentOptions != null && documentOptions.getExtensionGrantRequestCallback() != null) {
-                    Map<String, Object> flags = documentOptions.getExtensionFlags() != null ? documentOptions.getExtensionFlags() : new HashMap<>();
-                    mediator.initializeExtensions(flags, content, documentOptions.getExtensionGrantRequestCallback());
-                    mediator.loadExtensions(flags, content, () -> {
-                        // attach the completed content to the DocumentHandle
-                        handle.setContent(content);
-                    });
+                    loadExtensionAndSetContent(mediator, documentOptions, content, handle, false);
                 } else {
                     handle.setContent(content);
                 }
@@ -127,6 +132,39 @@ public class ViewhostImpl extends Viewhost {
         return new PreparedDocumentImpl(handle);
     }
 
+    /**
+     * Loads extension and set content.
+     *
+     * @param mediator
+     * @param documentOptions
+     * @param content
+     * @param handle
+     * @param isRefresh
+     */
+    private void loadExtensionAndSetContent(@NonNull ExtensionMediator mediator, @NonNull DocumentOptions documentOptions,
+                                            Content content, @NonNull DocumentHandleImpl handle, boolean isRefresh) {
+        Map<String, Object> flags = documentOptions.getExtensionFlags() != null ? documentOptions.getExtensionFlags() : new HashMap<>();
+        mediator.initializeExtensions(flags, content, documentOptions.getExtensionGrantRequestCallback());
+
+        mediator.loadExtensions(
+                flags,
+                content,
+                new ILoadExtensionCallback() {
+                    @Override
+                    public Runnable onSuccess() {
+                        if (isRefresh) {
+                            return () -> Log.i(TAG, "Content refresh successful");
+                        }
+                        return () -> handle.setContent(content);
+                    }
+
+                    @Override
+                    public Runnable onFailure() {
+                        return () -> handle.setDocumentState(DocumentState.ERROR);
+                    }
+                }
+        );
+    }
 
     private APLOptions createAPLOptions(final PrepareDocumentRequest request) {
         // Since Data is optional, if it is not included, this will be serialized into a null content in APLOptions,
@@ -204,6 +242,7 @@ public class ViewhostImpl extends Viewhost {
      * @return true if event execution should proceed, or false if the event should be dropped
      */
     public boolean interceptEventIfNeeded(Event event) {
+        Log.i(TAG, "intercepting event: " + event.getClass().getName());
         Long key = event.getDocumentContextId();
         WeakReference<DocumentHandleImpl> weakDocumentHandle = mDocumentMap.get(key);
         if (null == weakDocumentHandle) {
@@ -220,6 +259,9 @@ public class ViewhostImpl extends Viewhost {
         }
         if (event instanceof OpenURLEvent) {
             return handle(documentHandle, (OpenURLEvent)event);
+        }
+        if (event instanceof RefreshEvent) {
+            return handle(documentHandle, (RefreshEvent) event);
         }
 
         // We know this event is related to a document we're managing, so we drop it
@@ -425,6 +467,35 @@ public class ViewhostImpl extends Viewhost {
         return true;
     }
 
+    /**
+     * Process the content if it is a refresh event.
+     * @param document  DocumentHandleImpl
+     * @param event     RefreshEvent
+     * @return          Boolean
+     */
+    private boolean handle(DocumentHandleImpl document, RefreshEvent event) {
+        Log.i(TAG, "Handling refresh event");
+        if (null == document) {
+            Log.w(TAG, "Received RefreshEvent for expired document handle, ignoring it");
+            return false;
+        }
+        Content content = document.getContent();
+        if (content.isWaiting()) {
+            Log.i(TAG, "Content is waiting, hence resolving the request");
+            content.resolve(new Content.CallbackV2() {
+                @Override
+                public void onComplete(Content content) {
+                    loadExtensionAndSetContent(document.getExtensionMediator(), document.getDocumentOptions(), content, document, true);
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    Log.e(TAG, "Error occured during content resolution: " + e.getMessage());
+                }
+            });
+        }
+        return content.isReady();
+    }
     private boolean handle(DocumentHandleImpl document, OpenURLEvent event) {
         if (null == document) {
             Log.w(TAG, "Received OpenURL for expired document handle, ignoring it");

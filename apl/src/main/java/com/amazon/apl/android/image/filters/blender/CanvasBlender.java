@@ -17,6 +17,9 @@ import java.util.Map;
 @RequiresApi(api = Build.VERSION_CODES.Q)
 public class CanvasBlender extends Blender {
 
+    // As per official android guidelines, Paints should be reused.
+    private final Paint mPaint;
+
     static Map<BlendMode, android.graphics.BlendMode> blendModeMap;
 
     static {
@@ -40,6 +43,9 @@ public class CanvasBlender extends Blender {
 
     public CanvasBlender(BlendMode blendMode) {
         super(blendMode);
+
+        mPaint = new Paint();
+        mPaint.setBlendMode(blendModeMap.get(mBlendMode));
     }
 
     @Override
@@ -47,9 +53,7 @@ public class CanvasBlender extends Blender {
         Canvas canvas = new Canvas(result);
 
         canvas.drawBitmap(destination, 0, 0, null);
-        Paint paint = new Paint();
-        paint.setBlendMode(blendModeMap.get(mBlendMode));
-        canvas.drawBitmap(source, 0, 0, paint);
+        canvas.drawBitmap(source, 0, 0, mPaint);
 
         return result;
     }

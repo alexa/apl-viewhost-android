@@ -22,6 +22,7 @@ import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.dependencies.IPackageCache;
+import com.amazon.apl.android.ExtensionMediator.ILoadExtensionCallback;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.functional.Consumer;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -74,14 +75,19 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         telemetryProvider.fail(metricId);
     }
 
+    private static long nativeLibraryLoadingStartTime = 0;
+    private static long nativeLibraryLoadingEndTime = 0;
+    public static final String LIBRARY_INITIALIZATION_TIME = "libraryInitializationTime";
+
     private static final class Load implements Callable<Boolean> {
 
         @Override
         public Boolean call() {
+            nativeLibraryLoadingStartTime = SystemClock.elapsedRealtime();
             System.loadLibrary("common-jni");
             System.loadLibrary("discovery-jni");
             System.loadLibrary("apl-jni");
-
+            nativeLibraryLoadingEndTime = SystemClock.elapsedRealtime();
             return true;
         }
     }
@@ -184,7 +190,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
     @VisibleForTesting
     interface IContentCreator {
-        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, Session session);
+        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, RootConfig rootConfig);
     }
 
     private void initializeDocumentManager(@NonNull final RootConfig rootConfig, @NonNull EmbeddedDocumentFactory embeddedDocumentFactory) {
@@ -270,11 +276,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                         final Runnable runnable = () -> {
                             try {
                                 final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter);
+
                                 if (aplController.mIsFinished.get()) {
                                     Log.i(TAG, "Finished while creating RootContext. Aborting");
                                     return;
                                 }
                                 presenter.onDocumentRender(rootContext);
+
                             } catch (Exception e) {
                                 handleRenderingError(e, aplController, telemetryProvider, errorCallback);
                             }
@@ -298,35 +306,56 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     mediator.initializeExtensions(rootConfig, content, options.getExtensionGrantRequestCallback());
 
                     // Process rendering after extension loaded
-                    mediator.loadExtensions(rootConfig, content, () -> {
-                        mediator.registerImageFilters(registrar, content, rootConfig);
-                        telemetryProvider.stopTimer(extensionRegistrationMetric);
-                        aplLayout.addMetricsReadyListener(viewportMetrics -> {
-                            if (aplController.mIsFinished.get()) {
-                                Log.i(TAG, "Finished while APLLayout is being measured. Aborting");
-                                return;
-                            }
+                    mediator.loadExtensions(
+                            rootConfig,
+                            content,
+                            new ILoadExtensionCallback() {
+                                @Override
+                                public Runnable onSuccess() {
+                                    return () -> {
+                                        mediator.registerImageFilters(registrar, content, rootConfig);
+                                        telemetryProvider.stopTimer(extensionRegistrationMetric);
+                                        aplLayout.addMetricsReadyListener(viewportMetrics -> {
+                                            if (aplController.mIsFinished.get()) {
+                                                Log.i(TAG, "Finished while APLLayout is being measured. Aborting");
+                                                return;
+                                            }
 
-                            final Runnable runnable = () -> {
-                                try {
-                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter);
-                                    if (aplController.mIsFinished.get()) {
-                                        Log.i(TAG, "Finished while creating RootContext. Aborting");
-                                        return;
-                                    }
-                                    presenter.onDocumentRender(rootContext);
-                                } catch (Exception e) {
-                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback);
+                                            final Runnable runnable = () -> {
+                                                try {
+                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter);
+
+                                                    if (aplController.mIsFinished.get()) {
+                                                        Log.i(TAG, "Finished while creating RootContext. Aborting");
+                                                        return;
+                                                    }
+                                                    presenter.onDocumentRender(rootContext);
+
+                                                } catch (Exception e) {
+                                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback);
+                                                }
+                                            };
+
+                                            if (disableAsyncInflate) {
+                                                runnable.run();
+                                            } else {
+                                                Threading.THREAD_POOL_EXECUTOR.submit(runnable);
+                                            }
+                                        });
+                                    };
                                 }
-                            };
 
-                            if (disableAsyncInflate) {
-                                runnable.run();
-                            } else {
-                                Threading.THREAD_POOL_EXECUTOR.submit(runnable);
+                                @Override
+                                public Runnable onFailure() {
+                                    return () -> handleRenderingError(
+                                            new APLException("Required extensions failed to load.", new IllegalStateException()),
+                                            aplController,
+                                            telemetryProvider,
+                                            errorCallback
+                                    );
+                                }
                             }
-                        });
-                    });
+                    );
                 }
             }
 
@@ -348,7 +377,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     mediator.registerImageFilters(registrar, content, rootConfig);
                 }
             }
-        }, rootConfig.getSession());
+        }, rootConfig);
         if (content != null) {
             aplController.mContent = content;
             aplLayout.addMetricsReadyListener(viewportMetrics -> {
@@ -369,6 +398,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             }
         }));
 
+        long libraryInitializationTime = nativeLibraryLoadingEndTime - nativeLibraryLoadingStartTime;
+        if (libraryInitializationTime > 0) {
+            int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, LIBRARY_INITIALIZATION_TIME, Type.TIMER);
+            telemetryProvider.reportTimer(metricId, TimeUnit.MILLISECONDS, libraryInitializationTime);
+        } else {
+            Log.e(TAG, "Library initialization time will not be recorded due to failure");
+        }
         return aplController;
     }
 

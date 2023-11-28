@@ -8,6 +8,7 @@
 #include "apl/apl.h"
 #include "jniutil.h"
 #include "jnicontent.h"
+#include "jniembeddeddocumentrequest.h"
 
 namespace apl {
     namespace jni {
@@ -180,6 +181,7 @@ namespace apl {
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_Content_nCreate(JNIEnv *env, jobject instance,
                                                     jstring mainTemplate_,
+                                                    jlong _rootConfigHandler,
                                                     jlong _sessionHandler) {
 
             // for emoji characters, GetStringUTFChars returns the surrogate pair
@@ -191,9 +193,10 @@ namespace apl {
             const jchar* mainTemplate = env->GetStringChars(mainTemplate_, nullptr);
             jsize mainTemplateLen = env->GetStringLength(mainTemplate_);
             std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
-
-            auto content = apl::Content::create(converter.to_bytes(std::u16string(mainTemplate, mainTemplate+mainTemplateLen)));
-            if (!content) {
+            auto session = get<Session>(_sessionHandler);
+            auto content = (_rootConfigHandler != 0) ? (apl::Content::create(converter.to_bytes(std::u16string(mainTemplate, mainTemplate+mainTemplateLen)), session, Metrics(), *(get<RootConfig>(_rootConfigHandler))))
+                    : apl::Content::create(converter.to_bytes(std::u16string(mainTemplate, mainTemplate+mainTemplateLen)));
+             if (!content) {
                 LOG(LogLevel::kError) << "Error creating Content";
                 return static_cast<jboolean>(false);
             }
@@ -211,6 +214,21 @@ namespace apl {
         Java_com_amazon_apl_android_Content_nUpdate(JNIEnv *env, jobject instance, jlong handle) {
             auto content = get<Content>(handle);
             update(env, instance, content, true, true); // update packages, data, status
+        }
+
+        /**
+         * Refresh embedded document content with documentConfig
+         */
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_Content_nRefresh(JNIEnv *env, jobject obj,
+                                                     jlong contentHandle,
+                                                     jlong embeddedRequestHandle,
+                                                     jlong documentConfigHandle) {
+            auto content = get<Content>(contentHandle);
+            auto embeddedRequest = get<AndroidEmbeddedDocumentRequest>(embeddedRequestHandle);
+            auto documentConfig = get<DocumentConfig>(documentConfigHandle);
+
+            content->refresh(*embeddedRequest->mEmbedRequest.get(), documentConfig);
         }
 
         /**

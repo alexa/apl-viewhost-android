@@ -21,10 +21,26 @@ public class GraphicElementFactory {
     private GraphicElementFactory() {
     }
 
+    /**
+     * Returns a GraphicElement corresponding to the native graphic element. If the element exists
+     * already in the provided map, return it, otherwise create a new GraphicElement.
+     *
+     * @param map The cache of graphic elements within the GraphicContainerElement
+     * @param handle The native handle of the graphic element
+     * @param renderingContext The rendering context
+     */
     @NonNull
-    public static GraphicElement createGraphicElement(@NonNull final GraphicElementMap map,
-                                                      final long handle,
-                                                      RenderingContext renderingContext) {
+    public static GraphicElement getOrCreateGraphicElement(@NonNull final GraphicElementMap map,
+                                                           final long handle,
+                                                           RenderingContext renderingContext) {
+        int id = nGetUniqueId(handle);
+        GraphicElement cachedElement = map.get(id);
+        if (cachedElement != null) {
+            // According to the unique ID (from core), this graphic element already has a
+            // representation in this container, so return it from cache.
+            return cachedElement;
+        }
+
         GraphicElementType type = GraphicElementType.valueOf(nGetType(handle));
         switch (type) {
             case kGraphicElementTypeGroup:
@@ -41,4 +57,5 @@ public class GraphicElementFactory {
     }
 
     private static native int nGetType(long handle);
+    private static native int nGetUniqueId(long handle);
 }

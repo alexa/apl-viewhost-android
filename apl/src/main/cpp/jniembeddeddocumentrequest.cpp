@@ -118,7 +118,11 @@ namespace apl {
             auto documentConfig = get<DocumentConfig>(documentConfigHandle_);
             EmbeddedRequestSuccessResponse response{embeddedDocumentRequest->mEmbedRequest, content, (bool)(isVisualContextConnected == JNI_TRUE), documentConfig};
             auto documentContext = embeddedDocumentRequest->mSuccessCallback(std::move(response));
-            assert(documentContext);
+
+            if (!documentContext) {
+                LOG(LogLevel::kWarn) << "Success callback returned a null DocumentContext.";
+                return static_cast<jboolean>(false);
+            }
 
             return createHandle<DocumentContext>(documentContext);
         }

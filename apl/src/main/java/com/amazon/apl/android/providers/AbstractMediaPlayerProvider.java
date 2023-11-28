@@ -6,22 +6,19 @@
 package com.amazon.apl.android.providers;
 
 import android.content.Context;
-
-import androidx.annotation.CallSuper;
-import androidx.annotation.NonNull;
 import android.view.View;
 
 import com.amazon.apl.android.IDocumentLifecycleListener;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
-import com.amazon.apl.android.dependencies.impl.NoOpMediaPlayer;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
 
 /**
  * Abstact class that manages media player lifecycle. Extend this class to implement a custom
@@ -139,6 +136,9 @@ public abstract class AbstractMediaPlayerProvider<T extends View> implements IMe
             mPlayers.remove(player);
             // don't need to remove this as a listener. Media Player should
             // clean up it's own assets
+        }
+        if (state == MediaState.PAUSED) {
+            mPausedSet.add(player);
         }
 
         if (player.isPlaying()) {

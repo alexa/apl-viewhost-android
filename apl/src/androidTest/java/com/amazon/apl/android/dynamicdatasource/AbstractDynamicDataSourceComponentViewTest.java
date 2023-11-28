@@ -7,6 +7,8 @@ package com.amazon.apl.android.dynamicdatasource;
 
 import android.util.Log;
 import android.view.View;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 
 import androidx.test.espresso.NoMatchingViewException;
 import androidx.test.espresso.UiController;
@@ -219,8 +221,8 @@ abstract class AbstractDynamicDataSourceComponentViewTest extends LeakRulesBaseC
 
             @Override
             public boolean matchesSafely(View view) {
-                APLGradientDrawable drawable = (APLGradientDrawable) view.getBackground();
-                return drawable != null && drawable.getBorderColor() == borderColor;
+                LayerDrawable drawable = (LayerDrawable) view.getBackground();
+                return drawable != null && ((ShapeDrawable) drawable.getDrawable(0)).getPaint().getColor() == borderColor;
             }
 
             @Override

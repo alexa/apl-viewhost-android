@@ -5,10 +5,13 @@
 
 package com.amazon.apl.android;
 
+import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
+import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
 import static com.amazon.apl.enums.ComponentType.kComponentTypeText;
 
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
@@ -16,6 +19,7 @@ import com.amazon.apl.enums.ViewportMode;
 import org.json.JSONObject;
 import org.junit.Test;
 import org.mockito.InOrder;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
@@ -23,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.Calendar;
@@ -54,6 +60,28 @@ public class RootContextTest extends AbstractDocUnitTest {
                 .build());
 
         verify(contextListener, never()).onVisualContextUpdate(any(JSONObject.class));
+    }
+
+    @Test
+    public void test_timersInitializedDuringRestore() {
+        ITelemetryProvider telemetryMock = Mockito.mock(ITelemetryProvider.class);
+        APLOptions aplOptions = APLOptions.builder().telemetryProvider(telemetryMock).build();
+        ViewportMetrics metrics = ViewportMetrics.builder()
+                .width(1280)
+                .height(720)
+                .dpi(160)
+                .shape(ScreenShape.RECTANGLE)
+                .theme("dark")
+                .mode(ViewportMode.kViewportModeMobile)
+                .build();
+
+        loadDocument(DOC, aplOptions, metrics);
+
+        DocumentState documentState = new DocumentState(mRootContext, mContent);
+        reset(telemetryMock);
+
+        RootContext.createFromCachedDocumentState(documentState, mAPLPresenter);
+        verify(telemetryMock, times(1)).createMetricId(APL_DOMAIN, RootContext.METRIC_REINFLATE, TIMER);
     }
 
     @Test

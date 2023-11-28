@@ -255,7 +255,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, session) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> {callbackV2.onComplete(mContent); return mContent;}))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -302,7 +302,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, session) -> mContent))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> mContent))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -326,7 +326,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, session) -> mContent))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> mContent))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -358,7 +358,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, session) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> {callbackV2.onComplete(mContent); return mContent;}))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -416,7 +416,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         assertTrue(APLController.waitForInitializeAPLToComplete(null));
         assertTrue(futureValChecked.get());
     }
-    
+
     @Test
     public void waitForAPLInitialize_initializeAPLNotCalledFirst_falseReturned() {
         // mimic initializeAPL not being called

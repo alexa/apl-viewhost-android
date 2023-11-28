@@ -9,14 +9,18 @@ import static android.os.Looper.getMainLooper;
 
 import androidx.annotation.NonNull;
 
+import com.amazon.alexaext.ActivityDescriptor;
 import com.amazon.alexaext.ExtensionProxy;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.alexaext.IExtensionProvider;
 import com.amazon.alexaext.ILiveDataUpdateCallback;
+import com.amazon.apl.android.ExtensionMediator.ILoadExtensionCallback;
+import com.amazon.apl.android.providers.IExtension;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -64,9 +68,10 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
             "  }" +
             "}";
 
-    private Runnable mOnCompleteCallback;
+    private ILoadExtensionCallback mLoadExtensionCallback;
     private CountDownLatch mCallbackLatch;
-    private AtomicInteger mCallbackCallCount;
+    private AtomicInteger mLoadOnSuccessCallbackCount;
+    private AtomicInteger mLoadOnFailureCallbackCount;
     @Mock
     private ITelemetryProvider mTelemetryProvider;
     @Mock
@@ -88,11 +93,27 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
         Collection<ExtensionProxy> remoteExtensionProxies = Arrays.asList();
         when(mExtensionRegistrar.getExtensions()).thenReturn(remoteExtensionProxies);
 
-        mCallbackCallCount = new AtomicInteger();
         mCallbackLatch = new CountDownLatch(1);
-        mOnCompleteCallback = () -> {
-            mCallbackLatch.countDown();
-            mCallbackCallCount.incrementAndGet();
+
+        mLoadOnSuccessCallbackCount = new AtomicInteger();
+        mLoadOnFailureCallbackCount = new AtomicInteger();
+
+        mLoadExtensionCallback = new ExtensionMediator.ILoadExtensionCallback() {
+            @Override
+            public Runnable onSuccess() {
+                return () -> {
+                    mCallbackLatch.countDown();
+                    mLoadOnSuccessCallbackCount.incrementAndGet();
+                };
+            }
+
+            @Override
+            public Runnable onFailure() {
+                return () -> {
+                    mCallbackLatch.countDown();
+                    mLoadOnFailureCallbackCount.incrementAndGet();
+                };
+            }
         };
     }
 
@@ -107,7 +128,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
         loadExtensions();
         mCallbackLatch.await(2, TimeUnit.SECONDS);
         assertEquals(0, mCallbackLatch.getCount());
-        assertEquals(1, mCallbackCallCount.get());
+        assertEquals(1, mLoadOnSuccessCallbackCount.get());
     }
 
     @Test
@@ -122,7 +143,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
             }
             return false;
         });
-        mediator.loadExtensions(rootConfig, content, mOnCompleteCallback);
+        mediator.loadExtensions(rootConfig, content, mLoadExtensionCallback);
         mCallbackLatch.await(2, TimeUnit.SECONDS);
         verify(mExtensionProvider).hasExtension("alexaext:myextA:10");
         verify(mExtensionProvider, never()).hasExtension("alexaext:myextB:10");
@@ -139,7 +160,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
             }
             return false;
         });
-        mediator.loadExtensions(new HashMap<>(), content, mOnCompleteCallback);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
         mCallbackLatch.await(2, TimeUnit.SECONDS);
         verify(mExtensionProvider).hasExtension("alexaext:myextA:10");
         verify(mExtensionProvider, never()).hasExtension("alexaext:myextB:10");
@@ -158,7 +179,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
 
         // when
         mediator.initializeExtensions(rootConfig, content, uri -> true);
-        mediator.loadExtensions(rootConfig, content, mOnCompleteCallback);
+        mediator.loadExtensions(rootConfig, content, mLoadExtensionCallback);
 
         mCallbackLatch.await(2, TimeUnit.SECONDS);
 
@@ -181,7 +202,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
 
         // when
         mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
-        mediator.loadExtensions(new HashMap<>(), content, mOnCompleteCallback);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
 
         mCallbackLatch.await(2, TimeUnit.SECONDS);
 
@@ -197,8 +218,105 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
         RootConfig rootConfig = RootConfig.create();
         ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar, DocumentSession.create());
         mediator.initializeExtensions(rootConfig, content, null);
-        mediator.loadExtensions(rootConfig, content, mOnCompleteCallback);
+        mediator.loadExtensions(rootConfig, content, mLoadExtensionCallback);
         return mediator;
+    }
+
+
+    private final String requiredExtension = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.0\"," +
+            "  \"extensions\": [" +
+            "    {\n" +
+            "      \"name\": \"A\"," +
+            "      \"uri\": \"alexaext:myextA:10\"," +
+            "      \"required\": true" +
+            "    }" +
+            "  ]," +
+            "  \"mainTemplate\": {" +
+            "    \"item\": {" +
+            "      \"type\": \"Text\"" +
+            "    }" +
+            "  }" +
+            "}";
+
+    @Test
+    public void test_loadExtensions_requiredExtension_registeredAndGranted_callsOnSuccessCallback() throws InterruptedException {
+        // given
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
+        TestLiveDataLocalExtension extension = new TestLiveDataLocalExtension();
+        LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
+        extensionRegistrar.registerExtension(legacyLocalExtensionProxy);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+        // when
+        mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+        shadowOf(getMainLooper()).idle();
+        // then
+        assertEquals(0, mCallbackLatch.getCount());
+        assertEquals(1, mLoadOnSuccessCallbackCount.get());
+    }
+
+    @Test
+    public void test_loadExtensions_requiredExtension_notRegistered_callsOnFailCallback() throws InterruptedException {
+        // given that the required extension is not registered in the ExtensionRegistrar
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+        // when callback grants this extension
+        mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+        // then onFailure callback should be called
+        assertEquals(0, mCallbackLatch.getCount());
+        assertEquals(1, mLoadOnFailureCallbackCount.get());
+    }
+
+    @Test
+    public void test_loadExtensions_requiredExtension_notGranted_callsOnFailCallback() throws InterruptedException {
+        // given
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
+        TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
+        LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
+        extensionRegistrar.registerExtension(legacyLocalExtensionProxy);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+        // when callback doesn't grant this extension
+        mediator.initializeExtensions(new HashMap<>(), content, uri -> false);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+        // then onFailure callback should be called
+        assertEquals(0, mCallbackLatch.getCount());
+        assertEquals(1, mLoadOnFailureCallbackCount.get());
+    }
+
+    @Test
+    public void test_loadExtensions_requiredExtension_failsRegistration_callsOnFailCallback() throws InterruptedException {
+        // given a proxy that fails registration
+        ProxyWithFailingRegistration legacyLocalExtensionProxy = new ProxyWithFailingRegistration(new TestLiveDataLocalExtension());
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().registerExtension(legacyLocalExtensionProxy);
+        ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        // when
+        mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
+        mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);
+        mCallbackLatch.await(2, TimeUnit.SECONDS);
+        // then onFailure callback should be called
+        assertEquals(0, mCallbackLatch.getCount());
+        assertEquals(1, mLoadOnFailureCallbackCount.get());
+    }
+
+    class ProxyWithFailingRegistration extends LegacyLocalExtensionProxy {
+        public ProxyWithFailingRegistration(IExtension extension) {
+            super(extension);
+        }
+
+        @Override
+        protected boolean requestRegistration(ActivityDescriptor activity, String request) {
+            return false;
+        };
     }
 
     public static class TestLiveDataLocalExtension extends LegacyLocalExtension {

@@ -1,5 +1,6 @@
 package com.amazon.apl.viewhost.internal;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -18,6 +19,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 @RunWith(AndroidJUnit4.class)
 public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
@@ -68,5 +70,17 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
         when(mDocumentHandle.getContent()).thenReturn(mContent);
         ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED);
         verify(mEmbeddedDocumentRequestProxy).success(anyLong(), anyBoolean(), anyLong());
+    }
+
+    @Test
+    public void testSuccessCallbackReturnsNullDocumentContext_setsTerminalDocumentState() {
+        // given that a null DocumentContext is returned
+        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).setDocumentHandle(mDocumentHandle);
+        when(mDocumentHandle.getContent()).thenReturn(mContent);
+        when(mEmbeddedDocumentRequestProxy.success(anyLong(), anyBoolean(), anyLong())).thenReturn(null);
+        // when
+        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED);
+        // then the DocumentHandle is in a terminal state
+        assertEquals(mDocumentHandle.isValid(), false);
     }
 }

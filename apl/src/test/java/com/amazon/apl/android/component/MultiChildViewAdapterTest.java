@@ -6,6 +6,8 @@
 package com.amazon.apl.android.component;
 
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
+
+import android.graphics.RectF;
 import android.view.View;
 
 import com.amazon.apl.android.APLAccessibilityDelegate;
@@ -15,6 +17,7 @@ import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.PropertyMap;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.shadow.ShadowBitmapKey;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.ComponentType;
@@ -113,6 +116,49 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         verify(mockLayout).removeViewInLayout(mockChildView1);
     }
 
+    @Test
+    public void test_onChildrenChanged_cleans_shadow_references() {
+        //  Arrange
+        Component mockChildWithShadow1 = mock(Component.class);
+        when(mockChildWithShadow1.getShadowOffsetHorizontal()).thenReturn(1);
+        when(mockChildWithShadow1.getShadowOffsetVertical()).thenReturn(2);
+        when(mockChildWithShadow1.getShadowRadius()).thenReturn(0);
+        when(mockChildWithShadow1.getShadowRect()).thenReturn(new RectF(1, 1, 4, 4));
+        when(mockChildWithShadow1.getShadowCornerRadius()).thenReturn(new float[]{0, 1, 2, 3});
+        when(mockChildWithShadow1.getParent()).thenReturn(mockChildComponent1);
+        ShadowBitmapKey key = new ShadowBitmapKey(mockChildWithShadow1);
+        // Insert one item into shadow cache
+        component().getViewPresenter().getShadowRenderer().getCache().putShadow(key, mockChildWithShadow1);
+        assertTrue(component().getViewPresenter().getShadowRenderer().getCache().getComponents().hasNext());
+        Map<String,String> change1 = new HashMap<>();
+        change1.put("action", "remove");
+        change1.put("uid", "205");
+        Map<String,String> change2 = new HashMap<>();
+        change2.put("action", "remove");
+        change2.put("uid", "206");
+        Map<String, String>[] changes = new HashMap[2];
+        changes[0] = change1;
+        changes[1] = change2;
+        when(mockPropertyMap.get(PropertyKey.kPropertyNotifyChildrenChanged)).thenReturn(changes);
+        when(mockLayout.getChildCount()).thenReturn(2);
+        when(mockLayout.getChildAt(0)).thenReturn(mockChildView1);
+        when(mockLayout.getChildAt(1)).thenReturn(mockChildView2);
+        when(component().getViewPresenter().findComponent(mockChildView1)).thenReturn(mockChildComponent1);
+        when(component().getViewPresenter().findComponent(mockChildView2)).thenReturn(mockChildComponent2);
+        when(mockChildComponent1.getComponentId()).thenReturn("205");
+        when(mockChildComponent2.getComponentId()).thenReturn("206");
+
+        //Act
+        mockMultiChildViewAdapter.onChildrenChanged(component(), mockLayout);
+
+        //Assert
+        verify(mockLayout).removeViewInLayout(mockChildView1);
+        verify(mockLayout).removeViewInLayout(mockChildView2);
+        verify(mockChildWithShadow1).setShadowBitmap(null);
+        //Shadow cache should not have any item
+        assertFalse(component().getViewPresenter().getShadowRenderer().getCache().getComponents().hasNext());
+    }
+
 
     @Test
     public void test_onChildrenChanged_WithMultipleRemoveActions() {
@@ -196,8 +242,9 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
     public void test_accessibility_vertical_scrollForwards() {
         setupChildWithBounds(Rect.builder().left(0).top(0).height(300).width(100).build());
 
-        when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(0));
+        when(mockPropertyMap.hasProperty(PropertyKey.kPropertyScrollPosition)).thenReturn(true);
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionVertical.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -211,6 +258,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(50));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionVertical.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mBothDirectionAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -225,6 +273,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         // height is 50
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(250));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionVertical.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mBackwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -238,6 +287,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(0));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionHorizontal.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -251,6 +301,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(50));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionHorizontal.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mBothDirectionAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -264,6 +315,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(100));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionHorizontal.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mBackwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -277,13 +329,14 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(0));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionHorizontal.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         APLAccessibilityDelegate aplAccessibilityDelegate = APLAccessibilityDelegate.create(component(), getApplication());
+        View view = mock(View.class);
+        aplAccessibilityDelegate.onInitializeAccessibilityNodeInfo(view, AccessibilityNodeInfoCompat.obtain());
         aplAccessibilityDelegate.performAccessibilityAction(mock(View.class), AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD, null);
 
-        ArgumentCaptor<Integer> updateCaptor = ArgumentCaptor.forClass(Integer.class);
-        verify(component()).update(eq(UpdateType.kUpdateScrollPosition), updateCaptor.capture());
-        assertEquals(Math.round(200 * 0.9f), updateCaptor.getValue().intValue());
+        verify(component()).update(eq(UpdateType.kUpdateAccessibilityAction), eq("scrollforward"));
     }
 
     @Test
@@ -292,13 +345,14 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
 
         when(mockPropertyMap.getDimension(PropertyKey.kPropertyScrollPosition)).thenReturn(Dimension.create(200));
         when(mockPropertyMap.getEnum(PropertyKey.kPropertyScrollDirection)).thenReturn(ScrollDirection.kScrollDirectionHorizontal.getIndex());
+        when(component().getAccessibilityActions()).thenReturn(mBackwardOnlyAccessbilityActions);
 
         APLAccessibilityDelegate aplAccessibilityDelegate = APLAccessibilityDelegate.create(component(), getApplication());
+        View view = mock(View.class);
+        aplAccessibilityDelegate.onInitializeAccessibilityNodeInfo(view, AccessibilityNodeInfoCompat.obtain());
         aplAccessibilityDelegate.performAccessibilityAction(mock(View.class), AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD, null);
 
-        ArgumentCaptor<Integer> updateCaptor = ArgumentCaptor.forClass(Integer.class);
-        verify(component()).update(eq(UpdateType.kUpdateScrollPosition), updateCaptor.capture());
-        assertEquals(Math.round(200 + 200 * -0.9f), updateCaptor.getValue().intValue());
+        verify(component()).update(eq(UpdateType.kUpdateAccessibilityAction), eq("scrollbackward"));
     }
 
 

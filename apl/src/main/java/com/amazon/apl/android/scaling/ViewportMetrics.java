@@ -23,8 +23,20 @@ public abstract class ViewportMetrics {
     /** Device viewport width in px */
     public abstract int width();
 
+    /** Device viewport minWidth in px */
+    public abstract int minWidth();
+
+    /** Device viewport maxWidth in px */
+    public abstract int maxWidth();
+
     /** Device viewport height in px */
     public abstract int height();
+
+    /** Device viewport minHeight in px */
+    public abstract int minHeight();
+
+    /** Device viewport maxHeight in px */
+    public abstract int maxHeight();
 
     /** Device dots per inch */
     public abstract int dpi();
@@ -40,7 +52,6 @@ public abstract class ViewportMetrics {
 
     /** Scaling profile */
     public abstract Scaling scaling();
-
     /**
      * Derived value.
      *
@@ -55,14 +66,18 @@ public abstract class ViewportMetrics {
      * @return Builder for ViewportMetrics
      */
     public static Builder builder() {
-        return new AutoValue_ViewportMetrics.Builder()
-                .scaling(new Scaling());
+        return new AutoValue_ViewportMetrics.Builder().
+                scaling(new Scaling()).minHeight(0).maxHeight(0).minWidth(0).maxWidth(0);
     }
 
     @AutoValue.Builder
     public static abstract class Builder {
         public abstract Builder width(int width);
+        public abstract Builder minWidth(int minWidth);
+        public abstract Builder maxWidth(int maxWidth);
         public abstract Builder height(int height);
+        public abstract Builder minHeight(int minHeight);
+        public abstract Builder maxHeight(int maxHeight);
         public abstract Builder dpi(int dpi);
         public abstract Builder shape(ScreenShape shape);
         public abstract Builder theme(String theme);

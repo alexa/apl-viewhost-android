@@ -14,6 +14,7 @@ import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -92,5 +93,38 @@ public class AbstractMediaPlayerProviderTest extends ViewhostRobolectricTest {
     public void test_documentLifecycle_release() {
         mProvider.onDocumentFinish();
         verify(mProvider).releasePlayers();
+    }
+
+    @Test
+    public void test_pause_through_mediaStateUpdate() {
+        //Verify scenario where runtime already paused video before onDocumentPaused()
+        mProvider.releasePlayers();
+        playerOne = mProvider.getNewPlayer(getApplication(), mProvider.createView(getApplication()));
+        // Initially no players are playing.
+        assertFalse(mProvider.hasPlayingMediaPlayer());
+
+        // Start playing
+        when(playerOne.isPlaying()).thenReturn(true);
+        mProvider.updateMediaState(playerOne);
+        assertTrue(mProvider.hasPlayingMediaPlayer());
+
+        // Pause media player
+        when(playerOne.isPlaying()).thenReturn(false);
+        when(playerOne.getCurrentMediaState()).thenReturn(IMediaPlayer.IMediaListener.MediaState.PAUSED);
+        mProvider.updateMediaState(playerOne);
+        assertFalse(mProvider.hasPlayingMediaPlayer());
+
+        // Pause document
+        mProvider.onDocumentPaused();
+
+        // Resume document
+        mProvider.onDocumentResumed();
+        verify(playerOne).play();
+
+        // Mock play call to runtime
+        when(playerOne.isPlaying()).thenReturn(true);
+        when(playerOne.getCurrentMediaState()).thenReturn(IMediaPlayer.IMediaListener.MediaState.PLAYING);
+        mProvider.updateMediaState(playerOne);
+        assertTrue(mProvider.hasPlayingMediaPlayer());
     }
 }

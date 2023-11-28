@@ -61,6 +61,21 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         return domain + "." + metricName;
     }
 
+    @Override
+    public synchronized void reportTimer(int metricId, TimeUnit timeUnit, long time) {
+        Metric metric = mMetrics.get(metricId);
+        metric.totalTime = timeUnit.toNanos(time); // Convert to nanos
+        final long totalTimeMillis = TimeUnit.MILLISECONDS.convert(metric.totalTime,
+                TimeUnit.NANOSECONDS);
+        // This will log a line in Logcat of the form:
+        // I/TelemetryReport: Recording timer: APL-Android-Debug.renderDocument - total:61ms
+        Log.i(TAG, String.format("Recording timer: %s -%s%d%s", metric.metricName, TIMER_TOTAL_LOG,
+                totalTimeMillis, MS_LOG));
+        metric.success++;
+        metric.seedTime = 0;
+        metric.startTime = 0; // reset time
+    }
+
     /**
      * Starts a timer and increments the attempt success. If the timer
      * is already running this method has no effect.
@@ -115,6 +130,12 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         if (metric.startTime != 0) {
             metric.totalTime += timeUnit.toNanos(endTime) - (metric.startTime - metric.seedTime);
             metric.success++;
+            final long totalTimeMillis = TimeUnit.MILLISECONDS.convert(metric.totalTime,
+                    TimeUnit.NANOSECONDS);
+            // This will log a line in Logcat of the form:
+            // I/TelemetryReport: Stopping timer: APL-Android-Debug.renderDocument - total:61ms
+            Log.i(TAG, String.format("Stopping timer: %s -%s%d%s", metric.metricName, TIMER_TOTAL_LOG,
+                    totalTimeMillis, MS_LOG));
 
             metric.seedTime = 0;
             metric.startTime = 0; // reset time
@@ -132,6 +153,8 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         Metric metric = mMetrics.get(metricId);
         metric.fail++;
         metric.startTime = 0;  // end timer
+        Log.i(TAG, String.format("Incrementing counter: %s by 1 -%s%d", metric.metricName, FAIL_LOG,
+                metric.fail));
     }
 
     /**
@@ -148,6 +171,8 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     public synchronized void incrementCount(int metricId, int by) {
         Metric metric = mMetrics.get(metricId);
         metric.success += by;
+        Log.i(TAG, String.format("Incrementing counter: %s by %d%s%d", metric.metricName, by, COUNT_LOG,
+                metric.success));
     }
 
     /**

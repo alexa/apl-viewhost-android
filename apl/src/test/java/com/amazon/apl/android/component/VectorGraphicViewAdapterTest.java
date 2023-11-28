@@ -15,6 +15,7 @@ import com.amazon.apl.android.graphic.APLVectorGraphicView;
 import com.amazon.apl.android.graphic.AlexaVectorDrawable;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.primitive.UrlRequests;
+import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.VectorGraphicAlign;
 import com.amazon.apl.enums.VectorGraphicScale;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -58,6 +60,8 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     private GraphicContainerElement mockGraphicContainerElement;
     @Mock
     private RenderingContext mockRenderingContext;
+    @Mock
+    IMetricsTransform mockMetricsTransform;
     private Set<Integer> mDirtyGraphicsSet = new HashSet<>();
 
     @Override
@@ -67,6 +71,8 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
 
     @Override
     void componentSetup() {
+        when(mockMetricsTransform.toViewhost(anyFloat())).thenReturn(10.0f);
+        when(mockRenderingContext.getMetricsTransform()).thenReturn(mockMetricsTransform);
         when(mockGraphicContainerElement.getRenderingContext()).thenReturn(mockRenderingContext);
         when(component().getAlign()).thenReturn(VectorGraphicAlign.kVectorGraphicAlignCenter);
         when(component().getScale()).thenReturn(VectorGraphicScale.kVectorGraphicScaleNone);

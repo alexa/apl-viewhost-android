@@ -5,14 +5,20 @@
 package com.amazon.apl.viewhost.internal;
 
 import android.os.Handler;
+import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.Content;
 import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
+import com.amazon.apl.viewhost.config.DocumentOptions;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.EmbeddedDocumentRequest, DocumentStateChangeListener{
     private static final String TAG = "EmbeddedDocumentRequestImpl";
@@ -85,22 +91,100 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
         mHandler.post(() -> mEmbeddedDocumentRequestProxy.failure(reason));
     }
 
+    /**
+     * Handle the success callback for the EmbeddedDocumentRequest
+     *
+     * @param content
+     * @param documentConfigHandle
+     */
+    private void handleEmbeddedDocumentRequestSuccess(Content content, long documentConfigHandle) {
+        DocumentContext documentContext =
+                mEmbeddedDocumentRequestProxy.success(content.getNativeHandle(), mIsVisualContextConnected, documentConfigHandle);
+
+        if (documentContext == null) {
+            // Host component was released, returning a null DocumentContext
+            // Set a terminal state for the DocumentHandle
+            Log.w(TAG, "Got a null DocumentContext, dropping request and setting Document State to Finished");
+            mDocumentHandle.setDocumentState(DocumentState.FINISHED);
+            return;
+        }
+
+        mDocumentHandle.setDocumentContext(documentContext);
+    }
+
+
+    /**
+     * Handle any actions (e.g extension loads) due to content refresh before handling success
+     *
+     * @param content
+     * @param documentOptions
+     * @param mediator
+     * @param documentConfigHandle
+     */
+    private void onContentRefreshComplete(Content content,
+                                          DocumentOptions documentOptions,
+                                          ExtensionMediator mediator,
+                                          long documentConfigHandle) {
+        Log.i(TAG, "Content refresh complete");
+        if (mediator != null && documentOptions != null && documentOptions.getExtensionGrantRequestCallback() != null) {
+            Map<String, Object> flags = documentOptions.getExtensionFlags() != null ? documentOptions.getExtensionFlags() : new HashMap<>();
+            mediator.initializeExtensions(flags, content, documentOptions.getExtensionGrantRequestCallback());
+
+            mediator.loadExtensions(
+                    flags,
+                    content,
+                    new ExtensionMediator.ILoadExtensionCallback() {
+                        @Override
+                        public Runnable onSuccess() {
+                            return () -> handleEmbeddedDocumentRequestSuccess(content, documentConfigHandle);
+                        }
+
+                        @Override
+                        public Runnable onFailure() {
+                            return () -> mDocumentHandle.setDocumentState(DocumentState.ERROR);
+                        }
+                    }
+            );
+        } else {
+            handleEmbeddedDocumentRequestSuccess(content, documentConfigHandle);
+        }
+    }
+
     @Override
     public void onDocumentStateChanged(DocumentState state) {
         // when the document state is prepared then content is done so call success
         if (state == DocumentState.PREPARED) {
             mHandler.post(() -> {
                 if (mDocumentHandle != null) {
-                    ExtensionMediator mediator = mDocumentHandle.getExtensionMediator();
+                    final Content content = mDocumentHandle.getContent();
+                    final ExtensionMediator mediator = mDocumentHandle.getExtensionMediator();
                     long mediatorNativeHandle = mediator != null ? mediator.getNativeHandle() : 0;
                     long documentConfigHandle = nCreateDocumentConfig(mediatorNativeHandle);
+
                     mDocumentHandle.setDocumentConfig(new DocumentConfig(documentConfigHandle));
 
-                    DocumentContext documentContext =
-                            mEmbeddedDocumentRequestProxy.success(mDocumentHandle.getContent().getNativeHandle(), mIsVisualContextConnected, documentConfigHandle);
-                    mDocumentHandle.setDocumentContext(documentContext);
+                    // Conditional inflation doesn't automatically work since the embedded document doesn't have
+                    // a DocumentConfig on initial Content creation
+                    // Manually refresh the content with DocumentConfig and proceed
+                    content.refresh(mEmbeddedDocumentRequestProxy.getNativeHandle(), documentConfigHandle);
+                    if (content.isWaiting()) {
+                        Log.i(TAG, "Content is waiting, hence resolving the request");
+                        content.resolve(new Content.CallbackV2() {
+                            @Override
+                            public void onComplete(Content content) {
+                                onContentRefreshComplete(content, mDocumentHandle.getDocumentOptions(), mediator, documentConfigHandle);
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                Log.e(TAG, "Error occurred during content refresh: " + e.getMessage());
+                            }
+                        });
+                    } else {
+                        onContentRefreshComplete(content, mDocumentHandle.getDocumentOptions(), mediator, documentConfigHandle);
+                    }
                 } else {
-                    mEmbeddedDocumentRequestProxy.failure("document handle is null");
+                    mEmbeddedDocumentRequestProxy.failure("DocumentHandle is null");
                 }
             });
         } else if (state == DocumentState.ERROR) {

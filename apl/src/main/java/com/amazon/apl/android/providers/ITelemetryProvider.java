@@ -48,6 +48,22 @@ public interface ITelemetryProvider extends IDocumentLifecycleListener {
     int getMetricId(String domain, String metricName);
 
     /**
+     * Record a simple time value for a timer metric
+     * The default implementation uses existing startTimer and stopTimer calls which make
+     * the recorded time inaccurate by the amount of a function call.
+     *
+     * Runtimes should provide a more accurate implementation.
+     *
+     * @param metricId The metric identifier
+     * @param timeUnit The timeunit of the time to be recorded
+     * @param time     The time value to be recorded
+     */
+    default void reportTimer(int metricId, TimeUnit timeUnit, long time) {
+        startTimer(metricId, timeUnit, time);
+        stopTimer(metricId);
+    }
+
+    /**
      * Start a timer for a metric
      *
      * @param metricId The metric identifier.

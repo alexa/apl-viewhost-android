@@ -6,6 +6,8 @@
 package com.amazon.apl.android.component;
 
 import android.graphics.Color;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.view.View;
 
 import androidx.test.espresso.IdlingRegistry;
@@ -70,10 +72,16 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
 
     @Override
     void testView_applyProperties(APLAbsoluteLayout view) {
-        
+
     }
 
     private IdlingResource mIdlingResource;
+
+
+    private ShapeDrawable getBorder(View view) {
+        return (ShapeDrawable) ((LayerDrawable) view.getBackground()).getDrawable(0);
+    }
+
 
     @After
     public void tearDown() {
@@ -166,8 +174,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         // 1st View in list is bound to Text view holder
         assertEquals("Text 1", ((APLTextView) view.getChildAt(0)).getLayout().getText().toString());
         // 2nd View in list is bound to the Frame view holder
-        APLGradientDrawable drawable = (APLGradientDrawable) ((APLAbsoluteLayout) view.getChildAt(1)).getBackground();
-        assertEquals(Color.BLUE, drawable.getBorderColor());
+        assertEquals(Color.BLUE, getBorder(view.getChildAt(1)).getPaint().getColor());
     }
 
     /**
@@ -190,8 +197,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
 
         // verify frame is bound
         final APLAbsoluteLayout frameView = (APLAbsoluteLayout) view.getChildAt(0);
-        APLGradientDrawable drawable = (APLGradientDrawable) frameView.getBackground();
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder(view.getChildAt(0)).getPaint().getColor());
 
         // verify child of frame is bound
         assertEquals("nested text", ((APLTextView ) frameView.getChildAt(0)).getLayout().getText().toString());
@@ -272,8 +278,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         final APLAbsoluteLayout view = mTestContext.getTestView();
 
         // Verify initial onBind to first item
-        APLGradientDrawable drawable = (APLGradientDrawable) (view.getChildAt(0)).getBackground();
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder(view.getChildAt(0)).getPaint().getColor());
 
         // Swipe to the last item.
         ViewAction[] swipeUps = new ViewAction[30];
@@ -290,8 +295,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         onView(withId(sequence.getComponentId().hashCode())).perform(swipeDowns);
 
         // Verify the first item has had its view re-bound correctly:
-        drawable = (APLGradientDrawable) (view.getChildAt(0)).getBackground();
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder(view.getChildAt(0)).getPaint().getColor());
     }
 
     @Test
@@ -417,8 +421,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         final APLAbsoluteLayout view = mTestContext.getTestView();
 
         // Verify initial onBind to first item
-        APLGradientDrawable drawable = (APLGradientDrawable) (view.getChildAt(0)).getBackground();
-        assertEquals(10, drawable.getBorderWidth());
+        assertEquals(10, getBorder(view.getChildAt(0)).getPaint().getStrokeWidth(), 0);
 
         //  Update a dynamic property  of the first item
         final String setValueCommand = "[{\n" +
@@ -430,11 +433,10 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         onView(isRoot()).perform(executeCommands(mTestContext.getRootContext(), setValueCommand));
 
         // Verify update has been applied
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder(view.getChildAt(0)).getPaint().getColor());
 
         // Verify no update applied to child that had the same view type
-        drawable = (APLGradientDrawable) (view.getChildAt(1)).getBackground();
-        assertEquals(Color.BLUE, drawable.getBorderColor());
+        assertEquals(Color.BLUE, getBorder(view.getChildAt(1)).getPaint().getColor());
     }
 
     @Test
@@ -580,9 +582,7 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         onView(withId(sequence.getComponentId().hashCode())).perform(swipeUps);
 
         // Verify the update has been applied to last item
-        APLGradientDrawable drawable = (APLGradientDrawable) (view
-                .getChildAt(view.getChildCount() - 1)).getBackground();
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder(view.getChildAt(view.getChildCount() - 1)).getPaint().getColor());
 
         // Swipe back to first item
         ViewAction[] swipeDowns = new ViewAction[25];
@@ -592,7 +592,6 @@ public class SequenceViewTest extends AbstractComponentViewTest<APLAbsoluteLayou
         onView(withId(sequence.getComponentId().hashCode())).perform(swipeDowns);
 
         // Verify no update applied to first child, which has same View Type / template Component
-        drawable = (APLGradientDrawable) (view.getChildAt(0)).getBackground();
-        assertEquals(Color.BLUE, drawable.getBorderColor());
+        assertEquals(Color.BLUE, getBorder(view.getChildAt(0)).getPaint().getColor());
     }
 }

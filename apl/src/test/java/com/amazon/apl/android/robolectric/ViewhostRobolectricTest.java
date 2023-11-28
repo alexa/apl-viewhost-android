@@ -10,10 +10,10 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.utils.JniLoader;
 
 import org.junit.After;
@@ -44,6 +44,7 @@ public abstract class ViewhostRobolectricTest {
     public final void setupViewhostRobolectricTest() {
         ShadowLog.stream = System.out;
         MockitoAnnotations.initMocks(this);
+        TypefaceResolver.getInstance().reset();
     }
 
     @After

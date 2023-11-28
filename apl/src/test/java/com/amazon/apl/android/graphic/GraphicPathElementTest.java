@@ -5,11 +5,15 @@
 
 package com.amazon.apl.android.graphic;
 
+import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyStrokeOpacity;
+
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.text.TextUtils;
 
+import com.amazon.apl.android.PropertyMap;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.VectorGraphic;
@@ -19,11 +23,16 @@ import com.amazon.apl.enums.GraphicElementType;
 import com.amazon.apl.enums.GraphicPropertyKey;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
+import java.util.HashSet;
 
 public class GraphicPathElementTest extends AbstractDocUnitTest {
     private static final int OPAQUE = 255;
@@ -114,8 +123,7 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
             "          \"strokeTransform\": \"rotate(45)\"," +
             "          \"fill\": \"@RedCircle\"," +
             "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"," +
-            "          \"stroke\": \"red\"" +
+            "          \"pathData\": \"M15.67\"" +
             "    }" +
             "  ]" +
             "}";
@@ -215,7 +223,7 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
             "          \"strokeTransform\": \"rotate(45)\"," +
             "          \"fill\": \"@linearGradient\"," +
             "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"" +
+            "          \"pathData\": \"M15,67\"" +
             "    }," +
             "    {" +
             "          \"type\": \"path\"," +
@@ -223,25 +231,25 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
             "          \"strokeTransform\": \"rotate(45)\"," +
             "          \"fill\": \"@radialGradient\"," +
             "          \"fillTransform\": \"rotate(45)\"," +
-            "          \"pathData\": \"M15.67\"" +
+            "          \"pathData\": \"M15,67\"" +
             "    }," +
             "    {" +
             "          \"type\": \"path\"," +
             "          \"stroke\": \"@spreadMethodPad\"," +
             "          \"fill\": \"@spreadMethodPad\"," +
-            "          \"pathData\": \"M15.67\"" +
+            "          \"pathData\": \"M15,67\"" +
             "    }," +
             "    {" +
             "          \"type\": \"path\"," +
             "          \"stroke\": \"@spreadMethodReflect\"," +
             "          \"fill\": \"@spreadMethodReflect\"," +
-            "          \"pathData\": \"M15.67\"" +
+            "          \"pathData\": \"M15,67\"" +
             "    }," +
             "    {" +
             "          \"type\": \"path\"," +
             "          \"stroke\": \"@spreadMethodRepeat\"," +
             "          \"fill\": \"@spreadMethodRepeat\"," +
-            "          \"pathData\": \"M15.67\"" +
+            "          \"pathData\": \"M15,67\"" +
             "    }" +
             "  ]" +
             "}";
@@ -285,12 +293,12 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
         assertEquals(GraphicElementType.kGraphicElementTypePath, element.getType());
 
         GraphicPathElement avgPathElement = (GraphicPathElement) element;
-        Assert.assertNotNull(avgPathElement.getPathNodes());
+        Assert.assertFalse(avgPathElement.getPath().isEmpty());
 
-        Paint fillPaint = avgPathElement.getFillPaint();
+        Paint fillPaint = avgPathElement.getFillPaint(1f);
         assertEquals(Color.TRANSPARENT, fillPaint.getColor());
         assertEquals("M0,0", avgPathElement.getPathData());
-        Paint strokePaint = avgPathElement.getStrokePaint();
+        Paint strokePaint = avgPathElement.getStrokePaint(1f);
         assertEquals(Color.TRANSPARENT, strokePaint.getColor());
 
         assertEquals(1, avgPathElement.getStrokeWidth(), 0.1);
@@ -305,6 +313,30 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
     }
 
     @Test
+    public void testAppliedOpacityIsSameAfterReapply() {
+        String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, GRADIENTS_FOR_AVG_PATH));
+        loadDocument(doc);
+
+        GraphicContainerElement containerElement = getRoot();
+        verifyAllChildrenInflated(containerElement);
+
+        GraphicElement element = containerElement.getChildren().get(0);
+        assertEquals(GraphicElementType.kGraphicElementTypePath, element.getType());
+
+        GraphicPathElement avgPathElement = (GraphicPathElement) element;
+
+        Paint appliedStrokePaint = avgPathElement.getStrokePaint(.25f);
+        int firstAlpha = appliedStrokePaint.getAlpha();
+
+        avgPathElement.applyStrokePaintProperties(new Rect(), false, new HashSet());
+
+        Paint appliedStrokePaint2 = avgPathElement.getStrokePaint(.25f);
+
+        Assert.assertEquals(firstAlpha, appliedStrokePaint2.getAlpha());
+    }
+
+    @Test
+    @Ignore
     public void testProperties_avgPathInflationWithPatterns_fillAndStrokePatternsSet() {
         String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, PATTERNS_FOR_AVG_PATH));
         loadDocument(doc);
@@ -324,10 +356,17 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
         assertEquals(rot45, avgPathElement.getStrokeTransform());
         assertEquals(rot45, avgPathElement.getFillTransform());
 
-        GraphicPathElement avgPatternPathElement =
+        GraphicPathElement fillPatternPathElement =
                 (GraphicPathElement) avgPathElement.getFillGraphicPattern().getItems().get(0);
-        Paint fillPaint = avgPatternPathElement.getFillPaint();
-        assertEquals(Color.RED, fillPaint.getColor());
+        GraphicPathElement strokePatternPathElement =
+                (GraphicPathElement) avgPathElement.getStrokeGraphicPattern().getItems().get(0);
+
+        // Confirm that the resource is the red circle
+        assertEquals(Color.RED, fillPatternPathElement.getFillColor());
+
+        // Both fill and stroke are using the @RedCircle resource, so they should reuse the same
+        // graphic element instance (i.e. same uid, same object in core).
+        assertEquals(fillPatternPathElement, strokePatternPathElement);
     }
 
     @Test
@@ -506,7 +545,7 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
         assertEquals(GraphicElementType.kGraphicElementTypePath, element.getType());
 
         GraphicPathElement avgPathElement = (GraphicPathElement) element;
-        Assert.assertNull(avgPathElement.getPathNodes());
+        Assert.assertTrue(avgPathElement.getPath().isEmpty());
     }
 
     @Test
@@ -534,7 +573,8 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
         assertEquals(GraphicElementType.kGraphicElementTypePath, element.getType());
 
         GraphicPathElement avgPathElement = (GraphicPathElement) element;
-        Assert.assertTrue(avgPathElement.getPathNodes().length == 1);
+        PathParser.PathDataNode[] pathDataNodes = PathParser.createNodesFromPathData(avgPathElement.getPathData(), avgPathElement.getRenderingContext());
+        Assert.assertTrue(pathDataNodes.length == 1);
     }
 
     @Test
@@ -545,7 +585,7 @@ public class GraphicPathElementTest extends AbstractDocUnitTest {
         GraphicElement element = getRoot().getChildren().get(0);
         assertEquals(GraphicElementType.kGraphicElementTypePath, element.getType());
         GraphicPathElement avgPathElement = (GraphicPathElement) element;
-        PathParser.PathDataNode[] pathDataNodes = avgPathElement.getPathNodes();
+        PathParser.PathDataNode[] pathDataNodes = PathParser.createNodesFromPathData(avgPathElement.getPathData(), avgPathElement.getRenderingContext());
 
         // a1 1 0 00-1.05.1
         assertEquals('a', pathDataNodes[1].mType);

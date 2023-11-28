@@ -18,9 +18,11 @@ namespace apl {
 
         static jclass GRAPHIC_CLASS;
         static jclass HASHSET_CLASS;
+        static jclass INTEGER_CLASS;
         static jmethodID GRAPHIC_ADD_CHILDREN;
         static jmethodID HASHSET_CONSTRUCTOR;
         static jmethodID HASHSET_ADD;
+        static jmethodID INTEGER_VALUEOF;
 
 
         /**
@@ -44,11 +46,17 @@ namespace apl {
             HASHSET_CONSTRUCTOR = env->GetMethodID(HASHSET_CLASS, "<init>", "()V");
             HASHSET_ADD = env->GetMethodID(HASHSET_CLASS, "add", "(Ljava/lang/Object;)Z");
 
+            INTEGER_CLASS = (jclass)env->NewGlobalRef(
+                    env->FindClass("java/lang/Integer"));
+            INTEGER_VALUEOF = env->GetStaticMethodID(INTEGER_CLASS, "valueOf", "(I)Ljava/lang/Integer;");
+
             if (nullptr == GRAPHIC_CLASS
                 || nullptr == GRAPHIC_ADD_CHILDREN
                 || nullptr == HASHSET_CLASS
                 || nullptr == HASHSET_CONSTRUCTOR
-                || nullptr == HASHSET_ADD) {
+                || nullptr == HASHSET_ADD
+                || nullptr == INTEGER_CLASS
+                || nullptr == INTEGER_VALUEOF) {
                 LOG(LogLevel::kError) << "Could not find class GraphicElement Constructor or GraphicElement::addChildren method";
                 return JNI_FALSE;
             }
@@ -134,10 +142,18 @@ namespace apl {
          */
         JNIEXPORT jint JNICALL
         Java_com_amazon_apl_android_graphic_GraphicElementFactory_nGetType(JNIEnv *env,
-                                                                    jobject instance,
-                                                                    jlong handle) {
+                                                                           jobject instance,
+                                                                           jlong handle) {
             auto gc = get<apl::GraphicElement>(handle);
             return static_cast<jint>(gc->getType());
+        }
+
+        JNIEXPORT jint JNICALL
+        Java_com_amazon_apl_android_graphic_GraphicElementFactory_nGetUniqueId(JNIEnv *env,
+                                                                               jobject instance,
+                                                                               jlong handle) {
+            auto gc = get<apl::GraphicElement>(handle);
+            return static_cast<jint>(gc->getId());
         }
 
         /**
@@ -164,6 +180,21 @@ namespace apl {
         Java_com_amazon_apl_android_graphic_GraphicElement_nGetUniqueId(JNIEnv *env, jobject instance, jlong handle) {
             auto g = get<GraphicElement>(handle);
             return static_cast<jint>(g->getId());
+        }
+
+        JNIEXPORT jobject JNICALL
+        Java_com_amazon_apl_android_graphic_GraphicElement_nGetDirtyProperties(JNIEnv *env, jobject instance, jlong handle) {
+            auto g = get<GraphicElement>(handle);
+            auto dirtyProperties = g->getDirtyProperties();
+
+            jobject javaSet = env->NewObject(HASHSET_CLASS, HASHSET_CONSTRUCTOR);
+
+            for (auto key : dirtyProperties) {
+                jobject intValue = env->CallStaticObjectMethod(INTEGER_CLASS, INTEGER_VALUEOF, static_cast<int>(key));
+                env->CallBooleanMethod(javaSet, HASHSET_ADD, intValue);
+            }
+
+            return javaSet;
         }
 
         JNIEXPORT jobject JNICALL

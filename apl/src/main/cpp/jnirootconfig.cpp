@@ -94,6 +94,7 @@ namespace apl {
                      .enableExperimentalFeature(RootConfig::kExperimentalFeatureExtensionProvider);
              // Enable by default to support mediaLoad/mediaLoadFailed callbacks.
              rc.enableExperimentalFeature(RootConfig::kExperimentalFeatureManageMediaRequests);
+             rc.enableExperimentalFeature(RootConfig::kExperimentalFeatureDynamicAccessibilityActions);
              auto rc_ = std::make_shared<apl::RootConfig>(rc);
              return createHandle<RootConfig>(rc_);
          }

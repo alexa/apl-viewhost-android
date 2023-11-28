@@ -5,21 +5,33 @@
 
 package com.amazon.apl.android.event;
 
+import static junit.framework.TestCase.assertTrue;
+
 import android.view.View;
 
+import com.amazon.apl.android.APLJSONData;
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.Content;
+import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.configuration.ConfigurationChange;
+import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IDataSourceContextListener;
+import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -28,13 +40,21 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class ReinflateEventTest extends AbstractDocUnitTest {
     @Mock
@@ -45,6 +65,10 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
     private IDataSourceContextListener mMockDataSourceContextListener;
     @Mock
     private IVisualContextListener mMockVisualContextListener;
+    @Mock
+    private IPackageLoader mPackageLoader;
+    @Mock
+    private ExtensionMediator mMediator;
 
     private static final String REINFLATE_DOC = "{\n" +
             "    \"type\": \"APL\",\n" +
@@ -69,31 +93,148 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
             "        }\n" +
             "    ]\n" +
             "}";
+    private static String REINFLATE_WITH_CONDITIONALIMPORTS = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"1.6\",\n" +
+            "  \"theme\": \"dark\",\n" +
+            "  \"import\": [\n" +
+            "    {\n" +
+            "      \"when\": \"${environment.key == 'value'}\",\n" +
+            "      \"name\": \"test-package\",\n" +
+            "      \"version\": \"1.0\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "    \"onConfigChange\": [\n" +
+            "        {\n" +
+            "            \"type\": \"SendEvent\",\n" +
+            "            \"sequencer\": \"ConfigSendEvent\",\n" +
+            "            \"arguments\": [ \"reinflating the APL document\"]\n" +
+            "        },\n" +
+            "        {\n" +
+            "            \"type\": \"Reinflate\"\n" +
+            "        }\n" +
+            "    ],\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"items\": [\n" +
+            "      {\n" +
+            "        \"type\": \"Container\",\n" +
+            "        \"items\": [\n" +
+            "          {\n" +
+            "            \"type\": \"Frame\"\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}";
+    private final String mTestPackage = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.0\"" +
+            "}";
+    private ViewportMetrics mMetrics;
+    private APLOptions mAplOptions;
 
     @Before
     public void setup() {
-    }
+        doAnswer(invocation -> {
+            Content.ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            if ("test-package".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            }
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
 
-    @Test
-    public void testReinflate_rootContextReinflate_invoked() throws JSONException {
-        ViewportMetrics metrics = ViewportMetrics.builder()
+        mMetrics = ViewportMetrics.builder()
                 .width(1280)
                 .height(720)
                 .dpi(160)
                 .shape(ScreenShape.RECTANGLE)
                 .theme("dark")
-                .mode(ViewportMode.kViewportModeMobile)
+                .mode(ViewportMode.kViewportModeHub)
                 .build();
 
 
-        APLOptions aplOptions = APLOptions.builder()
+        mAplOptions = APLOptions.builder()
                 .mediaPlayerProvider(mMockMediaPlayerProvider)
                 .sendEventCallbackV2(mMockSendEventCallback)
+                .packageLoader(mPackageLoader)
                 .dataSourceContextListener(mMockDataSourceContextListener)
                 .visualContextListener(mMockVisualContextListener)
                 .build();
+    }
+    @Test
+    public void testReinflateWithConditionalImports() throws InterruptedException {
+        CountDownLatch contentComplete = new CountDownLatch(1);
+        mRootConfig = buildRootConfig();
+        mRootConfig.extensionMediator(mMediator);
+        Content.create(REINFLATE_WITH_CONDITIONALIMPORTS, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onPackageLoaded(Content content) {
+                super.onComplete(content);
+            }
+            @Override
+            public void onError(Exception e) {
+                Assert.fail(e.getCause().getMessage());
+            }
+            @Override
+            public void onComplete(Content content) {
+                Content spyContent = spy(content);
+                assertTrue(content.isReady());
+                mAPLPresenter = mock(IAPLViewPresenter.class);
+                when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+                when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(mMetrics);
 
-        loadDocument(REINFLATE_DOC, aplOptions, metrics);
+                mRootContext = spy(RootContext.create(mMetrics, spyContent, mRootConfig, mAplOptions, mAPLPresenter));
+
+                assertNotNull(mRootContext);
+
+
+                mRootContext.initTime();
+                mTime = 100;
+                mRootContext.onTick(mTime);
+
+                doAnswer(invocation -> {
+                    ExtensionMediator.ILoadExtensionCallback callback = invocation.getArgument(2);
+                    Runnable runnable = callback.onSuccess();
+                    runnable.run();
+                    return null;
+                }).when(mMediator).loadExtensions(any(RootConfig.class), any(Content.class), any(ExtensionMediator.ILoadExtensionCallback.class));
+
+                // Dummy config
+                ConfigurationChange configChangeToNonTrueValue = mRootContext.createConfigurationChange().environmentValue("key", "shouldBeFalse")
+                        .build();
+
+                mRootContext.handleConfigurationChange(configChangeToNonTrueValue);
+
+                update(100);
+
+                verify(mRootContext).reinflate();
+
+                verify(spyContent, never()).resolve(any(Content.CallbackV2.class));
+                verify(mRootContext.getViewPresenter()).reinflate();
+
+                // Dummy config
+                ConfigurationChange configChange = mRootContext.createConfigurationChange().environmentValue("key", "value")
+                        .build();
+
+                mRootContext.handleConfigurationChange(configChange);
+
+                update(100);
+
+                verify(mRootContext, times(2)).reinflate();
+                verify(spyContent).resolve(any(Content.CallbackV2.class));
+                verify(mRootContext.getViewPresenter(), times(2)).reinflate();
+
+                contentComplete.countDown();
+            }
+        }, mRootConfig);
+        Assert.assertTrue(contentComplete.await(1, TimeUnit.SECONDS));
+    }
+    @Test
+    public void testReinflate_rootContextReinflate_invoked() throws JSONException {
+
+        loadDocument(REINFLATE_DOC, mAplOptions, mMetrics);
 
         // Dummy config
         ConfigurationChange configChange = mRootContext.createConfigurationChange()

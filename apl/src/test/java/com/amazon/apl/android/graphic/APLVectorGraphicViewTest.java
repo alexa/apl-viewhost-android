@@ -4,9 +4,13 @@
  */
 package com.amazon.apl.android.graphic;
 
+import static android.view.View.LAYER_TYPE_HARDWARE;
+import static android.view.View.LAYER_TYPE_NONE;
+
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.util.Pair;
 
 import com.amazon.apl.android.IAPLViewPresenter;
@@ -22,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Spy;
+import org.robolectric.annotation.Config;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -56,7 +61,6 @@ public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
         mAPLVectorGraphicView.setFrame(0, 0, VIEW_SIZE, VIEW_SIZE);
         mAPLVectorGraphicView.setPadding(VIEW_PADDING, VIEW_PADDING, VIEW_PADDING, VIEW_PADDING);
     }
-
     @Test
     public void testOnDraw_intrinsicDrawableFits(){
         when(mMockBitmapPool.get(anyInt(), anyInt(), any())).thenReturn(Bitmap.createBitmap(VIEW_INNER_SIZE, VIEW_INNER_SIZE, Bitmap.Config.ARGB_8888));

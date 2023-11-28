@@ -7,10 +7,11 @@ package com.amazon.apl.android.document;
 
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.text.Layout;
 import android.view.View;
 
-import com.amazon.apl.android.APLGradientDrawable;
 import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.APLLayoutParams;
 import com.amazon.apl.android.APLOptions;
@@ -43,6 +44,10 @@ public class ConfigChangeTest extends AbstractDocViewTest {
             "    { \"type\": \"SetValue\", \"componentId\": \"testcomp\", \"property\": \"borderColor\", \"value\": \"red\" }" +
             "  ]";
 
+    private ShapeDrawable getBorder() {
+        return (ShapeDrawable) ((LayerDrawable)mTestContext.getTestView().getBackground()).getDrawable(0);
+    }
+
     /**
      * Checks that SetValue command to change a dynamic property of Frame component executes on a configuration change
      */
@@ -50,16 +55,13 @@ public class ConfigChangeTest extends AbstractDocViewTest {
     public void testHandleConfigurationChange() {
         inflate(DOC, DOCUMENT_PROPERTIES);
 
-        APLAbsoluteLayout view = mTestContext.getTestView();
-        APLGradientDrawable drawable = (APLGradientDrawable) view.getBackground();
-        assertEquals(Color.BLUE, drawable.getBorderColor());
+        assertEquals(Color.BLUE, getBorder().getPaint().getColor());
 
         // Trigger a configuration change.
         mTestContext.getRootContext().handleConfigurationChange(mTestContext.getRootContext().createConfigurationChange().fontScale(2.0f).build());
         testClock.doFrameUpdate(100);
 
-        drawable = (APLGradientDrawable) view.getBackground();
-        assertEquals(Color.RED, drawable.getBorderColor());
+        assertEquals(Color.RED, getBorder().getPaint().getColor());
     }
 
     private static final String ENV_DOC = "\"text\": \"Motion State: ${environment.motionState}\",\n" +

@@ -659,6 +659,7 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
     @SuppressWarnings("FieldCanBeLocal")
     private final OnPreparedListener mOnPreparedListener = mp -> {
         mCurrentState = MediaState.READY;
+        notifyMediaState();
         if (mAction == Action.PLAY || mAction == Action.INTERNAL_TRACK_UPDATE || mAction == Action.SEEK || mAction == Action.SEEK_TO) {
             try {
                 MediaSource mediaSource = mSources.at(mCurrentTrackIndex);

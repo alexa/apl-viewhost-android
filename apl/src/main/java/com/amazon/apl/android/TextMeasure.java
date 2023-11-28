@@ -155,8 +155,8 @@ public class TextMeasure {
 
         // return results
         final float[] measurement = new float[]{
-                mMetricsTransform.toCore(mMeasuredWidthPx),
-                mMetricsTransform.toCore(mMeasuredHeightPx)};
+                mMetricsTransform.toCore((float)mMeasuredWidthPx),
+                mMetricsTransform.toCore((float)mMeasuredHeightPx)};
 
         return measurement;
     }

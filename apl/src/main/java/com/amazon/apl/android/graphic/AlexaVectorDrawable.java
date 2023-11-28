@@ -22,11 +22,13 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
+
 import android.util.Log;
 
-import com.amazon.apl.android.BuildConfig;
+import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
+import com.amazon.apl.enums.VectorGraphicScale;
 
 import java.util.Set;
 
@@ -58,14 +60,30 @@ public class AlexaVectorDrawable extends Drawable {
     private final Matrix mTmpMatrix = new Matrix();
     private final Rect mTmpBounds = new Rect();
 
+    private VectorGraphicScale mScale;
+
+    private float mViewportWidth, mViewportHeight;
+
+    private final float EPSILON = 0.001f;
+
     private AlexaVectorDrawable(GraphicContainerElement element) {
         mVectorState = new VectorDrawableCompatState(element);
+        RenderingContext rc = mVectorState.mPathRenderer.getRootGroup().getRenderingContext();
+        mViewportWidth = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportWidthActual());
+        mViewportHeight = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportHeightActual());
     }
 
     @VisibleForTesting
     AlexaVectorDrawable(@NonNull VectorDrawableCompatState state) {
         mVectorState = state;
         updateTintFilter(state.mTint, state.mTintMode);
+
+        GraphicContainerElement e = mVectorState.mPathRenderer.getRootGroup();
+        if(e != null) {
+            RenderingContext rc = e.getRenderingContext();
+            mViewportWidth = rc.getMetricsTransform().toViewhost(e.getViewportWidthActual());
+            mViewportHeight = rc.getMetricsTransform().toViewhost(e.getViewportHeightActual());
+        }
     }
 
     /**
@@ -138,8 +156,8 @@ public class AlexaVectorDrawable extends Drawable {
             canvasScaleY = 1.0f;
         }
 
-        int scaledWidth = (int) (mTmpBounds.width() * canvasScaleX);
-        int scaledHeight = (int) (mTmpBounds.height() * canvasScaleY);
+        float scaledWidth = (mTmpBounds.width() * canvasScaleX);
+        float scaledHeight = (mTmpBounds.height() * canvasScaleY);
         scaledWidth = Math.min(MAX_CACHED_BITMAP_SIZE, scaledWidth);
         scaledHeight = Math.min(MAX_CACHED_BITMAP_SIZE, scaledHeight);
 
@@ -162,9 +180,38 @@ public class AlexaVectorDrawable extends Drawable {
         // we offset to (0, 0);
         mTmpBounds.offsetTo(0, 0);
 
-        mVectorState.createOrEraseCachedBitmap(scaledWidth, scaledHeight);
-        mVectorState.drawCachedBitmapWithRootAlpha(canvas, colorFilter, mTmpBounds);
+        // Draw directly into the canvas and enable hardware acceleration for better fluidity for the following cases:
+        // 1. For cases with proportional scaling (Scale Types: best-fit, best-fill and None) and where scale_x = scale_y in scaling Matrix with no Skew and no drop Shadow Filter
+        // Draw into a bimap backed canvas for the following cases:
+        // 1. For cases with non-uniform scaling (scale_x and scale_y are non-equal) / (Scale Type: fill)  OR
+        // 2. For cases where there is a drop Shadow Filter Present OR
+        // 3. For cases where there is skew present
+        // 4. For cases where there is grow/shrink/stretch present
+        boolean useHardwareAcceleration = (mScale == null || mScale != VectorGraphicScale.kVectorGraphicScaleFill)
+                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainFilters()
+                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainsSkew()
+                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainNonUniformScaling()
+                && doesUniformScaling(scaledWidth, scaledHeight);
+
+        if (useHardwareAcceleration) {
+            canvas.clipRect(mTmpBounds);
+            mVectorState.drawAVGToCanvas(canvas, (int) scaledWidth, (int) scaledHeight,true);
+        } else {
+            mVectorState.createOrEraseCachedBitmap((int) scaledWidth, (int) scaledHeight);
+            mVectorState.drawCachedBitmapWithRootAlpha(canvas, colorFilter, mTmpBounds);
+        }
         canvas.restoreToCount(saveCount);
+    }
+
+    //For cases where there is grow/shrink/stretch present
+    private boolean doesUniformScaling(float scaledWidth, float scaledHeight) {
+        float mScaledWidth = scaledWidth / mViewportWidth;
+        float mScaledHeight = scaledHeight / mViewportHeight;
+        // Check if mScaledWidth is not equal to mScaledHeight
+        if (Math.abs(mScaledWidth - mScaledHeight) > EPSILON) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -273,6 +320,10 @@ public class AlexaVectorDrawable extends Drawable {
         return mVectorState;
     }
 
+    public void setScale(VectorGraphicScale scale){
+        mScale = scale;
+    }
+
     private boolean needMirroring() {
             return isAutoMirrored()
                     && DrawableCompat.getLayoutDirection(this) == ViewCompat.LAYOUT_DIRECTION_RTL;
@@ -359,9 +410,7 @@ public class AlexaVectorDrawable extends Drawable {
                 try {
                     mCachedBitmap = mBitmapFactory.createBitmap(width, height);
                 } catch (BitmapCreationException e) {
-                    if (BuildConfig.DEBUG) {
-                        Log.e(TAG, "Error creating bitmap for AVG.", e);
-                    }
+                    Log.e(TAG, "Error creating bitmap for AVG.", e);
                     return;
                 }
                 drawAVGToCachedBitmap();
@@ -376,7 +425,12 @@ public class AlexaVectorDrawable extends Drawable {
          */
         private void drawAVGToCachedBitmap() {
             final Canvas tmpCanvas = new Canvas(mCachedBitmap);
-            mPathRenderer.draw(tmpCanvas, mCachedBitmap.getWidth(), mCachedBitmap.getHeight(), mBitmapFactory);
+            mPathRenderer.draw(tmpCanvas, mCachedBitmap.getWidth(), mCachedBitmap.getHeight(), mBitmapFactory, false);
+            setDirty(false);
+        }
+
+        void drawAVGToCanvas(Canvas canvas, int width, int height, boolean uniformScaling) {
+            mPathRenderer.draw(canvas, width, height, mBitmapFactory, uniformScaling);
             setDirty(false);
         }
 

@@ -8,6 +8,8 @@ package com.amazon.apl.android.graphic;
 import android.graphics.Bitmap;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.graphics.Matrix;
 import android.util.Log;
 
 import com.amazon.common.BoundObject;
@@ -21,10 +23,12 @@ import com.amazon.apl.enums.GraphicElementType;
 import com.amazon.apl.enums.GraphicPropertyKey;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyFilters;
+import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyTransform;
 
 /**
  * A single element of a graphic.  This may be a group of other elements, a path element,
@@ -59,9 +63,9 @@ public abstract class GraphicElement extends BoundObject {
             }
         };
         mGraphicElementMap = map;
-        putInMap(map);
         mFilters = new ArrayList<>();
         createFilters();
+        putInMap(map);
         nInflateChildren(getNativeHandle());
     }
 
@@ -113,7 +117,7 @@ public abstract class GraphicElement extends BoundObject {
      */
     @SuppressWarnings("unused")
     protected void addChildren(long childElement) {
-        GraphicElement child = GraphicElementFactory.createGraphicElement(mGraphicElementMap,
+        GraphicElement child = GraphicElementFactory.getOrCreateGraphicElement(mGraphicElementMap,
                 childElement, mRenderingContext);
         mChildren.add(child);
     }
@@ -126,6 +130,10 @@ public abstract class GraphicElement extends BoundObject {
     @NonNull
     protected Gradient getGradient(@NonNull final GraphicPropertyKey property) {
         return Gradient.create(this, property);
+    }
+
+    public PropertyMap<GraphicElement, GraphicPropertyKey> getProperties() {
+        return mProperties;
     }
 
     public void applyDirtyProperties(@NonNull Set<Integer> dirtyGraphicUniqueIds) {
@@ -175,12 +183,74 @@ public abstract class GraphicElement extends BoundObject {
     }
 
     /**
+     * Checks whether this AVG object has any skew associated with it
+     *
+     * @return true if yes, otherwise false
+     */
+    boolean containsSkew() {
+        if (mProperties.hasProperty(kGraphicPropertyTransform)) {
+            Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
+            float[] matrixValues = new float[9];
+            transformMatrix.getValues(matrixValues);
+
+            float skewX = matrixValues[Matrix.MSKEW_X];
+            float skewY = matrixValues[Matrix.MSKEW_Y];
+
+            if (skewX != 0 || skewY != 0) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether this AVG object has any non-uniform scaling
+     *
+     * @return true if yes, otherwise false
+     */
+    boolean containsNonUniformScaling() {
+        if (mProperties.hasProperty(kGraphicPropertyTransform)) {
+            Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
+            float[] matrixValues = new float[9];
+            transformMatrix.getValues(matrixValues);
+
+            float scaleX = matrixValues[Matrix.MSCALE_X];
+            float scaleY = matrixValues[Matrix.MSCALE_Y];
+
+            if (scaleX != scaleY) {
+                return true;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether the hierarchy of this group contains a filter
+     * @return true if the hierarchy contains a filter, false otherwise
+     */
+    boolean doesMapContainFilters() {
+        return mGraphicElementMap.doesMapContainFilters();
+    }
+
+    boolean doesMapContainsSkew(){
+        return mGraphicElementMap.doesMapContainSkew();
+    }
+
+    boolean doesMapContainNonUniformScaling(){
+        return mGraphicElementMap.doesMapContainNonUniformScaling();
+    }
+
+    /**
      * Update cached properties when Graphic is marked dirty.
      */
     abstract void applyProperties();
 
     // TODO eliminate need for inflating java objects and expose a JNI Iterator
     protected native void nInflateChildren(long nativeHandle);
+
+    protected native HashSet nGetDirtyProperties(long nativeHandle);
 
     protected native int nGetType(long mNativeHandle);
 

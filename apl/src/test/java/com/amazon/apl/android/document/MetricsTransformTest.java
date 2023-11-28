@@ -63,6 +63,35 @@ public class MetricsTransformTest extends AbstractDocUnitTest {
     }
 
     @Test
+    public void test_metricsTransform_withAutoSize_withScaling() {
+        Scaling.ViewportSpecification[] specsArray = {
+                Scaling.ViewportSpecification.builder()
+                        .minWidth(1600)
+                        .maxWidth(1600)
+                        .minHeight(800)
+                        .maxHeight(800)
+                        .round(false)
+                        .mode(ViewportMode.kViewportModeHub)
+                        .build()
+        };
+        Vector<Scaling.ViewportSpecification> specs = new Vector<>(Arrays.asList(specsArray));
+        Scaling scaling = new Scaling(1.0, specs);
+
+        ViewportMetrics metrics = ViewportMetrics.builder()
+                .width(1200).minWidth(100).maxWidth(1500)
+                .height(600).minHeight(100).maxHeight(900)
+                .dpi(160)
+                .shape(ScreenShape.RECTANGLE)
+                .theme("dark")
+                .mode(ViewportMode.kViewportModeHub)
+                .scaling(scaling)
+                .build();
+
+        MetricsTransform transform = MetricsTransform.create(metrics);
+
+        assertEquals(transform.getUnscaledMetrics(), transform.getScaledMetrics());
+    }
+    @Test
     public void test_metricsTransform_withScaling() {
         Scaling.ViewportSpecification[] specsArray = {
                 Scaling.ViewportSpecification.builder()

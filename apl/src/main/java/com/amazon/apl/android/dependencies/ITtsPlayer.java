@@ -5,6 +5,9 @@
 
 package com.amazon.apl.android.dependencies;
 
+import android.util.Log;
+import com.amazon.apl.android.media.TextTrack;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -15,6 +18,8 @@ import java.net.URL;
  * The TTS Player interface.
  */
 public interface ITtsPlayer {
+    static final String TAG = "ITtsPlayer";
+
     /**
      * Prepares the audio. The {@code stream} should not be processed on the UI thread.
      * @param stream the TTS stream.
@@ -25,7 +30,28 @@ public interface ITtsPlayer {
      * @param url the TTS URL.
      */
     void prepare(String source, URL url);
-
+    /**
+     * Prepares the audio. The {@code stream} should not be processed on the UI thread.
+     * @param stream the TTS stream.
+     * @param textTrack the tts captions
+     */
+    default void prepare(String source, InputStream stream, TextTrack textTrack){
+        if (textTrack != null) {
+            Log.i(TAG,"TextTrack not supported, ignored");
+        }
+        prepare(source, stream);
+    }
+    /**
+     * Prepares the audio. The {@code url} should not be processed on the UI thread.
+     * @param url the TTS URL.
+     * @param textTrack the tts captions
+     */
+    default void prepare(String source, URL url, TextTrack textTrack){
+        if (textTrack != null) {
+            Log.i(TAG,"TextTrack not supported, ignored");
+        }
+        prepare(source, url);
+    }
     /**
      * Play TTS.
      */

@@ -39,7 +39,7 @@ namespace apl {
             EXTENSIONMEDIATOR_LOADED_CALLBACK = env->GetMethodID(
                     EXTENSIONMEDIATOR_CLASS,
                     "onExtensionsLoaded",
-                    "()V");
+                    "(Z)V");
 
             EXTENSIONMEDIATOR_IS_EXTENSION_GRANTED = env->GetMethodID(
                     EXTENSIONMEDIATOR_CLASS,
@@ -85,7 +85,7 @@ namespace apl {
                 env->DeleteWeakGlobalRef(mWeakInstance);
             }
 
-            void onExtensionLoaded() {
+            void onExtensionLoaded(bool success) {
                 JNIEnv *env;
                 if (MEDIATOR_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                     return;
@@ -96,7 +96,7 @@ namespace apl {
                     return;
                 }
 
-                env->CallVoidMethod(localRef, EXTENSIONMEDIATOR_LOADED_CALLBACK);
+                env->CallVoidMethod(localRef, EXTENSIONMEDIATOR_LOADED_CALLBACK, success);
                 env->DeleteLocalRef(localRef);
             }
 
@@ -193,9 +193,9 @@ namespace apl {
             auto rootConfig = get<RootConfig>(rootConfigHandler_);
             auto content = get<Content>(contentHandler_);
             auto weak_self = std::weak_ptr<AndroidExtensionMediator>(mediator);
-            mediator->loadExtensions(rootConfig, content, [weak_self]() {
+            mediator->loadExtensions(rootConfig, content, [weak_self](bool success) {
                 if (auto self = weak_self.lock()) {
-                    self->onExtensionLoaded();
+                    self->onExtensionLoaded(success);
                 }
             });
         }
@@ -211,9 +211,9 @@ namespace apl {
             auto obj = getAPLObject(env, flags_);
             auto map = obj.isNull() ? *std::make_shared<ObjectMap>() : obj.getMap();
             auto weak_self = std::weak_ptr<AndroidExtensionMediator>(mediator);
-            mediator->loadExtensions(map, content, [weak_self]() {
+            mediator->loadExtensions(map, content, [weak_self](bool success) {
                 if (auto self = weak_self.lock()) {
-                    self->onExtensionLoaded();
+                    self->onExtensionLoaded(success);
                 }
             });
         }

@@ -29,7 +29,6 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(AndroidJUnit4.class)
 public class GraphicTextElementTest extends AbstractDocUnitTest {
-
     final static String BASE_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"1.0\"," +
@@ -53,36 +52,6 @@ public class GraphicTextElementTest extends AbstractDocUnitTest {
                     "    \"box\": %s" +
                     "  }";
 
-    private static final String FULL_PROPS_FOR_AVG_TEXT = "{" +
-            "      \"type\": \"AVG\",\n" +
-            "      \"version\": \"1.0\",\n" +
-            "      \"height\": 24,\n" +
-            "      \"width\": 24,\n" +
-            "      \"lang\": \"en-US\",\n" +
-            "      \"layoutDirection\": \"RTL\",\n" +
-            "      \"viewportWidth\": 24,\n" +
-            "      \"viewportHeight\": 24,\n" +
-            "      \"items\": [\n" +
-        "            {\n" +
-        "              \"type\": \"text\",\n" +
-        "              \"fill\": \"#ffffff\",\n" +
-        "              \"fillOpacity\": 0.6,\n" +
-        "              \"fontFamily\": \"amazon-ember\",\n" +
-        "              \"fontSize\": 20,\n" +
-        "              \"fontStyle\": \"italic\",\n" +
-        "              \"fontWeight\": \"800\",\n" +
-        "              \"letterSpacing\": 1,\n" +
-        "              \"stroke\": \"#ffffff\",\n" +
-        "              \"strokeOpacity\": 0.4,\n" +
-        "              \"strokeWidth\": 3,\n" +
-        "              \"text\": \"message\",\n" +
-        "              \"textAnchor\": \"middle\",\n" +
-        "              \"x\": 50,\n" +
-        "              \"y\": 50\n" +
-        "            }\n" +
-            "      ]\n" +
-            "    }";
-
     private static final String AVG_TEXT_LAYOUTDIRECTION_ANCHOR = "{" +
             "      \"type\": \"AVG\",\n" +
             "      \"version\": \"1.0\",\n" +
@@ -99,112 +68,6 @@ public class GraphicTextElementTest extends AbstractDocUnitTest {
             "              \"textAnchor\": \"%s\",\n" +
             "              \"x\": 50,\n" +
             "              \"y\": 50\n" +
-            "            }\n" +
-            "      ]\n" +
-            "    }";
-
-    private static final String PATTERNS_FOR_AVG_TEXT = "{" +
-            "      \"type\": \"AVG\",\n" +
-            "      \"version\": \"1.0\",\n" +
-            "      \"height\": 24,\n" +
-            "      \"width\": 24,\n" +
-            "      \"viewportWidth\": 24,\n" +
-            "      \"viewportHeight\": 24,\n" +
-            "      \"resources\": [{" +
-            "        \"patterns\": {" +
-            "          \"RedCircle\": {" +
-            "            \"type\": \"pattern\"," +
-            "            \"width\": 8," +
-            "            \"height\": 8," +
-            "            \"items\": [" +
-            "              {" +
-            "              \"type\": \"path\"," +
-            "              \"pathData\": \"M0,4 a4,4,0,1,1,8,0 a4,4,0,1,1,-8,0\"," +
-            "              \"fill\": \"red\"" +
-            "              }" +
-            "            ]" +
-            "          }" +
-            "        }" +
-            "      }]," +
-            "      \"items\": [\n" +
-            "            {\n" +
-            "              \"type\": \"text\",\n" +
-            "              \"fill\": \"@RedCircle\",\n" +
-            "              \"fillTransform\": \"rotate(45)\"," +
-            "              \"fontSize\": 20,\n" +
-            "              \"stroke\": \"@RedCircle\",\n" +
-            "              \"strokeTransform\": \"rotate(45)\"," +
-            "              \"text\": \"message\",\n" +
-            "              \"x\": 50,\n" +
-            "              \"y\": 50\n" +
-            "            }\n" +
-            "      ]\n" +
-            "    }";
-
-    private static final String GRADIENTS_FOR_AVG_TEXT = "{" +
-            "      \"type\": \"AVG\",\n" +
-            "      \"version\": \"1.0\",\n" +
-            "      \"height\": 24,\n" +
-            "      \"width\": 24,\n" +
-            "      \"viewportWidth\": 24,\n" +
-            "      \"viewportHeight\": 24,\n" +
-            "      \"resources\": [{" +
-            "         \"gradients\": {" +
-            "            \"linearGradient\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                0.5492504222972973," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"#ffffffff\"," +
-            "                \"#ff0000ff\"," +
-            "                \"#000000ff\"" +
-            "              ]," +
-            "              \"type\": \"linear\"," +
-            "              \"x1\": 0.3," +
-            "              \"y1\": 0.4," +
-            "              \"x2\": 0.7," +
-            "              \"y2\": 0.5" +
-            "            }," +
-            "            \"radialGradient\": {" +
-            "              \"inputRange\": [" +
-            "                0," +
-            "                1" +
-            "              ]," +
-            "              \"colorRange\": [" +
-            "                \"black\"," +
-            "                \"white\"" +
-            "              ]," +
-            "              \"type\": \"radial\"," +
-            "              \"centerX\": 0.6," +
-            "              \"centerY\": 0.4," +
-            "              \"radius\": 1" +
-            "            }" +
-            "         }" +
-            "      }]," +
-            "      \"items\": [\n" +
-            "            {\n" +
-            "              \"type\": \"text\",\n" +
-            "              \"fill\": \"@linearGradient\",\n" +
-            "              \"fillTransform\": \"rotate(45)\"," +
-            "              \"fontSize\": 20,\n" +
-            "              \"stroke\": \"@linearGradient\",\n" +
-            "              \"strokeTransform\": \"rotate(45)\"," +
-            "              \"text\": \"message\",\n" +
-            "              \"x\": 50,\n" +
-            "              \"y\": 50\n" +
-            "            },\n" +
-            "            {\n" +
-            "              \"type\": \"text\",\n" +
-            "              \"fill\": \"@radialGradient\",\n" +
-            "              \"fillTransform\": \"rotate(45)\"," +
-            "              \"fontSize\": 20,\n" +
-            "              \"stroke\": \"@radialGradient\",\n" +
-            "              \"strokeTransform\": \"rotate(45)\"," +
-            "              \"text\": \"message\",\n" +
-            "              \"x\": 100,\n" +
-            "              \"y\": 100\n" +
             "            }\n" +
             "      ]\n" +
             "    }";

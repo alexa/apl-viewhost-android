@@ -542,7 +542,7 @@ public class RootConfig extends BoundObject {
      */
     @NonNull
     @Deprecated
-    RootConfig extensionMediator(@NonNull ExtensionMediator extensionMediator) {
+    public RootConfig extensionMediator(@NonNull ExtensionMediator extensionMediator) {
         mExtensionMediator = extensionMediator;
         nExtensionMediator(getNativeHandle(), extensionMediator.getNativeHandle());
         return this;

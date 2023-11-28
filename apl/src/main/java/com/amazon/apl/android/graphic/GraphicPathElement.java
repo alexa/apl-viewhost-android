@@ -4,15 +4,22 @@
  */
 package com.amazon.apl.android.graphic;
 
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import android.graphics.Path;
+import android.graphics.PathMeasure;
+import android.graphics.Rect;
 import android.util.Log;
 
 import com.amazon.apl.android.PropertyMap;
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.enums.GraphicLineCap;
 import com.amazon.apl.enums.GraphicLineJoin;
+import com.amazon.apl.enums.GraphicPropertyKey;
+import com.amazon.common.storage.WeakCache;
 
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyFill;
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyPathData;
@@ -24,20 +31,17 @@ import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyStrokeLine
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyStrokeLineJoin;
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyStrokeMiterLimit;
 
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.HashSet;
+
 /**
  * Represents path avg object.
  */
-public class GraphicPathElement extends GraphicElement implements RenderableGraphicElement {
+public class GraphicPathElement extends FillStrokeGraphicElement {
     private static final String TAG = "GraphicPathElement";
 
-    @NonNull
-    private Paint mStrokePaint;
-
-    @NonNull
-    private Paint mFillPaint;
-
-    @Nullable
-    private PathParser.PathDataNode[] mNodes = null;
+    private Path mPath;
 
     @NonNull
     private Paint.Join mPaintJoin = Paint.Join.BEVEL;
@@ -55,28 +59,6 @@ public class GraphicPathElement extends GraphicElement implements RenderableGrap
         return new GraphicPathElement(map, graphicHandle, renderingContext);
     }
 
-    @Override
-    public PropertyMap getProperties() {
-        return mProperties;
-    }
-
-    @Override
-    public GraphicPattern getFillGraphicPattern() {
-        return getGraphicPattern(kGraphicPropertyFill);
-    }
-
-    /**
-     * @return a defensive copy of the fill paint for this path element.
-     * The caller of this method can do anything they want with the
-     * returned Paint object, without affecting the internals of this
-     * class in any way.
-     */
-    @Override
-    public Paint getFillPaint() {
-        // copy of fill paint (defensive mechanism for repeated draw calls)
-        return new Paint(mFillPaint);
-    }
-
     /**
      * The path data of the path element.
      * @return the value of the path data of the path element.
@@ -92,24 +74,6 @@ public class GraphicPathElement extends GraphicElement implements RenderableGrap
      */
     float getPathLength() {
         return mProperties.getFloat(kGraphicPropertyPathLength);
-    }
-
-
-    @Override
-    public GraphicPattern getStrokeGraphicPattern() {
-        return getGraphicPattern(kGraphicPropertyStroke);
-    }
-
-    /**
-     * @return a defensive copy of the stroke paint for this path element.
-     * The caller of this method can do anything they want with the
-     * returned Paint object, without affecting the internals of this
-     * class in any way.
-     */
-    @Override
-    public Paint getStrokePaint() {
-        // copy of stroke paint (defensive mechanism for repeated draw calls)
-        return new Paint(mStrokePaint);
     }
 
     /**
@@ -173,8 +137,8 @@ public class GraphicPathElement extends GraphicElement implements RenderableGrap
     }
 
     @Nullable
-    PathParser.PathDataNode[] getPathNodes() {
-        return mNodes;
+    Path getPath() {
+        return mPath;
     }
 
     /**
@@ -188,9 +152,12 @@ public class GraphicPathElement extends GraphicElement implements RenderableGrap
 
         applyPaintJoin();
 
-        applyStrokePaint();
+        // Convert the set of dirty properties to a set for faster lookups.
+        HashSet dirtyProperties = nGetDirtyProperties(this.getNativeHandle());
 
-        applyFillPaint();
+        Rect graphicBounds = FillStrokeGraphicElement.getBounds(getPath(), getRenderingContext());
+        applyStrokePaint(graphicBounds, dirtyProperties.contains(kGraphicPropertyPathData.getIndex()), dirtyProperties);
+        applyFillPaint(graphicBounds, dirtyProperties.contains(kGraphicPropertyPathData.getIndex()), dirtyProperties);
     }
 
     private void applyPaintCap() {
@@ -217,18 +184,38 @@ public class GraphicPathElement extends GraphicElement implements RenderableGrap
         }
     }
 
-    private void applyStrokePaint() {
-        mStrokePaint = RenderableGraphicElement.super.getStrokePaint();
+    private void applyStrokePaint(Rect graphicBounds, Boolean boundsChanged, HashSet dirtyProperties) {
+        applyStrokePaintProperties(graphicBounds, boundsChanged, dirtyProperties);
         mStrokePaint.setStrokeJoin(getPaintJoin());
         mStrokePaint.setStrokeCap(getPaintCap());
         mStrokePaint.setStrokeMiter(getStrokeMiterLimit());
+        mStrokePaint.setStrokeWidth(getStrokeWidth());
+
+        float[] strokeDashArray = getStrokeDashArray();
+        if (strokeDashArray.length > 0) {
+            DashPathEffect dashPathEffect = PathRenderer.createDashPathEffect(getPath(), this, 1.0f);
+            mStrokePaint.setPathEffect(dashPathEffect);
+        } else {
+            mStrokePaint.setPathEffect(null);
+        }
     }
 
-    private void applyFillPaint() {
-        mFillPaint = RenderableGraphicElement.super.getFillPaint();
+    private void applyFillPaint(Rect graphicBounds, Boolean boundsChanged, HashSet dirtyProperties) {
+        applyFillPaintProperties(graphicBounds, boundsChanged, dirtyProperties);
     }
+
+
 
     private void applyPath() {
-        mNodes = PathParser.createNodesFromPathData(getPathData(), getRenderingContext());
+        String pathData = getPathData();
+        mPath = getRenderingContext().getPathCache().get(pathData);
+
+        if (mPath == null) {
+            mPath = new Path();
+            PathParser.PathDataNode[] nodes = PathParser.createNodesFromPathData(pathData, getRenderingContext());
+            PathParser.toPath(nodes, mPath);
+
+            getRenderingContext().getPathCache().put(pathData, new WeakReference<>(mPath));
+        }
     }
 }

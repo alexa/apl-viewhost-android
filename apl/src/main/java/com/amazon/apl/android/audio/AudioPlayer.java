@@ -9,6 +9,7 @@ import android.os.Looper;
 
 import com.amazon.apl.android.dependencies.ITtsPlayer;
 import com.amazon.apl.android.media.MediaTrack;
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.enums.AudioPlayerEventType;
 import com.amazon.apl.enums.SpeechMarkType;
@@ -56,7 +57,13 @@ public class AudioPlayer extends BoundObject implements ITtsPlayer.IStateChangeL
     @SuppressWarnings("unused")
     private void setTrack(MediaTrack track) {
         String source = track.getUrl();
-        mTtsPlayerProvider.prepare(source);
+        TextTrack[] textTracks = track.getTextTracks();
+        // there is only one textTrack associated with an audio track
+        if (textTracks != null && textTracks.length == 1) {
+            mTtsPlayerProvider.prepare(source, textTracks[0]);
+        } else {
+            mTtsPlayerProvider.prepare(source);
+        }
         final ITtsPlayer ttsPlayer = mTtsPlayerProvider.getPlayer();
         ttsPlayer.setStateChangeListener(this);
     }

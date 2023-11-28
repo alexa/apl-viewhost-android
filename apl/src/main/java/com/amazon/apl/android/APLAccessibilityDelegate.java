@@ -35,28 +35,25 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
 
     protected final C mComponent;
     private final Context mContext;
-    private final Map<Integer, String> mRegisteredActionNamesToActionMap;
+    private final Map<Integer, String> mRegisteredActionIdToActionNameMap;
 
     static {
         STANDARD_ACTION_MAP = new HashMap<>();
         STANDARD_ACTION_MAP.put("activate", AccessibilityNodeInfoCompat.ACTION_CLICK);
         STANDARD_ACTION_MAP.put("doubletap", R.id.action_double_tap);
         STANDARD_ACTION_MAP.put("longpress", AccessibilityNodeInfoCompat.ACTION_LONG_CLICK);
+        STANDARD_ACTION_MAP.put("scrollbackward", AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
+        STANDARD_ACTION_MAP.put("scrollforward", AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
         STANDARD_ACTION_MAP.put("swipeaway", R.id.action_swipe_away);
     }
 
     protected APLAccessibilityDelegate(C c, Context context) {
         mComponent = c;
         mContext = context;
-        mRegisteredActionNamesToActionMap = new HashMap<>();
+        mRegisteredActionIdToActionNameMap = new HashMap<>();
     }
 
     public static APLAccessibilityDelegate create(Component component, Context context) {
-        if (component instanceof Pager) {
-            return new Pager.PagerAccessibilityDelegate((Pager) component, context);
-        } else if (component instanceof MultiChildComponent) {
-            return new MultiChildComponent.MultiChildAccessibilityDelegate((MultiChildComponent) component, context);
-        }
         return new APLAccessibilityDelegate(component, context);
     }
 
@@ -71,8 +68,8 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
 
     @Override
     public boolean performAccessibilityAction(View host, int action, Bundle args) {
-        if (mRegisteredActionNamesToActionMap.containsKey(action)) {
-            mComponent.update(UpdateType.kUpdateAccessibilityAction, mRegisteredActionNamesToActionMap.get(action));
+        if (mRegisteredActionIdToActionNameMap.containsKey(action)) {
+            mComponent.update(UpdateType.kUpdateAccessibilityAction, mRegisteredActionIdToActionNameMap.get(action));
             return true;
         }
 
@@ -100,7 +97,7 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
                 actionId = sCustomActionCount++;
             }
 
-            mRegisteredActionNamesToActionMap.put(actionId, action.name());
+            mRegisteredActionIdToActionNameMap.put(actionId, action.name());
             actionSet.add(action.name());
 
             info.addAction(new AccessibilityNodeInfoCompat.AccessibilityActionCompat(actionId, action.label()));

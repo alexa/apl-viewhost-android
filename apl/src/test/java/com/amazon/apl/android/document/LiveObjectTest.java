@@ -10,6 +10,7 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
 
@@ -45,6 +46,9 @@ public abstract class LiveObjectTest extends AbstractDocUnitTest {
         registerLiveData(rootConfig);
 
         mAPLPresenter = mock(IAPLViewPresenter.class);
+        mShadowCache = new ShadowCache();
+        when(mockShadowRenderer.getCache()).thenReturn(mShadowCache);
+        when(mAPLPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter));
         assertNotNull(mRootContext);

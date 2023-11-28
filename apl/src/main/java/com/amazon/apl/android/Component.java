@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android;
 
+import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.RectF;
 import androidx.annotation.NonNull;
@@ -75,6 +76,8 @@ public abstract class Component extends BoundObject {
 
     private boolean mInvisibleOverride = false;
 
+    private Bitmap mShadowBitmap;
+
     /**
      * Component constructor.
      * @param nativeHandle      the native handle to bind
@@ -126,6 +129,14 @@ public abstract class Component extends BoundObject {
             mInvisibleOverride = invisibleOverride;
             getViewPresenter().onComponentChange(this, Collections.singletonList(PropertyKey.kPropertyDisplay));
         }
+    }
+
+    public void setShadowBitmap(Bitmap bitmap) {
+        mShadowBitmap = bitmap;
+    }
+
+    public Bitmap getShadowBitmap() {
+        return mShadowBitmap;
     }
 
     /**
@@ -187,6 +198,9 @@ public abstract class Component extends BoundObject {
      */
     @Nullable
     public Component getParent() {
+        if (getParentId() == null) {
+            return null;
+        }
         return mRootContext.getOrInflateComponentWithUniqueId(getParentId());
     }
 

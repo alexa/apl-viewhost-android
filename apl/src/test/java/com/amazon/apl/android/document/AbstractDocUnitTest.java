@@ -7,6 +7,7 @@ package com.amazon.apl.android.document;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -21,9 +22,11 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TestClock;
 import com.amazon.apl.enums.ScreenShape;
@@ -61,10 +64,15 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
 
     protected long mTime = 0L;
     protected RootContext mRootContext = null;
+    protected Content mContent = null;
     protected APLOptions mOptions = null;
     protected RootConfig mRootConfig = null;
+    protected ShadowCache mShadowCache;
 
     protected Context mContext = InstrumentationRegistry.getInstrumentation().getContext();
+
+    @Mock
+    protected ShadowBitmapRenderer mockShadowRenderer;
 
     @Mock
     protected IAPLViewPresenter mAPLPresenter;
@@ -102,13 +110,13 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
     }
 
     protected void loadDocument(String doc, APLOptions options, ViewportMetrics metrics) {
-        Content content = null;
+        mContent = null;
         try {
-            content = Content.create(doc);
+            mContent = Content.create(doc);
         } catch (Content.ContentException e) {
             Assert.fail(e.getMessage());
         }
-        assertTrue(content.isReady());
+        assertTrue(mContent.isReady());
         mOptions = options;
 
         // create a RootContext
@@ -116,10 +124,13 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
         mRootConfig = buildRootConfig();
 
         mAPLPresenter = mock(IAPLViewPresenter.class);
+        mShadowCache = new ShadowCache();
+        when(mockShadowRenderer.getCache()).thenReturn(mShadowCache);
+        when(mAPLPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
 
-        mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter));
+        mRootContext = spy(RootContext.create(metrics, mContent, mRootConfig, mOptions, mAPLPresenter));
 
         assertNotNull(mRootContext);
 

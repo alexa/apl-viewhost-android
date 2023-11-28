@@ -27,7 +27,6 @@ import com.amazon.apl.enums.GradientType;
 import com.google.auto.value.AutoValue;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -75,7 +74,7 @@ public final class Content extends BoundObject {
     private IContentDataRetriever mDataRetriever;
     private CallbackV2 mCallback;
 
-    private Map<ImportRef, APLJSONData> mPackages = new HashMap<>();
+    private Map<ImportRef, APLJSONData> mPackages = new ConcurrentHashMap<>();
 
     /**
      * This Exception is thrown when a Content object cannot be created.
@@ -193,7 +192,7 @@ public final class Content extends BoundObject {
     @Deprecated
     public static Content create(@NonNull final String mainTemplate, final Callback callback) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, callback, null, entryTime, new Session());
+        return createContent(mainTemplate, null, callback, null, entryTime, null, new Session());
     }
 
     /**
@@ -211,7 +210,7 @@ public final class Content extends BoundObject {
     public static Content create(@NonNull final String mainTemplate, @NonNull final APLOptions aplOptions, final Callback callback) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, callback, null, entryTime, new Session());
+        return createContent(mainTemplate, aplOptions, callback, null, entryTime, null, new Session());
     }
 
     /**
@@ -226,7 +225,7 @@ public final class Content extends BoundObject {
     @NonNull
     public static Content create(final String mainTemplate) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, null, null, entryTime, new Session());
+        return createContent(mainTemplate, null, null, null, entryTime, null, new Session());
     }
 
     /**
@@ -243,7 +242,7 @@ public final class Content extends BoundObject {
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, null, null, entryTime, new Session());
+        return createContent(mainTemplate, aplOptions, null, null, entryTime, null, new Session());
     }
 
     /**
@@ -259,7 +258,27 @@ public final class Content extends BoundObject {
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session) {
         long entryTime = SystemClock.elapsedRealtimeNanos();
         try {
-            return createContent(mainTemplate, aplOptions, null, callback, entryTime, session);
+            return createContent(mainTemplate, aplOptions, null, callback, entryTime, null, session);
+        } catch (ContentException e) {
+            callback.onError(e);
+            return null;
+        }
+    }
+
+    /**
+     * Construct the working Content object from a document that contains the apl 'mainTemplate'.
+     *
+     * @param mainTemplate  The main document.
+     * @param aplOptions    The APL Options
+     * @param callback      The callback for handling Content requests.
+     * @param rootConfig    RootConfig
+     * @return              A Content object if the maintemplate is valid, otherwise null.
+     */
+    @Nullable
+    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, RootConfig rootConfig) {
+        long entryTime = SystemClock.elapsedRealtimeNanos();
+        try {
+            return createContent(mainTemplate, aplOptions, null, callback, entryTime, rootConfig,(rootConfig != null && rootConfig.getSession() != null) ? rootConfig.getSession() : new Session());
         } catch (ContentException e) {
             callback.onError(e);
             return null;
@@ -271,6 +290,7 @@ public final class Content extends BoundObject {
                                          @Nullable final Callback callback,
                                          @Nullable final CallbackV2 callbackV2,
                                          long entryTime,
+                                         final RootConfig rootConfig,
                                          final Session session) throws ContentException {
         if (mainTemplate.length() == 0) {
             throw new ContentException("Invalid document length.");
@@ -279,7 +299,7 @@ public final class Content extends BoundObject {
         try {
             content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime);
             content.setCallbacks(callbackV2, callback);
-            content.importDocument(mainTemplate, session);
+            content.importDocument(mainTemplate, rootConfig, session);
         } catch (Exception e) {
             if (content != null) {
                 content.recordErrorState();
@@ -351,8 +371,8 @@ public final class Content extends BoundObject {
      *
      * @param mainTemplate Contents of an APL document that contains the 'mainTemplate'.
      */
-    private void importDocument(String mainTemplate, Session session) {
-        long nativeHandle = nCreate(mainTemplate, session.getNativeHandle());
+    private void importDocument(String mainTemplate, RootConfig rootConfig, Session session) {
+        long nativeHandle = nCreate(mainTemplate, rootConfig!= null ? rootConfig.getNativeHandle() : 0, session.getNativeHandle());
         if (nativeHandle != 0) {
             bind(nativeHandle);
             nUpdate(nativeHandle);
@@ -392,9 +412,9 @@ public final class Content extends BoundObject {
             Log.i(TAG, String.format("Package %s:%s was already added to content, ignoring request to re-add it",
                     importRequest.getPackageName(),
                     importRequest.getVersion()));
-            return;
+        } else {
+            mPackages.put(importRequest.getImportRef(), jsonData);
         }
-        mPackages.put(importRequest.getImportRef(), jsonData);
         nAddPackage(getNativeHandle(), importRequest.getNativeHandle(), jsonData.getNativeHandle());
         // update the callback with package requests, no need for data requests
         notifyCallback(true, true);
@@ -538,6 +558,10 @@ public final class Content extends BoundObject {
      */
     public boolean isWaiting() {
         return nIsWaiting(getNativeHandle());
+    }
+
+    public void refresh(long embeddedRequestHandle, final long documentConfigHandle) {
+        nRefresh(getNativeHandle(), embeddedRequestHandle, documentConfigHandle);
     }
 
     /**
@@ -819,12 +843,24 @@ public final class Content extends BoundObject {
     }
 
     /**
+     * resolve request after conditional imports.
+     * @param callback
+     */
+    public void resolve(CallbackV2 callback) {
+        mCallback = callback;
+        nUpdate(getNativeHandle());
+        notifyCallback(true, true);
+    }
+
+    /**
      * JNI call to core, document import. This creates the native peer and
      * initializes the document.  OnFailure may be called if the document is invalid.
      */
-    private native long nCreate(String mainTemplate, long _sessionHandle);
+    private native long nCreate(String mainTemplate, long _rootConfigHandler, long _sessionHandle);
 
     private native void nUpdate(long nativeHandle);
+
+    private native void nRefresh(long nativeHandle, long embeddedRequestHandle, long documentConfigHandle);
 
     private native void nAddPackage(long nativeHandle, long requestId, long aplJsonData);
 

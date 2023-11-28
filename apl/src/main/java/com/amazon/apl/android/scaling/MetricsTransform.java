@@ -18,7 +18,8 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
 
     private MetricsTransform(ViewportMetrics metrics) {
         mMetrics = metrics;
-        long nativeHandle = nCreate(metrics.width(), metrics.height(), metrics.dpi(),
+        long nativeHandle = nCreate(metrics.width(), metrics.minWidth(), metrics.maxWidth(),
+                metrics.height(), metrics.minHeight(), metrics.maxHeight(), metrics.dpi(),
                 metrics.shape().getIndex(), mMetrics.theme(),
                 metrics.mode().getIndex(), metrics.scaling().getNativeHandle());
         bind(nativeHandle);
@@ -40,7 +41,11 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
         // TODO this getter is repeatedly called per metrics property, optimize!
         return ViewportMetrics.builder()
                 .width(Math.round(nPixelWidth(getNativeHandle())))
+                .minWidth(mMetrics.minWidth())
+                .maxWidth(mMetrics.maxWidth())
                 .height(Math.round(nPixelHeight(getNativeHandle())))
+                .minHeight(mMetrics.minHeight())
+                .maxHeight(mMetrics.maxHeight())
                 .dpi(mMetrics.dpi())
                 .shape(mMetrics.shape())
                 .theme(mMetrics.theme())
@@ -107,7 +112,7 @@ public class MetricsTransform extends BoundObject implements IMetricsTransform {
         return (mMetrics.height() - getScaledViewhostHeight()) / 2;
     }
 
-    private static native long nCreate(int width, int height, int dpi, int shape, String theme, int mode, long scalingHandle);
+    private static native long nCreate(int width, int minWidth, int maxWidth, int height, int minHeight, int maxHeight, int dpi, int shape, String theme, int mode, long scalingHandle);
     private static native float nToViewhost(long nativeHandle, float value);
     private static native float nToCore(long nativeHandle, float value);
     private static native float nViewhostWidth(long nativeHandle);

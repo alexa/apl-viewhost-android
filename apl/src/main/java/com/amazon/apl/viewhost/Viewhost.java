@@ -4,12 +4,7 @@
  */
 package com.amazon.apl.viewhost;
 
-import android.view.View;
-
-import com.amazon.apl.android.Event;
-import com.amazon.apl.android.IDocumentLifecycleListener;
-import com.amazon.apl.android.configuration.ConfigurationChange;
-import com.amazon.apl.enums.DisplayState;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.internal.ViewhostImpl;
 import com.amazon.apl.viewhost.request.PrepareDocumentRequest;

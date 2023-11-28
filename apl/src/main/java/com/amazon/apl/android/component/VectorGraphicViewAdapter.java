@@ -86,6 +86,7 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
 
     void createVectorDrawable(VectorGraphic component, APLVectorGraphicView view) {
         AlexaVectorDrawable vectorDrawable = AlexaVectorDrawable.create(component.getOrCreateGraphicContainerElement());
+        vectorDrawable.setScale(component.getScale());
         view.setImageDrawable(vectorDrawable);
     }
 

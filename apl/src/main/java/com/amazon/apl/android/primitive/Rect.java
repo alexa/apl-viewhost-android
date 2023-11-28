@@ -65,6 +65,15 @@ public abstract class Rect {
                 .build();
     }
 
+    public Rect inset(float inset) {
+        return builder()
+                .left(getLeft() + inset)
+                .top(getTop() + inset)
+                .width(Math.max(0, getWidth() - 2 * inset))
+                .height(Math.max(0, getHeight() - 2 * inset))
+                .build();
+    }
+
     public static Builder builder() {
         return new AutoValue_Rect.Builder();
     }

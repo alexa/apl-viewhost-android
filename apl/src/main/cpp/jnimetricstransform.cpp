@@ -18,8 +18,8 @@ namespace apl {
 #endif
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_scaling_MetricsTransform_nCreate(JNIEnv *env, jclass clazz,
-                                                             jint width,
-                                                             jint height,
+                                                             jint width, jint minWidth, jint maxWidth,
+                                                             jint height, jint minHeight, jint maxHeight,
                                                              jint dpi,
                                                              jint shape,
                                                              jstring theme_,
@@ -32,15 +32,27 @@ namespace apl {
                     .shape(static_cast<ScreenShape>(shape))
                     .theme(theme)
                     .mode(static_cast<ViewportMode>(mode));
+            bool isAutoWidth = (minWidth != maxWidth);
+            bool isAutoHeight = (minHeight != maxHeight);
+            if (isAutoHeight) {
+                metrics.minAndMaxHeight(minHeight, maxHeight);
+            }
+            if (isAutoWidth) {
+                metrics.minAndMaxWidth(minWidth, maxWidth);
+            }
 
             if (scalingHandle != 0) {
                 auto scaling = get<apl::jni::Scaling>(scalingHandle);
 
                 auto scalingOptions = ScalingOptions()
-                        .specifications(scaling->specifications)
                         .biasConstant(scaling->biasConstant)
                         .shapeOverridesCost(true)
                         .allowedModes(scaling->allowModes);
+
+                //add supported viewports only if auto size is disabled.
+                if (!(metrics.getAutoWidth() || metrics.getAutoHeight())) {
+                    scalingOptions.specifications(scaling->specifications);
+                }
 
                 auto metricsTransform = std::make_shared<MetricsTransform>(metrics, scalingOptions);
                 env->ReleaseStringUTFChars(theme_, theme);

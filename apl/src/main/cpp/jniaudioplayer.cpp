@@ -18,7 +18,9 @@ namespace apl {
 
         static jclass AUDIOPLAYER_CLASS;
         static jclass MEDIATRACK_CLASS;
+        static jclass TEXTTRACK_CLASS;
         static jmethodID MEDIATRACK_CONSTRUCTOR;
+        static jmethodID TEXTTRACK_CONSTRUCTOR;
         static jmethodID AUDIOPLAYER_SET_TRACK;
         static jmethodID AUDIOPLAYER_RELEASE;
         static jmethodID AUDIOPLAYER_PLAY;
@@ -46,10 +48,14 @@ namespace apl {
 
             MEDIATRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("com/amazon/apl/android/media/MediaTrack")));
+            TEXTTRACK_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
+                    env->FindClass("com/amazon/apl/android/media/TextTrack")));
 
             MEDIATRACK_CONSTRUCTOR = env->GetMethodID(MEDIATRACK_CLASS,
                                                       "<init>",
                                                       "(Ljava/lang/String;[Ljava/lang/String;III[Lcom/amazon/apl/android/media/TextTrack;)V");
+            TEXTTRACK_CONSTRUCTOR = env->GetMethodID(TEXTTRACK_CLASS, "<init>",
+                                                     "(ILjava/lang/String;Ljava/lang/String;)V");
 
             AUDIOPLAYER_SET_TRACK = env->GetMethodID(
                     AUDIOPLAYER_CLASS,
@@ -97,6 +103,8 @@ namespace apl {
             }
 
             env->DeleteGlobalRef(AUDIOPLAYER_CLASS);
+            env->DeleteGlobalRef(MEDIATRACK_CLASS);
+            env->DeleteGlobalRef(TEXTTRACK_CLASS);
         }
 
         AndroidAudioPlayer::AndroidAudioPlayer(
@@ -128,12 +136,30 @@ namespace apl {
 
             auto url = env->NewStringUTF(track.url.c_str());
             const auto &headers = track.headers;
-            auto trackObj = env->NewObject(MEDIATRACK_CLASS, MEDIATRACK_CONSTRUCTOR, url,
-                                           getStringArray(env, headers), track.offset, track.duration,
-                                           track.repeatCount, nullptr);
+            int trackSize = track.textTracks.size();
+            auto textTrackObjectArray = env->NewObjectArray(trackSize, TEXTTRACK_CLASS,
+                                                            nullptr);
+            for (int i = 0; i < trackSize; i++) {
+                auto textUrl = env->NewStringUTF(track.textTracks[i].url.c_str());
+                auto textDescription = env->NewStringUTF(
+                        track.textTracks[i].description.c_str());
+                int textType = static_cast<int>(track.textTracks[i].type);
+                auto textTrackObj = env->NewObject(TEXTTRACK_CLASS, TEXTTRACK_CONSTRUCTOR,
+                                                   textType,
+                                                   textUrl, textDescription);
+                env->SetObjectArrayElement(textTrackObjectArray, i, textTrackObj);
+                env->DeleteLocalRef(textUrl);
+                env->DeleteLocalRef(textDescription);
+                env->DeleteLocalRef(textTrackObj);
+            }
 
+            auto trackObj = env->NewObject(MEDIATRACK_CLASS, MEDIATRACK_CONSTRUCTOR, url,
+                                           getStringArray(env, headers), track.offset,
+                                           track.duration, track.repeatCount,
+                                           textTrackObjectArray);
             env->CallVoidMethod(mInstance, AUDIOPLAYER_SET_TRACK, trackObj);
             env->DeleteLocalRef(url);
+            env->DeleteLocalRef(textTrackObjectArray);
             env->DeleteLocalRef(trackObj);
         }
 

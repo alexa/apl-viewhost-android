@@ -16,7 +16,7 @@ import java.util.Objects;
 /**
  * Shadow Bitmap's Key manager based on its shadow properties.
  */
-class ShadowBitmapKey implements BitmapKey {
+public class ShadowBitmapKey implements BitmapKey {
     int height;
     int width;
     int offX;
@@ -25,7 +25,7 @@ class ShadowBitmapKey implements BitmapKey {
     int blurRadius;
     private final float[] cornerRadius;
 
-    ShadowBitmapKey(final Component component) {
+    public ShadowBitmapKey(final Component component) {
         final RectF rectF = component.getShadowRect();
         height = (int) rectF.height();
         width = (int) rectF.width();

@@ -179,10 +179,11 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
 
         // Create new viewhost for handling embedded documents
         ViewhostConfig config = ViewhostConfig.builder().messageHandler(mMessageHandler).defaultDocumentOptions(mDocumentOptions).build();
-        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
+
 
         // Create primary document using APLController (legacy) method
         mRootConfig = RootConfig.create("Unit Test", "1.0").registerDataSource(DATA_SOURCE_TYPE);
+        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
         EmbeddedDocumentFactory factory = new ShoppingListEmbeddedDocumentFactory(mViewhost);
         mAplOptions = APLOptions.builder()
                 .dataSourceContextListener(mDataSourceContextListener)

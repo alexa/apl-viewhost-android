@@ -5,22 +5,19 @@
 
 package com.amazon.apl.android;
 
-import android.content.Context;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
-import com.amazon.apl.android.component.FrameViewAdapter;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Radii;
-import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.PropertyKey;
 
-import java.util.List;
-
-import static com.amazon.apl.enums.PropertyKey.kPropertyBackgroundColor;
+import static com.amazon.apl.enums.PropertyKey.kPropertyBackground;
 import static com.amazon.apl.enums.PropertyKey.kPropertyBorderColor;
 import static com.amazon.apl.enums.PropertyKey.kPropertyBorderRadii;
 import static com.amazon.apl.enums.PropertyKey.kPropertyBorderWidth;
+import static com.amazon.apl.enums.PropertyKey.kPropertyDrawnBorderWidth;
 
 
 /**
@@ -38,13 +35,20 @@ public class Frame extends MultiChildComponent {
         super(nativeHandle, componentId, renderingContext);
     }
 
+    public boolean isGradientBackground() {
+        return mProperties.isGradient(PropertyKey.kPropertyBackground);
+    }
+
     /**
      * @return Background color. Defaults to transparent.
      */
     public int getBackgroundColor() {
-        return mProperties.getColor(kPropertyBackgroundColor);
+        return mProperties.getColor(kPropertyBackground);
     }
 
+    public Gradient getBackgroundGradient() {
+        return mProperties.getGradient(kPropertyBackground);
+    }
 
     /**
      * @return Corner radius for rounded-rectangle variant. Defaults to 0.
@@ -61,9 +65,17 @@ public class Frame extends MultiChildComponent {
     /**
      * @return Width of the border. Defaults to 0 (no border)
      */
-    @Nullable
+    @NonNull
     public Dimension getBorderWidth() {
         return mProperties.getDimension(kPropertyBorderWidth);
+    }
+
+    /**
+     * @return Width of the drawn border. Defaults to 0 (no border)
+     */
+    @NonNull
+    public Dimension getDrawnBorderWidth() {
+        return mProperties.getDimension(kPropertyDrawnBorderWidth);
     }
 
     /**

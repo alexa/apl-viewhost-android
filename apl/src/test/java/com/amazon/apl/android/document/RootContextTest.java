@@ -8,8 +8,6 @@ package com.amazon.apl.android.document;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
 import com.amazon.apl.android.BuildConfig;
-import com.amazon.apl.android.EditText;
-import com.amazon.apl.android.NoOpComponent;
 import com.amazon.apl.android.NotOnUiThreadError;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
@@ -17,7 +15,6 @@ import com.amazon.apl.android.dependencies.IDataSourceContextListener;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
-import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.utils.TestClock;
 import com.amazon.apl.enums.RootProperty;
@@ -203,8 +200,8 @@ public class RootContextTest extends ViewhostRobolectricTest {
     }
 
     @Test
-    public void test_enabledVideo() {
-        RootConfig rootConfig = RootConfig.create().set(RootProperty.kDisallowVideo, Boolean.FALSE);
+    public void test_mediaPlayerProvider() {
+        RootConfig rootConfig = RootConfig.create();
         RootContext rootContext = new APLTestContext()
                 .setRootConfig(rootConfig)
                 .setDocument(DOC_SETTINGS)
@@ -217,8 +214,7 @@ public class RootContextTest extends ViewhostRobolectricTest {
         MediaPlayerProvider optionsProvider = new MediaPlayerProvider();
         MediaPlayerProvider rootConfigProvider = new MediaPlayerProvider();
         RootConfig rootConfig = RootConfig.create()
-                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider))
-                .set(RootProperty.kDisallowVideo, Boolean.FALSE);
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider));
         RootContext rootContext = new APLTestContext()
                 .setAplOptions(APLOptions.builder().mediaPlayerProvider(optionsProvider).build())
                 .setRootConfig(rootConfig)
@@ -232,8 +228,7 @@ public class RootContextTest extends ViewhostRobolectricTest {
         MediaPlayerProvider optionsProvider = new MediaPlayerProvider();
         MediaPlayerProvider rootConfigProvider = new MediaPlayerProvider();
         RootConfig rootConfig = RootConfig.create()
-                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider))
-                .set(RootProperty.kDisallowVideo, Boolean.FALSE);
+                .mediaPlayerFactory(new RuntimeMediaPlayerFactory(rootConfigProvider));
         IDataSourceContextListener dataSourceContextListener = mock(IDataSourceContextListener.class);
         IVisualContextListener visualContextListener = mock(IVisualContextListener.class);
         RootContext rootContext = new APLTestContext()
@@ -247,36 +242,5 @@ public class RootContextTest extends ViewhostRobolectricTest {
         rootContext.notifyContext();
         verify(visualContextListener).onVisualContextUpdate(any());
         verify(dataSourceContextListener).onDataSourceContextUpdate(any());
-    }
-
-    @Test
-    public void test_disabledVideo() {
-        RootConfig rootConfig = RootConfig.create().set(RootProperty.kDisallowVideo, Boolean.TRUE);
-        RootContext rootContext = new APLTestContext()
-                .setRootConfig(rootConfig)
-                .setDocument(DOC_SETTINGS)
-                .buildRootContext();
-        assertTrue(rootContext.getRenderingContext().getMediaPlayerProvider() instanceof NoOpMediaPlayerProvider);
-    }
-
-    @Test
-    public void test_disabledEditText() {
-        RootConfig rootConfig = RootConfig.create();
-        RootContext rootContext = new APLTestContext()
-                .setRootConfig(rootConfig)
-                .setDocument(DOC_EDIT_TEXT)
-                .buildRootContext();
-
-        assertEquals(1, rootContext.getComponentCount());
-        assertTrue(rootContext.getTopComponent() instanceof EditText);
-
-        rootConfig.set(RootProperty.kDisallowEditText, Boolean.TRUE);
-        rootContext = new APLTestContext()
-                .setRootConfig(rootConfig)
-                .setDocument(DOC_EDIT_TEXT)
-                .buildRootContext();
-
-        assertEquals(1, rootContext.getComponentCount());
-        assertTrue(rootContext.getTopComponent() instanceof NoOpComponent);
     }
 }

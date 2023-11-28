@@ -7,6 +7,7 @@ package com.amazon.apl.android.graphic;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -15,6 +16,7 @@ import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.enums.FontStyle;
 import com.amazon.apl.enums.GraphicLayoutDirection;
+import com.amazon.apl.enums.GraphicPropertyKey;
 import com.amazon.apl.enums.GraphicTextAnchor;
 
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyCoordinateX;
@@ -29,37 +31,30 @@ import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyStroke;
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyText;
 import static com.amazon.apl.enums.GraphicPropertyKey.kGraphicPropertyTextAnchor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.SortedSet;
+
 /**
  * Represents text avg object.
  */
-public class GraphicTextElement extends GraphicElement implements RenderableGraphicElement {
+public class GraphicTextElement extends FillStrokeGraphicElement {
 
     /**
      * Cached variables needed for drawing.
      */
     private int mX;
     private int mY;
-    private Paint mFillPaint;
-    private Paint mStrokePaint;
+
     private Rect mBounds;
 
     private GraphicTextElement(@NonNull GraphicElementMap map, long nativeHandle, RenderingContext renderingContext) {
         super(map, nativeHandle, renderingContext);
-        applyProperties();
     }
 
     static GraphicTextElement create(@NonNull GraphicElementMap map, long graphicHandle, RenderingContext renderingContext) {
         return new GraphicTextElement(map, graphicHandle, renderingContext);
-    }
-
-    @Override
-    public GraphicPattern getFillGraphicPattern() {
-        return getGraphicPattern(kGraphicPropertyFill);
-    }
-
-    @Override
-    public PropertyMap getProperties() {
-        return mProperties;
     }
 
     /**
@@ -102,11 +97,6 @@ public class GraphicTextElement extends GraphicElement implements RenderableGrap
         return mProperties.getFloat(kGraphicPropertyLetterSpacing);
     }
 
-    @Override
-    public GraphicPattern getStrokeGraphicPattern() {
-        return getGraphicPattern(kGraphicPropertyStroke);
-    }
-
     /**
      * The text of the text element.
      * @return the value of the text of the text element.
@@ -140,30 +130,6 @@ public class GraphicTextElement extends GraphicElement implements RenderableGrap
     }
 
     /**
-     * @return a defensive copy of the fill paint for this text element.
-     * The caller of this method can do anything they want with the
-     * returned Paint object, without affecting the internals of this
-     * class in any way.
-     */
-    @Override
-    public Paint getFillPaint() {
-        // copy of fill paint (defensive mechanism for repeated draw calls)
-        return new Paint(mFillPaint);
-    }
-
-    /**
-     * @return a defensive copy of the stroke paint for this text element.
-     * The caller of this method can do anything they want with the
-     * returned Paint object, without affecting the internals of this
-     * class in any way.
-     */
-    @Override
-    public Paint getStrokePaint() {
-        // copy of stroke paint (defensive mechanism for repeated draw calls)
-        return new Paint(mStrokePaint);
-    }
-
-    /**
      * @return the x coordinate for this text element.
      */
     int getX() {
@@ -182,26 +148,40 @@ public class GraphicTextElement extends GraphicElement implements RenderableGrap
      */
     @Override
     void applyProperties() {
-        // Properties need to be applied in this order as fill paint will determine bounds
-        // and is needed by stroke paint.
-        applyFillPaint();
+        // Convert the set of dirty properties to a set for faster lookups.
+        HashSet dirtyProperties = nGetDirtyProperties(this.getNativeHandle());
 
-        applyStrokePaint();
+        Rect existingTextBoundingBox = mBounds != null ? calculateTextBoundingBox() : null;
+
+        // This needs to happen first because both `applyXCoordinate` and `applyFillPaint` need it.
+        calculateBounds();
 
         applyXCoordinate();
 
         applyYCoordinate();
+
+        Rect calculatedTextBoundingBox = calculateTextBoundingBox();
+        Boolean boundingBoxChanged = !calculatedTextBoundingBox.equals(existingTextBoundingBox);
+
+        // Properties need to be applied in this order as fill paint will determine bounds
+        // and is needed by stroke paint.
+        applyFillPaint(calculatedTextBoundingBox, boundingBoxChanged, dirtyProperties);
+
+        applyStrokePaint(calculatedTextBoundingBox, boundingBoxChanged, dirtyProperties);
     }
 
-    private void applyFillPaint() {
-        mFillPaint = RenderableGraphicElement.super.getFillPaint();
+    private void calculateBounds() {
         applyFontPropsToPaint(mFillPaint);
         mBounds = new Rect();
         mFillPaint.getTextBounds(getText(), 0, getText().length(), mBounds);
     }
 
-    private void applyStrokePaint() {
-        mStrokePaint = RenderableGraphicElement.super.getStrokePaint();
+    private void applyFillPaint(Rect textBoundingBox, Boolean boundsChanged, HashSet dirtyProperties) {
+        applyFillPaintProperties(textBoundingBox, boundsChanged, dirtyProperties);
+    }
+
+    private void applyStrokePaint(Rect textBoundingBox, Boolean boundsChanged, HashSet dirtyProperties) {
+        applyStrokePaintProperties(textBoundingBox, boundsChanged, dirtyProperties);
         applyFontPropsToPaint(mStrokePaint);
     }
 
@@ -241,7 +221,7 @@ public class GraphicTextElement extends GraphicElement implements RenderableGrap
      * And subtract height/2 to get the top y coordinate and add height/2 to get the bottom y coordinate
      * @return Rect - the bounding box of the text
      */
-    public Rect getTextBoundingBox() {
+    private Rect calculateTextBoundingBox() {
         return new Rect(mX, mY - mBounds.height()/2, mX + mBounds.width(), mY + mBounds.height()/2);
     }
 }

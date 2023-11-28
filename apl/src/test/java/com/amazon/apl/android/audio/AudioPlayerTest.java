@@ -23,6 +23,7 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
 import com.amazon.apl.android.dependencies.ITtsPlayer;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.utils.TestClock;
 
@@ -414,12 +415,24 @@ public class AudioPlayerTest extends AbstractDocUnitTest {
         boolean mIsReleased = false;
 
         @Override
+        @Deprecated
         public void prepare(String source, InputStream stream) {
             fail("Prepare on ITtsPlayer is unexpected");
         }
 
         @Override
+        @Deprecated
         public void prepare(String source, URL url) {
+            fail("Prepare on ITtsPlayer is unexpected");
+        }
+
+        @Override
+        public void prepare(String source, InputStream stream, TextTrack textTrack) {
+            fail("Prepare on ITtsPlayer is unexpected");
+        }
+
+        @Override
+        public void prepare(String source, URL url, TextTrack textTrack) {
             fail("Prepare on ITtsPlayer is unexpected");
         }
 

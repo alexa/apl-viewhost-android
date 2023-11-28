@@ -12,9 +12,11 @@ import com.amazon.apl.android.APLAccessibilityDelegate;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Pager;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.Navigation;
+import com.amazon.apl.enums.UpdateType;
 
 import org.junit.Test;
 import org.mockito.Mock;
@@ -67,6 +69,7 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
     @Test
     public void test_accessibility_navigationNormal_scrollForwards() {
         when(mPager.getChildCount()).thenReturn(2);
+        when(mPager.getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -78,6 +81,7 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
     public void test_accessibility_navigationNormal_onlyScrollsBackwards() {
         when(mPager.getChildCount()).thenReturn(2);
         when(mPager.getCurrentPage()).thenReturn(1);
+        when(mPager.getAccessibilityActions()).thenReturn(mBackwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -89,6 +93,7 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
     public void test_accessibility_navigationNormal_bothDirections() {
         when(mPager.getChildCount()).thenReturn(3);
         when(mPager.getCurrentPage()).thenReturn(1);
+        when(mPager.getAccessibilityActions()).thenReturn(mBothDirectionAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -124,6 +129,7 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
         when(mPager.getChildCount()).thenReturn(2);
         when(mPager.getCurrentPage()).thenReturn(0);
         when(mPager.getNavigation()).thenReturn(Navigation.kNavigationForwardOnly);
+        when(mPager.getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -136,6 +142,7 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
         when(mPager.getChildCount()).thenReturn(2);
         when(mPager.getCurrentPage()).thenReturn(0);
         when(mPager.getNavigation()).thenReturn(Navigation.kNavigationWrap);
+        when(mPager.getAccessibilityActions()).thenReturn(mBothDirectionAccessbilityActions);
 
         AccessibilityNodeInfoCompat nodeInfoCompat = initializeNodeInfo();
 
@@ -155,7 +162,6 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
         assertEquals(0, nodeInfoCompat.getActionList().size());
     }
 
-    // TODO remove these tests
     @Test
     public void test_accessibility_scrollForwardsAction() {
         RootContext rootContext = mock(RootContext.class);
@@ -163,11 +169,14 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
         when(mPager.getChildCount()).thenReturn(2);
         when(mPager.getCurrentPage()).thenReturn(0);
         when(mPager.getComponentId()).thenReturn("pager");
+        when(mPager.getAccessibilityActions()).thenReturn(mForwardOnlyAccessbilityActions);
 
         APLAccessibilityDelegate aplAccessibilityDelegate = APLAccessibilityDelegate.create(mPager, getApplication());
-        aplAccessibilityDelegate.performAccessibilityAction(mock(View.class), AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD, null);
+        View view = mock(View.class);
+        aplAccessibilityDelegate.onInitializeAccessibilityNodeInfo(view, AccessibilityNodeInfoCompat.obtain());
+        aplAccessibilityDelegate.performAccessibilityAction(view, AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD, null);
 
-        verify(rootContext).executeCommands(eq("[{\"type\": \"SetPage\", \"componentId\": \"pager\", \"position\": \"relative\", \"value\": 1}]"));
+        verify(component()).update(UpdateType.kUpdateAccessibilityAction, "scrollforward");
     }
 
     // TODO remove these tests
@@ -178,10 +187,13 @@ public class PagerViewAdapterTest extends AbstractComponentViewAdapterTest<Pager
         when(mPager.getChildCount()).thenReturn(2);
         when(mPager.getCurrentPage()).thenReturn(1);
         when(mPager.getComponentId()).thenReturn("pager");
+        when(mPager.getAccessibilityActions()).thenReturn(mBackwardOnlyAccessbilityActions);
 
         APLAccessibilityDelegate aplAccessibilityDelegate = APLAccessibilityDelegate.create(mPager, getApplication());
-        aplAccessibilityDelegate.performAccessibilityAction(mock(View.class), AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD, null);
+        View view = mock(View.class);
+        aplAccessibilityDelegate.onInitializeAccessibilityNodeInfo(view, AccessibilityNodeInfoCompat.obtain());
+        aplAccessibilityDelegate.performAccessibilityAction(view, AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD, null);
 
-        verify(rootContext).executeCommands(eq("[{\"type\": \"SetPage\", \"componentId\": \"pager\", \"position\": \"relative\", \"value\": -1}]"));
+        verify(component()).update(UpdateType.kUpdateAccessibilityAction, "scrollbackward");
     }
 }

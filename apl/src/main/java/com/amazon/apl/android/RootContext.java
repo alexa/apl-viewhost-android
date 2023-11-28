@@ -31,6 +31,7 @@ import com.amazon.apl.android.events.OpenKeyboardEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
 import com.amazon.apl.android.events.PlayMediaEvent;
 import com.amazon.apl.android.events.PrerollEvent;
+import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.events.ReinflateEvent;
 import com.amazon.apl.android.events.RequestFirstLineBounds;
 import com.amazon.apl.android.events.RequestLineBoundsEvent;
@@ -39,7 +40,6 @@ import com.amazon.apl.android.events.SpeakEvent;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
-import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -62,7 +62,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -171,6 +170,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      */
     private final Content mContent;
 
+    //boolean to check if auto size is triggered.
+    private boolean mAutoSize;
+
+    //Height after core auto sizes
+    private int mAutoSizedHeight;
+
+    //Width after core auto sizes
+    private int mAutoSizedWidth;
+
     /**
      * Construct a new RootContext object.
      *
@@ -203,6 +211,23 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             mTextMeasureCallback.onRootContextCreated();
             bind(nativeHandle);
             inflate();
+            autoSize(nativeHandle);
+        }
+    }
+
+    /**
+     * Sets the variables with respect to auto size post inflation.
+     * @param rootContextHandle root context handle.
+     */
+    private void autoSize(long rootContextHandle) {
+        int newHeight = Math.round(mMetricsTransform.toViewhost(viewportHeight(rootContextHandle)));
+        int newWidth = Math.round(mMetricsTransform.toViewhost(viewportWidth(rootContextHandle)));
+        setAutoSize(newWidth, newHeight);
+        if (mAutoSize) {
+            Log.i(TAG, String.format("Sending new height: %d and new width: %d in the callback", newHeight, newWidth));
+            mAutoSizedHeight = newHeight;
+            mAutoSizedWidth = newWidth;
+            getOptions().getViewportSizeUpdateCallback().onViewportSizeUpdate(mAutoSizedWidth, mAutoSizedHeight);
         }
     }
 
@@ -235,7 +260,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
             mTextMeasureCallback.onRootContextCreated();
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
+            preBindInit();
             inflate();
+            autoSize(nativeHandle);
         }
     }
 
@@ -258,7 +285,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
                 .imageProcessor(options.getImageProcessor())
                 .imageLoaderProvider(options.getImageProvider())
                 .imageUriSchemeValidator(options.getImageUriSchemeValidator())
-                .mediaPlayerProvider(getMediaPlayerProvider((Boolean) mRootConfig.getProperty(RootProperty.kDisallowVideo), options))
+                .mediaPlayerProvider(getMediaPlayerProvider(options))
                 .bitmapFactory(PooledBitmapFactory.create(options.getTelemetryProvider(), APLController.getRuntimeConfig().getBitmapPool()))
                 .bitmapCache(APLController.getRuntimeConfig().getBitmapCache())
                 .textLayoutFactory(TextLayoutFactory.create(metricsTransform))
@@ -274,11 +301,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         return ctxBuilder.build();
     }
 
-    private AbstractMediaPlayerProvider getMediaPlayerProvider(boolean disallowVideo, APLOptions options) {
-        if (mRootConfig.isMediaPlayerV2Enabled()) {
-            return disallowVideo ? NoOpMediaPlayerProvider.getInstance() : mRootConfig.getMediaPlayerFactoryProxy().getMediaPlayerProvider();
-        }
-        return disallowVideo ? NoOpMediaPlayerProvider.getInstance() : options.getMediaPlayerProvider();
+    private AbstractMediaPlayerProvider getMediaPlayerProvider(APLOptions options) {
+        return mRootConfig.isMediaPlayerV2Enabled() ?
+                mRootConfig.getMediaPlayerFactoryProxy().getMediaPlayerProvider() : options.getMediaPlayerProvider();
     }
 
     /**
@@ -301,7 +326,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
                     rootConfig.getNativeHandle(),
                     textMeasureCallback.getNativeHandle(),
                     scaledMetrics.width(),
+                    scaledMetrics.minWidth(),
+                    scaledMetrics.maxWidth(),
                     scaledMetrics.height(),
+                    scaledMetrics.minHeight(),
+                    scaledMetrics.maxHeight(),
                     scaledMetrics.dpi(),
                     scaledMetrics.shape().getIndex(),
                     scaledMetrics.theme(),
@@ -320,6 +349,56 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         return rootContextHandle;
     }
 
+    /**
+     * Retrieves viewport height set in root context.
+     * @param nativeHandle rootContextHandle
+     * @return height.
+     */
+    private native float viewportHeight(long nativeHandle);
+
+    /**
+     * Retrieves viewport width set in root context.
+     * @param nativeHandle rootContextHandle
+     * @return width.
+     */
+    private native float viewportWidth(long nativeHandle);
+
+    /**
+     * Sets auto size flag.
+     * @return
+     */
+    private void setAutoSize(int newWidth, int newHeight) {
+        int height = mMetricsTransform.getScaledViewhostHeight();
+        int width = mMetricsTransform.getScaledViewhostWidth();
+        boolean autoSize = (height != newHeight) || (width != newWidth);
+        Log.i(TAG, String.format("old height: %d, old width: %d, new height: %d, new width: %d, hence autoSize: %s",
+                height, width, newHeight, newWidth, autoSize));
+        mAutoSize = autoSize;
+    }
+
+    /**
+     * Returns the value for auto size flag.
+     * @return boolean
+     */
+    public boolean isAutoSize() {
+        return mAutoSize;
+    }
+
+    /**
+     * Getter for auto sized height.
+     * @return new height
+     */
+    public int getAutoSizedHeight() {
+        return mAutoSizedHeight;
+    }
+
+    /**
+     * Getter for auto sized width.
+     * @return new width
+     */
+    public int getAutoSizedWidth() {
+        return mAutoSizedWidth;
+    }
     /**
      * Initializes member variables and metrics.
      */
@@ -382,6 +461,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      * This results in core calling back to #buildComponent(String, long, int)}.
      */
     public void reinflate() {
+        Log.i(TAG, "Reinflating");
         try (APLTrace.AutoTrace trace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_RE_INFLATE)) {
             mTelemetryProvider.startTimer(tReinflate);
             // Finish component and views resources
@@ -394,21 +474,58 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
             pauseDocument();
             mIsFinished.set(true);
 
-            // Java components and views reinflation
-            try {
-                if (!nReinflate(getNativeHandle())) {
-                    Log.w(TAG, "Reinflation failed because document cannot be rendered");
-                    return;
-                }
-                notifyContext();
-            } catch (Exception e) {
-                mTelemetryProvider.fail(tReinflate);
-                throw (e);
-            }
+            if (mContent.isWaiting()) {
+                Log.i(TAG, "Content is waiting, hence resolving the request");
+                mContent.resolve(new Content.CallbackV2() {
+                    @Override
+                    public void onComplete(Content content) {
+                        final ExtensionMediator mediator = getRootConfig().getExtensionMediator();
+                        if (mediator != null) {
+                            // Initialize any leftover extensions after packages loaded
+                            mediator.initializeExtensions(getRootConfig(), content, getOptions().getExtensionGrantRequestCallback());
+                            mediator.loadExtensions(getRootConfig(), content, new ExtensionMediator.ILoadExtensionCallback() {
+                                @Override
+                                public Runnable onSuccess() {
+                                    return () ->  {
+                                        reinflateAndNotify();
+                                        Log.i(TAG, "extension loaded successfully after reinflation");
+                                    };
+                                }
 
-            // Initialize presenter using existing rootContext.
-            mViewPresenter.reinflate();
+                                @Override
+                                public Runnable onFailure() {
+                                    return () -> Log.e(TAG, "extension loading failed after reinflation");
+                                }
+                            });
+
+                        }
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                        Log.e(TAG, "Error occured during content resolution: " + e.getMessage());
+                    }
+                });
+            } else {
+                reinflateAndNotify();
+            }
         }
+    }
+
+    private void reinflateAndNotify() {
+        // Java components and views reinflation
+        try {
+            if (!nReinflate(getNativeHandle())) {
+                Log.w(TAG, "Reinflation failed because document cannot be rendered");
+                return;
+            }
+            notifyContext();
+        } catch (Exception e) {
+            mTelemetryProvider.fail(tReinflate);
+            throw (e);
+        }
+        // Initialize presenter using existing rootContext.
+        mViewPresenter.reinflate();
     }
 
     private void clearComponentAndViewsResources() {
@@ -624,9 +741,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
                 component = new Video(nativeHandle, componentId, getRenderingContext());
                 break;
             case kComponentTypeEditText:
-                component = (Boolean) mRootConfig.getProperty(RootProperty.kDisallowEditText) ?
-                    new NoOpComponent(nativeHandle, componentId, getRenderingContext()) :
-                    new EditText(nativeHandle, componentId, getRenderingContext());
+                component = new EditText(nativeHandle, componentId, getRenderingContext());
                 break;
             default:
                 component = new MultiChildComponent(nativeHandle, componentId, getRenderingContext());
@@ -773,6 +888,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         switch (type) {
             case kEventTypeControlMedia:
                 return ControlMediaEvent.create(nativeHandle, this);
+                //Content refresh is used for MRE
+            case kEventTypeContentRefresh:
+                return RefreshEvent.create(nativeHandle, this);
             case kEventTypeReinflate:
                 return ReinflateEvent.create(nativeHandle, this);
             case kEventTypeFocus:
@@ -921,7 +1039,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
      */
     @UiThread
     native long nCreate(long contentHandle, long rootConfigHandle, long textMeasureHandle,
-                        int width, int height, int dpi, int shape, String theme, int mode);
+                        int width, int minWidth, int maxWidth, int height, int minHeight, int maxHeight, int dpi, int shape, String theme, int mode);
 
     /**
      * @return The component at the root of the APL Component Hierarchy.
@@ -1330,7 +1448,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         ViewportMetrics oldMetrics = mViewPresenter.getOrCreateViewportMetrics();
         ViewportMetrics newMetrics = ViewportMetrics.builder()
                 .width(configurationChange.width())
+                .minWidth(configurationChange.minWidth())
+                .maxWidth(configurationChange.maxWidth())
                 .height(configurationChange.height())
+                .minHeight(configurationChange.minHeight())
+                .maxHeight(configurationChange.maxHeight())
                 .dpi(oldMetrics.dpi())
                 .shape(oldMetrics.shape())
                 .theme(configurationChange.theme())
@@ -1343,13 +1465,6 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
         mTextMeasureCallback.setMetricsTransform(mMetricsTransform);
         mRenderingContext.setMetricsTransform(mMetricsTransform);
 
-        AbstractMediaPlayerProvider oldMediaPlayerProvider = mRenderingContext.getMediaPlayerProvider();
-        AbstractMediaPlayerProvider newMediaPlayerProvider = getMediaPlayerProvider(configurationChange.disallowVideo(), mOptions);
-        if (oldMediaPlayerProvider != newMediaPlayerProvider) {
-            oldMediaPlayerProvider.releasePlayers();
-            mRenderingContext.setMediaPlayerProvider(newMediaPlayerProvider);
-        }
-
         // Notify Core about new config changes.
         // If there is auto-scaling, use scaled metrics.
         ViewportMetrics scaledMetrics = mMetricsTransform.getScaledMetrics();
@@ -1357,7 +1472,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
 
         nHandleConfigurationChange(getNativeHandle(),
                 scaledMetrics.width(),
+                scaledMetrics.minWidth(),
+                scaledMetrics.maxWidth(),
                 scaledMetrics.height(),
+                scaledMetrics.minHeight(),
+                scaledMetrics.maxHeight(),
                 scaledMetrics.theme(),
                 scaledMetrics.mode().getIndex(),
                 configurationChange.fontScale(),
@@ -1564,7 +1683,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback {
 
     private static native boolean nHandlePointerEvent(long nativeHandle, int pointerId, int pointerType, int pointerEventType, float x, float y);
 
-    private static native void nHandleConfigurationChange(long nativeHandle, int width, int height, String theme, int viewportMode, float fontScale, int screenMode, boolean screenReaderEnabled, boolean disallowVideo, Map<String, Object> environmentValues);
+    private static native void nHandleConfigurationChange(long nativeHandle, int width, int minWidth, int maxWidth, int height, int minHeight, int maxHeight, String theme, int viewportMode, float fontScale, int screenMode, boolean screenReaderEnabled, boolean disallowVideo, Map<String, Object> environmentValues);
 
     private static native void nUpdateDisplayState(long nativeHandle, int displayState);
 

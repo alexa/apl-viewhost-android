@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import com.amazon.apl.android.bitmap.IBitmapCache;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
@@ -15,7 +16,6 @@ import org.mockito.Mock;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import androidx.annotation.NonNull;
@@ -27,6 +27,8 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
     RenderingContext mRenderingContext;
     @Mock
     private IBitmapCache mBitmapCache;
+    @Mock
+    private ShadowCache mShadowCache;
 
     private IAPLViewPresenter mPresenter;
 
@@ -35,6 +37,7 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
         when(mRootContext.getOptions()).thenReturn(APLOptions.builder().build());
         when(mRootContext.getRenderingContext()).thenReturn(mRenderingContext);
         when(mRenderingContext.getBitmapCache()).thenReturn(mBitmapCache);
+        when(mRenderingContext.getShadowCache()).thenReturn(mShadowCache);
         APLController.setRuntimeConfig(RuntimeConfig.builder().build());
         APLLayout aplLayout = new APLLayout(getApplication(), false);
         mPresenter = aplLayout.getPresenter();

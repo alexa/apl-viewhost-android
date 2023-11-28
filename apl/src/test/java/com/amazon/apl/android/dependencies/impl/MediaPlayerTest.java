@@ -5,10 +5,10 @@
 
 package com.amazon.apl.android.dependencies.impl;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
+import android.media.MediaPlayer.OnPreparedListener;
 import android.util.Log;
 import android.view.TextureView;
 
@@ -16,7 +16,6 @@ import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState;
 import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.primitive.MediaSources;
-import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.VideoScale;
 import com.amazon.apl.enums.TextTrackType;
@@ -24,8 +23,12 @@ import com.amazon.apl.enums.TextTrackType;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowAudioManager;
 import org.robolectric.shadows.ShadowLog;
@@ -48,6 +51,7 @@ import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.Me
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.PAUSED;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.PLAYING;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.PREPARING;
+import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.READY;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.RELEASED;
 import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.TRACK_UPDATE;
 import static org.junit.Assert.assertEquals;
@@ -57,15 +61,18 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.robolectric.Robolectric.buildActivity;
 import static org.robolectric.Shadows.shadowOf;
 import static org.robolectric.shadows.util.DataSource.toDataSource;
 
-public class MediaPlayerTest extends ViewhostRobolectricTest {
+import androidx.test.core.app.ApplicationProvider;
+
+@RunWith(RobolectricTestRunner.class)
+public class MediaPlayerTest {
     private static final String TAG = "MediaPlayerTest";
     private static final String VIDEO_URL = "dummy-url";
     private static final int PREPARATION_DELAY_MS = 3000; // 3 sec
@@ -86,9 +93,9 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
 
     @Before
     public void setup() {
-        Activity activity = buildActivity(Activity.class).create().get();
+        MockitoAnnotations.openMocks(this);
         ShadowLog.stream = System.out;
-        mTextureView = new TextureView(activity);
+        mTextureView = new TextureView(ApplicationProvider.getApplicationContext());
         SurfaceTexture mSurfaceTexture = new SurfaceTexture(0);
         mExpectedStates = new LinkedList<>();
 
@@ -118,6 +125,22 @@ public class MediaPlayerTest extends ViewhostRobolectricTest {
     public void cleanup() {
         mAplMediaPlayer.release();
         checkState(State.END, RELEASED);
+    }
+
+    @Test
+    public void testOnPreparedListener() {
+        android.media.MediaPlayer mMediaPlayer = spy(Shadow.newInstanceOf(android.media.MediaPlayer.class));
+        IMediaPlayer aplMediaPlayer = new MediaPlayer(mMediaPlayer, mTextureView, mContext, mAudioManager);
+        aplMediaPlayer.addMediaStateListener(mListener);
+        assertEquals(IDLE, aplMediaPlayer.getCurrentMediaState());
+        ArgumentCaptor<OnPreparedListener> captor = ArgumentCaptor.forClass(OnPreparedListener.class);
+        verify(mMediaPlayer).setOnPreparedListener(captor.capture());
+        OnPreparedListener onPreparedListener = captor.getValue();
+        onPreparedListener.onPrepared(mMediaPlayer);
+
+        // This triggers onTrackReady on APL document
+        assertEquals(READY, aplMediaPlayer.getCurrentMediaState());
+        verify(mListener).updateMediaState(aplMediaPlayer);
     }
 
     @Test

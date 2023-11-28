@@ -11,10 +11,14 @@ import androidx.annotation.NonNull;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import android.view.View;
 
+import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.enums.Navigation;
 import com.amazon.apl.enums.PropertyKey;
+import com.amazon.apl.enums.UpdateType;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Pager extends MultiChildComponent {
 
@@ -93,52 +97,5 @@ public class Pager extends MultiChildComponent {
 
     public Navigation getNavigation() {
         return Navigation.valueOf(mProperties.getEnum(PropertyKey.kPropertyNavigation));
-    }
-
-    static class PagerAccessibilityDelegate extends APLAccessibilityDelegate<Pager> {
-        public PagerAccessibilityDelegate(Pager c, Context context) {
-            super(c, context);
-        }
-
-        @Override
-        public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfoCompat info) {
-            super.onInitializeAccessibilityNodeInfo(host, info);
-
-            int currentPage = mComponent.getCurrentPage();
-            Navigation navigation = mComponent.getNavigation();
-            int totalPages = mComponent.getChildCount();
-            if (totalPages > 1) {
-                switch (navigation) {
-                    case kNavigationWrap:
-                        info.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_FORWARD);
-                        info.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_BACKWARD);
-                        break;
-                    case kNavigationNormal:
-                        if (currentPage < totalPages - 1) {
-                            info.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_FORWARD);
-                        }
-                        if (currentPage > 0) {
-                            info.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_BACKWARD);
-                        }
-                        break;
-                    case kNavigationForwardOnly:
-                        if (currentPage < totalPages - 1) {
-                            info.addAction(AccessibilityNodeInfoCompat.AccessibilityActionCompat.ACTION_SCROLL_FORWARD);
-                        }
-                }
-            }
-        }
-
-        @Override
-        public boolean performAccessibilityAction(View host, int action, Bundle args) {
-            if (action == AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD || action == AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD) {
-                int value = action == AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD ? 1 : -1;
-                String setPageCommand = "[{\"type\": \"SetPage\", \"componentId\": \"" + mComponent.getComponentId() + "\", \"position\": \"relative\", \"value\": " + value + "}]";
-                mComponent.getRootContext().executeCommands(setPageCommand);
-                return true;
-            }
-
-            return super.performAccessibilityAction(host, action, args);
-        }
     }
 }

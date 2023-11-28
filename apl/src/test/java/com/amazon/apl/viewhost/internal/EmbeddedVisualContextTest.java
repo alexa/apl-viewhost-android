@@ -22,14 +22,18 @@ import android.os.Handler;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.alexaext.ExtensionRegistrar;
+import com.amazon.alexaext.IExtensionProvider;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.DocumentSession;
+import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 import com.amazon.apl.viewhost.Viewhost;
+import com.amazon.apl.viewhost.config.DocumentOptions;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentResponse;
 import com.amazon.apl.viewhost.config.ViewhostConfig;
@@ -116,6 +120,12 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
     private Handler mCoreWorker;
     @Mock
     private IVisualContextListener mVisualContextListener;
+    @Mock
+    DocumentOptions mDocumentOptions;
+    @Mock
+    private IExtensionProvider mExtensionProvider;
+    @Mock
+    ExtensionMediator.IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
 
     private Viewhost mViewhost;
     private CapturingMessageHandler mMessageHandler;
@@ -140,10 +150,10 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
 
         // Create new viewhost for handling embedded documents
         ViewhostConfig config = ViewhostConfig.builder().messageHandler(mMessageHandler).build();
-        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
 
         // Create primary document using APLController (legacy) method
         mRootConfig = RootConfig.create("Unit Test", "1.0");
+        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
         EmbeddedDocumentFactory factory = new HelloWorldEmbeddedDocumentFactory(mViewhost);
         mAplOptions = APLOptions.builder()
                 .visualContextListener(mVisualContextListener)
@@ -479,21 +489,24 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
 
         @Override
         public void onDocumentRequested(EmbeddedDocumentRequest request) {
+            ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
+            when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(mExtensionGrantRequestCallback);
+            when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
+
             PrepareDocumentRequest prepareDocumentRequest = PrepareDocumentRequest.builder()
                     .document(new JsonStringDecodable(HELLO_WORLD))
                     .documentSession(DocumentSession.create())
+                    .documentOptions(mDocumentOptions)
                     .build();
 
             PreparedDocument preparedDocument = mViewhost.prepare(prepareDocumentRequest);
             assertNotNull(preparedDocument.getHandle());
-
             mEmbeddedDocuments.put(request.getSource(), preparedDocument.getHandle());
 
             EmbeddedDocumentResponse response = EmbeddedDocumentResponse.builder()
                     .preparedDocument(preparedDocument)
                     .visualContextAttached(request.getSource().contains("attached"))
                     .build();
-
             request.resolve(response);
         }
     }

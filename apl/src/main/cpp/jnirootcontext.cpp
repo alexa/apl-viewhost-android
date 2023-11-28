@@ -162,8 +162,8 @@ namespace apl {
                                                                   jlong contentHandle,
                                                                   jlong rootConfigHandle,
                                                                   jlong textMeasureHandle,
-                                                                  jint width,
-                                                                  jint height,
+                                                                  jint width, jint minWidth, jint maxWidth,
+                                                                  jint height, jint minHeight, jint maxHeight,
                                                                   jint dpi,
                                                                   jint shape,
                                                                   jstring theme_,
@@ -197,6 +197,16 @@ namespace apl {
                     .theme(theme)
                     .dpi(static_cast<int>(dpi))
                     .mode(static_cast<ViewportMode>(mode));
+
+            bool isAutoWidth = (minWidth != maxWidth);
+            bool isAutoHeight = (minHeight != maxHeight);
+            if (isAutoHeight) {
+                metrics.minAndMaxHeight(minHeight, maxHeight);
+            }
+            if (isAutoWidth) {
+                metrics.minAndMaxWidth(minWidth, maxWidth);
+            }
+
             env->ReleaseStringUTFChars(theme_, theme);
             RootContextPtr context = RootContext::create(metrics, content, *rootConfig);
 
@@ -207,6 +217,19 @@ namespace apl {
             return createHandle<RootContext>(context);
         }
 
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_RootContext_viewportHeight(JNIEnv *env, jobject thiz,
+                                                               jlong nativeHandle) {
+            auto rootContext = get<RootContext>(nativeHandle);
+            return rootContext->getViewportSize().getHeight();
+        }
+
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_RootContext_viewportWidth(JNIEnv *env, jobject thiz,
+                                                               jlong nativeHandle) {
+            auto rootContext = get<RootContext>(nativeHandle);
+            return rootContext->getViewportSize().getWidth();
+        }
 
         /**
          * Inflates a Component hierarchy from given root Component into the rendering layer.
@@ -627,7 +650,8 @@ namespace apl {
         Java_com_amazon_apl_android_RootContext_nHandleConfigurationChange(JNIEnv *env,
                                                                            jclass clazz,
                                                                            jlong handle,
-                                                                           jint width, jint height,
+                                                                           jint width, jint minWidth, jint maxWidth,
+                                                                           jint height, jint minHeight, jint maxHeight,
                                                                            jstring theme_,
                                                                            jint viewportMode,
                                                                            jfloat fontScale,
@@ -644,6 +668,11 @@ namespace apl {
                     .screenMode(static_cast<RootConfig::ScreenMode>(screenMode))
                     .screenReader(screenReader)
                     .disallowVideo(disallowVideo);
+            bool isAutoWidth = (minWidth != maxWidth);
+            bool isAutoHeight = (minHeight != maxHeight);
+            if (isAutoWidth || isAutoHeight) {
+                configurationChange.sizeRange(width, minWidth, maxWidth, height, minHeight, maxHeight);
+            }
             auto envValues = getAPLObject(env, environmentValues);
             if (!envValues.isNull()) {
                 const auto &envMap = envValues.getMap();

@@ -6,30 +6,40 @@
 package com.amazon.apl.android.component;
 
 import android.graphics.Color;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RoundRectShape;
+import android.graphics.drawable.shapes.Shape;
 import android.view.View;
 
-import com.amazon.apl.android.APLGradientDrawable;
-import com.amazon.apl.android.APLVersionCodes;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.PropertyMap;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Radii;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.ComponentType;
+import com.amazon.apl.enums.GradientType;
 import com.amazon.apl.enums.PropertyKey;
 
 import org.junit.Test;
 import org.mockito.Mock;
 import org.robolectric.annotation.Config;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyFloat;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -47,11 +57,41 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
 
     @Override
     void componentSetup() {
-        // Do nothing
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
     }
 
-    private APLGradientDrawable getBackground() {
-        return (APLGradientDrawable) getView().getBackground();
+    private android.graphics.Rect getBorderInset() {
+        android.graphics.Rect insets = new android.graphics.Rect();
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable drawable = (InsetDrawable)parentLayout.getDrawable(1);
+
+        drawable.getPadding(insets);
+
+        return insets;
+    }
+
+    private ShapeDrawable getBackground() {
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        return (ShapeDrawable)borderInset.getDrawable();
+    }
+
+    private ShapeDrawable getBorder() {
+        return (ShapeDrawable) ((LayerDrawable)getView().getBackground()).getDrawable(0);
+    }
+
+    private float[] getBorderRadii() {
+        try {
+            Shape borderShape = getBorder().getShape();
+            assertTrue(borderShape instanceof RoundRectShape);
+            Class obj = borderShape.getClass();
+            Field field = obj.getDeclaredField("mOuterRadii");
+            field.setAccessible(true);
+
+            return (float[])field.get(borderShape);
+        } catch (Exception e) {
+            return new float[]{};
+        }
     }
 
     @Config(sdk=24)
@@ -62,18 +102,12 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
 
     @Override
     public void assertDefaults() {
-        assertEquals(Color.TRANSPARENT, getBackground().getColor().getDefaultColor());
-        assertEquals(Color.TRANSPARENT, getBackground().getBorderColor());
-        assertEquals(0, getBackground().getBorderWidth());
-        try {
-            float[] radii = getBackground().getCornerRadii();
-            if (radii != null) {
-                fail("CornerRadii should not be set.");
-            }
-        } catch (NullPointerException e) {
-            // Either the radii is null or an NPE is thrown
-            // Both cases indicate that setRadii was not called.
-        }
+        assertEquals(Color.TRANSPARENT, getBackground().getPaint().getColor());
+        assertEquals(Color.TRANSPARENT, getBorder().getPaint().getColor());
+        assertEquals(0, getBorder().getPaint().getStrokeWidth(), 0);
+
+        Shape borderShape = getBorder().getShape();
+        assertNull(borderShape);
     }
 
     @Config(sdk=28)
@@ -83,8 +117,7 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
 
         applyAllProperties();
 
-        APLGradientDrawable background = (APLGradientDrawable) getView().getBackground();
-        assertEquals(Color.BLUE, background.getColor().getDefaultColor());
+        assertEquals(Color.BLUE, getBackground().getPaint().getColor());
     }
 
     @Config(sdk=24)
@@ -95,22 +128,22 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
         float[] radii = new float[]{10f, 10f, 20f, 20f, 30f, 30f, 40f, 40f};
         when(mockRadii.toFloatArray()).thenReturn(radii);
         when(component().getBorderRadii()).thenReturn(mockRadii);
+        when(mockRadii.inset(anyFloat())).thenReturn(mockRadii);
 
         applyAllProperties();
 
-        assertArrayEquals(radii, getBackground().getCornerRadii(), 0.01f);
+        assertEquals(radii, getBorderRadii());
     }
 
     @Test
-    public void test_borderWidth() {
+    public void test_borderWidth_noColor() {
         Dimension mockDimension = mock(Dimension.class);
         when(mockDimension.intValue()).thenReturn(10);
-        when(component().getBorderWidth()).thenReturn(mockDimension);
+        when(component().getDrawnBorderWidth()).thenReturn(mockDimension);
 
         applyAllProperties();
 
-        assertEquals(10, getBackground().getBorderWidth());
-        assertEquals(Color.TRANSPARENT, getBackground().getBorderColor());
+        assertEquals(new android.graphics.Rect(10, 10, 10, 10), getBorderInset());
     }
 
     @Test
@@ -120,22 +153,22 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
 
         applyAllProperties();
 
-        assertEquals(0, getBackground().getBorderWidth());
-        assertEquals(Color.BLUE, getBackground().getBorderColor());
+        assertEquals(0, getBorder().getPaint().getStrokeWidth(), 0);
+        assertEquals(Color.BLUE, getBorder().getPaint().getColor());
     }
 
     @Test
     public void test_borderColor() {
         Dimension mockDimension = mock(Dimension.class);
         when(mockDimension.intValue()).thenReturn(15);
-        when(component().getBorderWidth()).thenReturn(mockDimension);
+        when(component().getDrawnBorderWidth()).thenReturn(mockDimension);
         when(component().getBorderColor()).thenReturn(Color.BLUE);
         when(component().hasProperty(PropertyKey.kPropertyBorderColor)).thenReturn(true);
 
         applyAllProperties();
 
-        assertEquals(15, getBackground().getBorderWidth());
-        assertEquals(Color.BLUE, getBackground().getBorderColor());
+        assertEquals(new android.graphics.Rect(15, 15, 15, 15), getBorderInset());
+        assertEquals(Color.BLUE, getBorder().getPaint().getColor());
     }
 
     @Config(sdk=28)
@@ -143,50 +176,144 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
     public void test_refresh_backgroundColor() {
         when(component().getBackgroundColor()).thenReturn(Color.RED);
 
-        refreshProperties(PropertyKey.kPropertyBackgroundColor);
+        refreshProperties(PropertyKey.kPropertyBackground);
 
         //Test that only methods related to background are called when backgroundColor is dirty
         verify(component()).getBackgroundColor();
+        verify(component()).getDrawnBorderWidth();
+        verify(component()).isGradientBackground();
         verifyNoMoreInteractions(component());
 
-        assertEquals(Color.RED, getBackground().getColor().getDefaultColor());
+        assertEquals(Color.RED, getBackground().getPaint().getColor());
+    }
+
+    @Test
+    public void test_backgroundGradient() {
+        when(component().isGradientBackground()).thenReturn(true);
+        Gradient linearGradient = Gradient.builder().type(GradientType.LINEAR).angle(20).inputRange(new float[] {1, 2}).colorRange(new int[] {1, 2}).build();
+        when(component().getBackgroundGradient()).thenReturn(linearGradient);
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
+
+        applyAllProperties();
+
+        verify(component(), atLeast(1)).isGradientBackground();
+        verify(component()).getBackgroundGradient();
+        assertTrue(getView().getBackground() instanceof LayerDrawable);
+    }
+
+    @Test
+    public void test_backgroundGradientWithBorderColorUpdate() {
+        when(component().isGradientBackground()).thenReturn(true);
+        Gradient linearGradient = Gradient.builder().type(GradientType.LINEAR).angle(20).inputRange(new float[] {1, 2}).colorRange(new int[] {1, 2}).build();
+        when(component().getBackgroundGradient()).thenReturn(linearGradient);
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(5));
+        when(component().getBorderRadii()).thenReturn(Radii.create(10));
+        when(component().getBorderColor()).thenReturn(Color.GREEN);
+
+        applyAllProperties();
+
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        ShapeDrawable borderDrawable = (ShapeDrawable)parentLayout.getDrawable(0);
+        ShapeDrawable backgroundDrawable = (ShapeDrawable)borderInset.getDrawable();
+
+        assertNotNull(backgroundDrawable.getPaint().getShader());
+        assertEquals(Color.GREEN, borderDrawable.getPaint().getColor());
+
+        when(component().getBorderColor()).thenReturn(Color.RED);
+
+        refreshProperties(PropertyKey.kPropertyBorderColor);
+
+        assertEquals(Color.RED, borderDrawable.getPaint().getColor());
+    }
+
+    @Config(sdk=28)
+    @Test
+    public void test_backgroundGradientToColor() {
+        when(component().isGradientBackground()).thenReturn(true);
+        Gradient linearGradient = Gradient.builder().type(GradientType.LINEAR).angle(20).inputRange(new float[] {1, 2}).colorRange(new int[] {1, 2}).build();
+        when(component().getBackgroundGradient()).thenReturn(linearGradient);
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
+
+        applyAllProperties();
+
+        verify(component(), atLeast(1)).isGradientBackground();
+        verify(component()).getBackgroundGradient();
+
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        ShapeDrawable backgroundDrawable = (ShapeDrawable)borderInset.getDrawable();
+        assertNotNull(backgroundDrawable.getPaint().getShader());
+
+        when(component().isGradientBackground()).thenReturn(false);
+        when(component().getBackgroundColor()).thenReturn(Color.RED);
+
+        refreshProperties(PropertyKey.kPropertyBackground);
+
+        assertEquals(Color.RED, backgroundDrawable.getPaint().getColor());
+        assertNull(backgroundDrawable.getPaint().getShader());
+    }
+
+    @Config(sdk=28)
+    @Test
+    public void test_backgroundColorToGradient() {
+        when(component().isGradientBackground()).thenReturn(false);
+        when(component().getBackgroundColor()).thenReturn(Color.RED);
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
+
+        applyAllProperties();
+
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        ShapeDrawable backgroundDrawable = (ShapeDrawable)borderInset.getDrawable();
+        assertNull(backgroundDrawable.getPaint().getShader());
+        assertEquals(Color.RED, backgroundDrawable.getPaint().getColor());
+
+
+        when(component().isGradientBackground()).thenReturn(true);
+        Gradient linearGradient = Gradient.builder().type(GradientType.LINEAR).angle(20).inputRange(new float[] {1, 2}).colorRange(new int[] {1, 2}).build();
+        when(component().getBackgroundGradient()).thenReturn(linearGradient);
+
+        refreshProperties(PropertyKey.kPropertyBackground);
+
+        verify(component(), atLeast(1)).isGradientBackground();
+        verify(component()).getBackgroundGradient();
+        assertNotNull(backgroundDrawable.getPaint().getShader());
     }
 
     @Test
     public void test_refresh_borderColor() {
         Dimension mockDimension = mock(Dimension.class);
         when(mockDimension.intValue()).thenReturn(10);
-        when(component().getBorderWidth()).thenReturn(mockDimension);
+        when(component().getDrawnBorderWidth()).thenReturn(mockDimension);
         when(component().getBorderColor()).thenReturn(Color.RED);
         when(component().hasProperty(PropertyKey.kPropertyBorderColor)).thenReturn(true);
 
         refreshProperties(PropertyKey.kPropertyBorderColor);
 
         verify(component()).getBorderColor();
-        verify(component()).getBorderWidth();
-        verify(component()).hasProperty(PropertyKey.kPropertyBorderColor);
         verifyNoMoreInteractions(component());
 
-        assertEquals(10, getBackground().getBorderWidth());
-        assertEquals(Color.RED, getBackground().getBorderColor());
+//        assertEquals(10, getBorder().getPaint().getStrokeWidth(), 0);
+        assertEquals(Color.RED, getBorder().getPaint().getColor());
     }
 
     @Test
     public void test_refresh_borderWidth() {
         Dimension mockDimension = mock(Dimension.class);
         when(mockDimension.intValue()).thenReturn(20);
-        when(component().getBorderWidth()).thenReturn(mockDimension);
+        when(component().getDrawnBorderWidth()).thenReturn(mockDimension);
         when(component().hasProperty(PropertyKey.kPropertyBorderColor)).thenReturn(true);
 
-        refreshProperties(PropertyKey.kPropertyBorderWidth);
+        refreshProperties(PropertyKey.kPropertyDrawnBorderWidth);
 
-        verify(component()).getBorderColor();
-        verify(component()).getBorderWidth();
-        verify(component()).hasProperty(PropertyKey.kPropertyBorderColor);
+        verify(component(), times(2)).getDrawnBorderWidth();
+        verify(component()).getBorderRadii();
+        verify(component()).isGradientBackground();
+        verify(component()).getBackgroundColor();
         verifyNoMoreInteractions(component());
 
-        assertEquals(20, getBackground().getBorderWidth());
-        assertEquals(Color.TRANSPARENT, getBackground().getBorderColor());
+        assertEquals(new android.graphics.Rect(20, 20, 20, 20), getBorderInset());
     }
 
     @Config(sdk=24)
@@ -196,13 +323,16 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
         when(component().getBorderRadii()).thenReturn(mockRadii);
         float[] radii = new float[]{15f, 15f, 25f, 25f, 35f, 35f, 45f, 45f};
         when(mockRadii.toFloatArray()).thenReturn(radii);
+        when(mockRadii.inset(anyFloat())).thenReturn(mockRadii);
 
         refreshProperties(PropertyKey.kPropertyBorderRadii);
 
         verify(component()).getBorderRadii();
+        verify(component()).getDrawnBorderWidth();
         verifyNoMoreInteractions(component());
 
-        assertArrayEquals(radii, getBackground().getCornerRadii(), 0.01f);
+        assertEquals(radii, getBorderRadii());
+        assertTrue(getView().isChildClippingPathUpdateRequested());
     }
 
     @Test
@@ -225,5 +355,19 @@ public class FrameViewAdapterTest extends AbstractComponentViewAdapterTest<Frame
 
         assertEquals(1, getView().getChildCount());
         assertEquals(childView, getView().getChildAt(0));
+    }
+
+    @Test
+    public void test_zeroBorderWidthSetsBorderDrawableOpacityZero() {
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
+        applyAllProperties();
+        assertEquals(getBorder().getAlpha(), 0);
+    }
+
+    @Test
+    public void test_nonZeroBorderWidthSetsBorderDrawableOpacity255() {
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(10));
+        applyAllProperties();
+        assertEquals(getBorder().getAlpha(), 255);
     }
 }

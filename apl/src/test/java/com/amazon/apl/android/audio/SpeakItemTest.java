@@ -14,6 +14,7 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.ITtsPlayer;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 
+import com.amazon.apl.android.media.TextTrack;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 
 import org.json.JSONException;

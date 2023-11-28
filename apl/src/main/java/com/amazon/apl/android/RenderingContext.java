@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android;
 
+import android.graphics.Path;
 import android.net.Uri;
 
 import com.amazon.alexaext.ExtensionResourceProvider;
@@ -12,6 +13,7 @@ import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.bitmap.NoOpBitmapCache;
 import com.amazon.apl.android.bitmap.SimpleBitmapFactory;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
@@ -26,6 +28,7 @@ import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.scaling.NoOpMetricsTransform;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.common.storage.WeakCache;
 
 /**
  * Contains context needed to render a document. This class serves as a convenient way to pass
@@ -45,6 +48,8 @@ public class RenderingContext {
     private final IExtensionImageFilterCallback extensionImageFilterCallback;
     private final IBitmapFactory bitmapFactory;
     private final IBitmapCache bitmapCache;
+    private final ShadowCache mShadowCache;
+    private final WeakCache<String, Path> mPathCache;
     private final IContentRetriever<Uri, String> avgRetriever;
     private final IExtensionEventCallback extensionEventCallback;
     private final APLTrace aplTrace;
@@ -83,6 +88,8 @@ public class RenderingContext {
         this.extensionEventCallback = extensionEventCallback;
         this.aplTrace = aplTrace;
         this.mediaPlayerV2Enabled = mediaPlayerV2Enabled;
+        mShadowCache = new ShadowCache();
+        this.mPathCache = new WeakCache<>();
     }
 
     public int getDocVersion() {
@@ -139,6 +146,14 @@ public class RenderingContext {
 
     public IBitmapCache getBitmapCache() {
         return bitmapCache;
+    }
+
+    public ShadowCache getShadowCache() {
+        return mShadowCache;
+    }
+
+    public WeakCache<String, Path> getPathCache() {
+        return mPathCache;
     }
 
     public IContentRetriever<Uri, String> getAvgRetriever() {

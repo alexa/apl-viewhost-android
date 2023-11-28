@@ -1,0 +1,286 @@
+diff --git a/apl/build.gradle b/apl/build.gradle
+index 2c57679..4a3450f 100644
+--- a/apl/build.gradle
++++ b/apl/build.gradle
+@@ -1,42 +1,255 @@
+ /*
+- * Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
++ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
++ * SPDX-License-Identifier: Apache-2.0
+  */
+ 
+-// Top-level build file where you can add configuration options common to all sub-projects/modules.
++import org.apache.tools.ant.taskdefs.condition.Os
+ 
+-def version = "1.10.0";
++apply plugin: 'com.android.library'
++apply plugin: 'jacoco'
++apply plugin: 'maven-publish'
+ 
+-project.buildDir = "build"
++jacoco {
++    toolVersion = '0.8.2'
++}
++
++tasks.withType(Test) {
++    jacoco.includeNoLocationClasses = true
++    jacoco.excludes = ['jdk.internal.*']
++}
+ 
+-buildscript {
++tasks.withType(Test) {
++    testLogging {
++        events "standardOut", "started", "passed", "skipped", "failed"
++    }
+ 
+-    repositories {
+-        google()
+-        jcenter()
++    filter {
++        /**
++         * This filter can be used when you want to debug some failed unit test in local test run
++         * if you wish to run locally, you should use ./gradlew :apl:testDebugUnitTest in command line
++         * For example, uncomment the line below for running tests in a specific class
++         */
++        //includeTestsMatching "com.amazon.apl.android.font.TypefaceResolverTest"
+     }
+-    dependencies {
+-        classpath 'com.android.tools.build:gradle:4.1.2'
+-        classpath 'org.jacoco:org.jacoco.core:0.8.2'
++}
++
++task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
++    def mainSrc = "$project.projectDir/src/main/java"
++
++    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*', '**/*Test*.*', '**/AutoValue_*.*']
++    def debugTree = fileTree(dir: "$project.buildDir/intermediates/javac/release/", excludes: fileFilter)
++
++    sourceDirectories.from(files([mainSrc]))
++    classDirectories.from(files(debugTree))
++
++    executionData.from(fileTree(dir: "$buildDir", includes: [
++            "jacoco/*.exec",
++            "outputs/code_coverage/debugAndroidTest/connected/*coverage.ec"
++    ]))
++    reports {
++        xml.enabled = true
++        html.enabled = true
++    }
++}
+ 
+-        // NOTE: Do not place your application dependencies here; they belong
+-        // in the individual module build.gradle files
++ext {
++    cmakeProjectPath = projectDir.absolutePath
++    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
++        cmakeProjectPath = cmakeProjectPath.replace('\\', '/')
++    }
++    aplAndroidCmakeArgs = "-DCMAKE_VERBOSE_MAKEFILE=ON"
++    aplCoreDirCmakeArg = "-DAPL_CORE_DIR=${cmakeProjectPath}/../../apl-core-library"
++    if (project.hasProperty('aplCoreDir')) {
++        aplCoreDirCmakeArg = "-DAPL_CORE_DIR=" + aplCoreDir
+     }
+ }
+ 
+-allprojects {
+-    if (System.getenv("MAINLINE_BUILD")) {
+-        project.version = "${version}-SNAPSHOT"
+-    } else {
+-        project.version = "${version}." + (System.getenv("CODEBUILD_BUILD_NUMBER") ?: "0")
++android {
++    compileSdkVersion 31
++    ndkVersion "23.0.7599858"
++    buildToolsVersion "30.0.2"
++    defaultConfig {
++        minSdkVersion 22
++        targetSdkVersion 31
++        versionCode 1
++        versionName "1.0"
++        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
++        testInstrumentationRunnerArguments clearPackageData: 'true'
++        renderscriptTargetApi 22
++        externalNativeBuild {
++            cmake {
++                // Sets optional flags for the C++ compiler.
++                cppFlags "-std=c++11", "-fno-rtti", "-fno-exceptions"
++                // Build the APL Core JNI library (excludes all other targets)
++                targets "apl", "apl-jni"
++                // Enable APL Core JNI build, and be verbose.
++                arguments aplCoreDirCmakeArg, aplAndroidCmakeArgs
++            }
++        }
++    }
++    compileOptions {
++        sourceCompatibility JavaVersion.VERSION_1_8
++        targetCompatibility JavaVersion.VERSION_1_8
++    }
++    buildTypes {
++        release {
++//            minifyEnabled true
++//            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
++            buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
++            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}-core\"")
++            buildConfigField 'boolean', 'DEBUG_LOGGING', 'false'
++        }
++        debug {
++            testCoverageEnabled true
++            debuggable true
++            aplAndroidCmakeArgs += " -DDEBUG_MEMORY_USE=ON"
++            buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
++            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}-core\"")
++            buildConfigField 'boolean', 'DEBUG_LOGGING', 'true'
++        }
+     }
+-    project.group = "APLViewhostAndroid"
++    // Temporary fix until alpha10 - "More than one file was found with OS independent path 'META-INF/proguard/androidx-annotations.pro"
++    packagingOptions {
++        exclude 'META-INF/proguard/androidx-annotations.pro'
++    }
++
++    externalNativeBuild {
++        cmake {
++            version "3.18.1"
+ 
+-    repositories {
+-        google()
+-        jcenter()
++            // Tells Gradle to find the root CMake APL build script. path is relative to
++            // the directory containing the module's build.gradle file. Gradle requires this
++            // build script to designate a CMake project as a build dependency and
++            // pull native sources into the Android project.
++            path "CMakeLists.txt"
++        }
++    }
++    lintOptions {
++        // If set to true, turns off analysis progress reporting by lint.
++        quiet false
++        // if set to true (default), stops the build if errors are found.
++        abortOnError true
++        // if true, only report errors.
++        ignoreWarnings false
++        // flag code marked for unreleasable
++        fatal 'StopShip'
++        disable 'LongLogTag'
++    }
++    testOptions {
++        animationsDisabled true
++
++        unitTests {
++            includeAndroidResources = true
++        }
+     }
+ }
+ 
+-task clean(type: Delete) {
+-    delete rootProject.buildDir
+-}
+\ No newline at end of file
++dependencies {
++    compileOnly 'org.projectlombok:lombok:1.18.28'
++    implementation fileTree(include: ['*.jar'], dir: 'libs')
++    implementation 'androidx.annotation:annotation:1.4.0'
++    implementation 'androidx.core:core:1.0.0'
++    implementation 'androidx.appcompat:appcompat:1.2.0'
++    implementation 'com.github.bumptech.glide:glide:4.11.0'
++    implementation project(':common')
++    implementation(project(':discovery')) { transitive = false }
++    testImplementation 'junit:junit:4.13.2'
++    testImplementation 'org.robolectric:robolectric:4.8.1'
++    testImplementation 'org.robolectric:shadows-httpclient:4.2'
++    testImplementation 'androidx.test:core:1.1.0'
++    testImplementation 'androidx.test.ext:junit:1.1.0'
++    testImplementation 'org.mockito:mockito-core:4.7.0'
++    testImplementation 'androidx.test:rules:1.4.0'
++    androidTestImplementation 'org.mockito:mockito-core:3.12.4'
++    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
++    androidTestImplementation 'androidx.test:core:1.1.0'
++    androidTestImplementation 'androidx.annotation:annotation:1.4.0'
++    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
++    androidTestImplementation 'androidx.test:runner:1.4.0'
++    androidTestImplementation 'androidx.test:rules:1.4.0'
++    androidTestImplementation 'androidx.test.uiautomator:uiautomator:2.2.0'
++    androidTestImplementation 'com.linkedin.dexmaker:dexmaker:2.25.0'
++    androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito:2.25.0'
++    androidTestImplementation project(":commonTest")
++    androidTestImplementation 'com.squareup.leakcanary:leakcanary-android-instrumentation:2.9.1'
++    androidTestImplementation 'com.squareup.leakcanary:leakcanary-object-watcher-android:2.9.1'
++    androidTestUtil 'androidx.test:orchestrator:1.1.1'
++    api "com.google.auto.value:auto-value-annotations:1.7"
++    api 'com.google.guava:guava:27.0.1-jre'
++    annotationProcessor "com.google.auto.value:auto-value:1.7"
++    annotationProcessor 'org.projectlombok:lombok:1.18.28'
++}
++
++
++tasks.whenTaskAdded { theTask ->
++    if (theTask.name.startsWith("test")) {
++        theTask.outputs.upToDateWhen { false }
++    }
++}
++
++project.afterEvaluate {
++    // Dump configuration settings
++    println "APL CMake Args: " + aplAndroidCmakeArgs
++    println "APL Core Directory: " + aplCoreDirCmakeArg
++    println "Android SDK Directory: " + android.sdkDirectory.path
++    println "Android NDK Directory: " + android.ndkDirectory.path
++
++    // enforce native tools build runs first for enum dependencies
++    compileDebugJavaWithJavac.dependsOn externalNativeBuildDebug
++    compileReleaseJavaWithJavac.dependsOn externalNativeBuildRelease
++
++    javaPreCompileDebug.dependsOn externalNativeBuildDebug
++
++    tasks.test.finalizedBy(jacocoTestReport)
++}
++
++afterEvaluate {
++    publishing {
++        publications {
++            release(MavenPublication) {
++                from components.release
++                pom {
++                    description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
++                            ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
++                }
++            }
++        }
++    }
++}
++
++tasks.build.dependsOn(assembleAndroidTest)
++
++apply plugin: 'checkstyle'
++
++checkstyle {
++    configDirectory = file("$project.projectDir/checkstyle")
++    ignoreFailures = false
++}
++
++task checkstyle(type: Checkstyle, group: 'verification') {
++    source 'src'
++    include '**/*.java'
++    exclude '**/gen/**'
++    exclude '**/R.java'
++    classpath = files()
++}
++
++task release(dependsOn: ['build', 'publish']) {
++    doLast {
++        copy {
++            from 'build/outputs/aar'
++            into '../build/apl'
++        }
++
++        copy {
++            from 'build/reports'
++            into '../build/apl/reports/'
++            rename 'jacocoTestReport.xml', 'coverage.xml'
++        }
++
++        copy {
++            from 'build/outputs/apk/androidTest/debug'
++            into '../build/apl/androidTest'
++        }
++    }
++}

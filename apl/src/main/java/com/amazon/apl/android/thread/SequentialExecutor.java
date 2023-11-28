@@ -95,4 +95,8 @@ public class SequentialExecutor implements Executor {
             mExecutor.execute(mActiveTask);
         }
     }
+
+    public void clearTaskQueue(){
+        mTaskQueue.clear();
+    }
 }

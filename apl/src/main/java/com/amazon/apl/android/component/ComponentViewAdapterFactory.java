@@ -11,7 +11,6 @@ import com.amazon.apl.android.ExtensionComponent;
 import com.amazon.apl.android.Frame;
 import com.amazon.apl.android.Image;
 import com.amazon.apl.android.MultiChildComponent;
-import com.amazon.apl.android.NoOpComponent;
 import com.amazon.apl.android.Pager;
 import com.amazon.apl.android.Text;
 import com.amazon.apl.android.VectorGraphic;
@@ -19,6 +18,8 @@ import com.amazon.apl.android.Video;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.NonNull;
 
 /**
  * Factory for {@link ComponentViewAdapter}.
@@ -31,7 +32,6 @@ public class ComponentViewAdapterFactory {
         sAdapterMap.put(EditText.class, EditTextViewAdapter.getInstance());
         sAdapterMap.put(Image.class, ImageViewAdapter.getInstance());
         sAdapterMap.put(MultiChildComponent.class, MultiChildViewAdapter.getInstance());
-        sAdapterMap.put(NoOpComponent.class, NoOpViewAdapter.getInstance());
         sAdapterMap.put(Pager.class, MultiChildViewAdapter.getInstance());
         sAdapterMap.put(Text.class, TextViewAdapter.getInstance());
         sAdapterMap.put(VectorGraphic.class, VectorGraphicViewAdapter.getInstance());
@@ -44,7 +44,7 @@ public class ComponentViewAdapterFactory {
      * @param component a component
      * @return          a view adapter
      */
-    public static ComponentViewAdapter getAdapter(Component component) {
+    public static ComponentViewAdapter getAdapter(@NonNull Component component) {
         return sAdapterMap.get(component.getClass());
     }
 }

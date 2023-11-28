@@ -33,6 +33,18 @@ public class APLVersionCodes {
 
     public static final int APL_1_8 = 8;
 
+    public static final int APL_1_9 = 9;
+
+    public static final int APL_2022_1 = 10;
+
+    public static final int APL_2022_2 = 11;
+
+    public static final int APL_2023_1 = 12;
+
+    public static final int APL_2023_2 = 13;
+
+    public static final int APL_2023_3 = 14;
+
     public static final int APL_LATEST = Integer.MAX_VALUE;
 
     private static final Map<String, Integer> sVersionCodes = new HashMap<>();
@@ -46,6 +58,13 @@ public class APLVersionCodes {
         sVersionCodes.put("1.6", APL_1_6);
         sVersionCodes.put("1.7", APL_1_7);
         sVersionCodes.put("1.8", APL_1_8);
+        sVersionCodes.put("1.9", APL_1_9);
+        sVersionCodes.put("1.10", APL_2022_1);
+        sVersionCodes.put("2022.1", APL_2022_1);
+        sVersionCodes.put("2022.2", APL_2022_2);
+        sVersionCodes.put("2023.1", APL_2023_1);
+        sVersionCodes.put("2023.2", APL_2023_2);
+        sVersionCodes.put("2023.3", APL_2023_3);
     }
 
     /**

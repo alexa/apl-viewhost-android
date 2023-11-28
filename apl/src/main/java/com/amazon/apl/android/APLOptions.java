@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import android.net.Uri;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +28,7 @@ import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.IScreenLockListener;
 import com.amazon.apl.android.dependencies.ISendEventCallback;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
+import com.amazon.apl.android.dependencies.IViewportSizeUpdateCallback;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
 import com.amazon.apl.android.extension.IExtensionRegistration;
@@ -107,6 +109,8 @@ public abstract class APLOptions {
     public abstract IDataSourceFetchCallback getDataSourceFetchCallback();
     public abstract IDataSourceErrorCallback getDataSourceErrorCallback();
 
+    public abstract IViewportSizeUpdateCallback getViewportSizeUpdateCallback();
+
     /**
      * @deprecated Use {@link com.amazon.alexaext.ExtensionRegistrar}
      */
@@ -184,7 +188,8 @@ public abstract class APLOptions {
                 .packageLoader((importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented."))
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
                 .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."))
-                .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory());
+                .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory())
+                .viewportSizeUpdateCallback((width, height) ->{});
     }
 
     @AutoValue.Builder
@@ -255,6 +260,13 @@ public abstract class APLOptions {
          * @return this builder
          */
         public abstract Builder sendEventCallbackV2(ISendEventCallbackV2 callback);
+
+        /**
+         *
+         * @param callback a callback for the scenarios where auto size is triggered.
+         * @return this builder
+         */
+        public abstract Builder viewportSizeUpdateCallback(IViewportSizeUpdateCallback callback);
 
         /**
          * Required to support SendEvents.

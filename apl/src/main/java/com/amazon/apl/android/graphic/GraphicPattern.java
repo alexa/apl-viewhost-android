@@ -43,7 +43,7 @@ public class GraphicPattern {
         final long[] itemHandles = nGetItems(boundObject.getNativeHandle(), propertyKey.getIndex());
         final List<GraphicElement> items = new ArrayList<>(itemHandles.length);
         for (int i = 0; i < itemHandles.length; i++) {
-            items.add(i, GraphicElementFactory.createGraphicElement(graphicElementMap, itemHandles[i], renderingContext));
+            items.add(i, GraphicElementFactory.getOrCreateGraphicElement(graphicElementMap, itemHandles[i], renderingContext));
         }
         return new GraphicPattern(renderingContext, width, height, items);
     }

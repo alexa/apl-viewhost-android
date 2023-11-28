@@ -5,6 +5,9 @@
 
 package com.amazon.apl.android.espresso;
 
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.text.Layout;
 import android.text.ParcelableSpan;
 import android.text.Spannable;
@@ -47,8 +50,9 @@ public class APLMatchers {
 
             @Override
             public boolean matchesSafely(View view) {
-                APLGradientDrawable drawable = (APLGradientDrawable)((APLAbsoluteLayout)view).getBackground();
-                return drawable.getDefaultColor() == backgroundColor;
+                LayerDrawable parentLayout = (LayerDrawable) view.getBackground();
+                InsetDrawable borderInset = (InsetDrawable) parentLayout.getDrawable(1);
+                return ((ShapeDrawable) borderInset.getDrawable()).getPaint().getColor() == backgroundColor;
             }
 
             @Override

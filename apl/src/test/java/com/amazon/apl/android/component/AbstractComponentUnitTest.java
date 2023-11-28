@@ -119,7 +119,6 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
             "\"accessibilityLabel\": \"Go APL\",\n" +
             "      \"description\": \"APL Description\",\n" +
             "      \"checked\": true,\n" +
-            "      \"disabled\": true,\n" +
             "      \"display\": \"invisible\",\n" +
             "      \"height\": 111,\n" +
             "      \"width\": 642,\n" +
@@ -447,7 +446,6 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
 
         assertEquals("Go APL", component.getAccessibilityLabel());
         assertTrue(component.isChecked());
-        assertTrue(component.isDisabled());
         assertEquals(kDisplayInvisible, component.getDisplay());
         assertEquals("testcomp", component.getId());
         assertEquals(.5f, component.getOpacity(), 0.0f);

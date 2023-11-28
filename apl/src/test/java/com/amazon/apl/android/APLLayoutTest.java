@@ -144,6 +144,18 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
     }
 
     @Test
+    public void testCreateConfigurationChange_minMaxHeightWidth() {
+        ConfigurationChange configurationChange = ConfigurationChange.create(mockViewportMetrics, mockRootConfig)
+                .minWidth(50).maxWidth(150).minHeight(50).maxHeight(150).build();
+        assertEquals(configurationChange.width(), mockViewportMetrics.width());
+        assertEquals(50, configurationChange.minWidth());
+        assertEquals(150, configurationChange.maxWidth());
+        assertEquals(configurationChange.height(), mockViewportMetrics.height());
+        assertEquals(50, configurationChange.minHeight());
+        assertEquals(150, configurationChange.maxHeight());
+    }
+
+    @Test
     public void testCreateConfigurationChange_nonDefaults() {
         ConfigurationChange configurationChange = ConfigurationChange.create(mockViewportMetrics, mockRootConfig).
                 width(1280).
@@ -389,6 +401,34 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
         layout.layout( 0, 48, 960, 480);
         try {
             assertTrue("Layout wasn't measured", countDownLatch.await(1, TimeUnit.SECONDS));
+        } catch (InterruptedException e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testLayoutMinMaxWidthHeight() {
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        APLLayout layout = new APLLayout(RuntimeEnvironment.systemContext, false);
+        layout.setMinMaxHeight(400, 500);
+        layout.setMinMaxWidth(900, 1000);
+        layout.addMetricsReadyListener((viewportMetrics -> {
+            assertEquals(960, viewportMetrics.width());
+            assertEquals(432, viewportMetrics.height());
+            assertEquals(400, viewportMetrics.minHeight());
+            assertEquals(500, viewportMetrics.maxHeight());
+            assertEquals(900, viewportMetrics.minWidth());
+            assertEquals(1000, viewportMetrics.maxWidth());
+            countDownLatch.countDown();
+        }));
+
+
+        layout.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(408, View.MeasureSpec.EXACTLY));
+        layout.measure(View.MeasureSpec.makeMeasureSpec(960, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(432, View.MeasureSpec.EXACTLY));
+        layout.layout(0,0, 960, 640);
+
+        try {
+            assertTrue(countDownLatch.await(1, TimeUnit.SECONDS));
         } catch (InterruptedException e) {
             fail(e.getMessage());
         }

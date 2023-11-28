@@ -21,7 +21,11 @@ import com.google.common.collect.ImmutableMap;
 public abstract class ConfigurationChange {
     /** Viewport Characteristics derived from ViewportMetrics */
     public abstract int width();
+    public abstract int minWidth();
+    public abstract int maxWidth();
     public abstract int height();
+    public abstract int minHeight();
+    public abstract int maxHeight();
     public abstract String theme();
     public abstract ViewportMode mode();
     /** RootConfig parameters */
@@ -34,7 +38,11 @@ public abstract class ConfigurationChange {
     public static ConfigurationChange.Builder create(ViewportMetrics viewportMetrics, RootConfig rootConfig) {
         return new AutoValue_ConfigurationChange.Builder().
                 width(viewportMetrics.width()).
+                maxWidth(viewportMetrics.maxWidth()).
+                minWidth(viewportMetrics.minWidth()).
                 height(viewportMetrics.height()).
+                maxHeight(viewportMetrics.maxHeight()).
+                minHeight(viewportMetrics.minHeight()).
                 theme(viewportMetrics.theme()).
                 mode(viewportMetrics.mode()).
                 screenMode(rootConfig.getScreenModeEnumerated()).
@@ -46,7 +54,11 @@ public abstract class ConfigurationChange {
     @AutoValue.Builder
     public static abstract class Builder {
         public abstract Builder width(int width);
+        public abstract Builder minWidth(int minWidth);
+        public abstract Builder maxWidth(int maxWidth);
         public abstract Builder height(int height);
+        public abstract Builder minHeight(int minHeight);
+        public abstract Builder maxHeight(int maxHeight);
         public abstract Builder theme(String theme);
         public abstract Builder mode(ViewportMode mode);
         public abstract Builder screenMode(ScreenMode screenMode);

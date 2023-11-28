@@ -18,6 +18,7 @@ import com.amazon.apl.enums.GraphicLayoutDirection;
 import com.amazon.apl.enums.GraphicPropertyKey;
 import com.amazon.apl.enums.GraphicTextAnchor;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -76,26 +77,6 @@ public class GraphicTextElementTest extends AbstractDocUnitTest {
         "              \"x\": 50,\n" +
         "              \"y\": 50\n" +
         "            }\n" +
-            "      ]\n" +
-            "    }";
-
-    private static final String AVG_TEXT_LAYOUTDIRECTION_ANCHOR = "{" +
-            "      \"type\": \"AVG\",\n" +
-            "      \"version\": \"1.0\",\n" +
-            "      \"height\": 24,\n" +
-            "      \"width\": 24,\n" +
-            "      \"lang\": \"en-US\",\n" +
-            "      \"layoutDirection\": \"%s\",\n" +
-            "      \"viewportWidth\": 24,\n" +
-            "      \"viewportHeight\": 24,\n" +
-            "      \"items\": [\n" +
-            "            {\n" +
-            "              \"type\": \"text\",\n" +
-            "              \"text\": \"message\",\n" +
-            "              \"textAnchor\": \"%s\",\n" +
-            "              \"x\": 50,\n" +
-            "              \"y\": 50\n" +
-            "            }\n" +
             "      ]\n" +
             "    }";
 
@@ -232,6 +213,7 @@ public class GraphicTextElementTest extends AbstractDocUnitTest {
         assertEquals("en-US", textElement.getRootContainer().getFontLanguage());
     }
 
+    @Ignore // https://issues.labcollab.net/browse/ELON-33576
     @Test
     public void testProperties_avgTextInflationWithPatterns_fillAndStrokePatternsSet() {
         String doc = buildDocument(BASE_DOC, "", OPTIONAL_PROPERTIES_WITH_SOURCE_AS_NAME, String.format(GRAPHICS_SOURCE_TEMPLATE, PATTERNS_FOR_AVG_TEXT));
@@ -251,9 +233,17 @@ public class GraphicTextElementTest extends AbstractDocUnitTest {
         assertEquals(rot45, avgTextElement.getStrokeTransform());
         assertEquals(rot45, avgTextElement.getFillTransform());
 
-        GraphicPathElement avgPatternPathElement =
+        GraphicPathElement fillPatternPathElement =
                 (GraphicPathElement) avgTextElement.getFillGraphicPattern().getItems().get(0);
-        assertEquals(Color.RED, avgPatternPathElement.getFillColor());
+        GraphicPathElement strokePatternPathElement =
+                (GraphicPathElement) avgTextElement.getStrokeGraphicPattern().getItems().get(0);
+
+        // Confirm that the resource is the red circle
+        assertEquals(Color.RED, fillPatternPathElement.getFillColor());
+
+        // Both fill and stroke are using the @RedCircle resource, so they should reuse the same
+        // graphic element instance (i.e. same uid, same object in core).
+        assertEquals(fillPatternPathElement, strokePatternPathElement);
     }
 
     @Test

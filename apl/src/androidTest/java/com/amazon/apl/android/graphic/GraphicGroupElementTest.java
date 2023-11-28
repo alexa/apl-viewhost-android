@@ -33,7 +33,6 @@ import static org.mockito.Mockito.when;
 
 @RunWith(AndroidJUnit4.class)
 public class GraphicGroupElementTest extends AbstractDocUnitTest {
-
     final static String BASE_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"1.0\"," +
@@ -56,41 +55,6 @@ public class GraphicGroupElementTest extends AbstractDocUnitTest {
             "  \"graphics\": {" +
             "    \"box\": %s" +
             "  }";
-
-    private static final String FULL_PROPS_FOR_AVG_GROUP = "{" +
-            "  \"type\": \"AVG\"," +
-            "  \"version\": \"1.1\"," +
-            "  \"height\": 24," +
-            "  \"width\": 24," +
-            "  \"items\": [" +
-            "    {" +
-            "      \"type\": \"group\"," +
-            "      \"opacity\": 0.8," +
-            "      \"scaleX\": 0.5," +
-            "      \"scaleY\": 0.5," +
-            "      \"pivotX\": 50," +
-            "      \"pivotY\": 50," +
-            "      \"rotation\": 90.0," +
-            "      \"translateX\": 10," +
-            "      \"translateY\": 10," +
-            "      \"clipPath\": \"M0,0\", " +
-            "      \"items\": [" +
-            "        {" +
-            "          \"type\": \"path\"," +
-            "          \"fill\": \"blue\"," +
-            "          \"fillOpacity\": 0.3," +
-            "          \"pathData\": \"M15.67,4H14V2h-4v2H8.33C7.6,4 7,4.6 7,5.33V9h4.93L13,7v2h4V5.33C17,4.6 16.4,4 15.67,4z\"" +
-            "        }," +
-            "        {" +
-            "          \"type\": \"path\"," +
-            "          \"fill\": \"blue\"," +
-            "          \"pathData\": \"M13,12.5h2L11,20v-5.5H9L11.93,9H7v11.67C7,21.4 7.6,22 8.33,22h7.33c0.74,0 1.34,-0.6 1.34,-1.33V9h-4v3.5z\"" +
-            "        }" +
-            "      ]" +
-            "    }" +
-            "  ]" +
-            "}";
-
 
     private static final String OPACITIES_AVG_GROUP = "{" +
             "  \"type\": \"AVG\"," +
@@ -196,42 +160,33 @@ public class GraphicGroupElementTest extends AbstractDocUnitTest {
         GraphicPathElement patternPathElement = spy((GraphicPathElement)
                 patternGroupElement.getChildren().get(0));
 
-        Paint fillPaint1 = spy(pathElement1.getFillPaint());
-        Paint fillPaint2 = spy(pathElement2.getFillPaint());
-        Paint fillPaint3 = spy(pathElement3.getFillPaint());
-        Paint fillPaint4 = spy(textElement.getFillPaint());
-        Paint strokePaint1 = spy(pathElement1.getStrokePaint());
-        Paint strokePaint2 = spy(pathElement2.getStrokePaint());
-        Paint strokePaint3 = spy(pathElement3.getStrokePaint());
-        Paint strokePaint4 = spy(textElement.getStrokePaint());
+        // The paints are all reused, so these will still be valid after the test code runs.
+        Paint fillPaint1 = pathElement1.getFillPaint();
+        Paint fillPaint2 = pathElement2.getFillPaint();
+        Paint fillPaint3 = pathElement3.getFillPaint();
+        Paint fillPaint4 = textElement.getFillPaint();
+        Paint strokePaint1 = pathElement1.getStrokePaint();
+        Paint strokePaint2 = pathElement2.getStrokePaint();
+        Paint strokePaint3 = pathElement3.getStrokePaint();
+        Paint strokePaint4 = textElement.getStrokePaint();
 
-        Paint patternFillPaint = spy(patternPathElement.getFillPaint());
-        Paint patternStrokePaint = spy(patternPathElement.getStrokePaint());
+        Paint patternFillPaint = patternPathElement.getFillPaint();
+        Paint patternStrokePaint = patternPathElement.getStrokePaint();
 
         // Setup expectations
         when(graphicContainerElement.getChildren()).thenReturn(Arrays.asList(groupElement));
         when(groupElement.getChildren()).thenReturn(Arrays.asList(pathElement1, pathElement2, pathElement3, textElement));
-        when(pathElement1.getFillPaint()).thenReturn(fillPaint1);
-        when(pathElement2.getFillPaint()).thenReturn(fillPaint2);
-        when(pathElement3.getFillPaint()).thenReturn(fillPaint3);
-        when(textElement.getFillPaint()).thenReturn(fillPaint4);
-        when(pathElement1.getStrokePaint()).thenReturn(strokePaint1);
-        when(pathElement2.getStrokePaint()).thenReturn(strokePaint2);
-        when(pathElement3.getStrokePaint()).thenReturn(strokePaint3);
-        when(textElement.getStrokePaint()).thenReturn(strokePaint4);
 
         when(pathElement1.getStrokeGraphicPattern()).thenReturn(pattern);
         when(pattern.getItems()).thenReturn(Arrays.asList(patternGroupElement));
         when(patternGroupElement.getChildren()).thenReturn(Arrays.asList(patternPathElement));
-        when(patternPathElement.getFillPaint()).thenReturn(patternFillPaint);
-        when(patternPathElement.getStrokePaint()).thenReturn(patternStrokePaint);
 
         // Run draw method
         Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         PathRenderer pathRenderer = new PathRenderer(graphicContainerElement);
         pathRenderer.applyBaseAndViewportDimensions();
         pathElement1.applyProperties();  // update paint objects (for patterns)
-        pathRenderer.draw(new Canvas(bitmap), bitmap.getWidth(), bitmap.getHeight(), component.getRenderingContext().getBitmapFactory());
+        pathRenderer.draw(new Canvas(bitmap), bitmap.getWidth(), bitmap.getHeight(), component.getRenderingContext().getBitmapFactory(), false);
 
         // Assertions
         assertEquals((int)(0.8f * (int)(0.3f * 255)), fillPaint1.getAlpha());
@@ -246,22 +201,6 @@ public class GraphicGroupElementTest extends AbstractDocUnitTest {
 
         assertEquals((int)(0.5f * (int)(0.5f * 255)), patternFillPaint.getAlpha());
         assertEquals((int)(0.5f * (int)(0.25f * 255)), patternStrokePaint.getAlpha());
-    }
-
-    private Matrix getTransformationCalculation(float scaleX, float scaleY, int rotation,
-                                                int pivotX, int pivotY, int translateX, int translateY) {
-        Matrix matrix = new Matrix();
-        matrix.postTranslate(-pivotX, -pivotY);
-        matrix.postScale(scaleX, scaleY);
-        matrix.postRotate(rotation, 0, 0);
-        matrix.postTranslate(translateX + pivotX, translateY + pivotY);
-        return matrix;
-    }
-
-    private float[] getMatrixArray(Matrix m) {
-        float[] arr = new float[9];
-        m.getValues(arr);
-        return arr;
     }
 
     VectorGraphic getTestComponent() {

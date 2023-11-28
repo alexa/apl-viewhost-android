@@ -6,6 +6,8 @@
 package com.amazon.apl.android.dynamicdatasource;
 
 import android.graphics.Color;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.util.Log;
 import android.view.View;
 
@@ -133,6 +135,10 @@ public class DynamicDataSourceSequenceViewTest extends AbstractDynamicDataSource
     public static final String END_BACKWARD_PAGE_TOKEN = "endBackwardPageToken";
 
     private IdlingResource mIdlingResource;
+
+    private static ShapeDrawable getBorder(View view) {
+        return (ShapeDrawable) ((LayerDrawable) view.getBackground()).getDrawable(0);
+    }
 
     @After
     public void teardown() {
@@ -635,8 +641,8 @@ public class DynamicDataSourceSequenceViewTest extends AbstractDynamicDataSource
     // Asserts that an Item View representing a square (from DOC layout at the top) has been rendered
     private static void assertSquare(View itemView, int expectedColor, String expectedText) {
         APLAbsoluteLayout frameView = (APLAbsoluteLayout) itemView;
-        APLGradientDrawable drawable = (APLGradientDrawable) frameView.getBackground();
-        assertEquals(expectedColor, drawable.getBorderColor());
+
+        assertEquals(expectedColor, getBorder(itemView).getPaint().getColor());
         assertEquals(expectedText, getText(frameView.getChildAt(0)));
     }
 

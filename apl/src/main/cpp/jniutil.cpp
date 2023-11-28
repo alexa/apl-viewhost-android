@@ -511,7 +511,7 @@ namespace apl {
                         reinterpret_cast<const char *>(elements), length);
                 env->ReleaseByteArrayElements(byteArray, elements, JNI_ABORT);
                 if (ok.IsError()) {
-                    LOG(apl::LogLevel::ERROR)
+                    LOG(apl::LogLevel::kError)
                             << "Parsing error: " << rapidjson::GetParseError_En(ok.Code());
                 }
                 auto jsonData = JsonData(std::move(doc));

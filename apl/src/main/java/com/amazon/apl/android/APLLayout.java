@@ -12,7 +12,6 @@ import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -30,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.accessibility.AccessibilityManager;
-import android.view.animation.Transformation;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
 
@@ -39,8 +37,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
+import com.amazon.apl.android.bitmap.ShadowCache;
 import com.amazon.apl.android.component.ComponentViewAdapter;
 import com.amazon.apl.android.component.ComponentViewAdapterFactory;
 import com.amazon.apl.android.component.ImageViewAdapter;
@@ -64,7 +62,6 @@ import com.amazon.apl.android.utils.LazyImageLoader;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.utils.TransformUtils;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
-import com.amazon.apl.android.views.APLExtensionView;
 import com.amazon.apl.android.views.APLImageView;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FocusDirection;
@@ -155,6 +152,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     private ScreenShape mShape = ScreenShape.RECTANGLE;
     @NonNull
     private Scaling mScaling = new Scaling();
+    private int mMinHeight;
+    private int mMaxHeight;
+    private int mMinWidth;
+    private int mMaxWidth;
 
     /**
      * Viewport pixel width
@@ -373,6 +374,26 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     }
 
     /**
+     * Sets Min Max Range
+     * @param minWidth min width
+     * @param maxWidth max width
+     */
+    public void setMinMaxWidth(int minWidth, int maxWidth) {
+        mMinWidth = minWidth;
+        mMaxWidth = maxWidth;
+    }
+
+    /**
+     * Sets min max Range
+     * @param minHeight min height
+     * @param maxHeight max height
+     */
+    public void setMinMaxHeight(int minHeight, int maxHeight) {
+        mMinHeight = minHeight;
+        mMaxHeight = maxHeight;
+    }
+
+    /**
      * Sets the scaling for this APLLayout based on viewport specifications supplied.
      * @param biasConstant
      * @param viewportSpecifications
@@ -412,13 +433,27 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
     void inflateViews() {
         mViewsNeedLayout.set(true);
-        if (Looper.myLooper() == Looper.getMainLooper()) {
+        if (mRootContext.isAutoSize()) {
+            resize();
+        }
+        if (Looper.myLooper() == Looper.getMainLooper() && !mRootContext.isAutoSize()) {
             invalidate();
             requestLayout();
         } else {
             postInvalidate();
             post(this::requestLayout);
         }
+    }
+
+    /**
+     * When autosize enabled, we resize the aplLayout
+     */
+    private void resize() {
+        Log.i(TAG, "View resized");
+        ViewGroup.LayoutParams params = getLayoutParams();
+        params.height = mRootContext.getAutoSizedHeight();
+        params.width = mRootContext.getAutoSizedWidth();
+        this.setLayoutParams(params);
     }
 
     /**
@@ -466,15 +501,27 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     }
 
     private ViewportMetrics createMetrics() {
-        return ViewportMetrics.builder()
-            .width(getMeasuredWidth())
-            .height(getMeasuredHeight())
-            .dpi(mDpi)
-            .shape(mShape)
-            .theme(mTheme)
-            .mode(mMode)
-            .scaling(mScaling)
-            .build();
+        int width = getMeasuredWidth();
+        int height = getMeasuredHeight();
+        ViewportMetrics.Builder  builder = ViewportMetrics.builder()
+                .width(width)
+                .height(height)
+                .dpi(mDpi)
+                .shape(mShape)
+                .theme(mTheme)
+                .mode(mMode)
+                .scaling(mScaling);
+        if (mMinWidth <= width && mMaxWidth >= width) {
+            builder.minWidth(mMinWidth);
+            builder.maxWidth(mMaxWidth);
+        }
+
+        if (mMinHeight <= height && mMaxHeight >= height) {
+            builder.minHeight(mMinHeight);
+            builder.maxHeight(mMaxHeight);
+        }
+
+        return builder.build();
     }
 
     /**
@@ -553,6 +600,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             final View view = mViews.get(component.getComponentId());
             if (view != null) {
                 ComponentViewAdapter adapter = ComponentViewAdapterFactory.getAdapter(component);
+                if (adapter == null) {
+                    Log.e(TAG, "adapter is null");
+                    return;
+                }
                 adapter.refreshProperties(component, view, dirtyProperties);
             } else if (component.getComponentType() == ComponentType.kComponentTypeVectorGraphic) {
                 // The vector graphic is cached, so even if the view isn't available (not inflated), we need to notify the
@@ -571,6 +622,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 associate(component, view);
                 updateViewInLayout(component, view);
                 ComponentViewAdapter adapter = ComponentViewAdapterFactory.getAdapter(component);
+                if (adapter == null) {
+                    Log.e(TAG, "adapter is null");
+                    return;
+                }
                 adapter.applyAllProperties(component, view);
                 view.invalidate();
             }
@@ -581,6 +636,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             final View view = mViews.get(component.getComponentId());
             if (view != null) {
                 ComponentViewAdapter adapter = ComponentViewAdapterFactory.getAdapter(component);
+                if (adapter == null) {
+                    Log.e(TAG, "adapter is null");
+                    return;
+                }
                 adapter.requestLayout(component, view);
                 view.invalidate();
             }
@@ -649,8 +708,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             // Init telemetry
             mTelemetryProvider = rootContext.getOptions().getTelemetryProvider();
             mBitmapFactory = rootContext.getRenderingContext().getBitmapFactory();
-            IBitmapCache bitmapCache = rootContext.getRenderingContext().getBitmapCache();
-            mShadowRenderer = new ShadowBitmapRenderer(bitmapCache, mBitmapFactory);
+            ShadowCache shadowCache = rootContext.getRenderingContext().getShadowCache();
+            mShadowRenderer = new ShadowBitmapRenderer(shadowCache, mBitmapFactory);
 
             tRenderDocument = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
                     ITelemetryProvider.RENDER_DOCUMENT, TIMER);
@@ -798,6 +857,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                     root,
                     component -> {
                         ComponentViewAdapter viewAdapter = ComponentViewAdapterFactory.getAdapter(component);
+                        if (viewAdapter == null) {
+                            Log.e(TAG, "adapter is null");
+                            return;
+                        }
                         final View view = viewAdapter.createView(getContext(), mAplViewPresenter);
                         mTelemetryProvider.incrementCount(cViews);
                         // TODO: ideally these two methods would be called by the caller of inflateComponentHierarchy
@@ -1240,7 +1303,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        if (mHandleConfigurationChangeOnSizeChanged && mRootContext != null) {
+        if (mHandleConfigurationChangeOnSizeChanged && mRootContext != null && !mRootContext.isAutoSize()) {
+            Log.i(TAG, "Handle configuration change onSizeChanged");
             try {
                 handleConfigurationChange(
                         createConfigurationChange()
@@ -1274,6 +1338,10 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             for (View view : mViews.values()) {
                 Component component = mAplViewPresenter.findComponent(view);
                 ComponentViewAdapter componentViewAdapter = ComponentViewAdapterFactory.getAdapter(component);
+                if (componentViewAdapter == null) {
+                    Log.e(TAG, "adapter is null");
+                    return;
+                }
                 componentViewAdapter.applyFocusability(component, view);
             }
         }
