@@ -5,12 +5,14 @@
 package com.amazon.apl.viewhost.internal;
 
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 import com.amazon.apl.viewhost.config.DocumentOptions;
@@ -19,6 +21,7 @@ import com.amazon.apl.viewhost.config.EmbeddedDocumentResponse;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.EmbeddedDocumentRequest, DocumentStateChangeListener{
     private static final String TAG = "EmbeddedDocumentRequestImpl";
@@ -28,15 +31,23 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
     private final EmbeddedDocumentRequestProxy mEmbeddedDocumentRequestProxy;
     private final Handler mHandler;
     private DocumentHandleImpl mDocumentHandle;
+    private ITelemetryProvider mTelemetryProvider;
+    private static final String PREPARE_EMBEDDED_DOC_COUNT = "prepareEmbeddedDocCount";
+    private static final String PREPARE_EMBEDDED_DOC_TIME = "prepareEmbeddedDocTime";
+    private final int mPrepareEmbeddedDocCount;
+    private final int mPrepareEmbeddedDocTime;
 
     EmbeddedDocumentRequestImpl(EmbeddedDocumentRequestProxy embeddedDocumentRequestProxy,
-                                Handler handler) {
+                                Handler handler, ITelemetryProvider telemetryProvider) {
         mSource = EMPTY;
         mEmbeddedDocumentRequestProxy = embeddedDocumentRequestProxy;
+        mTelemetryProvider = telemetryProvider;
         mHandler = handler;
         mDocumentHandle = null;
         // We assume that documents are separate unless we're told otherwise
         mIsVisualContextConnected = false;
+        mPrepareEmbeddedDocCount = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, PREPARE_EMBEDDED_DOC_COUNT, ITelemetryProvider.Type.COUNTER);
+        mPrepareEmbeddedDocTime = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, PREPARE_EMBEDDED_DOC_TIME, ITelemetryProvider.Type.TIMER);
     }
     public void setSource(String source) {
         mSource = source;
@@ -98,6 +109,10 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
      * @param documentConfigHandle
      */
     private void handleEmbeddedDocumentRequestSuccess(Content content, long documentConfigHandle) {
+        long endTime = SystemClock.elapsedRealtime();
+        long documentPreparationTime = endTime - mDocumentHandle.getPrepareDocumentStartTime();
+        mTelemetryProvider.reportTimer(mPrepareEmbeddedDocTime, TimeUnit.MILLISECONDS, documentPreparationTime);
+
         DocumentContext documentContext =
                 mEmbeddedDocumentRequestProxy.success(content.getNativeHandle(), mIsVisualContextConnected, documentConfigHandle);
 
@@ -110,6 +125,7 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
         }
 
         mDocumentHandle.setDocumentContext(documentContext);
+        mTelemetryProvider.incrementCount(mPrepareEmbeddedDocCount);
     }
 
 
@@ -151,7 +167,7 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
     }
 
     @Override
-    public void onDocumentStateChanged(DocumentState state) {
+    public void onDocumentStateChanged(DocumentState state, DocumentHandle handle) {
         // when the document state is prepared then content is done so call success
         if (state == DocumentState.PREPARED) {
             mHandler.post(() -> {
@@ -174,7 +190,6 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
                             public void onComplete(Content content) {
                                 onContentRefreshComplete(content, mDocumentHandle.getDocumentOptions(), mediator, documentConfigHandle);
                             }
-
                             @Override
                             public void onError(Exception e) {
                                 Log.e(TAG, "Error occurred during content refresh: " + e.getMessage());
@@ -183,12 +198,14 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
                     } else {
                         onContentRefreshComplete(content, mDocumentHandle.getDocumentOptions(), mediator, documentConfigHandle);
                     }
+
                 } else {
                     mEmbeddedDocumentRequestProxy.failure("DocumentHandle is null");
                 }
             });
         } else if (state == DocumentState.ERROR) {
             mHandler.post(() -> mEmbeddedDocumentRequestProxy.failure("Content creation error, Document State set to Error"));
+            mTelemetryProvider.fail(mPrepareEmbeddedDocCount);
         }
     }
 

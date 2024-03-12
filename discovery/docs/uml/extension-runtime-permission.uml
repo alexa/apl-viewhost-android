@@ -1,0 +1,77 @@
+@startuml
+
+box Runtime #LightGreen
+  participant ExtensionProvider as ep
+end box
+
+box Viewhost #LightBlue
+  participant ExtensionDiscovery as ed
+  participant ExtensionBinder as eb
+end box
+
+box Android #LightCoral
+  participant PackageManager as pm
+  participant Context as co
+end box
+
+box Extension
+  participant ExtensionService as es
+end box
+
+note left of ep
+  <uses-permission android:name=
+  "com.amazon.alexa.extensions.permission.
+  EXTENSION" />
+end note
+
+note right of es
+  <service
+  android:name="com.amazon.apl.android.ExampleExtension"
+  android:permission=
+  "com.amazon.alexa.extensions.permission.
+  EXTENSION">
+end note
+
+note right of es
+  <uses-permission android:name=
+  "com.amazon.alexa.extensions.permission.
+  SKILL" />
+end note
+
+pm -> ed: onPackageAdded
+ed -> ed: registerComponentInfo
+ed -> pm: checkPermission("permission", "package")
+alt Extension uses permission
+note right of ed
+  ExtensionDiscovery checks
+  whether Extension has permission
+  to serve the runtime request
+  using checkPermission API
+end note
+  pm -> ed: PERMISSION_GRANTED
+  ed -> ed: // Add to components cache
+else
+  pm -> ed: PERMISSION_DENIED
+  ed -> ed: // Do not add to components cache
+end
+
+ep -> ed: hasExtension
+ed -> ep: true if extension is in components cache, \nfalse otherwise
+ep -> eb: bind
+eb -> co: bindService
+alt Runtime uses permission
+  note right of pm
+    Android checks whether
+    runtime has permission
+    to connect to extension
+    using manifest
+  end note
+  co <-> es: create service and bind
+  co -> eb: // true if binding is successful
+  eb -> ep: true
+else
+  co -> eb: SecurityException
+  eb -> ep: false
+end
+
+@enduml

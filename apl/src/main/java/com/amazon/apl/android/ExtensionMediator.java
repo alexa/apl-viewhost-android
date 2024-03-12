@@ -153,7 +153,7 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
      * Invoked by a viewhost when the session associated with this mediator (if it has been
      * previously set) has ended.
      */
-    void onSessionEnded() {
+    public void onSessionEnded() {
         nOnSessionEnded(getNativeHandle());
     }
 

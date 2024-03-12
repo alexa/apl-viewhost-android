@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
+import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
 import com.amazon.apl.android.providers.impl.GlideImageLoaderProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
@@ -37,6 +38,7 @@ public class APLOptionsTest {
         assertTrue(options.getImageUriSchemeValidator() instanceof DefaultUriSchemeValidator);
         assertTrue(options.getTtsPlayerProvider() instanceof NoOpTtsPlayerProvider);
         assertTrue(options.getExtensionGrantRequestCallback().isExtensionGranted(""));
+        assertTrue(options.getUserPerceivedFatalCallback() instanceof NoOpUserPerceivedFatalCallback);
     }
 
 }

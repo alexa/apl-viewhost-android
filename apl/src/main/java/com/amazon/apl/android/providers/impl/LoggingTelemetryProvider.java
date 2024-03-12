@@ -11,6 +11,7 @@ import android.util.Log;
 import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.utils.MetricInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -246,14 +247,15 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     }
 
     /**
-     * A synchronized method that returns a one-time copy of the metrics
+     * Method that returns all timer related metrics. The value of each metric should be in Milliseconds.
      *
-     * @return one-time copy of the mMetrics.
+     * @return A Thread safe List of performance metrics.
      */
-    public synchronized List<Metric> getMetricsCopy() {
-        List<Metric> copyOfMetrics = Collections.synchronizedList(new ArrayList<>());
+    public synchronized List<MetricInfo> getPerformanceMetrics() {
+        List<MetricInfo> copyOfMetrics = Collections.synchronizedList(new ArrayList<>());
         for (Metric metric: mMetrics){
-            copyOfMetrics.add(metric);
+            MetricInfo metricInfo = new MetricInfo(metric.metricName, TimeUnit.MILLISECONDS.convert(metric.totalTime, TimeUnit.NANOSECONDS));
+            copyOfMetrics.add(metricInfo);
         }
         return copyOfMetrics;
     }

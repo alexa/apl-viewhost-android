@@ -102,6 +102,14 @@ public abstract class DocumentHandle extends UserDataHolder {
     public abstract boolean finish(FinishDocumentRequest request);
 
     /**
+     * Return a setting from the main template. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-document.html#document_settings_property
+     * @param propertyName  the property name
+     * @param defaultValue  the fallback if not present
+     * @return              the value if present otherwise the fallback.
+     */
+    public abstract <K> K getDocumentSetting(String propertyName, K defaultValue);
+
+    /**
      * Interface for returning the document's serialized visual context
      */
     public interface VisualContextCallback {

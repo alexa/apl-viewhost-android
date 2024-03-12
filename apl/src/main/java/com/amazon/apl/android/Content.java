@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,8 @@ import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
+import com.amazon.apl.devtools.enums.DTNetworkRequestType;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.GradientType;
 import com.google.auto.value.AutoValue;
@@ -70,6 +73,9 @@ public final class Content extends BoundObject {
     @NonNull
     private final Handler mMainHandler;
 
+    @Nullable
+    private final IDTNetworkRequestHandler mDTNetworkRequestHandler;
+
     private IPackageLoader mPackageLoader;
     private IContentDataRetriever mDataRetriever;
     private CallbackV2 mCallback;
@@ -97,7 +103,8 @@ public final class Content extends BoundObject {
     private Content(@NonNull ITelemetryProvider telemetryProvider,
                     @Nullable IPackageLoader packageLoader,
                     @Nullable IContentDataRetriever dataRetriever,
-                    long entryTime) {
+                    long entryTime,
+                    @Nullable IDTNetworkRequestHandler dtNetworkRequest) {
         // private constructor
         mImportRequests = Collections.newSetFromMap(new ConcurrentHashMap<>());
         mParameters = Collections.newSetFromMap(new ConcurrentHashMap<>());
@@ -112,6 +119,7 @@ public final class Content extends BoundObject {
         mDataRetriever = dataRetriever;
         setPackageLoader(packageLoader);
         mMainHandler = new Handler(Looper.getMainLooper());
+        mDTNetworkRequestHandler = dtNetworkRequest;
     }
 
     /**
@@ -182,7 +190,7 @@ public final class Content extends BoundObject {
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      * Also registers a callback to receive Content ImportRequests and data parameters.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session, IDTNetworkRequestHandler)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The APL document containing the 'mainTemplate' tag.
      * @param callback     A callback for Package and Data requests.
@@ -192,14 +200,14 @@ public final class Content extends BoundObject {
     @Deprecated
     public static Content create(@NonNull final String mainTemplate, final Callback callback) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, callback, null, entryTime, null, new Session());
+        return createContent(mainTemplate, null, callback, null, entryTime, null, new Session(), null);
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      * Also registers a callback to receive Content ImportRequests and data parameters.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session, IDTNetworkRequestHandler)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The APL document containing the 'mainTemplate' tag.
      * @param aplOptions   The APL options.
@@ -210,13 +218,13 @@ public final class Content extends BoundObject {
     public static Content create(@NonNull final String mainTemplate, @NonNull final APLOptions aplOptions, final Callback callback) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, callback, null, entryTime, null, new Session());
+        return createContent(mainTemplate, aplOptions, callback, null, entryTime, null, new Session(), null);
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session, IDTNetworkRequestHandler)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The main document.
      * @return A Content object based on the mainTemplate document.
@@ -225,13 +233,13 @@ public final class Content extends BoundObject {
     @NonNull
     public static Content create(final String mainTemplate) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
-        return createContent(mainTemplate, null, null, null, entryTime, null, new Session());
+        return createContent(mainTemplate, null, null, null, entryTime, null, new Session(), null);
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session)} instead to use the package loader from APLOptions
+     * @deprecated use {@link #create(String, APLOptions, CallbackV2, Session, IDTNetworkRequestHandler)} instead to use the package loader from APLOptions
      *
      * @param mainTemplate The main document.
      * @param aplOptions   The APL options.
@@ -242,23 +250,24 @@ public final class Content extends BoundObject {
     public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions) throws ContentException {
         long entryTime = SystemClock.elapsedRealtimeNanos(); // Must remain first for accurate telemetry!
         Objects.requireNonNull(aplOptions);
-        return createContent(mainTemplate, aplOptions, null, null, entryTime, null, new Session());
+        return createContent(mainTemplate, aplOptions, null, null, entryTime, null, new Session(), null);
     }
 
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @param mainTemplate  The main document.
-     * @param aplOptions    The APL Options
-     * @param callback      The callback for handling Content requests.
-     * @param session       Experience logging session.
-     * @return              A Content object if the maintemplate is valid, otherwise null.
+     * @param mainTemplate      The main document.
+     * @param aplOptions        The APL Options
+     * @param callback          The callback for handling Content requests.
+     * @param session           Experience logging session.
+     * @param dtNetworkRequest  The IDTNetworkRequestHandler for notifying Dev Tools Clients of network events.
+     * @return                  A Content object if the maintemplate is valid, otherwise null.
      */
     @Nullable
-    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session) {
+    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session, IDTNetworkRequestHandler dtNetworkRequest) {
         long entryTime = SystemClock.elapsedRealtimeNanos();
         try {
-            return createContent(mainTemplate, aplOptions, null, callback, entryTime, null, session);
+            return createContent(mainTemplate, aplOptions, null, callback, entryTime, null, session, dtNetworkRequest);
         } catch (ContentException e) {
             callback.onError(e);
             return null;
@@ -268,17 +277,18 @@ public final class Content extends BoundObject {
     /**
      * Construct the working Content object from a document that contains the apl 'mainTemplate'.
      *
-     * @param mainTemplate  The main document.
-     * @param aplOptions    The APL Options
-     * @param callback      The callback for handling Content requests.
-     * @param rootConfig    RootConfig
-     * @return              A Content object if the maintemplate is valid, otherwise null.
+     * @param mainTemplate      The main document.
+     * @param aplOptions        The APL Options
+     * @param callback          The callback for handling Content requests.
+     * @param rootConfig        RootConfig
+     * @param dtNetworkRequest  The IDTNetworkRequestHandler for notifying Dev Tools Clients of network events.
+     * @return                  A Content object if the maintemplate is valid, otherwise null.
      */
     @Nullable
-    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, RootConfig rootConfig) {
+    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, RootConfig rootConfig, IDTNetworkRequestHandler dtNetworkRequest) {
         long entryTime = SystemClock.elapsedRealtimeNanos();
         try {
-            return createContent(mainTemplate, aplOptions, null, callback, entryTime, rootConfig,(rootConfig != null && rootConfig.getSession() != null) ? rootConfig.getSession() : new Session());
+            return createContent(mainTemplate, aplOptions, null, callback, entryTime, rootConfig,(rootConfig != null && rootConfig.getSession() != null) ? rootConfig.getSession() : new Session(), dtNetworkRequest);
         } catch (ContentException e) {
             callback.onError(e);
             return null;
@@ -291,13 +301,14 @@ public final class Content extends BoundObject {
                                          @Nullable final CallbackV2 callbackV2,
                                          long entryTime,
                                          final RootConfig rootConfig,
-                                         final Session session) throws ContentException {
+                                         final Session session,
+                                         final IDTNetworkRequestHandler dtNetworkRequestHandler) throws ContentException {
         if (mainTemplate.length() == 0) {
             throw new ContentException("Invalid document length.");
         }
         Content content = null;
         try {
-            content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime);
+            content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime, dtNetworkRequestHandler);
             content.setCallbacks(callbackV2, callback);
             content.importDocument(mainTemplate, rootConfig, session);
         } catch (Exception e) {
@@ -447,6 +458,15 @@ public final class Content extends BoundObject {
         if (notifyPackages) {
             for (ImportRequest importRequest : getRequestedPackages()) {
                 final long startTime = SystemClock.elapsedRealtimeNanos();
+                if (mDTNetworkRequestHandler != null) {
+                    String source = importRequest.getSource();
+                    if (TextUtils.isEmpty(source)) {
+                        source = IDTNetworkRequestHandler.getDefaultPackageUrl(importRequest.getPackageName(), importRequest.getVersion());
+                    }
+                    if (IDTNetworkRequestHandler.isUrlRequest(source)) {
+                        mDTNetworkRequestHandler.requestWillBeSent(importRequest.getRequestId(), SystemClock.elapsedRealtimeNanos(), source, DTNetworkRequestType.PACKAGE);
+                    }
+                }
                 mPackageLoader.fetch(importRequest,
                         (ImportRequest request, APLJSONData result) -> this.handleImportSuccess(request, result, startTime),
                         (ImportRequest request, String message) -> {
@@ -455,6 +475,10 @@ public final class Content extends BoundObject {
                                     request,
                                     duration,
                                     message));
+                            final String source = request.getSource();
+                            if (mDTNetworkRequestHandler != null && IDTNetworkRequestHandler.isUrlRequest(source)) {
+                                mDTNetworkRequestHandler.loadingFailed(request.getRequestId(), SystemClock.elapsedRealtimeNanos());
+                            }
                         });
 
             }
@@ -488,6 +512,11 @@ public final class Content extends BoundObject {
         Log.i(TAG, String.format("Package '%s' took %d milliseconds to download.",
                 request.getPackageName(),
                 duration));
+
+        final String source = request.getSource();
+        if (mDTNetworkRequestHandler != null && IDTNetworkRequestHandler.isUrlRequest(source)) {
+            mDTNetworkRequestHandler.loadingFinished(request.getRequestId(), SystemClock.elapsedRealtimeNanos(), result.getSize());
+        }
         invokeOnMyThread(() -> addPackage(request, result));
     }
 
@@ -517,7 +546,7 @@ public final class Content extends BoundObject {
     @SuppressWarnings("unused")
     private void coreRequestPackage(long nativeHandle, String source, String name, String version) {
         mTelemetryProvider.incrementCount(cContentImportRequests);
-        mImportRequests.add(new ImportRequest(nativeHandle, source, name, version));
+        mImportRequests.add(new ImportRequest(nativeHandle, source, name, version, IDTNetworkRequestHandler.IdGenerator.generateId()));
     }
 
     /**
@@ -615,14 +644,16 @@ public final class Content extends BoundObject {
         final public String version;
 
         private final ImportRef mImportRef;
+        private final int mRequestId;
 
-        ImportRequest(long nativeHandle, String source, String packageName, String version) {
+        ImportRequest(long nativeHandle, String source, String packageName, String version, int requestId) {
             bind(nativeHandle);
             // TODO replace these fields with native call to bound object
             this.source = source;
             this.packageName = packageName;
             this.version = version;
             mImportRef = ImportRef.create(packageName, version);
+            mRequestId = requestId;
         }
 
 
@@ -643,6 +674,10 @@ public final class Content extends BoundObject {
 
         public ImportRef getImportRef() {
             return mImportRef;
+        }
+
+        public int getRequestId() {
+            return mRequestId;
         }
     }
 

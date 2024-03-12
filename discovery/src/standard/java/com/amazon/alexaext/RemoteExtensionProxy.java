@@ -67,6 +67,10 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
         mProxyDelegate.disconnect(getUri(), "Clean up.");
     }
 
+    protected void disconnectV1() {
+        mProxyDelegate.disconnectV1(getUri(), "Clean up V1 connections using disconnect.");
+    }
+
     @Override
     protected boolean initialize(@NonNull final String uri) {
         return mProxyDelegate.onProxyInitialize(uri);

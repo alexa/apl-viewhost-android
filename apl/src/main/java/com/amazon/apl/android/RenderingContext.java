@@ -54,6 +54,7 @@ public class RenderingContext {
     private final IExtensionEventCallback extensionEventCallback;
     private final APLTrace aplTrace;
     private final boolean mediaPlayerV2Enabled;
+    private final boolean isHardwareAccelerationForVectorGraphicsEnabled;
 
     private RenderingContext(
             int docVersion,
@@ -71,7 +72,8 @@ public class RenderingContext {
             IContentRetriever<Uri, String> avgRetriever,
             IExtensionEventCallback extensionEventCallback,
             APLTrace aplTrace,
-            boolean mediaPlayerV2Enabled) {
+            boolean mediaPlayerV2Enabled,
+            boolean isHardwareAccelerationForVectorGraphicsEnabled) {
         this.docVersion = docVersion;
         this.metricsTransform = metricsTransform;
         this.textLayoutFactory = textLayoutFactory;
@@ -88,6 +90,7 @@ public class RenderingContext {
         this.extensionEventCallback = extensionEventCallback;
         this.aplTrace = aplTrace;
         this.mediaPlayerV2Enabled = mediaPlayerV2Enabled;
+        this.isHardwareAccelerationForVectorGraphicsEnabled = isHardwareAccelerationForVectorGraphicsEnabled;
         mShadowCache = new ShadowCache();
         this.mPathCache = new WeakCache<>();
     }
@@ -166,6 +169,10 @@ public class RenderingContext {
 
     public boolean isMediaPlayerV2Enabled() { return mediaPlayerV2Enabled; }
 
+    public boolean isHardwareAccelerationForVectorGraphicsEnabled() {
+        return isHardwareAccelerationForVectorGraphicsEnabled;
+    }
+
     // Defaults are no-ops
     public static Builder builder() {
         return new Builder()
@@ -200,6 +207,7 @@ public class RenderingContext {
         private IExtensionEventCallback extensionEventCallback;
         private APLTrace aplTrace;
         private boolean isMediaPlayerV2Enabled;
+        private boolean isHardwareAccelerationForVectorGraphicsEnabled;
 
         Builder() {
         }
@@ -285,6 +293,11 @@ public class RenderingContext {
             return this;
         }
 
+        public RenderingContext.Builder isHardwareAccelerationForVectorGraphicsEnabled(boolean isHardwareAccelerationForVectorGraphicsEnabled) {
+            this.isHardwareAccelerationForVectorGraphicsEnabled = isHardwareAccelerationForVectorGraphicsEnabled;
+            return this;
+        }
+
         public RenderingContext build() {
             return new RenderingContext(
                     this.docVersion,
@@ -302,7 +315,8 @@ public class RenderingContext {
                     this.avgRetriever,
                     this.extensionEventCallback,
                     this.aplTrace,
-                    this.isMediaPlayerV2Enabled);
+                    this.isMediaPlayerV2Enabled,
+                    this.isHardwareAccelerationForVectorGraphicsEnabled);
         }
     }
 }

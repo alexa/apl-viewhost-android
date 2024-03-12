@@ -366,6 +366,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         verify(component(), atLeastOnce()).getAccessibilityLabel();
         verify(component(), atLeastOnce()).isFocusable();
         verify(component(), atLeastOnce()).isDisabled();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isFocusableInTouchMode();
         verifyNoMoreInteractions(component());
 
@@ -385,6 +386,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         verify(component(), atLeastOnce()).getAccessibilityLabel();
         verify(component(), atLeastOnce()).isFocusable();
         verify(component(), atLeastOnce()).isDisabled();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isFocusableInTouchMode();
         verifyNoMoreInteractions(component());
 

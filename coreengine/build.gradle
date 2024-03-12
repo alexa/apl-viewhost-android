@@ -1,0 +1,119 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.library'
+
+ext {
+    cmakeProjectPath = projectDir.absolutePath
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        cmakeProjectPath = cmakeProjectPath.replace('\\', '/')
+    }
+    if (project.hasProperty('aplCoreDir')) {
+        aplCoreDirCmakeArg = "-DAPL_CORE_DIR=" + aplCoreDir
+    } else {
+        aplCoreDir = "${cmakeProjectPath}/../../APLCoreEngine"
+        aplCoreDirCmakeArg = "-DAPL_CORE_DIR=${aplCoreDir}"
+    }
+}
+
+android {
+    namespace 'com.amazon.apl.coreengine'
+    compileSdk 33
+    ndkVersion "23.0.7599858"
+    buildToolsVersion = "33.0.0"
+
+    sourceSets {
+        // Encapsulates configurations for the main source set.
+        main {
+            // Changes the directory for Java sources. The default directory is
+            // 'src/main/java'.
+            java.srcDirs = []
+        }
+    }
+
+    defaultConfig {
+        minSdkVersion 22
+        targetSdkVersion 33
+        externalNativeBuild {
+            cmake {
+                // Sets optional flags for the C++ compiler.
+                cppFlags "-std=c++11", "-fno-rtti", "-fno-exceptions"
+                // Build the APL Core JNI library (excludes all other targets)
+                targets "apl", "alexaext", "generate-android-enums", "rapidjson", "copy-headers", "copy-config"
+                // Enable APL Core JNI build, and be verbose.
+                arguments aplCoreDirCmakeArg
+            }
+        }
+    }
+
+    buildTypes {
+        releaseWithSceneGraph {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            matchingFallbacks = ['release']
+            externalNativeBuild {
+                cmake {
+                    arguments aplCoreDirCmakeArg, "-DSCENE_GRAPH=ON"
+                }
+            }
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            version "3.18.1"
+
+            // Tells Gradle to find the root CMake APL build script. path is relative to
+            // the directory containing the module's build.gradle file. Gradle requires this
+            // build script to designate a CMake project as a build dependency and
+            // pull native sources into the Android project.
+            path "CMakeLists.txt"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        prefabPublishing true
+    }
+    prefab {
+        apl {
+            headers "src/main/cpp/apl/include"
+        }
+        alexaext {
+            headers "${project.property('aplCoreDir')}/extensions/alexaext/include/"
+        }
+        rapidjson {
+            headers "src/main/cpp/rapidjson/include"
+            headerOnly true
+        }
+    }
+}
+
+dependencies {
+}
+
+task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
+    cmakeArgs aplCoreDirCmakeArg
+    makeTargets "apl", "alexaext"
+}
+
+project.afterEvaluate {
+    // Dump configuration settings
+    println "APL Core Directory: " + aplCoreDirCmakeArg
+    println "Android SDK Directory: " + android.sdkDirectory.path
+    println "Android NDK Directory: " + android.ndkDirectory.path
+
+    compileDebugJavaWithJavac.dependsOn externalNativeBuildDebug
+    compileReleaseJavaWithJavac.dependsOn externalNativeBuildRelease
+}
+
+tasks.build.dependsOn(buildHostJNI)

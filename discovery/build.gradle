@@ -3,111 +3,242 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 ext {
-    aplAndroidCmakeArgs = " -DCMAKE_VERBOSE_MAKEFILE=ON"
-    aplCoreDirCmakeArg = "-DAPL_CORE_DIR=" + projectDir + "/../../apl-core-library"
-    if (project.hasProperty('aplCoreDir')) {
-        aplCoreDirCmakeArg = "-DAPL_CORE_DIR=" + aplCoreDir
-    } else {
-
+    cmakeProjectPath = projectDir.absolutePath
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        cmakeProjectPath = cmakeProjectPath.replace('\\', '/')
     }
+    aplAndroidCmakeArgs = "-DCMAKE_VERBOSE_MAKEFILE=ON"
 }
 
 android {
-    compileSdkVersion 28
+    namespace 'com.amazon.alexa.android.extension.discovery'
+    compileSdk 34
+    buildToolsVersion = "33.0.0"
     ndkVersion "23.0.7599858"
-    buildToolsVersion "30.0.2"
-
 
     defaultConfig {
         minSdkVersion 22
-        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
+        targetSdkVersion 34
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
+
         externalNativeBuild {
             cmake {
                 // Sets optional flags for the C++ compiler.
-                // Enables RTTI (RunTime Type Information) support and C++ exceptions.
-                cppFlags "-std=c++11", "-frtti", "-fexceptions", "-DBUILD_ALEXAEXTENSIONS=On", "-DALEXAEXTENSIONS=1"
-                // Build the APL Core JNI library (excludes all other targets)
-                targets "alexaext", "discovery-jni"
+                cppFlags "-std=c++11", "-fno-rtti", "-fno-exceptions"
                 // Enable APL Core JNI build, and be verbose.
-                arguments aplCoreDirCmakeArg, aplAndroidCmakeArgs
-            }
-            ndk {
-                // Specifies the ABI configurations for the native libraries
-                // that Gradle will build and package with the APK.
-                abiFilters 'x86', 'armeabi-v7a', 'arm64-v8a'
+                arguments aplAndroidCmakeArgs
             }
         }
     }
-
+    publishing {
+        multipleVariants {
+            allVariants()
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            buildConfigField 'boolean', 'DEBUG_LOGGING', 'false'
+        }
+        debug {
+            buildConfigField 'boolean', 'DEBUG_LOGGING', 'true'
         }
     }
 
     externalNativeBuild {
         cmake {
-            version "3.10.2"
+            version "3.18.1"
             path "CMakeLists.txt"
         }
     }
 
-    compileOptions {
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
+    buildFeatures {
+        aidl true
+        buildConfig true
+        prefab true
     }
+
     testOptions {
         unitTests.returnDefaultValues = true
     }
 
-}
+    // Define some custom properties to distinguish the flavors. These are the
+    // defaults, and they can be further customized in the productFlavors
+    // section.
+    productFlavors.all { flavor ->
+        // Allow flavor to identify itself as the original (legacy) one
+        flavor.ext.isLegacy = false
 
-dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+        // In general, we want our library to have compatibiltiy with Java 7 to
+        // maximize adoption by customers. However, on a per-flavor basis this
+        // can be overridden.
+        flavor.ext.javaSourceCompatibility = JavaVersion.VERSION_1_7
+    }
 
-    implementation project(":common")
+    // Apply additional logic to the variants based on the custom properties
+    libraryVariants.all {  variant ->
+        def flavor = variant.productFlavors[0]
 
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+        // Set the per-flavor Java source compatibility
+        def version = flavor.ext.javaSourceCompatibility
+        variant.javaCompileProvider.get().doFirst {
+            logger.info('Configuring variant ' + variant.getName() + ' with Java ' + version + ' compatibility')
+            sourceCompatibility = version
+            targetCompatibility = version
+        }
 
-    implementation 'com.android.support:support-annotations:28.0.0'
+        // Rename the output of the flavor considered legacy according to the
+        // old convention (i.e. discovery-[release|debug].aar) for consistency.
+        if (flavor.ext.isLegacy) {
+            variant.outputs.all { output ->
+                if (outputFile != null && outputFileName.endsWith('.aar')) {
+                    outputFileName = "${archivesBaseName}-${variant.buildType.name}.aar"
+                    logger.info('Setting output of ' + variant.getName() + ' to be ' + outputFileName)
+                }
+            }
+        }
+    }
 
-    testImplementation 'junit:junit:4.12'
+    sourceSets {
+        standardMinSized {
+            java.srcDir 'src/standard/java'
+        }
+    }
 
-    androidTestImplementation 'com.android.support:support-annotations:28.0.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
-    androidTestImplementation 'androidx.test:runner:1.1.1'
-    androidTestImplementation 'androidx.test:rules:1.1.1'
-    androidTestImplementation 'org.mockito:mockito-core:2.25.0'
-    androidTestImplementation 'com.linkedin.dexmaker:dexmaker:2.25.0'
-    androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito:2.25.0'
+    // Define the flavors which produce library variants
+    flavorDimensions "discoveryLibraryVariant"
+    productFlavors {
+        // This flavor is the original library for Alexa extensions. It
+        // contains a client that is capable of connecting to both V1 and V2
+        // extensions. It also has legacy V1 service interfaces.
+        standard {
+            dimension "discoveryLibraryVariant"
+            targetSdkVersion 31
+            ext {
+                // This is the legacy flavor
+                isLegacy = true
 
-}
+                // For legacy reasons, this code relies on Java 8 features such
+                // as lambdas and default keyword on interfaces
+                javaSourceCompatibility = JavaVersion.VERSION_1_8
+            }
+            externalNativeBuild {
+                cmake {
+                    // Build the APL Core JNI library (excludes all other targets)
+                    targets "discovery-jni"
+                }
+            }
+        }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                pom {
-                    description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
-                            ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
+        // This flavor is the same as standard flavor but omits the JNI code. The JNI code
+        // is moved to apl-jni in this flavor and should be used with releaseMinSized variant.
+        standardMinSized {
+            dimension "discoveryLibraryVariant"
+            targetSdkVersion 31
+            ext {
+                // This is the legacy flavor
+                isLegacy = true
+
+                // For legacy reasons, this code relies on Java 8 features such
+                // as lambdas and default keyword on interfaces
+                javaSourceCompatibility = JavaVersion.VERSION_1_8
+            }
+            externalNativeBuild {
+                cmake {
+                    arguments aplAndroidCmakeArgs, "-DINCLUDE_ALEXAEXT=OFF"
+                }
+            }
+
+        }
+
+        // This flavor is a standalone library for V2 extension services.
+        serviceV2 {
+            dimension "discoveryLibraryVariant"
+            targetSdkVersion 27
+            externalNativeBuild {
+                cmake {
+                    // Build the APL Core JNI library (excludes all other targets)
+                    targets "discovery-jni"
                 }
             }
         }
     }
 }
 
-task release(type: Copy, dependsOn: ['build', 'publish']) {
-    from 'build/outputs/aar'
-    into '../build/discovery'
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    standardImplementation project(":common")
+    standardMinSizedImplementation project(":common")
+
+    implementation project(':coreengine')
+    implementation project(':alexaextjni')
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+
+    implementation 'androidx.annotation:annotation:1.0.0'
+
+    testImplementation 'junit:junit:4.12'
+
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test:runner:1.4.0'
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    androidTestImplementation 'org.mockito:mockito-core:3.12.4'
+    androidTestImplementation 'com.linkedin.dexmaker:dexmaker:2.25.0'
+    androidTestImplementation 'com.linkedin.dexmaker:dexmaker-mockito:2.25.0'
+    androidTestImplementation project(path: ':commonTest')
+    androidTestImplementation 'com.squareup.leakcanary:leakcanary-android-instrumentation:2.9.1'
+    androidTestImplementation 'com.squareup.leakcanary:leakcanary-object-watcher-android:2.9.1'
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            pom {
+                description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
+                        ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
+            }
+            afterEvaluate {
+                from components.default
+            }
+        }
+    }
+}
+
+tasks.build.dependsOn(assembleAndroidTest)
+
+task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
+    cmakeArgs aplAndroidCmakeArgs
+    makeTargets "discovery-jni"
+    dependsOn ':alexaextjni:buildHostJNI'
+}
+
+task release(dependsOn: ['build', 'publish']) {
+    doLast {
+        copy {
+            from 'build/outputs/aar'
+            into '../build/discovery'
+        }
+
+        copy {
+            from 'build/outputs/apk/androidTest/standard/debug'
+            into '../build/discovery/androidTest'
+        }
+
+        copy {
+            from 'build/outputs/apk/androidTest/serviceV2/debug'
+            into '../build/discovery/androidTest'
+        }
+    }
 }

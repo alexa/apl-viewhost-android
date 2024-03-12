@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.apl.android.primitive.AccessibilityActions;
+import com.amazon.apl.android.primitive.AccessibilityAdjustableRange;
 import com.amazon.apl.android.primitive.BoundMediaSources;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Filters;
@@ -198,6 +199,10 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
 
     public final AccessibilityActions getAccessibilityActions(K property) {
         return AccessibilityActions.create(getMapOwner(), property);
+    }
+
+    public final AccessibilityAdjustableRange getAccessibilityAdjustableRange(K property) {
+        return AccessibilityAdjustableRange.create(getMapOwner(), property);
     }
 
     public final GraphicFilters getGraphicFilters(K property) {

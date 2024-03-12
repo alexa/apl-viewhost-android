@@ -27,6 +27,8 @@ public abstract class RuntimeConfig {
 
     public abstract boolean isPreloadingFontsEnabled();
 
+    public abstract boolean isEnableHardwareAccelerationForAVG();
+
     public abstract IBitmapPool getBitmapPool();
 
     public abstract IBitmapCache getBitmapCache();
@@ -54,6 +56,7 @@ public abstract class RuntimeConfig {
         return new AutoValue_RuntimeConfig.Builder()
                 .fontResolver(new CompatFontResolver())
                 .preloadingFontsEnabled(true)
+                .enableHardwareAccelerationForAVG(false)
                 .bitmapCache(bitmapCache)
                 .bitmapPool(bitmapPool)
                 .embeddedFontResolverEnabled(true)
@@ -75,6 +78,24 @@ public abstract class RuntimeConfig {
          * @return this builder
          */
         public abstract Builder preloadingFontsEnabled(boolean shouldPreloadFonts);
+
+        /**
+         * Defaults to false
+         * The reason for defaulting to false is that some runtimes are constrained to use Android
+         * FrameBuilder rendering pipeline, which has an architectural deficiency leading to
+         * significant quality degradation of graphic Paths at high scale values.
+         *
+         * Runtimes can opt-in for better fluidity with AVG animations by setting this to true,
+         * if they can use Skia (OpenGL) pipeline.
+         *
+         * https://developer.android.com/topic/performance/hardware-accel#scaling
+         *
+         * @param acceleratedAVGRendering specifies whether the viewhost should
+         *                                use HW Accelerated Canvas directly for
+         *                                rendering AVG
+         * @return this builder
+         */
+        public abstract Builder enableHardwareAccelerationForAVG(boolean acceleratedAVGRendering);
 
         /**
          * Bitmap pool to use for creating new Bitmap objects.

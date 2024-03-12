@@ -725,6 +725,33 @@ namespace apl {
             return env->NewStringUTF(action->getLabel().c_str());
         }
 
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_primitive_AccessibilityAdjustableRange_nGetMinValue(JNIEnv *env, jclass clazz,
+                                                                                            jlong handle,
+                                                                                            jint propertyId) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto minValue = value.get("minValue").asNumber();
+            return static_cast<jfloat>(minValue);
+        }
+
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_primitive_AccessibilityAdjustableRange_nGetMaxValue(JNIEnv *env, jclass clazz,
+                                                                                            jlong handle,
+                                                                                            jint propertyId) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto maxValue = value.get("maxValue").asNumber();
+            return static_cast<jfloat>(maxValue);
+        }
+
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_primitive_AccessibilityAdjustableRange_nGetCurrentValue(JNIEnv *env, jclass clazz,
+                                                                                            jlong handle,
+                                                                                            jint propertyId) {
+            auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
+            auto currentValue = value.get("currentValue").asNumber();
+            return static_cast<jfloat>(currentValue);
+        }
+
         JNIEXPORT jint JNICALL
         Java_com_amazon_apl_android_primitive_GraphicFilters_nGetGraphicFilterTypeAt(JNIEnv *env, jclass clazz,
                                                                                      jlong handle, jint propertyId, jint index) {

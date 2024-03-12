@@ -28,15 +28,18 @@ import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.IScreenLockListener;
 import com.amazon.apl.android.dependencies.ISendEventCallback;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
+import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.dependencies.IViewportSizeUpdateCallback;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
+import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
 import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
+import com.amazon.apl.android.providers.ILocalTimeOffsetProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.providers.impl.GlideImageLoaderProvider;
@@ -102,6 +105,9 @@ public abstract class APLOptions {
     @Nullable
     public abstract IImageProcessor getImageProcessor();
 
+    @Nullable
+    public abstract ILocalTimeOffsetProvider getLocalTimeOffsetProvider();
+
     // Callbacks
     public abstract IOnAplFinishCallback getOnAplFinishCallback();
     public abstract IOpenUrlCallback getOpenUrlCallback();
@@ -143,6 +149,8 @@ public abstract class APLOptions {
     public abstract IImageUriSchemeValidator getImageUriSchemeValidator();
 
     public abstract IClockProvider getAplClockProvider();
+
+    public abstract IUserPerceivedFatalCallback getUserPerceivedFatalCallback();
 
     /**
      * @return options that are {@link IDocumentLifecycleListener}s.
@@ -189,7 +197,8 @@ public abstract class APLOptions {
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
                 .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."))
                 .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory())
-                .viewportSizeUpdateCallback((width, height) ->{});
+                .viewportSizeUpdateCallback((width, height) ->{})
+                .userPerceivedFatalCallback(new NoOpUserPerceivedFatalCallback());
     }
 
     @AutoValue.Builder
@@ -233,6 +242,13 @@ public abstract class APLOptions {
          * @return this builder
          */
         public abstract Builder imageProcessor(IImageProcessor provider);
+
+        /**
+         * Required for the local time to transition with timezones or daylight savings.
+         * @param provider the local time offset provider.
+         * @return this builder
+         */
+        public abstract Builder localTimeOffsetProvider(ILocalTimeOffsetProvider provider);
 
         /**
          * Required to support FinishEvents.
@@ -409,6 +425,14 @@ public abstract class APLOptions {
          * @return this builder
          */
         public abstract Builder viewhost(Viewhost viewhost);
+
+        /**
+         * Callback for reporting UPF events to Runtime.
+         *
+         * @param userPerceivedFatalCallback a callback for UPF
+         * @return this builder
+         */
+        public abstract Builder userPerceivedFatalCallback(IUserPerceivedFatalCallback userPerceivedFatalCallback);
 
         /**
          * Builds the options for this document.

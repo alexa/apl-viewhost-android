@@ -45,6 +45,17 @@ namespace apl {
                 return JNI_FALSE;
             }
 
+            Event::setUserDataReleaseCallback([](void* userData){
+                JNIEnv* jniEnv;
+                JAVA_VM->GetEnv(reinterpret_cast<void **>(&jniEnv), JNI_VERSION_1_6);
+                if (!jniEnv) {
+                    return;
+                }
+                if (userData) {
+                    jniEnv->DeleteWeakGlobalRef((jobject) userData);
+                }
+            });
+
             return JNI_TRUE;
         }
 
@@ -70,6 +81,7 @@ namespace apl {
             }
 
             jobject weak = env->NewWeakGlobalRef(instance);
+            event->setUserData(weak);
             event->getActionRef().addTerminateCallback([weak](const std::shared_ptr<Timers>&) {
                 // May be called from a different thread than nInit necessitating a call to get this thread's JNIEnv
                 JNIEnv* jniEnv;
@@ -83,6 +95,7 @@ namespace apl {
                     return;
                 }
                 jniEnv->CallVoidMethod(local, ACTION_ON_TERMINATE);
+                jniEnv->DeleteLocalRef(local);
             });
         }
 

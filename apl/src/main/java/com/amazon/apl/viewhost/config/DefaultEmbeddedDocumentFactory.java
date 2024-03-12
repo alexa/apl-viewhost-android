@@ -55,9 +55,14 @@ public class DefaultEmbeddedDocumentFactory implements EmbeddedDocumentFactory {
                     JSONObject message = new JSONObject(response);
                     String document ,data = FIELD_EMPTY_FALLBACK_VALUE;
                     if (message.has("name") && "RenderDocument".equals(message.getString("name"))) {
-                        JSONObject payload = message.getJSONObject("payload");
-                        document = payload.optString(FIELD_DOCUMENT, FIELD_EMPTY_FALLBACK_VALUE);
-                        data = payload.optString(FIELD_DATASOURCES, FIELD_EMPTY_FALLBACK_VALUE);
+                        if (message.has("payload")) {
+                            JSONObject payload = message.getJSONObject("payload");
+                            document = payload.optString(FIELD_DOCUMENT, FIELD_EMPTY_FALLBACK_VALUE);
+                            data = payload.optString(FIELD_DATASOURCES, FIELD_EMPTY_FALLBACK_VALUE);
+                        } else {
+                            document = message.optString(FIELD_DOCUMENT, FIELD_EMPTY_FALLBACK_VALUE);
+                            data = message.optString(FIELD_DATASOURCES, FIELD_EMPTY_FALLBACK_VALUE);
+                        }
                     } else {
                         document = message.toString();
                     }

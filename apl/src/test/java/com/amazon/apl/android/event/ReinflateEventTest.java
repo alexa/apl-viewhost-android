@@ -26,6 +26,7 @@ import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
@@ -69,6 +70,8 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
     private IPackageLoader mPackageLoader;
     @Mock
     private ExtensionMediator mMediator;
+    @Mock
+    private IDTNetworkRequestHandler mDTNetworkRequestHandler;
 
     private static final String REINFLATE_DOC = "{\n" +
             "    \"type\": \"APL\",\n" +
@@ -228,7 +231,7 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
 
                 contentComplete.countDown();
             }
-        }, mRootConfig);
+        }, mRootConfig, mDTNetworkRequestHandler);
         Assert.assertTrue(contentComplete.await(1, TimeUnit.SECONDS));
     }
     @Test

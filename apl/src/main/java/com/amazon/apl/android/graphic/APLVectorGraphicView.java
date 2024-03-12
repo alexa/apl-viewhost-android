@@ -9,11 +9,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import android.os.Build;
 import android.util.Log;
 import android.widget.ImageView;
 
@@ -45,6 +47,11 @@ public class APLVectorGraphicView extends ImageView {
      */
     public APLVectorGraphicView(@NonNull Context context, @NonNull IAPLViewPresenter presenter) {
         super(context);
+        if (presenter.isHardwareAccelerationForVectorGraphicsEnabled()){
+            // Required for drawing view alpha accurately when drawing on hardware accelerated canvas
+            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+            setLayerType(LAYER_TYPE_HARDWARE, paint);
+        }
         mBitmapFactory = presenter.getBitmapFactory();
     }
 

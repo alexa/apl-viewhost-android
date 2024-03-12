@@ -885,6 +885,13 @@ namespace apl {
             env->ReleaseStringUTFChars(url_, url);
         }
 
+        JNIEXPORT jlong JNICALL
+        Java_com_amazon_apl_android_RootContext_nGetDocumentContext(JNIEnv *env, jobject thiz, jlong nativeHandle) {
+            auto rc = get<RootContext>(nativeHandle);
+            auto documentContext = rc->topDocument();
+            return createHandle<DocumentContext>(documentContext);
+        }
+
         /**
          * Notifies core when a media load has failed
          */
@@ -902,6 +909,91 @@ namespace apl {
             rc->mediaLoadFailed(url, errorCode, error);
             env->ReleaseStringUTFChars(url_, url);
             env->ReleaseStringUTFChars(error_, error);
+        }
+
+        JNIEXPORT jstring JNICALL
+        Java_com_amazon_apl_android_RootContext_nDocumentCommandRequest(JNIEnv *env,
+                                                               jclass clazz,
+                                                               jlong handle,
+                                                               jstring method_,
+                                                               jstring params_) {
+            auto rc = get<RootContext>(handle);
+
+            // Get method
+            const char* methodString = env->GetStringUTFChars(method_, nullptr);
+            std::string method(methodString);
+            env->ReleaseStringUTFChars(method_, methodString);
+
+            // Re-parse command parameters
+            const char* paramsString = env->GetStringUTFChars(params_, nullptr);
+            auto paramsJson = rapidjson::Document();
+            paramsJson.Parse(paramsString);
+            env->ReleaseStringUTFChars(params_, paramsString);
+            apl::Object params = apl::Object(std::move(paramsJson));
+
+            // Result is always an object
+            rapidjson::Document document(rapidjson::kObjectType);
+            rapidjson::Value result(rapidjson::kObjectType);
+
+            if (method == "Document.getMainPackage") {
+                auto package = rc->topDocument()->content()->getDocument();
+                rapidjson::Document value(&document.GetAllocator());
+                value.CopyFrom(package->json(), value.GetAllocator());
+                result.AddMember("name", "_main", document.GetAllocator());
+                result.AddMember("value", value, document.GetAllocator());
+            } else if (method == "Document.getPackageList") {
+                rapidjson::Value packages(rapidjson::kArrayType);
+                std::vector<std::string> packages_ = rc->topDocument()->content()->getLoadedPackageNames();
+                for (auto package : packages_) {
+                    rapidjson::Value name;
+                    name.SetString(package.c_str(), package.length(), document.GetAllocator());
+                    packages.PushBack(name, document.GetAllocator());
+                }
+                result.AddMember("packages", packages, document.GetAllocator());
+            } else if (method == "Document.getPackage") {
+                if (params.has("name")) {
+                    std::string name = params.get("name").asString();
+                    rapidjson::Value packageName;
+                    packageName.SetString(name.c_str(), document.GetAllocator());
+                    auto package = rc->topDocument()->content()->getPackage(name);
+                    if (package != nullptr) {
+                        rapidjson::Document value(&document.GetAllocator());
+                        value.CopyFrom(package->json(), value.GetAllocator());
+                        result.AddMember("name", packageName, document.GetAllocator());
+                        result.AddMember("value", value, document.GetAllocator());
+                    }
+                }
+            } else if (method == "Document.getVisualContext") {
+                rapidjson::Value value = rc->serializeVisualContext(document.GetAllocator());
+                result.AddMember("value", value, document.GetAllocator());
+            } else if (method == "Document.getDOM") {
+                if (params.has("extended")) {
+                    bool extended = params.get("extended").asBoolean();
+                    rapidjson::Value value = rc->serializeDOM(extended, document.GetAllocator());
+                    result.AddMember("value", value, document.GetAllocator());
+                }
+            } else if (method == "Document.getSceneGraph") {
+                // Not supported yet
+            } else if (method == "Document.getRootContext") {
+                rapidjson::Value value = rc->serializeContext(document.GetAllocator());
+                result.AddMember("value", value, document.GetAllocator());
+            } else if (method == "Document.getContext") {
+                if (params.has("componentId") && params.has("depth")) {
+                    std::string componentId = params.get("componentId").asString();
+                    auto item = rc->findByUniqueId(componentId);
+                    if (item) {
+                        rapidjson::Value value = item->serializeContext(0, document.GetAllocator());
+                        result.AddMember("value", value, document.GetAllocator());
+                    }
+                }
+            }
+
+            // Convert JSON to a string
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            result.Accept(writer);
+            std::u16string u16 = converter.from_bytes(buffer.GetString());
+            return env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
         }
 
 #pragma clang diagnostic pop

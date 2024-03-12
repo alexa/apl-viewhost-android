@@ -4,8 +4,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.amazon.alexa.android.extension.discovery">
+    xmlns:tools="http://schemas.android.com/tools">
 
 
     <!-- clients need permission-->

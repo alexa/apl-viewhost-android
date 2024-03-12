@@ -5,13 +5,12 @@
 
 package com.amazon.apl.android;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
@@ -63,6 +62,12 @@ import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.utils.TransformUtils;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.enums.DTError;
+import com.amazon.apl.devtools.enums.ViewState;
+import com.amazon.apl.devtools.models.ViewTypeTarget;
+import com.amazon.apl.devtools.util.IDTCallback;
+import com.amazon.apl.devtools.util.RequestStatus;
+import com.amazon.apl.devtools.views.IAPLView;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FocusDirection;
 import com.amazon.apl.enums.PropertyKey;
@@ -70,9 +75,12 @@ import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.UpdateType;
 import com.amazon.apl.enums.ViewportMode;
+import com.amazon.apl.viewhost.internal.DocumentState;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -88,6 +96,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
+import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_HIDE_HIGHLIGHT;
+import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_HIGHLIGHT_COMPONENT;
 
 /**
  * A FrameLayout that is specified by a set of APL documents for layout, style, and data.
@@ -96,7 +106,7 @@ import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
  * styled, properties are set, and then added to this ViewGroup.
  */
 @UiThread
-public class APLLayout extends FrameLayout implements AccessibilityManager.AccessibilityStateChangeListener {
+public class APLLayout extends FrameLayout implements AccessibilityManager.AccessibilityStateChangeListener, IAPLView {
     private static final String TAG = "APLLayout";
     private static final boolean DEBUG = BuildConfig.DEBUG;
 
@@ -105,6 +115,12 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     // the apl root context
     @Nullable
     private RootContext mRootContext;
+
+    // The apl dev tools
+    private static final String DT_VIEW_NAME = "main";
+
+    private ViewTypeTarget mDTView;
+    private Session mAPLSession;
 
     // Latest Configuration Change
     @Nullable
@@ -179,16 +195,6 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     private AccessibilityManager mAccessibilityManager;
     private boolean mIsAccessibilityActive = false;
     private boolean mHandleConfigurationChangeOnSizeChanged = false;
-    private final BroadcastReceiver mTimezoneReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (mRootContext != null) {
-                Calendar now = Calendar.getInstance();
-                long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
-                mRootContext.setLocalTimeAdjustment(offset);
-            }
-        }
-    };
 
     /**
      * Trace points for a given agent name.
@@ -196,6 +202,12 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     private final APLTrace mAplTrace = new APLTrace(APL_DOMAIN);
 
     private boolean mIsReinflating = false;
+
+    /**
+     * Used for highlighting a document component.
+     */
+    private final Canvas mCanvas = new Canvas();
+    private final Path mPath = new Path();
 
     public APLLayout(@NonNull Context context) {
         this(context, true);
@@ -222,6 +234,14 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         super(context);
         mAplViewPresenter = presenter;
         init(context, null, checkInitialization);
+    }
+
+    /**
+     * To be used only for testing.
+     * @param presenter
+     */
+    public void setAplViewPresenterForTesting(IAPLViewPresenter presenter) {
+        mAplViewPresenter = presenter;
     }
 
     /**
@@ -300,6 +320,26 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 new ColorDrawable(Color.TRANSPARENT)
         });
         mBackgroundDrawable.setId(1, DOCUMENT_BACKGROUND_LAYER_ID);
+
+        initializeDeveloperTools();
+    }
+
+    private void initializeDeveloperTools() {
+        mDTView = new ViewTypeTarget(DT_VIEW_NAME);
+        mDTView.setView(this);
+    }
+
+    public void onNetworkRequestWillBeSent(int requestId,  double timestamp,
+                                           String documentURL, String type) {
+        mDTView.onNetworkRequestWillBeSent(requestId, timestamp, documentURL, type);
+    }
+
+    public void onNetworkLoadingFailed(int requestId, double timestamp) {
+        mDTView.onNetworkLoadingFailed(requestId, timestamp);
+    }
+
+    public void onNetworkLoadingFinished(int requestId, double timestamp, int encodedDataLength) {
+        mDTView.onNetworkLoadingFinished(requestId, timestamp, encodedDataLength);
     }
 
     @Override
@@ -307,8 +347,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         Log.i(TAG, "super.onAttachedToWindow() called");
         super.onAttachedToWindow();
         Log.i(TAG, "super.onAttachedToWindow() completed successfully");
-        registerTimeZoneReceiver();
+
         registerAccessibilityListener();
+        mDTView.registerToCatalog();
     }
 
     @Override
@@ -316,35 +357,8 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         Log.i(TAG, "super.onDetachedFromWindow() called");
         super.onDetachedFromWindow();
         Log.i(TAG, "super.onDetachedFromWindow() completed successfully");
-        unregisterTimeZoneReceiver();
         mAccessibilityManager.removeAccessibilityStateChangeListener(this);
-    }
-
-    private void unregisterTimeZoneReceiver() {
-        Log.i(TAG, "Unregistering mTimezoneReceiver from context: " + mTimezoneReceiver.toString());
-        try {
-            getContext().unregisterReceiver(mTimezoneReceiver);
-        } catch (final Exception e) {
-            Log.wtf(TAG, "Error while unregistering mTimezoneReceiver", e);
-        }
-        Log.i(TAG, "Unregistered mTimezoneReceiver successfully");
-    }
-
-    private void registerTimeZoneReceiver() {
-        Log.i(TAG, "registerTimeZoneReceiver() called");
-        // Update current time if we're being attached.
-        if (mRootContext != null) {
-            Calendar now = Calendar.getInstance();
-            long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
-            mRootContext.setLocalTimeAdjustment(offset);
-        }
-        Log.i(TAG, "Adding timezone actions on filter");
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
-        filter.addAction(Intent.ACTION_TIME_CHANGED);
-        Log.i(TAG, "Registering mTimezoneReceiver on context: " + mTimezoneReceiver.toString());
-        getContext().registerReceiver(mTimezoneReceiver, filter);
-        Log.i(TAG, "Registered mTimezoneReceiver successfully");
+        mDTView.unregisterToCatalog();
     }
 
     @VisibleForTesting
@@ -355,6 +369,114 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     private void registerAccessibilityListener() {
         onAccessibilityStateChanged(mAccessibilityManager.isEnabled());
         mAccessibilityManager.addAccessibilityStateChangeListener(this);
+    }
+
+    @Override
+    public void startFrameMetricsRecording(int id, IDTCallback<String> callback) {
+        if (mRootContext == null) {
+            DTError error = DTError.NO_DOCUMENT_RENDERED;
+            mDTView.post(() -> callback.execute(RequestStatus.failed(id, error)));
+            return;
+        }
+
+        mRootContext.startFrameMetricsRecording();
+        mDTView.post(() -> callback.execute(RequestStatus.successful()));
+    }
+
+    @Override
+    public void stopFrameMetricsRecording(int id, IDTCallback<List<JSONObject>> callback) {
+        if (mRootContext == null) {
+            Log.w(TAG, "No root context: ");
+            callback.execute(RequestStatus.failed(id, DTError.NO_DOCUMENT_RENDERED));
+            return;
+        }
+
+        try {
+            List<JSONObject> frameMetrics = mRootContext.stopFrameMetricsRecording();
+            mDTView.post(() -> callback.execute(frameMetrics, RequestStatus.successful()));
+        } catch (JSONException e) {
+            mDTView.post(() -> callback.execute(RequestStatus.failed(id, DTError.METHOD_FAILURE)));
+        }
+    }
+
+    @Override
+    public void documentCommandRequest(int id, String method, JSONObject params, IDTCallback<String> callback) {
+        if (mRootContext == null) {
+            Log.w(TAG, "No root context: " + method);
+            mDTView.post(() -> callback.execute(RequestStatus.failed(id, DTError.NO_DOCUMENT_RENDERED)));
+            return;
+        }
+
+        if (method.equals(DOCUMENT_HIGHLIGHT_COMPONENT.toString())) {
+            try {
+                String componentId = params.getString("componentId");
+                if (!componentId.isEmpty()) {
+                    Component component = mRootContext.getOrInflateComponentWithUniqueId(componentId);
+                    drawPathFromPoints(component.getPathCoordinates());
+                } else {
+                    clearDrawing();
+                }
+                mDTView.post(() -> callback.execute(RequestStatus.successful()));
+            } catch (JSONException e) {
+                Log.e(TAG, "Could not parse json for params: " + params);
+                mDTView.post(() -> callback.execute(RequestStatus.failed(id, DTError.METHOD_FAILURE)));
+            }
+        } else if (method.equals(DOCUMENT_HIDE_HIGHLIGHT.toString())) {
+            clearDrawing();
+            mDTView.post(() -> callback.execute(RequestStatus.successful()));
+        } else {
+            String result = mRootContext.documentCommandRequest(method, params.toString());
+            mDTView.post(() -> callback.execute(result, RequestStatus.successful()));
+        }
+    }
+
+    private void drawPathFromPoints(ArrayList<float[]> componentPoints) {
+        IMetricsTransform metricsTransform = mRootContext.getMetricsTransform();
+
+        float[] p1 = componentPoints.get(0);
+        float[] p2 = componentPoints.get(1);
+        float[] p3 = componentPoints.get(2);
+        float[] p4 = componentPoints.get(3);
+
+        // Create a path from 4 points.
+        mPath.moveTo(metricsTransform.toViewhost(p1[0]),
+                metricsTransform.toViewhost(p1[1]));
+        mPath.lineTo(metricsTransform.toViewhost((p2[0])),
+                metricsTransform.toViewhost(p2[1]));
+        mPath.lineTo(metricsTransform.toViewhost(p3[0]),
+                metricsTransform.toViewhost(p3[1]));
+        mPath.lineTo(metricsTransform.toViewhost(p4[0]),
+                metricsTransform.toViewhost(p4[1]));
+        mPath.lineTo(metricsTransform.toViewhost(p1[0]),
+                metricsTransform.toViewhost(p1[1]));
+        mPath.close();
+
+        this.dispatchDraw(mCanvas);
+    }
+
+    private void clearDrawing() {
+        mPath.reset();
+    }
+
+    /**
+     * @return the {@link ViewTypeTarget} instance corresponding to the view.
+     */
+    public ViewTypeTarget getDTView() {
+        return mDTView;
+    }
+
+    /**
+     * Sets the APLSession.
+     * @param aplSession The {@link Session} associated with the document being rendered.
+     */
+    public void setAPLSession(Session aplSession) {
+        mAPLSession = aplSession;
+    }
+
+    private void writeAPLSessionInfoLog(String message) {
+        if (mAPLSession != null) {
+            mAPLSession.write(Session.LogEntryLevel.INFO, Session.LogEntrySource.VIEW, message);
+        }
     }
 
     /**
@@ -429,14 +551,15 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         // Update the view
         inflateViews();
+        mDTView.setAPLOptions(mRootContext.getOptions());
     }
 
     void inflateViews() {
         mViewsNeedLayout.set(true);
-        if (mRootContext.isAutoSize()) {
+        if (mRootContext.isAutoSizeLayoutPending()) {
             resize();
         }
-        if (Looper.myLooper() == Looper.getMainLooper() && !mRootContext.isAutoSize()) {
+        if (Looper.myLooper() == Looper.getMainLooper() && !mRootContext.isAutoSizeLayoutPending()) {
             invalidate();
             requestLayout();
         } else {
@@ -454,6 +577,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         params.height = mRootContext.getAutoSizedHeight();
         params.width = mRootContext.getAutoSizedWidth();
         this.setLayoutParams(params);
+        writeAPLSessionInfoLog("Resizing to size= " + params.width + "x" + params.height);
     }
 
     /**
@@ -488,7 +612,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
      * Add a callback for when metrics are ready.
      * @param metricsConsumer   function to execute when the view is measured
      */
-    void addMetricsReadyListener(Consumer<ViewportMetrics> metricsConsumer) {
+    public void addMetricsReadyListener(Consumer<ViewportMetrics> metricsConsumer) {
         if (mIsMeasureValid && !isLayoutRequested()) {
             if (Thread.currentThread() == Looper.getMainLooper().getThread()) {
                 metricsConsumer.accept(mAplViewPresenter.getOrCreateViewportMetrics());
@@ -528,6 +652,16 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
      * Tracks whether we are waiting for the first layout pass
      */
     boolean mIsMeasureValid = false;
+
+    /**
+     * Method to update the DTView with the latest {@link ViewState} change.
+     *
+     * @param viewState The new {@link ViewState}.
+     */
+    public void changeViewState(ViewState viewState) {
+        double currentTimeStamp = System.currentTimeMillis() / 1000D;
+        mDTView.post(() -> mDTView.onViewStateChange(viewState, currentTimeStamp));
+    }
 
     /**
      * Listens to changes in APL RootContext and updates the view hierarchy.
@@ -626,6 +760,13 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                     Log.e(TAG, "adapter is null");
                     return;
                 }
+
+                // Since the ImageViewAdapter is a singleton. And we can create multiple APLLayout,
+                // then we need to update the DTNetworkRequestHandler before loading the image to
+                // know from which View is coming from.
+                if (adapter instanceof ImageViewAdapter) {
+                    ((ImageViewAdapter) adapter).setDTNetworkRequestHandler(mDTView.getDTNetworkRequestHandler());
+                }
                 adapter.applyAllProperties(component, view);
                 view.invalidate();
             }
@@ -639,6 +780,12 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 if (adapter == null) {
                     Log.e(TAG, "adapter is null");
                     return;
+                }
+                // Since the ImageViewAdapter is a singleton. And we can create multiple APLLayout,
+                // then we need to update the DTNetworkRequestHandler before loading the image to
+                // know from which View is coming from.
+                if (adapter instanceof ImageViewAdapter) {
+                    ((ImageViewAdapter) adapter).setDTNetworkRequestHandler(mDTView.getDTNetworkRequestHandler());
                 }
                 adapter.requestLayout(component, view);
                 view.invalidate();
@@ -689,13 +836,20 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         public void preDocumentRender() {
             mIsRenderStartTimeSet = true;
             mRenderStartTime = SystemClock.elapsedRealtime();
+            changeViewState(ViewState.LOADED);
+            writeAPLSessionInfoLog("Document Loaded");
         }
 
         @Override
         public void onDocumentRender(RootContext rootContext) {
             // TODO We should consider an api that handles this for our clients. For now this is an
             //  error scenario.
-            if (mRootContext != null) {
+            /**
+             * This code block makes sure that the previous document is finished before rendering a new one. This condition is applicable in legacy flow.
+             * However, for the unified APIs we have a usecase of restore document where the document is not finished before adding to the backstack
+             * Hence adding this check to not be executed for any call to render a document using Viewhost.java
+             **/
+            if (mRootContext != null && mRootContext.getDocumentHandle() == null) {
                 String message = "Trying to render a document prior to finishing old document!";
                 if (BuildConfig.DEBUG) {
                     throw new AssertionError(message);
@@ -724,11 +878,14 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             }
 
             rootContext.notifyContext();
+            changeViewState(ViewState.READY);
+            writeAPLSessionInfoLog("Document Ready");
         }
 
         public void reinflate() {
             mIsReinflating = true;
             APLLayout.this.inflateViews();
+            writeAPLSessionInfoLog("Document Reinflated");
         }
 
         @Override
@@ -742,6 +899,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             for (IDocumentLifecycleListener documentLifecycleListener : mDocumentLifecycleListeners) {
                 documentLifecycleListener.onDocumentPaused();
             }
+            writeAPLSessionInfoLog("Document Paused");
         }
 
         @Override
@@ -749,6 +907,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             for (IDocumentLifecycleListener documentLifecycleListener : mDocumentLifecycleListeners) {
                 documentLifecycleListener.onDocumentResumed();
             }
+            writeAPLSessionInfoLog("Document Resumed");
         }
 
         @Override
@@ -769,6 +928,12 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             for (IDocumentLifecycleListener documentLifecycleListener : mDocumentLifecycleListeners) {
                 documentLifecycleListener.onDocumentDisplayed(documentDisplayedTime);
             }
+            if (mRootContext != null && mRootContext.getDocumentHandle() != null) {
+                mRootContext.getDocumentHandle().setDocumentState(DocumentState.DISPLAYED);
+            }
+
+            changeViewState(ViewState.INFLATED);
+            writeAPLSessionInfoLog("Document Inflated");
         }
 
         @Override
@@ -833,6 +998,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 documentLifecycleListener.onDocumentFinish();
             }
             mDocumentLifecycleListeners.clear();
+
+            changeViewState(ViewState.EMPTY);
+            mDTView.cleanup();
         }
 
         @Override
@@ -939,6 +1107,11 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 updateComponent(view, UpdateType.kUpdatePressState, true);
                 updateComponent(view, UpdateType.kUpdatePressed, true);
             }
+        }
+
+        @Override
+        public boolean isHardwareAccelerationForVectorGraphicsEnabled() {
+            return mRootContext != null ? mRootContext.getRenderingContext().isHardwareAccelerationForVectorGraphicsEnabled() : false;
         }
 
         @Override
@@ -1117,11 +1290,28 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     protected void dispatchDraw(Canvas canvas) {
         try {
             super.dispatchDraw(canvas);
+            if (!mPath.isEmpty()){
+                drawPathOnCanvas(canvas);
+            }
         } finally {
             if (mViewsNeedDisplay.getAndSet(false)) {
                 mAplViewPresenter.onDocumentDisplayed();
             }
         }
+    }
+
+    private void drawPathOnCanvas(Canvas canvas) {
+        invalidate(); // invalidate current canvas drawing cache.
+        Paint paint = new Paint();
+        paint.setColor(Color.YELLOW);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(20);
+        canvas.drawPath(mPath, paint);
+
+        paint.setColor(Color.GRAY);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setAlpha(150);
+        canvas.drawPath(mPath, paint);
     }
 
     @NonNull
@@ -1303,7 +1493,7 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        if (mHandleConfigurationChangeOnSizeChanged && mRootContext != null && !mRootContext.isAutoSize()) {
+        if (mHandleConfigurationChangeOnSizeChanged && mRootContext != null && !mRootContext.isAutoSizeLayoutPending()) {
             Log.i(TAG, "Handle configuration change onSizeChanged");
             try {
                 handleConfigurationChange(

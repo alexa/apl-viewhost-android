@@ -103,7 +103,7 @@ public class APLAbsoluteLayout extends ViewGroup {
         int count = getChildCount();
         for (int i = 0; i < count; i++) {
             View child = getChildAt(i);
-            if (child.getVisibility() != GONE) {
+            if (child.getVisibility() != GONE && child.getLayoutParams() != null) {
                 ViewGroup.LayoutParams lp = child.getLayoutParams();
                 child.measure(MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY),
                         MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));

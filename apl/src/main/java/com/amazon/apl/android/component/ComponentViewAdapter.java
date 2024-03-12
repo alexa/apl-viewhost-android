@@ -8,6 +8,7 @@ package com.amazon.apl.android.component;
 import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -27,6 +28,7 @@ import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.enums.PropertyKey;
+import com.amazon.apl.enums.Role;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,6 +54,8 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyOpacity, this::applyAlpha);
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyDisplay, this::applyDisplay);
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyAccessibilityLabel, this::applyAccessibility);
+        mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyAccessibilityAdjustableValue, this::applyAccessibility);
+        mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyAccessibilityAdjustableRange, this::applyAccessibilityAdjustableRange);
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyDisabled, this::applyDisabled);
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyTransform, this::applyTransform);
         mDynamicPropertyFunctionMap.put(PropertyKey.kPropertyBounds, this::requestLayout);
@@ -172,13 +176,34 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
         if (!ViewCompat.hasAccessibilityDelegate(view)) {
             ViewCompat.setAccessibilityDelegate(view, APLAccessibilityDelegate.create(component, view.getContext()));
         }
+        StringBuilder accessibility = new StringBuilder();
+        String accessibilityLabel = component.getAccessibilityLabel();
+        if (accessibilityLabel != null)
+            accessibility.append(accessibilityLabel);
 
-        String accessibility = component.getAccessibilityLabel();
-        if (accessibility != null) {
-            view.setContentDescription(accessibility);
+        if (checkAccessibilityAdjustableValue(component)) {
+            String accessibilityAdjustableValue = component.getAccessibilityAdjustableValue();
+            accessibility.append(" ").append(accessibilityAdjustableValue);
         }
 
+        view.setContentDescription(accessibility.toString());
+
         applyFocusability(component, view);
+    }
+
+    /**
+     * Send Accessibility event to AccessibilityDelegate to update properties.
+     * @param component the component
+     * @param view      the view
+     */
+    private void applyAccessibilityAdjustableRange(C component, V view) {
+         if (checkAccessibilityAdjustableValue(component))
+                return;
+        if (!ViewCompat.hasAccessibilityDelegate(view)) {
+            ViewCompat.setAccessibilityDelegate(view, APLAccessibilityDelegate.create(component, view.getContext()));
+        } else {
+            ViewCompat.getAccessibilityDelegate(view).sendAccessibilityEvent(view, AccessibilityEvent.CONTENT_CHANGE_TYPE_CONTENT_DESCRIPTION);
+        }
     }
 
     /**
@@ -190,10 +215,22 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
         boolean focusable = component.isFocusable() && !component.isDisabled();
         boolean focusableInTouchMode = component.isFocusableInTouchMode();
         // TODO this setting should likely be put in APLAccessibilityDelegate
-        boolean focusableForAccessibility = (!TextUtils.isEmpty(component.getAccessibilityLabel()) && sAccessibilitySettingsUtil.isScreenReaderEnabled(view.getContext()));
+        boolean accessibilityAdjustableValue = checkAccessibilityAdjustableValue(component);
+        boolean accessibilityContentDescription = !TextUtils.isEmpty(component.getAccessibilityLabel()) || accessibilityAdjustableValue;
+        boolean focusableForAccessibility = (accessibilityContentDescription && sAccessibilitySettingsUtil.isScreenReaderEnabled(view.getContext()));
 
         view.setFocusable(focusable || focusableForAccessibility);
         view.setFocusableInTouchMode(focusableInTouchMode || focusableForAccessibility);
+    }
+
+     /**
+     * check for accessibilityAdjustableValue property.
+     * @param component the component
+     * @return true if accessibilityAdjustableValue is present and not empty, else false
+     */
+    private boolean checkAccessibilityAdjustableValue(C component) {
+        return component.getRole() == Role.kRoleAdjustable && component.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue) &&
+            component.getAccessibilityAdjustableValue() != null && !component.getAccessibilityAdjustableValue().isEmpty();
     }
 
     /**

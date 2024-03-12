@@ -12,6 +12,7 @@ import android.os.Handler;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.apl.android.Content;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory.EmbeddedDocumentRequest;
 
@@ -19,7 +20,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 
 @RunWith(AndroidJUnit4.class)
 public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
@@ -34,10 +34,12 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
     DocumentHandleImpl mDocumentHandle;
     @Mock
     Content mContent;
+    @Mock
+    ITelemetryProvider mProvider;
 
     @Before
     public void setUp() {
-        embeddedDocumentRequest = new EmbeddedDocumentRequestImpl(mEmbeddedDocumentRequestProxy, mHandler);
+        embeddedDocumentRequest = new EmbeddedDocumentRequestImpl(mEmbeddedDocumentRequestProxy, mHandler, mProvider);
         when(mHandler.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
@@ -60,7 +62,7 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
 
     @Test
     public void testOnDocumentStateChangedToError() {
-        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.ERROR);
+        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.ERROR, mDocumentHandle);
         verify(mEmbeddedDocumentRequestProxy).failure(any());
     }
 
@@ -68,7 +70,7 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
     public void testOnDocumentStateChangedToPrepared() {
         ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).setDocumentHandle(mDocumentHandle);
         when(mDocumentHandle.getContent()).thenReturn(mContent);
-        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED);
+        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED, mDocumentHandle);
         verify(mEmbeddedDocumentRequestProxy).success(anyLong(), anyBoolean(), anyLong());
     }
 
@@ -79,7 +81,7 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
         when(mDocumentHandle.getContent()).thenReturn(mContent);
         when(mEmbeddedDocumentRequestProxy.success(anyLong(), anyBoolean(), anyLong())).thenReturn(null);
         // when
-        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED);
+        ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED, mDocumentHandle);
         // then the DocumentHandle is in a terminal state
         assertEquals(mDocumentHandle.isValid(), false);
     }

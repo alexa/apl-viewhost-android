@@ -9,24 +9,15 @@ set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-project (apl-jni VERSION 1.0.0 LANGUAGES C CXX)
-
-# set APL Core location
-if (NOT APL_CORE_DIR)
-    message(FATAL_ERROR "Please specify the location of APL Core")
-endif ()
-set(APL_PROJECT_DIR ${APL_CORE_DIR})
-
-# Tell core to compile alexa extensions.
-set(ENABLE_ALEXAEXTENSIONS ON)
-set(BUILD_ALEXAEXTENSIONS ON)
 set(ENABLE_PIC ON)
+option(REMOVE_PRIVATE_EXPORTS "Hide Private Symbols from build" OFF)
+option(INCLUDE_ALEXAEXT "Link Alexa Extension JNI" OFF)
 
-FetchContent_Declare(
-        aplcore
-        SOURCE_DIR ${APL_CORE_DIR}
-)
-FetchContent_MakeAvailable(aplcore)
+if (DEFINED SCENE_GRAPH)
+    set(ENABLE_SCENEGRAPH ${SCENE_GRAPH})
+endif()
+
+project (apl-jni VERSION 1.0.0 LANGUAGES C CXX)
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -75,11 +66,56 @@ add_library(
 # Specifies a path to native header files.
 include_directories(src/main/cpp/include)
 
+target_compile_definitions(apl-jni PRIVATE VERSION_NAME="${VERSION_NAME}")
+
 if (NOT ANDROID)
     # Ensure jni.h is found
     find_package(JNI REQUIRED)
     include_directories(${JAVA_INCLUDE_PATH})
     include_directories(${JAVA_INCLUDE_PATH2})
+
+    add_library(aplcore STATIC IMPORTED)
+
+    if (ENABLE_SCENEGRAPH)
+        list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/aplsgconfig/include")
+    else()
+        list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/aplconfig/include")
+    endif()
+    list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/apl/include")
+
+    set_target_properties(aplcore
+            PROPERTIES
+            IMPORTED_LOCATION
+            "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/.cxx/cmake/debug/host/_deps/aplcore-build/aplcore/libapl.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${APL_INCLUDE_DIR}"
+            )
+
+    add_library(alexaext STATIC IMPORTED)
+    set_target_properties(alexaext
+            PROPERTIES
+            IMPORTED_LOCATION
+            "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/.cxx/cmake/debug/host/_deps/aplcore-build/extensions/alexaext/libalexaext.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/alexaext/include"
+            )
+
+    add_library(rapidjson INTERFACE)
+    target_include_directories(rapidjson INTERFACE
+            # When we're building against RapidJSON, just use the include directory we discovered above
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/rapidjson/include>
+            )
+    if(INCLUDE_ALEXAEXT)
+        add_library(alexaextjni STATIC IMPORTED)
+        set_target_properties(alexaextjni
+                PROPERTIES
+                IMPORTED_LOCATION
+                "${CMAKE_CURRENT_SOURCE_DIR}/../alexaextjni/.cxx/cmake/debug/host/libalexaextjni.a"
+                INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../alexaextjni/src/main/cpp/include"
+                )
+        target_link_libraries(apl-jni alexaextjni aplcore rapidjson alexaext)
+    else()
+        target_link_libraries(apl-jni aplcore rapidjson alexaext)
+    endif()
+
 else()
     # Searches for a specified prebuilt library and stores the path as a
     # variable. Because CMake includes system libraries in the search path by
@@ -101,108 +137,29 @@ else()
             -ljnigraphics
             # Links the target library to the log library included in the NDK.
             ${log-lib})
+    # Remove private exports if demanded.
+    if(REMOVE_PRIVATE_EXPORTS)
+        # Use a version script (aka export map) to both reduce symbol visibility as
+        # well as improve symbol relocation performance.  Without an export map,
+        # all C++ symbols are global, even those not accessible using JNI.
+        # For more info: https://www.akkadia.org/drepper/dsohowto.pdf
+        set_target_properties(
+                apl-jni PROPERTIES
+                LINK_FLAGS "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/apl.map"
+        )
+    endif()
 
-    set(ENUMGEN_BIN "${CMAKE_BINARY_DIR}/tools/enumgen")
+    if(INCLUDE_ALEXAEXT)
+        target_compile_definitions(apl-jni PRIVATE INCLUDE_ALEXAEXT="${VERSION_NAME}")
+        find_package(alexaextjni REQUIRED CONFIG)
+        target_link_libraries(apl-jni alexaextjni::alexaextjni)
+    endif()
 
-    add_custom_target(generate-android-enums ALL
-            COMMAND cd ${APL_CORE_DIR} && ${ENUMGEN_BIN}
-            -f  "AnimationQuality"
-            -f  "AudioPlayerEventType"
-            -f  "BlendMode"
-            -f  "ComponentType"
-            -f  "ContainerDirection"
-            -f  "DimensionType"
-            -f  "Display"
-            -f  "DisplayState"
-            -f  "EventAudioTrack"
-            -f  "EventControlMediaCommand"
-            -f  "EventDirection"
-            -f  "EventHighlightMode"
-            -f  "EventProperty"
-            -f  "EventReason"
-            -f  "EventScrollAlign"
-            -f  "EventType"
-            -f  "EventMediaType"
-            -f  "FilterType"
-            -f  "FilterProperty"
-            -f  "FlexboxAlign"
-            -f  "FlexboxJustifyContent"
-            -f  "FocusDirection"
-            -f  "FontStyle"
-            -f  "GradientProperty"
-            -f  "GradientSpreadMethod"
-            -f  "GradientType"
-            -f  "GradientUnits"
-            -f  "GraphicTextAnchor"
-            -f  "GraphicElementType"
-            -f  "GraphicLayoutDirection"
-            -f  "GraphicLineCap"
-            -f  "GraphicLineJoin"
-            -f  "GraphicPropertyKey"
-            -f  "GraphicFilterType"
-            -f  "GraphicFilterProperty"
-            -f  "GraphicScale"
-            -f  "GraphicScale"
-            -f  "ImageAlign"
-            -f  "ImageCount"
-            -f  "ImageScale"
-            -f  "KeyHandlerType"
-            -f  "LayoutDirection"
-            -f  "MediaPlayerEventType"
-            -f  "Navigation"
-            -f  "NoiseFilterKind"
-            -f  "Position"
-            -f  "PointerEventType"
-            -f  "PointerType"
-            -f  "PropertyKey"
-            -f  "RootProperty"
-            -f  "ScreenShape"
-            -f  "ScrollDirection"
-            -f  "SpanAttributeName"
-            -f  "SpanType"
-            -f  "Snap"
-            -f  "SpeechMarkType"
-            -f  "TextAlign"
-            -f  "TextAlignVertical"
-            -f  "TextTrackType"
-            -f  "TokenType"
-            -f  "TrackState"
-            -f  "UpdateType"
-            -f  "VectorGraphicAlign"
-            -f  "VectorGraphicScale"
-            -f  "VideoScale"
-            -f  "ViewportMode"
-            -f  "AudioTrack"
-            -f  "KeyboardType"
-            -f  "SubmitKeyType"
-            -f  "ScreenMode"
-            -f  "Role"
-            -f  "ExtensionComponentResourceState"
-            -l java -p com.amazon.apl.enums -o ${CMAKE_CURRENT_SOURCE_DIR}/src/main/java/com/amazon/apl/enums
-            ${APL_CORE_DIR}/aplcore/include/action/*.h
-            ${APL_CORE_DIR}/aplcore/include/animation/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/audio/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/command/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/component/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/content/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/datagrammar/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/document/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/engine/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/graphic/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/media/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/primitives/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/time/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/utils/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/touch/*.h
-            ${APL_CORE_DIR}/aplcore/include/apl/focus/*.h
-            DEPENDS enumgen
-            )
-
-    add_dependencies(apl-jni generate-android-enums)
+    find_package(coreengine REQUIRED CONFIG)
+    target_link_libraries(apl-jni coreengine::apl coreengine::alexaext coreengine::rapidjson)
 endif()
 
 
-target_link_libraries(apl-jni apl alexaext)
 
 # Common lib includes
 include_directories(../common/src/main/cpp/include)

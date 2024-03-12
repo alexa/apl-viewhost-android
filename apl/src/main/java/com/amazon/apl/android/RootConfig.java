@@ -17,6 +17,7 @@ import com.amazon.apl.android.audio.AudioPlayerFactoryProxy;
 import com.amazon.apl.android.audio.IAudioPlayerFactory;
 import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.apl.viewhost.internal.DocumentManager;
@@ -264,28 +265,15 @@ public class RootConfig extends BoundObject {
     }
 
     /**
-     * Sets a {@link LiveArray} to the top level context.
+     * Sets a {@link LiveData} to the top level context.
      *
      * @param name      the name of the LiveArray.
-     * @param liveArray the data
+     * @param liveData the data
      * @return this for chaining
      */
     @NonNull
-    public RootConfig liveData(@NonNull String name, @NonNull LiveArray liveArray) {
-        nLiveData(getNativeHandle(), name, liveArray.getNativeHandle());
-        return this;
-    }
-
-    /**
-     * Sets a {@link LiveMap} to the top level context.
-     *
-     * @param name    the name of the LiveMap.
-     * @param liveMap the data
-     * @return this for chaining
-     */
-    @NonNull
-    public RootConfig liveData(@NonNull String name, @NonNull LiveMap liveMap) {
-        nLiveData(getNativeHandle(), name, liveMap.getNativeHandle());
+    public RootConfig liveData(@NonNull String name, @NonNull LiveData liveData) {
+        nLiveData(getNativeHandle(), name, liveData.getNativeHandle());
         return this;
     }
 
@@ -559,10 +547,10 @@ public class RootConfig extends BoundObject {
     }
 
     /**
-     * Set document logging session. Hidden for now.
+     * Set document logging session.
      * @return This object for chaining
      */
-    private RootConfig session(Session session) {
+    public RootConfig session(Session session) {
         mSession = session;
         nSession(getNativeHandle(), session.getNativeHandle());
         return this;
@@ -650,8 +638,9 @@ public class RootConfig extends BoundObject {
         return this;
     }
 
-    public RootConfig setDocumentManager(@NonNull EmbeddedDocumentFactory embeddedDocumentFactory, @NonNull Handler handler) {
-        mDocumentManager = new DocumentManager(embeddedDocumentFactory, handler);
+    public RootConfig setDocumentManager(@NonNull EmbeddedDocumentFactory embeddedDocumentFactory,
+                                         @NonNull Handler handler, @NonNull ITelemetryProvider telemetryProvider) {
+        mDocumentManager = new DocumentManager(embeddedDocumentFactory, handler, telemetryProvider);
         nSetDocumentManager(getNativeHandle(), mDocumentManager.getNativeHandle());
         return this;
     }

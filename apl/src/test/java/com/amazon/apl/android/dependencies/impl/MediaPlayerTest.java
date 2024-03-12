@@ -6,6 +6,8 @@
 package com.amazon.apl.android.dependencies.impl;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.media.MediaPlayer.OnPreparedListener;
@@ -29,6 +31,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowAudioManager;
 import org.robolectric.shadows.ShadowLog;
@@ -38,6 +41,8 @@ import org.robolectric.shadows.ShadowMediaPlayer.State;
 import org.robolectric.shadows.util.DataSource;
 import org.robolectric.util.Scheduler;
 
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -59,6 +64,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -72,6 +78,7 @@ import static org.robolectric.shadows.util.DataSource.toDataSource;
 import androidx.test.core.app.ApplicationProvider;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = 22)
 public class MediaPlayerTest {
     private static final String TAG = "MediaPlayerTest";
     private static final String VIDEO_URL = "dummy-url";
@@ -90,9 +97,15 @@ public class MediaPlayerTest {
     private PlaybackListener mListener;
     @Mock
     private Context mContext;
+    @Mock
+    private AssetManager mAssetManager;
+    @Mock
+    private AssetFileDescriptor mAssetFileDescriptor;
+    @Mock
+    private FileDescriptor mFileDescriptor;
 
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         MockitoAnnotations.openMocks(this);
         ShadowLog.stream = System.out;
         mTextureView = new TextureView(ApplicationProvider.getApplicationContext());
@@ -103,16 +116,22 @@ public class MediaPlayerTest {
         // TODO Handle audio manager
         ShadowAudioManager mShadowAudioManager = shadowOf(mAudioManager);
 
+        when(mAssetFileDescriptor.getFileDescriptor()).thenReturn(mFileDescriptor);
+        when(mAssetManager.openFd(anyString())).thenReturn(mAssetFileDescriptor);
+        when(mContext.getAssets()).thenReturn(mAssetManager);
+
         android.media.MediaPlayer mMediaPlayer = Shadow.newInstanceOf(android.media.MediaPlayer.class);
         mShadowMediaPlayer = shadowOf(mMediaPlayer);
-        MediaInfo mInfo = new MediaInfo(TRACK_TOTAL_DURATION_MS, PREPARATION_DELAY_MS);
         mAplMediaPlayer = new MediaPlayer(mMediaPlayer, mTextureView, mContext, mAudioManager);
         mAplMediaPlayer.setAudioTrack(AudioTrack.kAudioTrackForeground);
         mAplMediaPlayer.setVideoScale(VideoScale.kVideoScaleBestFit);
         mAplMediaPlayer.addMediaStateListener(mListener);
 
+        MediaInfo mInfo = new MediaInfo(TRACK_TOTAL_DURATION_MS, PREPARATION_DELAY_MS);
         DataSource ds = toDataSource(VIDEO_URL);
         ShadowMediaPlayer.addMediaInfo(ds, mInfo);
+        DataSource assetDs = toDataSource(mFileDescriptor, 0, 0);
+        ShadowMediaPlayer.addMediaInfo(assetDs, mInfo);
         mShadowMediaPlayer.doSetDataSource(ds);
 
         mScheduler = Robolectric.getForegroundThreadScheduler();
@@ -544,6 +563,23 @@ public class MediaPlayerTest {
 
         assertEquals(0, mAplMediaPlayer.getDuration());
         checkState(State.END, RELEASED);
+    }
+
+    @Test
+    public void testPlay_localAsset() throws IOException {
+        mMediaSources = mock(MediaSources.class);
+        MediaSources.MediaSource mediaSource = mock(MediaSources.MediaSource.class);
+        when(mediaSource.url()).thenReturn("file:///android_asset/sample.mp4");
+        when(mediaSource.headers()).thenReturn(Collections.emptyMap());
+
+        when(mMediaSources.size()).thenReturn(1);
+        when(mMediaSources.at(anyInt())).thenReturn(mediaSource);
+
+        initExpectedStatesForPlay();
+        mAplMediaPlayer.setMediaSources(mMediaSources);
+        testPlayInternal();
+
+        verify(mAssetManager).openFd("sample.mp4");
     }
 
     /**

@@ -525,6 +525,33 @@ public class ExtensionMultiplexClient {
      * @param message      Reason for disconnect.
      * @return True if the connection existed and disconnect was attempted.
      */
+    public boolean disconnectV1(final String extensionURI, final ConnectionCallback callback,
+                              final String message) {
+        Log.i(TAG, String.format("Closing connection: %s, reason: %s", extensionURI, message));
+        boolean result = false;
+        synchronized (mConnections) {
+            // find the connection and remove the callback
+            ClientConnection connection = mConnections.get(extensionURI);
+            if (null != connection && connection.mServiceV1 != null) {
+                Log.i(TAG, "Closing connection for uri: " + extensionURI);
+                result = connection.unregisterCallback(callback);
+                if (connection.mCallbacks.isEmpty()) {
+                    clearConnection(connection);
+                }
+            }
+        }
+        return result;
+    }
+
+
+    /**
+     * Disconnect an extension client.
+     *
+     * @param extensionURI The service identifier.
+     * @param callback     Callback used in {@link #connect(String, ConnectionCallback)}
+     * @param message      Reason for disconnect.
+     * @return True if the connection existed and disconnect was attempted.
+     */
     public boolean disconnect(final String extensionURI, final ConnectionCallback callback,
                               final String message) {
         Log.i(TAG, String.format("Closing connection: %s, reason: %s", extensionURI, message));

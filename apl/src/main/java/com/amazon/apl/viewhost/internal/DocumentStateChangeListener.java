@@ -4,6 +4,11 @@
  */
 package com.amazon.apl.viewhost.internal;
 
-interface DocumentStateChangeListener {
-    void onDocumentStateChanged(DocumentState state);
+import com.amazon.apl.viewhost.DocumentHandle;
+
+/**
+ * Listens to the document state change events.
+ */
+public interface DocumentStateChangeListener {
+    void onDocumentStateChanged(DocumentState state, DocumentHandle handle);
 }

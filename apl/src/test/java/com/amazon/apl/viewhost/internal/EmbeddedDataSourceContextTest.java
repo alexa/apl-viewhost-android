@@ -35,6 +35,7 @@ import com.amazon.apl.android.dependencies.IDataSourceContextListener;
 import com.amazon.apl.android.dependencies.IDataSourceErrorCallback;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
@@ -161,6 +162,8 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
     private UpdateDataSourceCallback mCallback;
     @Mock
     private IDataSourceErrorCallback mDataSourceErrorCallback;
+    @Mock
+    private ITelemetryProvider mTelemetryProvider;
 
     @Before
     public void setup() throws JSONException {
@@ -198,7 +201,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
                 .viewhost(mViewhost)
                 .build();
         // TODO: Needed because AbstractDocUnitTest uses a deprecated version of renderDocument
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
     }
 
     @Test

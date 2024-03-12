@@ -32,6 +32,7 @@ import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.common.NativeBinding;
@@ -85,7 +86,17 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         public Boolean call() {
             nativeLibraryLoadingStartTime = SystemClock.elapsedRealtime();
             System.loadLibrary("common-jni");
-            System.loadLibrary("discovery-jni");
+
+            // In size minimized variant, JNI code of discovery module, which really is JNI code for
+            // extension registration and proxy, is merged into apl-jni and JNI shared library
+            // for discovery is absent in discovery aar. This is controlled by BuildConfig build type.
+            // Since we have two valid variant combinations for our customers viz
+            // (apl-release, discovery-standard-release) and (aplMinSized-release, discovery-standard-releaseMinSized);
+            // we can use build type of apl library to decide to load discovery JNI or not.
+            if(!BuildConfig.BUILD_TYPE.equals("releaseMinSized")) {
+                System.loadLibrary("discovery-jni");
+            }
+
             System.loadLibrary("apl-jni");
             nativeLibraryLoadingEndTime = SystemClock.elapsedRealtime();
             return true;
@@ -190,11 +201,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
     @VisibleForTesting
     interface IContentCreator {
-        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, RootConfig rootConfig);
+        Content create(String aplDocument, APLOptions options, Content.CallbackV2 callbackV2, RootConfig rootConfig, IDTNetworkRequestHandler dtNetworkRequestHandler);
     }
 
-    private void initializeDocumentManager(@NonNull final RootConfig rootConfig, @NonNull EmbeddedDocumentFactory embeddedDocumentFactory) {
-        rootConfig.setDocumentManager(embeddedDocumentFactory, mMainHandler);
+    private void initializeDocumentManager(@NonNull final RootConfig rootConfig,
+                                           @NonNull EmbeddedDocumentFactory embeddedDocumentFactory,
+                                           @NonNull ITelemetryProvider telemetryProvider) {
+        rootConfig.setDocumentManager(embeddedDocumentFactory, mMainHandler, telemetryProvider);
     }
 
     /**
@@ -220,8 +233,15 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @NonNull final InflationErrorCallback errorCallback,
             final boolean disableAsyncInflate,
             @NonNull final DocumentSession documentSession) {
+        Session aplSession = rootConfig.getSession();
+        aplSession.setAPLListener(aplLayout.getDTView());
+        aplLayout.setAPLSession(aplSession);
+        aplSession.write(Session.LogEntryLevel.INFO, Session.LogEntrySource.VIEW, "----- Rendering Document -----");
+
         final ExtensionRegistrar registrar = rootConfig.getExtensionProvider();
         final ExtensionMediator mediator = (registrar != null) ? ExtensionMediator.create(registrar, documentSession) : null;
+        final UserPerceivedFatalReporter upfReporter = new UserPerceivedFatalReporter(options.getUserPerceivedFatalCallback());
+
         if (mediator != null) {
             rootConfig.extensionMediator(mediator);
         }
@@ -229,17 +249,18 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         aplLayout.setAgentName(rootConfig);
         final APLController aplController = new APLController(contentCreator);
 
+        final ITelemetryProvider telemetryProvider = options.getTelemetryProvider();
         if(options.getEmbeddedDocumentFactory() != null) {
-            aplController.initializeDocumentManager(rootConfig, options.getEmbeddedDocumentFactory());
+            aplController.initializeDocumentManager(rootConfig, options.getEmbeddedDocumentFactory(), telemetryProvider);
         }
 
-        if (!isInitialized(options.getTelemetryProvider())) {
+        if (!isInitialized(telemetryProvider)) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
             aplController.onDocumentFinish();
             errorCallback.onError(new APLException("The APLController must be initialized.", new IllegalStateException()));
+            upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.APL_INITIALIZATION_FAILURE);
         }
 
-        final ITelemetryProvider telemetryProvider = options.getTelemetryProvider();
         aplController.mRenderDocumentTimer = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, TAG + "." + ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
         long seed = SystemClock.elapsedRealtime() - startTime;
         telemetryProvider.startTimer(aplController.mRenderDocumentTimer, TimeUnit.MILLISECONDS, seed);
@@ -275,7 +296,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                         final Runnable runnable = () -> {
                             try {
-                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter);
+                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter);
 
                                 if (aplController.mIsFinished.get()) {
                                     Log.i(TAG, "Finished while creating RootContext. Aborting");
@@ -284,7 +305,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                 presenter.onDocumentRender(rootContext);
 
                             } catch (Exception e) {
-                                handleRenderingError(e, aplController, telemetryProvider, errorCallback);
+                                upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.ROOT_CONTEXT_CREATION_FAILURE);
+                                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
                             }
                         };
 
@@ -323,7 +345,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                                             final Runnable runnable = () -> {
                                                 try {
-                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter);
+                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter);
 
                                                     if (aplController.mIsFinished.get()) {
                                                         Log.i(TAG, "Finished while creating RootContext. Aborting");
@@ -332,7 +354,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                                     presenter.onDocumentRender(rootContext);
 
                                                 } catch (Exception e) {
-                                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback);
+                                                    upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.ROOT_CONTEXT_CREATION_FAILURE);
+                                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
                                                 }
                                             };
 
@@ -347,12 +370,17 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                                 @Override
                                 public Runnable onFailure() {
-                                    return () -> handleRenderingError(
-                                            new APLException("Required extensions failed to load.", new IllegalStateException()),
-                                            aplController,
-                                            telemetryProvider,
-                                            errorCallback
-                                    );
+                                    return () -> {
+                                        telemetryProvider.fail(extensionRegistrationMetric);
+                                        upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE);
+                                        handleRenderingError(
+                                                new APLException("Required extensions failed to load.", new IllegalStateException()),
+                                                aplController,
+                                                telemetryProvider,
+                                                errorCallback,
+                                                aplSession
+                                        );
+                                    };
                                 }
                             }
                     );
@@ -361,7 +389,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
             @Override
             public void onError(Exception e) {
-                handleRenderingError(e, aplController, telemetryProvider, errorCallback);
+                upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE);
+                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
             }
 
             @Override
@@ -377,7 +406,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     mediator.registerImageFilters(registrar, content, rootConfig);
                 }
             }
-        }, rootConfig);
+        }, rootConfig, aplLayout.getDTView().getDTNetworkRequestHandler());
         if (content != null) {
             aplController.mContent = content;
             aplLayout.addMetricsReadyListener(viewportMetrics -> {
@@ -408,10 +437,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         return aplController;
     }
 
-    private static void handleRenderingError(Exception e, APLController aplController, ITelemetryProvider telemetryProvider, InflationErrorCallback errorCallback) {
+    private static void handleRenderingError(Exception e, APLController aplController, ITelemetryProvider telemetryProvider,
+                                             InflationErrorCallback errorCallback, Session aplSession) {
         telemetryProvider.fail(aplController.mRenderDocumentTimer);
         aplController.onDocumentFinish();
         errorCallback.onError(e);
+        aplSession.write(Session.LogEntryLevel.ERROR, Session.LogEntrySource.VIEW, "Document Failed: " + e.getMessage());
     }
 
     /**
@@ -752,6 +783,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
         if (mediator != null) {
             mediator.enable(false);
+        }
+        ExtensionRegistrar registrar = rootContext.getRootConfig().getExtensionProvider();
+        if (registrar != null) {
+            //closing on V1 connections since V1 connections are created per document
+            // however V2 connections are shared and cannot be closed upfront.
+            registrar.closeAllRemoteV1Connections();
         }
     }
 

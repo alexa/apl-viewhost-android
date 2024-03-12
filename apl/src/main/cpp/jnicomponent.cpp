@@ -198,6 +198,41 @@ namespace apl {
             return static_cast<jboolean>(c->isCharacterValid(character));
         }
 
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_Component_nGetCalculatedWidth(JNIEnv *env, jclass clazz,
+                                                                        jlong componentHandle) {
+            auto component = get<Component>(componentHandle);
+            auto calculatedWidth = component->getCalculated(apl::kPropertyBounds).get<apl::Rect>().getWidth();
+
+            return calculatedWidth;
+        }
+
+        JNIEXPORT jfloat JNICALL
+        Java_com_amazon_apl_android_Component_nGetCalculatedHeight(JNIEnv *env, jclass clazz,
+                                                                  jlong componentHandle) {
+            auto component = get<Component>(componentHandle);
+            auto calculatedHeight = component->getCalculated(apl::kPropertyBounds).get<apl::Rect>().getHeight();
+
+            return calculatedHeight;
+        }
+
+        JNIEXPORT jfloatArray JNICALL
+        Java_com_amazon_apl_android_Component_nGetGlobalPointCoordinates(JNIEnv *env, jclass clazz,
+                                                               jlong componentHandle,
+                                                               jfloat pointA,
+                                                               jfloat pointB) {
+            auto component = get<Component>(componentHandle);
+            auto point = component->localToGlobal({pointA, pointB});
+
+            float buffer[2] = { float (point.getX()),
+                               float (point.getY())};
+
+            jfloatArray pointArray = env->NewFloatArray(2);
+            env->SetFloatArrayRegion(pointArray, 0, 2, buffer);
+
+            return pointArray;
+        }
+
 #ifdef __cplusplus
         }
 #endif

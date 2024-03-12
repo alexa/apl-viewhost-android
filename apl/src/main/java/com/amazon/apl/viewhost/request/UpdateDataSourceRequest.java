@@ -24,6 +24,12 @@ public abstract class UpdateDataSourceRequest {
     @Nullable
     public abstract String getToken();
     /**
+     * Get the update type such as dynamicIndexList, dynamicTokenList.
+     * @return
+     */
+    @Nullable
+    public abstract String getType();
+    /**
      * Payload to update data source.
      */
     @NonNull
@@ -42,6 +48,7 @@ public abstract class UpdateDataSourceRequest {
     @AutoValue.Builder
     public abstract static class Builder {
         public abstract Builder token(String token);
+        public abstract Builder type(String type);
         public abstract Builder data(Decodable data);
         public abstract Builder callback(UpdateDataSourceCallback callback);
         public abstract UpdateDataSourceRequest build();

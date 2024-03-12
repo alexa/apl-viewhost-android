@@ -10,7 +10,7 @@ apply plugin: 'jacoco'
 apply plugin: 'maven-publish'
 
 jacoco {
-    toolVersion = '0.8.2'
+    toolVersion = '0.8.8'
 }
 
 tasks.withType(Test) {
@@ -46,10 +46,6 @@ task jacocoTestReport(type: JacocoReport, dependsOn: ['test']) {
             "jacoco/*.exec",
             "outputs/code_coverage/debugAndroidTest/connected/*coverage.ec"
     ]))
-    reports {
-        xml.enabled = true
-        html.enabled = true
-    }
 }
 
 ext {
@@ -58,19 +54,17 @@ ext {
         cmakeProjectPath = cmakeProjectPath.replace('\\', '/')
     }
     aplAndroidCmakeArgs = "-DCMAKE_VERBOSE_MAKEFILE=ON"
-    aplCoreDirCmakeArg = "-DAPL_CORE_DIR=${cmakeProjectPath}/../../apl-core-library"
-    if (project.hasProperty('aplCoreDir')) {
-        aplCoreDirCmakeArg = "-DAPL_CORE_DIR=" + aplCoreDir
-    }
 }
 
 android {
-    compileSdkVersion 31
+    namespace "com.amazon.apl.android"
+    compileSdk 34
     ndkVersion "23.0.7599858"
-    buildToolsVersion "30.0.2"
+    buildToolsVersion "33.0.0"
+
     defaultConfig {
         minSdkVersion 22
-        targetSdkVersion 31
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -81,10 +75,23 @@ android {
                 // Sets optional flags for the C++ compiler.
                 cppFlags "-std=c++11", "-fno-rtti", "-fno-exceptions"
                 // Build the APL Core JNI library (excludes all other targets)
-                targets "apl", "apl-jni"
+                targets "apl-jni"
                 // Enable APL Core JNI build, and be verbose.
-                arguments aplCoreDirCmakeArg, aplAndroidCmakeArgs
+                arguments aplAndroidCmakeArgs
             }
+        }
+    }
+    sourceSets {
+        // Encapsulates configurations for the main source set.
+        main {
+            // Changes the directory for Java sources. The default directory is
+            // 'src/main/java'.
+            java.srcDirs = ['src/main/java', '../coreengine/src/main/java']
+        }
+    }
+    publishing {
+        multipleVariants {
+            allVariants()
         }
     }
     compileOptions {
@@ -98,14 +105,35 @@ android {
             buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
             buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}-core\"")
             buildConfigField 'boolean', 'DEBUG_LOGGING', 'false'
+            externalNativeBuild {
+                cmake {
+                    arguments aplAndroidCmakeArgs, "-DREMOVE_PRIVATE_EXPORTS=OFF", "-DVERSION_NAME=${defaultConfig.versionName}"
+                }
+            }
+
         }
         debug {
             testCoverageEnabled true
             debuggable true
-            aplAndroidCmakeArgs += " -DDEBUG_MEMORY_USE=ON"
             buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
             buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}-core\"")
             buildConfigField 'boolean', 'DEBUG_LOGGING', 'true'
+            externalNativeBuild {
+                cmake {
+                    arguments aplAndroidCmakeArgs, "-DDEBUG_MEMORY_USE=ON", "-DVERSION_NAME=${project.version}"
+                }
+            }
+        }
+        releaseMinSized {
+            buildConfigField("long", "VERSION_CODE", "${defaultConfig.versionCode}")
+            buildConfigField("String", "VERSION_NAME", "\"${defaultConfig.versionName}-core\"")
+            buildConfigField 'boolean', 'DEBUG_LOGGING', 'false'
+            matchingFallbacks = ['release']
+            externalNativeBuild {
+                cmake {
+                    arguments aplAndroidCmakeArgs, "-DREMOVE_PRIVATE_EXPORTS=ON", "-DINCLUDE_ALEXAEXT=ON", "-DVERSION_NAME=${project.version}"
+                }
+            }
         }
     }
     // Temporary fix until alpha10 - "More than one file was found with OS independent path 'META-INF/proguard/androidx-annotations.pro"
@@ -135,6 +163,10 @@ android {
         fatal 'StopShip'
         disable 'LongLogTag'
     }
+    buildFeatures {
+        buildConfig true
+        prefab true
+    }
     testOptions {
         animationsDisabled true
 
@@ -145,24 +177,27 @@ android {
 }
 
 dependencies {
-    compileOnly 'org.projectlombok:lombok:1.18.28'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.annotation:annotation:1.4.0'
     implementation 'androidx.core:core:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.github.bumptech.glide:glide:4.11.0'
+    implementation project(':coreengine')
+    implementation project(':alexaextjni')
     implementation project(':common')
     implementation(project(':discovery')) { transitive = false }
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.robolectric:robolectric:4.8.1'
     testImplementation 'org.robolectric:shadows-httpclient:4.2'
-    testImplementation 'androidx.test:core:1.1.0'
-    testImplementation 'androidx.test.ext:junit:1.1.0'
+    testImplementation 'androidx.test:core:1.4.0'
+    testImplementation 'androidx.test.ext:junit:1.1.3'
     testImplementation 'org.mockito:mockito-core:4.7.0'
     testImplementation 'androidx.test:rules:1.4.0'
+    testImplementation 'org.json:json:20210307'
     androidTestImplementation 'org.mockito:mockito-core:3.12.4'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
-    androidTestImplementation 'androidx.test:core:1.1.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+    androidTestImplementation 'androidx.test:core:1.4.0'
     androidTestImplementation 'androidx.annotation:annotation:1.4.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     androidTestImplementation 'androidx.test:runner:1.4.0'
@@ -177,9 +212,14 @@ dependencies {
     api "com.google.auto.value:auto-value-annotations:1.7"
     api 'com.google.guava:guava:27.0.1-jre'
     annotationProcessor "com.google.auto.value:auto-value:1.7"
-    annotationProcessor 'org.projectlombok:lombok:1.18.28'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 }
 
+task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
+    cmakeArgs aplAndroidCmakeArgs
+    makeTargets 'apl-jni'
+    dependsOn ':coreengine:buildHostJNI',':alexaextjni:buildHostJNI'
+}
 
 tasks.whenTaskAdded { theTask ->
     if (theTask.name.startsWith("test")) {
@@ -190,28 +230,27 @@ tasks.whenTaskAdded { theTask ->
 project.afterEvaluate {
     // Dump configuration settings
     println "APL CMake Args: " + aplAndroidCmakeArgs
-    println "APL Core Directory: " + aplCoreDirCmakeArg
     println "Android SDK Directory: " + android.sdkDirectory.path
     println "Android NDK Directory: " + android.ndkDirectory.path
 
-    // enforce native tools build runs first for enum dependencies
-    compileDebugJavaWithJavac.dependsOn externalNativeBuildDebug
-    compileReleaseJavaWithJavac.dependsOn externalNativeBuildRelease
-
-    javaPreCompileDebug.dependsOn externalNativeBuildDebug
+    // We need to make sure the host jni library is built before any debug or release unit testing.
+    tasks.buildHostJNI.dependsOn(':coreengine:buildHostJNI')
+    tasks.buildHostJNI.dependsOn(':alexaextjni:buildHostJNI')
+    tasks.buildHostJNI.dependsOn(':discovery:buildHostJNI')
+    tasks.buildHostJNI.dependsOn(':common:buildHostJNI')
 
     tasks.test.finalizedBy(jacocoTestReport)
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                pom {
-                    description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
-                            ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
-                }
+publishing {
+    publications {
+        release(MavenPublication) {
+            pom {
+                description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
+                        ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
+            }
+            afterEvaluate {
+                from components.default
             }
         }
     }
@@ -239,6 +278,7 @@ task release(dependsOn: ['build', 'publish']) {
         copy {
             from 'build/outputs/aar'
             into '../build/apl'
+            rename 'apl-releaseMinSized.aar', 'aplMinSized-release.aar'
         }
 
         copy {
@@ -250,6 +290,11 @@ task release(dependsOn: ['build', 'publish']) {
         copy {
             from 'build/outputs/apk/androidTest/debug'
             into '../build/apl/androidTest'
+        }
+
+        copy {
+            from 'build/intermediates/merged_native_libs/releaseMinSized/out/lib/'
+            into '../build/apl/symbols'
         }
     }
 }

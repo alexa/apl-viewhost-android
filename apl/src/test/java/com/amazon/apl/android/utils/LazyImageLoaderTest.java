@@ -14,6 +14,7 @@ import com.amazon.apl.android.dependencies.IImageLoader;
 import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.bumptech.glide.load.engine.GlideException;
 
 import org.junit.Before;
@@ -26,13 +27,15 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class LazyImageLoaderTest extends ViewhostRobolectricTest {
@@ -46,6 +49,8 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
     private ImageViewAdapter mImageViewAdapter;
     @Mock
     private IImageLoader mImageLoader;
+    @Mock
+    private IDTNetworkRequestHandler mDTNetworkRequest;
 
     private APLImageView mImageView;
 
@@ -73,10 +78,11 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
         }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         // When
-        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView);
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
 
         // Then
         verify(mockPresenter).mediaLoaded(mSource.url());
+        verify(mDTNetworkRequest).loadingFinished(anyInt(), anyDouble(), anyInt());
     }
 
     @Test
@@ -100,7 +106,7 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
         }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         // When
-        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView);
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
 
         // Then
         ArgumentCaptor<List<Bitmap>> bitmapCaptor = ArgumentCaptor.forClass(List.class);
@@ -122,7 +128,7 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
         }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         // When
-        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView);
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
 
         // Then
         verify(mImageViewAdapter, times(1)).onImageLoad(any(), any());
@@ -141,11 +147,12 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
         }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         // When
-        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView);
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
 
         // Then
         verify(mockPresenter).mediaLoadFailed(mSource.url(), errorCode, message);
         verify(mImageViewAdapter).onImageLoad(any(), any());
+        verify(mDTNetworkRequest).loadingFailed(anyInt(), anyDouble());
     }
 
     @Test
@@ -159,9 +166,35 @@ public class LazyImageLoaderTest extends ViewhostRobolectricTest {
         }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
 
         // When
-        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView);
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
 
         // Then
         verify(mockPresenter).mediaLoadFailed(eq(mSource.url()), eq(errorCode), anyString());
+        verify(mDTNetworkRequest).loadingFailed(anyInt(), anyDouble());
+    }
+
+    @Test
+    public void initImageLoading_onFileUrl_successfulLoadingWithNoDTNetworkInteraction() {
+        // Given
+        UrlRequests.UrlRequest source = UrlRequests.UrlRequest.builder()
+                .url("File:android_asset//test.png")
+                .headers(Collections.singletonMap("key", "value"))
+                .build();
+        List<UrlRequests.UrlRequest> sources = new ArrayList<>();
+        sources.add(source);
+        when(mImage.getSourceRequests()).thenReturn(sources);
+
+        doAnswer(invocation -> {
+            IImageLoader.LoadImageParams load = invocation.getArgument(0);
+            load.callback().onSuccess(BITMAP, load.path());
+            return null;
+        }).when(mImageLoader).loadImage(any(IImageLoader.LoadImageParams.class));
+
+        // When
+        LazyImageLoader.initImageLoad(mImageViewAdapter, mImage, mImageView, mDTNetworkRequest);
+
+        // Then
+        verify(mockPresenter).mediaLoaded(anyString());
+        verifyNoInteractions(mDTNetworkRequest);
     }
 }

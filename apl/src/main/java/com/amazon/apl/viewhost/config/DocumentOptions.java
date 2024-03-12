@@ -7,11 +7,11 @@ package com.amazon.apl.viewhost.config;
 import static com.amazon.apl.android.ExtensionMediator.IExtensionGrantRequestCallback;
 
 import com.amazon.alexaext.ExtensionRegistrar;
-import com.amazon.apl.android.dependencies.IOpenUrlCallback;
+import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.google.auto.value.AutoValue;
 
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -33,6 +33,15 @@ public abstract class DocumentOptions {
     @Nullable
     public abstract Map<String, Object> getExtensionFlags();
 
+    @Nullable
+    public abstract ITelemetryProvider getTelemetryProvider();
+
+    @Nullable
+    public abstract EmbeddedDocumentFactory getEmbeddedDocumentFactory();
+
+    @Nullable
+    public abstract IUserPerceivedFatalCallback getUserPerceivedFatalCallback();
+
     public static Builder builder() {
         return new AutoValue_DocumentOptions.Builder();
     }
@@ -42,6 +51,13 @@ public abstract class DocumentOptions {
         public abstract Builder extensionGrantRequestCallback(IExtensionGrantRequestCallback callback);
         public abstract Builder extensionRegistrar(ExtensionRegistrar registrar);
         public abstract Builder extensionFlags(Map<String, Object> flags);
+
+        public abstract Builder telemetryProvider(ITelemetryProvider telemetryProvider);
+
+        public abstract Builder embeddedDocumentFactory(EmbeddedDocumentFactory embeddedDocumentFactory);
+
+        public abstract Builder userPerceivedFatalCallback(IUserPerceivedFatalCallback userPerceivedFatalCallback);
+
         public abstract DocumentOptions build();
     }
 }

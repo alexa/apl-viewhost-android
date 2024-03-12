@@ -62,15 +62,16 @@ public class AlexaVectorDrawable extends Drawable {
 
     private VectorGraphicScale mScale;
 
-    private float mViewportWidth, mViewportHeight;
+    // Controls if hardware acceleration should be used
+    // Derived from the experimental flag "-experimentalHardwareAccelerationForAndroid"
+    private boolean mIsHardwareAccelerationEnabled = false;
 
     private final float EPSILON = 0.001f;
 
     private AlexaVectorDrawable(GraphicContainerElement element) {
         mVectorState = new VectorDrawableCompatState(element);
         RenderingContext rc = mVectorState.mPathRenderer.getRootGroup().getRenderingContext();
-        mViewportWidth = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportWidthActual());
-        mViewportHeight = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportHeightActual());
+        mIsHardwareAccelerationEnabled = rc.isHardwareAccelerationForVectorGraphicsEnabled();
     }
 
     @VisibleForTesting
@@ -81,8 +82,7 @@ public class AlexaVectorDrawable extends Drawable {
         GraphicContainerElement e = mVectorState.mPathRenderer.getRootGroup();
         if(e != null) {
             RenderingContext rc = e.getRenderingContext();
-            mViewportWidth = rc.getMetricsTransform().toViewhost(e.getViewportWidthActual());
-            mViewportHeight = rc.getMetricsTransform().toViewhost(e.getViewportHeightActual());
+            mIsHardwareAccelerationEnabled = rc.isHardwareAccelerationForVectorGraphicsEnabled();
         }
     }
 
@@ -180,38 +180,16 @@ public class AlexaVectorDrawable extends Drawable {
         // we offset to (0, 0);
         mTmpBounds.offsetTo(0, 0);
 
-        // Draw directly into the canvas and enable hardware acceleration for better fluidity for the following cases:
-        // 1. For cases with proportional scaling (Scale Types: best-fit, best-fill and None) and where scale_x = scale_y in scaling Matrix with no Skew and no drop Shadow Filter
-        // Draw into a bimap backed canvas for the following cases:
-        // 1. For cases with non-uniform scaling (scale_x and scale_y are non-equal) / (Scale Type: fill)  OR
-        // 2. For cases where there is a drop Shadow Filter Present OR
-        // 3. For cases where there is skew present
-        // 4. For cases where there is grow/shrink/stretch present
-        boolean useHardwareAcceleration = (mScale == null || mScale != VectorGraphicScale.kVectorGraphicScaleFill)
-                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainFilters()
-                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainsSkew()
-                && !mVectorState.mPathRenderer.getRootGroup().doesMapContainNonUniformScaling()
-                && doesUniformScaling(scaledWidth, scaledHeight);
-
-        if (useHardwareAcceleration) {
+        if (mIsHardwareAccelerationEnabled) {
+            Log.d(TAG, "Using hardware acceleration for AVG rendering");
             canvas.clipRect(mTmpBounds);
             mVectorState.drawAVGToCanvas(canvas, (int) scaledWidth, (int) scaledHeight,true);
         } else {
+            Log.d(TAG, "Using software acceleration for AVG rendering");
             mVectorState.createOrEraseCachedBitmap((int) scaledWidth, (int) scaledHeight);
             mVectorState.drawCachedBitmapWithRootAlpha(canvas, colorFilter, mTmpBounds);
         }
         canvas.restoreToCount(saveCount);
-    }
-
-    //For cases where there is grow/shrink/stretch present
-    private boolean doesUniformScaling(float scaledWidth, float scaledHeight) {
-        float mScaledWidth = scaledWidth / mViewportWidth;
-        float mScaledHeight = scaledHeight / mViewportHeight;
-        // Check if mScaledWidth is not equal to mScaledHeight
-        if (Math.abs(mScaledWidth - mScaledHeight) > EPSILON) {
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -429,8 +407,8 @@ public class AlexaVectorDrawable extends Drawable {
             setDirty(false);
         }
 
-        void drawAVGToCanvas(Canvas canvas, int width, int height, boolean uniformScaling) {
-            mPathRenderer.draw(canvas, width, height, mBitmapFactory, uniformScaling);
+        void drawAVGToCanvas(Canvas canvas, int width, int height, boolean useHardwareAcceleration) {
+            mPathRenderer.draw(canvas, width, height, mBitmapFactory, useHardwareAcceleration);
             setDirty(false);
         }
 

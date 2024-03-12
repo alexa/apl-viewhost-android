@@ -298,9 +298,9 @@ namespace apl {
         Java_com_amazon_apl_android_RootConfig_nLiveData(JNIEnv *env, jclass clazz, jlong nativeHandle,
                                                          jstring name, jlong liveDataHandle) {
             auto rc = get<RootConfig>(nativeHandle);
-            auto liveArray = get<LiveObject>(liveDataHandle);
+            auto liveObject = get<LiveObject>(liveDataHandle);
 
-            rc->liveData(getStdString(env, name), liveArray);
+            rc->liveData(getStdString(env, name), liveObject);
         }
 
 

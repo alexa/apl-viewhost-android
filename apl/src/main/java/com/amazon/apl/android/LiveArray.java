@@ -9,8 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.common.BoundObject;
-
 import java.util.AbstractList;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,12 +20,12 @@ import java.util.NoSuchElementException;
 
 /**
  * Wrapper class for the APL Core LiveArray.
- *
+ * <p>
  * To use a LiveArray, register the array with {@link RootConfig#liveData(String, LiveArray)}.
  * Make changes to the LiveArray from your UX thread.  Changes in the LiveArray will
  * propagate through the APL data-binding context and show up on the screen.
  */
-public class LiveArray extends BoundObject implements List<Object> {
+public class LiveArray extends LiveData implements List<Object> {
     /**
      * Store a copy of the array that is accessible to Java.  A copy of this
      * array is stored in attached C++ object.  The main purpose of the backing
@@ -38,7 +36,7 @@ public class LiveArray extends BoundObject implements List<Object> {
 
     /**
      * Exception class for unrecoverable exceptions
-     *
+     * <p>
      * For most list overrides we try to perform the operation on the backing array
      * first.  The backing array will throw standard List exceptions for all common
      * errors.  Once the backing array has been modified we update the native APL object.
@@ -349,7 +347,7 @@ public class LiveArray extends BoundObject implements List<Object> {
      * Remove a range of objects from the array.
      * @param position The starting position at which to remove objects.
      * @param count The number of objects to remove.
-     * @return True if the position was valid and at least one object was removed.
+     * @throws LiveArrayException if the position was invalid
      */
     public void removeRange(int position, int count) {
         if (position < 0 || count <= 0 || position + count > mBackingArray.size())
@@ -366,7 +364,7 @@ public class LiveArray extends BoundObject implements List<Object> {
      * Update a range of objects to new values.  The position must fall within [0,size-array.length]
      * @param position The position to update.
      * @param collection An array of objects to update
-     * @return True if the position was valid and at least one object was updated.
+     * @throws LiveArrayException if the position was invalid
      */
     public void setRange(int position, @NonNull Collection<?> collection) {
         Object[] array = collection.toArray();
@@ -401,6 +399,26 @@ public class LiveArray extends BoundObject implements List<Object> {
             throw new ArrayIndexOutOfBoundsException();
 
         return nAt(getNativeHandle(), position);
+    }
+
+    @Override
+    public boolean applyUpdates(List<LiveData.Update> operations) {
+        try {
+            for (LiveArray.Update operation : operations) {
+                if (operation.getType().equals("insert")) {
+                    add(operation.getIndex(), operation.getValue());
+                } else if (operation.getType().equals("remove")) {
+                    remove(operation.getIndex());
+                } else if (operation.getType().equals("update")) {
+                    set(operation.getIndex(), operation.getValue());
+                } else
+                    return false;
+            }
+        } catch (LiveArrayException ex) {
+            return false;
+        }
+
+        return true;
     }
 
     private static native long nCreate();

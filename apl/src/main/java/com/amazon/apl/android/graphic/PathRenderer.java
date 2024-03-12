@@ -131,11 +131,11 @@ final class PathRenderer {
      * @param w         the width of the avg
      * @param h         the height of the avg
      */
-    void draw(@NonNull Canvas canvas, int w, int h, @NonNull IBitmapFactory bitmapFactory, boolean uniformScaling) {
+    void draw(@NonNull Canvas canvas, int w, int h, @NonNull IBitmapFactory bitmapFactory, boolean useHardwareAcceleration) {
         mScaledWidth = w / mViewportWidth;
         mScaledHeight = h / mViewportHeight;
         // Traverse the tree in pre-order to draw.
-        drawGraphicElement(mScaledWidth, mScaledHeight, IDENTITY_MATRIX, mRootGroup, canvas, (float)mRootAlpha / 255, bitmapFactory, uniformScaling);
+        drawGraphicElement(mScaledWidth, mScaledHeight, IDENTITY_MATRIX, mRootGroup, canvas, (float)mRootAlpha / 255, bitmapFactory, useHardwareAcceleration);
     }
 
     @Nullable
@@ -175,7 +175,7 @@ final class PathRenderer {
                                       @NonNull final Canvas canvas,
                                       final float currentOpacity,
                                       @NonNull final IBitmapFactory bitmapFactory,
-                                      boolean uniformScaling) {
+                                      boolean useHardwareAcceleration) {
 
         // Calculate current group's matrix by preConcat the parent's and
         // and the current one on the top of the stack.
@@ -198,7 +198,7 @@ final class PathRenderer {
 
         // Draw the group tree in the same order as the AVG tree.
         for (GraphicElement child : currentGroup.getChildren()) {
-            drawGraphicElement(xScale, yScale, currentGroup.getStackedMatrix(), child, canvas, stackedOpacity, bitmapFactory, uniformScaling);
+            drawGraphicElement(xScale, yScale, currentGroup.getStackedMatrix(), child, canvas, stackedOpacity, bitmapFactory, useHardwareAcceleration);
         }
 
         canvas.restore();
@@ -210,7 +210,7 @@ final class PathRenderer {
                                            @NonNull final Canvas parentCanvas,
                                            final float currentOpacity,
                                            @NonNull final IBitmapFactory bitmapFactory,
-                                           boolean uniformScaling) {
+                                           boolean useHardwareAcceleration) {
         Bitmap bitmap = getFilterBitmap(parentCanvas.getWidth(), parentCanvas.getHeight(), graphicElement, bitmapFactory);
         Canvas canvas = parentCanvas;
 
@@ -223,10 +223,10 @@ final class PathRenderer {
         if (graphicElement instanceof GraphicGroupElement) {
             GraphicGroupElement graphicGroupElement = (GraphicGroupElement) graphicElement;
             drawGroupTree(xScale, yScale, currentTransform,
-                    graphicGroupElement, canvas, currentOpacity, bitmapFactory, uniformScaling);
+                    graphicGroupElement, canvas, currentOpacity, bitmapFactory, useHardwareAcceleration);
         } else if (graphicElement instanceof GraphicPathElement) {
             GraphicPathElement graphicPathElement = (GraphicPathElement) graphicElement;
-            drawPath(xScale, yScale, currentTransform, graphicPathElement, canvas, currentOpacity, uniformScaling);
+            drawPath(xScale, yScale, currentTransform, graphicPathElement, canvas, currentOpacity, useHardwareAcceleration);
         } else if (graphicElement instanceof GraphicTextElement) {
             GraphicTextElement graphicTextElement = (GraphicTextElement) graphicElement;
             drawText(xScale, yScale, currentTransform, graphicTextElement, canvas, currentOpacity);
@@ -281,7 +281,7 @@ final class PathRenderer {
                                  @NonNull final GraphicPathElement pathElement,
                                  @NonNull final Canvas canvas,
                                  final float stackedOpacity,
-                                 boolean uniformScaling) {
+                                 boolean useHardwareAcceleration) {
         Matrix scaledTransform = scaleMatrix(currentTransform, xScale, yScale);
         final float matrixScale = getMatrixScale(currentTransform);
 
@@ -291,8 +291,8 @@ final class PathRenderer {
         }
 
         Path currentPath;
-        // if the scaling is uniform scale the paths for hardware rendering
-        if (uniformScaling) {
+        // Scale the paths for hardware rendering
+        if (useHardwareAcceleration) {
             // create a new Path because we still want to reference the original unscaled Path
             currentPath = new Path(pathElement.getPath());
             currentPath.transform(scaledTransform);
@@ -306,7 +306,7 @@ final class PathRenderer {
         Paint fillPaint = pathElement.getFillPaint(stackedOpacity);
         Shader fillShader = fillPaint.getShader();
 
-        if (uniformScaling && fillShader != null) {
+        if (useHardwareAcceleration && fillShader != null) {
             if (pathElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyFill)) {
                 if (pathElement.getGradient(GraphicPropertyKey.kGraphicPropertyFill).getType() == GradientType.RADIAL) {
                     // Gradient is radial so we obtain a new Shader, same is not needed for Linear gradient
@@ -324,7 +324,7 @@ final class PathRenderer {
         Paint strokePaint = pathElement.getStrokePaint(stackedOpacity);
         Shader strokeShader = strokePaint.getShader();
 
-        if (uniformScaling && strokeShader != null) {
+        if (useHardwareAcceleration && strokeShader != null) {
             if (pathElement.getProperties().isGradient(GraphicPropertyKey.kGraphicPropertyStroke)) {
                 if (pathElement.getGradient(GraphicPropertyKey.kGraphicPropertyStroke).getType() == GradientType.RADIAL) {
                     // Gradient is radial so we obtain a new Shader, same is not needed for Linear gradient
@@ -336,8 +336,8 @@ final class PathRenderer {
             strokeShader.setLocalMatrix(strokeTransform);
         }
 
-        // If the scaling is uniform, then the stroke properties need to be adjusted for hardware acceleration
-        if (uniformScaling) {
+        // Adjust stroke properties for hardware acceleration
+        if (useHardwareAcceleration) {
             float scaleFactor = getMatrixScale(scaledTransform);
             // Adjust stroke width
             float scaledStrokeWidth = pathElement.getStrokeWidth() * scaleFactor;

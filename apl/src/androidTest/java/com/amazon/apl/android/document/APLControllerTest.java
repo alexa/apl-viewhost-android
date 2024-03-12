@@ -18,6 +18,7 @@ import com.amazon.apl.android.IAPLController;
 import com.amazon.apl.android.IDocumentLifecycleListener;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 
@@ -31,6 +32,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
@@ -113,7 +115,7 @@ public class APLControllerTest extends AbstractDocViewTest {
                 @Override
                 public void onDocumentRender(@NonNull RootContext rootContext) {
                     assertTrue(rootContext.getTopComponent() instanceof Frame);
-                    assertTrue(rootContext.isAutoSize());
+                    assertTrue(rootContext.isAutoSizeLayoutPending());
                     assertEquals(aplLayout.getLayoutParams().width, rootContext.getAutoSizedWidth());
                     assertEquals(aplLayout.getLayoutParams().height, rootContext.getAutoSizedHeight());
                     renderLatch.countDown();
@@ -134,6 +136,51 @@ public class APLControllerTest extends AbstractDocViewTest {
             assertTrue(captor.getValue() > 0);
         });
 
-        assertTrue(renderLatch.await(1, TimeUnit.SECONDS));
+        assertTrue(renderLatch.await(5, TimeUnit.SECONDS));
+    }
+
+    @UiThreadTest
+    @Test
+    public void testAPLController_renderWithAutoSizeConfigurationChange() throws InterruptedException {
+        final CountDownLatch latch = new CountDownLatch(1);
+        activityRule.getScenario().onActivity(activity -> {
+            APLLayout aplLayout = activity.findViewById(com.amazon.apl.android.test.R.id.apl);
+            aplLayout.getPresenter().addDocumentLifecycleListener(new IDocumentLifecycleListener() {
+                @Override
+                public void onDocumentRender(@NonNull RootContext rootContext) {
+                    assertTrue(rootContext.getTopComponent() instanceof Frame);
+                    assertFalse(rootContext.isAutoSizeLayoutPending());
+
+                    ConfigurationChange configurationChange = aplLayout.createConfigurationChange().
+                            minWidth(300).maxWidth(2000).minHeight(300).maxHeight(4000).
+                            build();
+                    try {
+                        aplLayout.handleConfigurationChange(configurationChange);
+                        //layoutmanager.layout() is trigered after pending components are cleared, hence we call on tick
+                        rootContext.onTick(400);
+                        assertTrue(rootContext.isAutoSizeLayoutPending());
+                        assertEquals(aplLayout.getLayoutParams().width, rootContext.getAutoSizedWidth());
+                        assertEquals(aplLayout.getLayoutParams().height, rootContext.getAutoSizedHeight());
+                        latch.countDown();
+                    } catch (APLController.APLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+
+            IAPLController aplController = new APLController.Builder()
+                    .aplDocument(SIMPLE_DOC)
+                    .aplOptions(APLOptions.builder().telemetryProvider(mockTelemetry).build())
+                    .aplLayout(aplLayout)
+                    .rootConfig(RootConfig.create())
+                    .render();
+
+            assertNotNull(aplController);
+            verify(mockTelemetry).createMetricId(ITelemetryProvider.APL_DOMAIN, LIBRARY_INITIALIZATION_TIME, ITelemetryProvider.Type.TIMER);
+            ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+            verify(mockTelemetry).reportTimer(eq(1), eq(TimeUnit.MILLISECONDS), captor.capture());
+            assertTrue(captor.getValue() > 0);
+        });
+        assertTrue(latch.await(1, TimeUnit.SECONDS));
     }
 }

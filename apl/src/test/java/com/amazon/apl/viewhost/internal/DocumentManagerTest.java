@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 
@@ -28,13 +29,15 @@ public class DocumentManagerTest extends ViewhostRobolectricTest {
     Handler mHandler;
     @Mock
     EmbeddedDocumentRequestProxy mEmbeddedDocumentRequestProxy;
+    @Mock
+    ITelemetryProvider mTelemetryProvider;
 
     DocumentManager documentManager;
 
     @Before
     public void setup() {
         MockitoAnnotations.openMocks(this);
-        documentManager = new DocumentManager(mEmbeddedDocumentFactory, mHandler);
+        documentManager = new DocumentManager(mEmbeddedDocumentFactory, mHandler, mTelemetryProvider);
     }
 
     @Test

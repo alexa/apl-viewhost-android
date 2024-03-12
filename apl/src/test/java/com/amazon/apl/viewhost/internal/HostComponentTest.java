@@ -35,10 +35,12 @@ import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.dependencies.IPackageLoader;
+import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 import com.amazon.apl.viewhost.Viewhost;
@@ -308,6 +310,8 @@ public class HostComponentTest extends AbstractDocUnitTest {
     IPackageLoader mPackageLoader;
     @Mock
     ExtensionMediator mMediator;
+    @Mock
+    private ITelemetryProvider mTelemetryProvider;
 
     private CapturingMessageHandler mMessageHandler;
     private Viewhost mViewhost;
@@ -365,7 +369,7 @@ public class HostComponentTest extends AbstractDocUnitTest {
                 .build();
         mViewhost = Mockito.spy(new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker));
         EmbeddedDocumentFactory factory = new EmbeddedDocumentFactoryTest(mViewhost);
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
         mOptions = APLOptions.builder()
                 .embeddedDocumentFactory(factory)
                 .viewhost(mViewhost)
@@ -445,7 +449,7 @@ public class HostComponentTest extends AbstractDocUnitTest {
     public void testHostComponentReleased_beforeEmbeddedDocumentSuccess_setsEmbeddedDocumentToFinished() {
         // given
         ControlledTestEmbeddedFactory factory = new ControlledTestEmbeddedFactory(mViewhost);
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
         mOptions = APLOptions.builder()
                 .embeddedDocumentFactory(factory)
                 .viewhost(mViewhost)
@@ -501,7 +505,7 @@ public class HostComponentTest extends AbstractDocUnitTest {
     @Test
     public void testMultipleHostsMultipleExtensions(){
         MultipleExtensionsDocumentFactoryTest factory = new MultipleExtensionsDocumentFactoryTest(mViewhost);
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
         mOptions = APLOptions.builder()
                 .embeddedDocumentFactory(factory)
                 .viewhost(mViewhost)
@@ -517,7 +521,7 @@ public class HostComponentTest extends AbstractDocUnitTest {
                 .build();
         mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
         EmbeddedDocumentFactory factory = new NullDocumentOptionsTest(mViewhost);
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
         mOptions = APLOptions.builder()
                 .embeddedDocumentFactory(factory)
                 .viewhost(mViewhost)
@@ -679,6 +683,24 @@ public class HostComponentTest extends AbstractDocUnitTest {
                 @Nullable
                 @Override
                 public Map<String, Object> getExtensionFlags() {
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public ITelemetryProvider getTelemetryProvider() {
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public EmbeddedDocumentFactory getEmbeddedDocumentFactory() {
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public IUserPerceivedFatalCallback getUserPerceivedFatalCallback() {
                     return null;
                 }
             });

@@ -7,10 +7,13 @@ package com.amazon.apl.viewhost.internal;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 
+import lombok.NonNull;
+
 /**
  * Internal implementation of the prepared document
  */
 class PreparedDocumentImpl extends PreparedDocument {
+    @NonNull
     private final DocumentHandleImpl mDocument;
 
     public PreparedDocumentImpl(DocumentHandleImpl document) {
@@ -19,27 +22,27 @@ class PreparedDocumentImpl extends PreparedDocument {
 
     @Override
     public boolean isReady() {
-        return false;
+        return DocumentState.PREPARED.equals(mDocument.getDocumentState());
     }
 
     @Override
     public boolean isValid() {
-        return false;
+        return getHandle().isValid();
     }
 
     @Override
     public boolean hasToken() {
-        return false;
+        return getToken() != null;
     }
 
     @Override
     public String getToken() {
-        return null;
+        return getHandle().getToken();
     }
 
     @Override
     public String getUniqueID() {
-        return null;
+        return getHandle().getUniqueId();
     }
 
     @Override

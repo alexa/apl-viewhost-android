@@ -8,13 +8,6 @@ package com.amazon.apl.android.component;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.RectF;
-import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Base64;
-
-import androidx.core.content.FileProvider;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Component;
@@ -24,9 +17,8 @@ import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
-import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
-import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.BlendMode;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.FilterType;
@@ -39,16 +31,7 @@ import com.amazon.apl.enums.NoiseFilterKind;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.robolectric.Robolectric;
-import org.robolectric.annotation.Config;
-import org.robolectric.shadows.ShadowContentResolver;
-import org.robolectric.shadows.ShadowLog;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -58,18 +41,14 @@ import java.util.Map;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.robolectric.Shadows.shadowOf;
 
 public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
 
@@ -300,6 +279,7 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
     public void testDependencies_invokeImageLoader() {
         IImageLoaderProvider provider = mock(IImageLoaderProvider.class);
         IImageLoader imageLoader = mock(IImageLoader.class);
+        IDTNetworkRequestHandler dtNetworkRequest = mock(IDTNetworkRequestHandler.class);
         when(imageLoader.withTelemetry(any(ITelemetryProvider.class))).thenReturn(imageLoader);
         when(provider.get(any(Context.class))).thenReturn(imageLoader);
         
@@ -314,9 +294,11 @@ public class ImageTest extends AbstractComponentUnitTest<APLImageView, Image> {
         APLImageView view = (APLImageView) ComponentViewAdapterFactory.getAdapter(component).createView(mContext, mAPLPresenter);
         when(mAPLPresenter.findComponent(view)).thenReturn(component);
         ImageViewAdapter imageViewAdapter = (ImageViewAdapter)ComponentViewAdapterFactory.getAdapter(component);
+        imageViewAdapter.setDTNetworkRequestHandler(dtNetworkRequest);
         imageViewAdapter.applyAllProperties(component, view);
 
         verify(imageLoader).loadImage(argThat(load -> DUMMY_URI.equals(load.path())));
+        verify(dtNetworkRequest).requestWillBeSent(anyInt(), anyDouble(), any(), any());
     }
 
     @Test

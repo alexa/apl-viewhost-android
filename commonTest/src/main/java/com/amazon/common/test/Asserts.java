@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import com.amazon.common.NativeBinding;
@@ -47,6 +48,12 @@ public class Asserts {
 
             // Wait up to 10 seconds for finalization.
             for (int i = 0; i< 10; i++) {
+                System.runFinalization();
+                System.gc();
+
+                // Any viewhost objects with a finalize will take an additional gc cycle to clean up.
+                // This is because having a finalize causes a Finalizer to be created on the first cycle
+                // before finally being cleaned on the second cycle.
                 System.runFinalization();
                 System.gc();
 

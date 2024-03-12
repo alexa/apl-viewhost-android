@@ -13,6 +13,7 @@ import androidx.core.view.AccessibilityDelegateCompat;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
 import com.amazon.apl.android.primitive.AccessibilityActions;
+import com.amazon.apl.android.primitive.AccessibilityAdjustableRange;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.Role;
@@ -41,6 +42,7 @@ public class APLAccessibilityDelegateTest extends ViewhostRobolectricTest {
 
     private static final String COMPONENT_ID = "test-component-id";
     private static final String TEXT = "test text";
+    private static final AccessibilityAdjustableRange ADJUSTABLE_RANGE = AccessibilityAdjustableRange.create(0, 10, 5);
 
     @Mock
     private View mView;
@@ -108,6 +110,47 @@ public class APLAccessibilityDelegateTest extends ViewhostRobolectricTest {
         mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
 
         assertNull(mNode.getText());
+    }
+
+    @Test
+    public void test_nodeRangeInfoSetIfComponentAdjustable() {
+        configureRoleInNode(Role.kRoleAdjustable);
+        when(mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableRange)).thenReturn(true);
+        when(mComponent.getAccessibilityAdjustableRange()).thenReturn(ADJUSTABLE_RANGE);
+
+        mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
+
+        assertEquals(ADJUSTABLE_RANGE.minValue(), mNode.getRangeInfo().getMin(), 0.001);
+        assertEquals(ADJUSTABLE_RANGE.maxValue(), mNode.getRangeInfo().getMax(), 0.001);
+        assertEquals(ADJUSTABLE_RANGE.currentValue(), mNode.getRangeInfo().getCurrent(), 0.001);
+    }
+
+    @Test
+    public void test_nodeRangeInfoNotSetIfComponentNotAdjustable() {
+        when(mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableRange)).thenReturn(true);
+
+        mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
+
+        assertNull(mNode.getRangeInfo());
+    }
+    
+    @Test
+    public void test_nodeRangeInfoNotSetIfComponentAdjustableRangeNotPresent() {
+        configureRoleInNode(Role.kRoleAdjustable);
+        when(mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableRange)).thenReturn(false);
+
+        mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
+
+        assertNull(mNode.getRangeInfo());
+    }
+
+    @Test
+    public void test_nodeRangeInfoNotSetIfAdjustableValuePropertyPresent() {
+        when(mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(true);
+
+        mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
+
+        assertNull(mNode.getRangeInfo());
     }
 
     @Test
@@ -450,6 +493,26 @@ public class APLAccessibilityDelegateTest extends ViewhostRobolectricTest {
         AccessibilityNodeInfoCompat.AccessibilityActionCompat actualActionNode = mNode.getActionList().get(0);
         assertEquals(R.id.action_swipe_away, actualActionNode.getId());
         assertEquals("Play song", actualActionNode.getLabel());
+    }
+
+    @Test
+    public void test_incrementAction() {
+        configureRoleInNode(Role.kRoleAdjustable);
+        configureActionInNode("increment", "Increment value");
+
+        AccessibilityNodeInfoCompat.AccessibilityActionCompat actualActionNode = mNode.getActionList().get(0);
+        assertEquals(AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD, actualActionNode.getId());
+        assertEquals("Increment value", actualActionNode.getLabel());
+    }
+
+    @Test
+    public void test_decrementAction() {
+        configureRoleInNode(Role.kRoleAdjustable);
+        configureActionInNode("decrement", "Decrement value");
+
+        AccessibilityNodeInfoCompat.AccessibilityActionCompat actualActionNode = mNode.getActionList().get(0);
+        assertEquals(AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD, actualActionNode.getId());
+        assertEquals("Decrement value", actualActionNode.getLabel());
     }
 
     @Test

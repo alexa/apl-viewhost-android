@@ -200,6 +200,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         refreshProperties(PropertyKey.kPropertyAccessibilityLabel);
 
         verify(component(), atLeastOnce()).getAccessibilityLabel();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isFocusable();
         verify(component(), atLeastOnce()).isDisabled();
         verify(component()).isFocusableInTouchMode();
@@ -219,6 +220,7 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         refreshProperties(PropertyKey.kPropertyAccessibilityLabel);
 
         verify(component(), atLeastOnce()).getAccessibilityLabel();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isFocusable();
         verify(component(), atLeastOnce()).isDisabled();
         verify(component()).isFocusableInTouchMode();

@@ -47,6 +47,12 @@ public class EmbeddedDocumentFactoryTest  extends ViewhostRobolectricTest {
             "    \"datasources\": {}\n" +
             "  }\n" +
             "}";
+    private static final String RENDER_DOCUMENT_WITHOUT_PAYLOAD = "{\n" +
+            "  \"name\": \"RenderDocument\",\n" +
+            "  \"namespace\": \"Alexa.Presentation.APL\",\n" +
+            "  \"document\": {},\n" +
+            "  \"datasources\": {}\n" +
+            "}";
     private static final String PAYLOAD = "{}";
     private static final String NON_JSON_PAYLOAD = "non-json";
     private static final String VALID_URL = "http://something.json";
@@ -71,6 +77,20 @@ public class EmbeddedDocumentFactoryTest  extends ViewhostRobolectricTest {
         doAnswer(invocation -> {
             Callback callback = invocation.getArgument(1);
             callback.success(RENDER_DOCUMENT_PAYLOAD);
+            return null;
+        }).when(mDataRetriever).fetch(anyString(), any(Callback.class));
+
+        mDefaultEmbeddedDocumentFactory.onDocumentRequested(mEmbeddedDocumentRequest);
+        verify(mEmbeddedDocumentRequest).resolve(mPreparedDocument);
+    }
+
+    @Test
+    public void testOnDocumentRequestedSuccessRenderDocumentDirectiveWithoutPayload() {
+        when(mEmbeddedDocumentRequest.getSource()).thenReturn(VALID_URL);
+        when(mViewhost.prepare(any(PrepareDocumentRequest.class))).thenReturn(mPreparedDocument);
+        doAnswer(invocation -> {
+            Callback callback = invocation.getArgument(1);
+            callback.success(RENDER_DOCUMENT_WITHOUT_PAYLOAD);
             return null;
         }).when(mDataRetriever).fetch(anyString(), any(Callback.class));
 

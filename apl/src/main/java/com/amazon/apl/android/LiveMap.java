@@ -9,38 +9,37 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.common.BoundObject;
-
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 /**
  * Class supporting use of live maps in the top level data-binding context.
- *
+ * <p>
  * LiveMaps are created and modified by Viewhost Runtimes.  For example:
- *
+ * <p>
  *      // Before creating the root context:
  *      LiveMap myMap = LiveMap.create();
  *      rootConfig.liveData("MyLiveMap", myMap);
- *
+ * <p>
  *      // After the root context has been created:
  *      myMap.put("MyValue", "Changed string object");
- *
+ * <p>
  * Inside of the APL document the LiveMap may be used normally in data-binding
  * contexts.  For example:
- *
+ * <p>
  *     {
  *       "type": "Text",
  *       "text": "The live object is currently '${MyLiveMap.MyValue}'"
  *     }
  */
-public class LiveMap extends BoundObject implements Map<String,Object> {
+public class LiveMap extends LiveData implements Map<String,Object> {
     private final Map<String,Object> mBackingMap = new HashMap<>();
 
     /**
@@ -53,7 +52,7 @@ public class LiveMap extends BoundObject implements Map<String,Object> {
 
     /**
      * Construct a live map initialized by an Object map.
-     *
+     * <p>
      * Items are copied from the map.
      *
      * @param map The object map
@@ -342,6 +341,25 @@ public class LiveMap extends BoundObject implements Map<String,Object> {
     @Nullable
     public Object innerGet(String key) {
         return nGet(getNativeHandle(), key);
+    }
+
+    @Override
+    public boolean applyUpdates(List<Update> operations) {
+        try {
+            for (LiveMap.Update operation : operations) {
+                if (operation.getType().equals("set")) {
+                    put(operation.getKey(), operation.getValue());
+                } else if (operation.getType().equals("remove")) {
+                    remove(operation.getKey());
+                } else {
+                    return false;
+                }
+            }
+        } catch (Exception ex) {
+            return false;
+        }
+
+        return true;
     }
 
     private static native long nCreate();

@@ -27,6 +27,7 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
         return -1;  //JNI_ERR
     }
+
     jboolean extensionExecutorLoaded = extensionexecutor_OnLoad(vm, reserved);
     jboolean extensionProxyLoaded = extensionproxy_OnLoad(vm, reserved);
     jboolean extensionProviderLoaded = extensionprovider_OnLoad(vm, reserved);

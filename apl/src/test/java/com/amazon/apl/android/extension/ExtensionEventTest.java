@@ -801,13 +801,12 @@ public class ExtensionEventTest extends ViewhostRobolectricTest {
      */
     @Test
     @SmallTest
-    public void testExtension_WithSimpleConfigAndFlags() {
-        testFlagsOfString();
-        testFlagsOfMap();
-    }
-
-    private void testFlagsOfString() {
+    public void testExtension_WithFlagsOfString() {
         mRootConfig = mTestContext.buildRootConfig()
+                .registerExtension("_URIXdefault")
+                .registerExtensionEnvironment("_URIXbool", true)
+                .registerExtensionEnvironment("_URIXstring", "dog")
+                .registerExtensionEnvironment("_URIXnumber", 64)
                 .registerExtensionFlags("_URIXdefault", "simpleFlagString");
 
         loadDocument(WITH_CONFIG);
@@ -816,13 +815,19 @@ public class ExtensionEventTest extends ViewhostRobolectricTest {
     }
 
 
-    private void testFlagsOfMap() {
+    @Test
+    @SmallTest
+    public void testExtension_WithFlagsOfMap() {
         Map<String, Object> map = new HashMap<>();
         map.put("key1", 1);
         map.put("key2", true);
         map.put("key3", "three");
 
         mRootConfig = mTestContext.buildRootConfig()
+                .registerExtension("_URIXdefault")
+                .registerExtensionEnvironment("_URIXbool", true)
+                .registerExtensionEnvironment("_URIXstring", "dog")
+                .registerExtensionEnvironment("_URIXnumber", 64)
                 .registerExtensionFlags("_URIXdefault", map);
 
         loadDocument(WITH_CONFIG);

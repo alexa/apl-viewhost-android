@@ -64,6 +64,7 @@ public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
     // Load the APL library.
     static {
         APLController.initializeAPL(InstrumentationRegistry.getInstrumentation().getContext());
+        APLController.waitForInitializeAPLToComplete(null);
     }
 
     protected long mTime = 0L;

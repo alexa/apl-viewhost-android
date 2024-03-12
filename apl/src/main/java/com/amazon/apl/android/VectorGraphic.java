@@ -56,7 +56,6 @@ public class VectorGraphic extends Component{
         UrlRequests requests = mProperties.getUrlRequests(PropertyKey.kPropertySource);
         if (requests.size() == 0) return null;
         return requests.at(0);
-
     }
 
     public void updateGraphic(String content) {

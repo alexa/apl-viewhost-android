@@ -21,6 +21,8 @@ import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.devtools.enums.DTNetworkRequestType;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.GradientType;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
@@ -53,6 +55,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -60,6 +64,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class ContentTest extends ViewhostRobolectricTest {
@@ -121,6 +126,23 @@ public class ContentTest extends ViewhostRobolectricTest {
             "    {\n" +
             "      \"name\": \"test-package2\"," +
             "      \"version\": \"1.0\"" +
+            "    }" +
+            "  ]," +
+            "  \"mainTemplate\": {" +
+            "    \"item\": {" +
+            "      \"type\": \"Text\"" +
+            "    }" +
+            "  }" +
+            "}";
+
+    private final String mTestImportDocWithCustomSource = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"1.0\"," +
+            "  \"import\": [" +
+            "    {\n" +
+            "      \"name\": \"test-package2\"," +
+            "      \"version\": \"1.0\"," +
+            "      \"source\": \"file://sample_test\"" +
             "    }" +
             "  ]," +
             "  \"mainTemplate\": {" +
@@ -257,6 +279,8 @@ public class ContentTest extends ViewhostRobolectricTest {
     IContentDataRetriever mDataRetriever;
     @Mock
     private Session mSession;
+    @Mock
+    private IDTNetworkRequestHandler mDTNetworkRequestHandler;
 
 
     @Before
@@ -574,7 +598,7 @@ public class ContentTest extends ViewhostRobolectricTest {
             public void onError(Exception e) {
                 Assert.fail(e.getCause().getMessage());
             }
-        }, mSession);
+        }, mSession, mDTNetworkRequestHandler);
         assertNotNull("Content should not be null.", content);
 
         try {
@@ -591,6 +615,85 @@ public class ContentTest extends ViewhostRobolectricTest {
         verifySuccessTelemetry();
         verifyImportsTelemetry(2);
         verify(mPackageLoader, times(2)).fetch(any(), any(), any());
+    }
+
+    @Test
+    public void testDocImport_onFailureToImportPkg_failureCallbackIsTriggered() {
+        doAnswer(invocation -> {
+            ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.FailureCallback<ImportRequest> failCallback = invocation.getArgument(2);
+            failCallback.onFailure(request, "ExpectedFailure");
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
+        Content.create(mTestImportDoc, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onComplete(Content content) {
+                super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Assert.fail(e.getCause().getMessage());
+            }
+        }, mSession, mDTNetworkRequestHandler);
+
+        verify(mDTNetworkRequestHandler).requestWillBeSent(anyInt(), anyDouble(), any(), eq(DTNetworkRequestType.PACKAGE));
+        verify(mDTNetworkRequestHandler).loadingFailed(anyInt(), anyDouble());
+    }
+
+    /**
+     * Test DTNetworkRequestHandler that the default URL source is used on a empty source.
+     */
+    @Test
+    public void testDTNetworkRequestHandler_onPackageImportWithEmptySource_defaultSourceIsUsed() {
+        String expectedURL = "https://arl.assets.apl-alexa.com/packages/test-package2/1.0/document.json";
+        doAnswer(invocation -> {
+            ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
+        Content.create(mTestImportDoc, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onComplete(Content content) {
+                super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Assert.fail(e.getCause().getMessage());
+            }
+        }, mSession, mDTNetworkRequestHandler);
+
+        verify(mDTNetworkRequestHandler).requestWillBeSent(anyInt(), anyDouble(), eq(expectedURL), eq(DTNetworkRequestType.PACKAGE));
+        verify(mDTNetworkRequestHandler).loadingFinished(anyInt(), anyDouble(), anyInt());
+    }
+
+    /**
+     * Test DTNetworkRequestHandler that no events triggered when the source is a non-url source.
+     */
+    @Test
+    public void testDTNetworkRequestHandler_onPackageImportWithNonUrlSource_noDTNetworkEventOccur() {
+        doAnswer(invocation -> {
+            ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
+        Content.create(mTestImportDocWithCustomSource, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onComplete(Content content) {
+                super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                fail(e.getMessage());
+            }
+        }, mSession, mDTNetworkRequestHandler);
+
+        verify(mPackageLoader).fetch(any(), any(), any());
+        verifyNoInteractions(mDTNetworkRequestHandler);
     }
 
     @Test
@@ -613,7 +716,7 @@ public class ContentTest extends ViewhostRobolectricTest {
                 completeCalled.set(true);
                 super.onComplete(content);
             }
-        }, mSession);
+        }, mSession, mDTNetworkRequestHandler);
         assertNotNull("Content should not be null.", content);
         InstrumentationRegistry.getInstrumentation().waitForIdleSync();
 
@@ -1200,7 +1303,7 @@ public class ContentTest extends ViewhostRobolectricTest {
             public void onError(Exception e) {
                 Assert.fail(e.getCause().getMessage());
             }
-        }, mSession);
+        }, mSession, mDTNetworkRequestHandler);
         assertNotNull("Content should not be null.", content);
 
         try {

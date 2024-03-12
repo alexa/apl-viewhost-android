@@ -10,6 +10,7 @@ import android.util.Log;
 
 import androidx.annotation.Keep;
 
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.common.BoundObject;
 
@@ -21,16 +22,24 @@ public class DocumentManager extends BoundObject {
     private static final String TAG = "DocumentManager";
     private final EmbeddedDocumentFactory mEmbeddedDocumentFactory;
     private final Handler mHandler;
+    private final ITelemetryProvider mTelemetryProvider;
 
-    public DocumentManager(final EmbeddedDocumentFactory embeddedDocumentFactory, final Handler handler) {
+    private static final String EMBEDDED_DOCUMENT_COUNT = "embeddedDocumentCount";
+
+    private final int mEmbeddedDocumentCountMetric;
+
+    public DocumentManager(final EmbeddedDocumentFactory embeddedDocumentFactory, final Handler handler, final ITelemetryProvider telemetryProvider) {
         mEmbeddedDocumentFactory = embeddedDocumentFactory;
         mHandler = handler;
+        mTelemetryProvider = telemetryProvider;
+        mEmbeddedDocumentCountMetric = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, EMBEDDED_DOCUMENT_COUNT, ITelemetryProvider.Type.COUNTER);
         long handle = nCreate();
         bind(handle);
     }
 
     public void requestEmbeddedDocument(final EmbeddedDocumentRequestProxy embeddedDocumentRequestProxy) {
-        EmbeddedDocumentRequestImpl request = new EmbeddedDocumentRequestImpl(embeddedDocumentRequestProxy, mHandler);
+        mTelemetryProvider.incrementCount(mEmbeddedDocumentCountMetric);
+        EmbeddedDocumentRequestImpl request = new EmbeddedDocumentRequestImpl(embeddedDocumentRequestProxy, mHandler, mTelemetryProvider);
         String sourceUrl = embeddedDocumentRequestProxy.getRequestUrl();
         if(TextUtils.isEmpty(sourceUrl)) {
             Log.e(TAG, "requestEmbeddedDocument: sourceUrl is null");

@@ -30,6 +30,7 @@ import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 import com.amazon.apl.viewhost.Viewhost;
@@ -133,6 +134,8 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
     HashMap<String, DocumentHandle> mEmbeddedDocuments;
     private APLOptions mAplOptions;
     private String mGoodbyeCommands;
+    @Mock
+    private ITelemetryProvider mTelemetryProvider;
 
     @Before
     public void setup() throws JSONException {
@@ -161,7 +164,7 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
                 .viewhost(mViewhost)
                 .build();
         // TODO: Needed because AbstractDocUnitTest uses a deprecated version of renderDocument
-        mRootConfig.setDocumentManager(factory, mCoreWorker);
+        mRootConfig.setDocumentManager(factory, mCoreWorker, mTelemetryProvider);
 
         // Create a command array JSON string, which changes the "Hello, World" text.
         mGoodbyeCommands = new JSONArray().put(new JSONObject()

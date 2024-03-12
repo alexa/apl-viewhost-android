@@ -16,6 +16,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 
+import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
@@ -71,71 +72,59 @@ public class AlexaVectorDrawableTest extends ViewhostRobolectricTest {
         verify(mPathRenderer).applyBaseAndViewportDimensions();
     }
 
-
     @Test
-    public void test_uniform_scaling_draws_on_canvas(){
-        VectorGraphicScale[] scales = {VectorGraphicScale.kVectorGraphicScaleBestFill, VectorGraphicScale.kVectorGraphicScaleNone, VectorGraphicScale.kVectorGraphicScaleBestFit};
-        for (VectorGraphicScale scale : scales) {
-            when(mGraphicContainerElement.doesMapContainNonUniformScaling()).thenReturn(false);
-            mAlexaVectorDrawable.setScale(scale);
-            mAlexaVectorDrawable.setBounds(0, 0, 10, 10);
-            mAlexaVectorDrawable.draw(mockCanvas);
-            ArgumentCaptor<Rect> captor = ArgumentCaptor.forClass(Rect.class);
-            verify(mockCanvas, atLeast(1)).clipRect(captor.capture());
-            verify(mPathRenderer, atLeast(1)).draw(mockCanvas, 10, 10, mBitmapFactory, true);
-            Rect rect = captor.getValue();
-            assertEquals(0, rect.left);
-            assertEquals(0, rect.top);
-            assertEquals(10, rect.right);
-            assertEquals(10, rect.bottom);
-            verifyNoInteractions(mBitmapFactory);
-        }
-    }
-
-    public void test_fill_type_draws_on_bitmap() throws BitmapCreationException{
-        VectorGraphicScale scale = VectorGraphicScale.kVectorGraphicScaleFill;
-        GraphicContainerElement graphicContainerElement = mock(GraphicContainerElement.class);
-        PathRenderer pathRenderer = mock(PathRenderer.class);
-        when(pathRenderer.getRootGroup()).thenReturn(graphicContainerElement);
-        mAlexaVectorDrawable.setScale(scale);
-        mAlexaVectorDrawable.setBounds(0, 0, 10, 10);
-        mAlexaVectorDrawable.draw(mockCanvas);
-        verify(mBitmapFactory).createBitmap(10, 10);
-    }
-
-    @Test
-    public void test_non_uniform_scaling_draws_on_bitmap() throws BitmapCreationException{
-        when(mGraphicContainerElement.doesMapContainNonUniformScaling()).thenReturn(true);
+    public void test_draw_hardwareAcceleration_unset_draws_on_bitmap() throws BitmapCreationException{
         GraphicContainerElement graphicContainerElement = mock(GraphicContainerElement.class);
         PathRenderer pathRenderer = mock(PathRenderer.class);
         when(pathRenderer.getRootGroup()).thenReturn(graphicContainerElement);
         mAlexaVectorDrawable.setBounds(0, 0, 10, 10);
+
+        // draw
         mAlexaVectorDrawable.draw(mockCanvas);
         // verify that bitmap was created instead of drawing straight into the canvas
         verify(mBitmapFactory).createBitmap(10, 10);
     }
 
     @Test
-    public void test_skew_draws_on_bitmap() throws BitmapCreationException{
-        when(mGraphicContainerElement.doesMapContainsSkew()).thenReturn(true);
+    public void test_draw_hardwareAcceleration_disabled_draws_on_bitmap() throws BitmapCreationException{
+        RenderingContext rc = RenderingContext.builder()
+                .isHardwareAccelerationForVectorGraphicsEnabled(false)
+                .build();
+        when(mGraphicContainerElement.getRenderingContext()).thenReturn(rc);
         GraphicContainerElement graphicContainerElement = mock(GraphicContainerElement.class);
         PathRenderer pathRenderer = mock(PathRenderer.class);
         when(pathRenderer.getRootGroup()).thenReturn(graphicContainerElement);
         mAlexaVectorDrawable.setBounds(0, 0, 10, 10);
+
+        // draw
         mAlexaVectorDrawable.draw(mockCanvas);
         // verify that bitmap was created instead of drawing straight into the canvas
         verify(mBitmapFactory).createBitmap(10, 10);
     }
 
     @Test
-    public void test_drop_shadow_present_draws_on_bitmap() throws BitmapCreationException{
-        GraphicContainerElement graphicContainerElement = mock(GraphicContainerElement.class);
-        PathRenderer pathRenderer = mock(PathRenderer.class);
-        when(pathRenderer.getRootGroup()).thenReturn(graphicContainerElement);
-        when(mGraphicContainerElement.doesMapContainFilters()).thenReturn(true);
+    public void test_draw_hardwareAcceleration_enabled_draws_on_canvas() throws BitmapCreationException {
+        RenderingContext rc = RenderingContext.builder()
+                .isHardwareAccelerationForVectorGraphicsEnabled(true)
+                .build();
+        when(mGraphicContainerElement.getRenderingContext()).thenReturn(rc);
+        when(mPathRenderer.getRootGroup()).thenReturn(mGraphicContainerElement);
+        when(mBitmapFactory.createBitmap(10, 10)).thenReturn(mBitmap);
+        mVectorState = new AlexaVectorDrawable.VectorDrawableCompatState(mPathRenderer, mBitmapFactory);
+        mAlexaVectorDrawable = new AlexaVectorDrawable(mVectorState);
         mAlexaVectorDrawable.setBounds(0, 0, 10, 10);
+
+        // draw
         mAlexaVectorDrawable.draw(mockCanvas);
-        // verify that bitmap was created instead of drawing straight into the canvas
-        verify(mBitmapFactory).createBitmap(10, 10);
+
+        ArgumentCaptor<Rect> captor = ArgumentCaptor.forClass(Rect.class);
+        verify(mockCanvas, atLeast(1)).clipRect(captor.capture());
+        verify(mPathRenderer, atLeast(1)).draw(mockCanvas, 10, 10, mBitmapFactory, true);
+        Rect rect = captor.getValue();
+        assertEquals(0, rect.left);
+        assertEquals(0, rect.top);
+        assertEquals(10, rect.right);
+        assertEquals(10, rect.bottom);
+        verifyNoInteractions(mBitmapFactory);
     }
 }

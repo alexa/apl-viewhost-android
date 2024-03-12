@@ -38,7 +38,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -157,7 +156,7 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
         assertEquals(View.VISIBLE, getView().getVisibility());
         assertEquals(0f, getView().getZ(), 0.01);
         assertEquals(1f, getView().getAlpha(), 0.01);
-        assertNull(getView().getContentDescription());
+        assertEquals("", getView().getContentDescription());
         assertTrue(getView().isEnabled());
         assertTrue(ViewCompat.hasAccessibilityDelegate(getView()));
         assertFalse(getView().hasOnClickListeners());
@@ -197,6 +196,69 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
     public void test_accessibility() {
         String accessibilityString = "accessibility";
         when(component().getAccessibilityLabel()).thenReturn(accessibilityString);
+
+        applyAllProperties();
+
+        assertEquals(accessibilityString, getView().getContentDescription());
+    }
+
+    @Test
+    public void test_accessibility_adjustable_value() {
+        String accessibilityAdjustableValueString = "accessibilityAdjustableValue";
+        when(component().getRole()).thenReturn(Role.kRoleAdjustable);
+        when(component().getAccessibilityLabel()).thenReturn(null);
+        when(component().hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(true);
+        when(component().getAccessibilityAdjustableValue()).thenReturn(accessibilityAdjustableValueString);
+
+        applyAllProperties();
+
+        assertEquals(new StringBuilder().append(" ").append(accessibilityAdjustableValueString).toString(), getView().getContentDescription());
+    }
+
+    @Test
+    public void test_accessibility_label_and_adjustable_value() {
+        String accessibilityString = "accessibility";
+        String accessibilityAdjustableValueString = "accessibilityAdjustableValue";
+        when(component().getRole()).thenReturn(Role.kRoleAdjustable);
+        when(component().getAccessibilityLabel()).thenReturn(accessibilityString);
+        when(component().hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(true);
+        when(component().getAccessibilityAdjustableValue()).thenReturn(accessibilityAdjustableValueString);
+
+        applyAllProperties();
+
+        assertEquals(String.join(" ", accessibilityString, accessibilityAdjustableValueString), getView().getContentDescription());
+    }
+
+    @Test
+    public void test_accessibility_label_and_empty_adjustable_value() {
+        String accessibilityString = "accessibility";
+        when(component().getRole()).thenReturn(Role.kRoleAdjustable);
+        when(component().getAccessibilityLabel()).thenReturn(accessibilityString);
+        when(component().hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(true);
+        when(component().getAccessibilityAdjustableValue()).thenReturn("");
+
+        applyAllProperties();
+
+        assertEquals(accessibilityString, getView().getContentDescription());
+    }
+
+    @Test
+    public void test_accessibility_label_and_adjustable_value_not_present() {
+        String accessibilityString = "accessibility";
+        when(component().getRole()).thenReturn(Role.kRoleAdjustable);
+        when(component().getAccessibilityLabel()).thenReturn(accessibilityString);
+        when(component().hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(false);
+
+        applyAllProperties();
+
+        assertEquals(accessibilityString, getView().getContentDescription());
+    }
+
+    @Test
+    public void test_accessibility_label_and_adjustable_value_not_present_not_adjustable() {
+        String accessibilityString = "accessibility";
+        when(component().getAccessibilityLabel()).thenReturn(accessibilityString);
+        when(component().hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue)).thenReturn(false);
 
         applyAllProperties();
 
@@ -262,6 +324,7 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
         refreshProperties(PropertyKey.kPropertyAccessibilityLabel);
 
         verify(component(), atLeastOnce()).getAccessibilityLabel();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isFocusable();
         verify(component()).isFocusableInTouchMode();
         verifyNoMoreInteractions(component());
@@ -276,6 +339,7 @@ public abstract class AbstractComponentViewAdapterTest<C extends Component, V ex
         refreshProperties(PropertyKey.kPropertyDisabled);
 
         verify(component(), atLeastOnce()).isDisabled();
+        verify(component(), atLeastOnce()).getRole();
         verify(component()).isClickable();
         verify(component()).isFocusable();
         verify(component()).isFocusableInTouchMode();

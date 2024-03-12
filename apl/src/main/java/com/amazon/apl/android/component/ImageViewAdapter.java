@@ -30,6 +30,7 @@ import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.LazyImageLoader;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.ImageScale;
 import com.amazon.apl.enums.PropertyKey;
 
@@ -41,6 +42,8 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
 
     public static final String METRIC_COUNTER_BITMAP_CACHE_HIT = "ImageBitmapCacheHit";
     public static final String METRIC_COUNTER_BITMAP_CACHE_MISS = "ImageBitmapCacheMiss";
+
+    private IDTNetworkRequestHandler mDTNetworkRequestHandler;
 
     private ImageViewAdapter() {
         super();
@@ -156,8 +159,12 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
         Log.d(TAG, "Loading image: " + image.getSourceUrls() + " into " + image);
         view.setLoadDeferred(false);
         telemetryProvider.incrementCount(metricBitmapCacheMissCounter);
-        LazyImageLoader.initImageLoad(this, image, view);
+        LazyImageLoader.initImageLoad(this, image, view, mDTNetworkRequestHandler);
         trace.endTrace();
+
+        if (mDTNetworkRequestHandler == null) {
+            Log.d(TAG, "DTNetworkRequestHandler is null, no network requests events will be tracked");
+        }
     }
 
     /**
@@ -238,6 +245,10 @@ public class ImageViewAdapter extends ComponentViewAdapter<Image, APLImageView> 
         view.setImageProcessingAsyncTask(null);
 
         view.setLayoutRequestsEnabled(true);
+    }
+
+    public void setDTNetworkRequestHandler(IDTNetworkRequestHandler dtNetworkRequestHandler) {
+        mDTNetworkRequestHandler = dtNetworkRequestHandler;
     }
 
     /**

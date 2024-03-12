@@ -4,8 +4,7 @@
   ~ SPDX-License-Identifier: Apache-2.0
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.amazon.alexa.android.extension.discovery">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <permission
         android:name="com.amazon.alexa.extensions.permission.SKILL"

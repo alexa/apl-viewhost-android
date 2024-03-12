@@ -6,6 +6,7 @@
 package com.amazon.apl.android.utils;
 
 import android.graphics.Bitmap;
+import android.os.SystemClock;
 import android.util.Log;
 
 import com.amazon.apl.android.Image;
@@ -13,6 +14,8 @@ import com.amazon.apl.android.component.ImageViewAdapter;
 import com.amazon.apl.android.dependencies.IImageLoader;
 import com.amazon.apl.android.primitive.UrlRequests;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.enums.DTNetworkRequestType;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.ImageScale;
 
 import java.util.ArrayList;
@@ -22,19 +25,20 @@ import java.util.List;
 public class LazyImageLoader {
 
     private static final String TAG = "LazyImageLoader";
+    private static IDTNetworkRequestHandler mDTNetworkRequestHandler;
 
     /**
      * Starts the image load.
      *
      * @param view The view to display the image.
      */
-    public static void initImageLoad(ImageViewAdapter adapter, Image image, APLImageView view) {
+    public static void initImageLoad(ImageViewAdapter adapter, Image image, APLImageView view, IDTNetworkRequestHandler dtNetworkRequestHandler) {
         if (view.getDrawable() != null) {
             view.setImageDrawable(null);
             // Clear the resources for this view if we're loading a new bitmap
             LazyImageLoader.clearImageResources(adapter, image, view);
         }
-
+        mDTNetworkRequestHandler = dtNetworkRequestHandler;
         boolean needsScaling = (image.getScale() != ImageScale.kImageScaleNone);
 
         IImageLoader provider = image.getImageLoader(view.getContext());
@@ -83,7 +87,15 @@ public class LazyImageLoader {
         public void load() {
             for (int i = 0; i < mSources.size(); i++) {
                 final int index = i;
-                IImageLoader.LoadImageCallback2 callback = new LoadImageCallback(mImageView, (bitmap) -> {
+                final String url = mSources.get(index).url();
+                int requestId = IDTNetworkRequestHandler.IdGenerator.generateId();
+                // We should only pass a networkRequestHandler, when source is a URL request.
+                IDTNetworkRequestHandler networkRequestHandler = null;
+                if (mDTNetworkRequestHandler != null && IDTNetworkRequestHandler.isUrlRequest(url)) {
+                    networkRequestHandler = mDTNetworkRequestHandler;
+                    mDTNetworkRequestHandler.requestWillBeSent(requestId, SystemClock.elapsedRealtimeNanos(), url, DTNetworkRequestType.IMAGE);
+                }
+                IImageLoader.LoadImageCallback2 callback = new LoadImageCallback(mImageView, networkRequestHandler, requestId, (bitmap) -> {
                     mBitmaps[index] = bitmap;
                     boolean allLoaded = true;
                     for (Bitmap loaded : mBitmaps) {
@@ -121,17 +133,24 @@ public class LazyImageLoader {
     private static class LoadImageCallback implements IImageLoader.LoadImageCallback2 {
         private final APLImageView mImageView;
         private final BitmapAcceptor mResult;
+        private final int mRequestId;
+        private final IDTNetworkRequestHandler mDTNetworkRequestHandler;
         private boolean mHasReturned = false;
 
-        LoadImageCallback(APLImageView imageView, BitmapAcceptor result) {
+        LoadImageCallback(APLImageView imageView, IDTNetworkRequestHandler dtNetworkRequest, int requestId, BitmapAcceptor result) {
             mImageView = imageView;
             mResult = result;
+            mDTNetworkRequestHandler = dtNetworkRequest;
+            mRequestId = requestId;
         }
 
         @Override
         public synchronized void onSuccess(Bitmap bitmap, String source) {
             mImageView.getPresenter().mediaLoaded(source);
             setBitmap(bitmap);
+            if (mDTNetworkRequestHandler != null) {
+                mDTNetworkRequestHandler.loadingFinished(mRequestId, SystemClock.elapsedRealtimeNanos(), bitmap.getByteCount());
+            }
         }
 
         @Override
@@ -148,6 +167,9 @@ public class LazyImageLoader {
             mImageView.getPresenter().mediaLoadFailed(source, errorCode, errorMessage);
             Log.e(TAG, "error loading image", exception);
             renderErrorBitmap(source);
+            if (mDTNetworkRequestHandler != null) {
+                mDTNetworkRequestHandler.loadingFailed(mRequestId, SystemClock.elapsedRealtimeNanos());
+            }
         }
 
         private synchronized void renderErrorBitmap(String source) {

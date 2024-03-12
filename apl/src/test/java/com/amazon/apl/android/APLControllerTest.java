@@ -5,21 +5,28 @@
 
 package com.amazon.apl.android;
 
+import android.content.Context;
 import android.os.Looper;
 
+import com.amazon.alexaext.ExtensionRegistrar;
+import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
+import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
+
+import static com.amazon.apl.android.APLController.initializeAPL;
 import static com.amazon.apl.android.APLController.setLibraryFuture;
-import static junit.framework.TestCase.assertNull;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.bitmap.IBitmapPool;
 import com.amazon.apl.android.dependencies.IContentCompleteCallback;
+import com.amazon.apl.devtools.models.ViewTypeTarget;
 import com.amazon.apl.android.font.CompatFontResolver;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.DisplayState;
 
 import org.junit.Before;
@@ -46,8 +53,11 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -86,6 +96,19 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private DocumentSession mDocumentSession;
     @Mock
     private ITelemetryProvider mTelemetryProvider;
+    @Mock
+    private IUserPerceivedFatalCallback mUserPerceivedFatalCallback;
+    @Mock
+    private ViewTypeTarget mViewTypeTarget;
+    @Mock
+    private Session mAPLSession;
+    private Context mContext;
+    @Mock
+    private RuntimeConfig mRuntimeConfig;
+    @Mock
+    private IExtensionRegistration mExtensionRegistration;
+    @Mock
+    private ExtensionRegistrar mExtensionRegistrar;
 
     private APLController mController;
 
@@ -93,10 +116,14 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     public void setup() {
         mController = new APLController(mRootContext, mContent);
         when(mOptions.getTelemetryProvider()).thenReturn(mTelemetryProvider);
+        when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
         when(mRootContext.executeCommands(any())).thenReturn(mAction);
         when(mRootContext.getOptions()).thenReturn(mOptions);
         when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
+        when(mRootConfig.getSession()).thenReturn(mAPLSession);
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
+        when(mAplLayout.getDTView()).thenReturn(mViewTypeTarget);
+        when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
         try {
             when(mLibraryFuture.get(
                     any(long.class),
@@ -227,7 +254,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.pauseDocument();
 
-        verify(mRootContext).getRootConfig();
+        verify(mRootContext, times(2)).getRootConfig();
         verifyNoMoreInteractions(mRootContext);
     }
 
@@ -255,7 +282,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onComplete(mContent); return mContent;}))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -266,13 +293,152 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     }
 
     @Test
+    public void testUPFCallback_whenDoesNotInitializeApl_ContentCreationError() {
+        // Setup
+        try {
+            when(mLibraryFuture.get(
+                    any(long.class),
+                    any(TimeUnit.class)
+            )).thenReturn(false);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+        when(mOptions.getContentCompleteCallback()).thenReturn(mContentCompleteCallback);
+        when(mOptions.getContentCompleteCallback()).thenReturn(mContentCompleteCallback);
+        when(mRootConfig.getExtensionProvider()).thenReturn(mExtensionRegistrar);
+        when(mOptions.getExtensionRegistration()).thenReturn(mExtensionRegistration);
+        doNothing().when(mExtensionRegistration).registerExtensions(any(), any());
+        mockStatic(ExtensionMediator.class);
+        when(ExtensionMediator.create(any(), any())).thenReturn(mExtensionMediator);
+        doAnswer(invocation -> {
+            ExtensionMediator.ILoadExtensionCallback loadExtensionCallback = invocation.getArgument(2);
+            loadExtensionCallback.onSuccess().run();
+            return null;
+        }).when(mExtensionMediator).loadExtensions(any(RootConfig.class), any(), any());
+        setLibraryFuture(mLibraryFuture);
+
+        // Test
+        APLController controller = (APLController)APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(mOptions)
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .documentSession(mDocumentSession)
+                .render();
+
+        // Verify
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.APL_INITIALIZATION_FAILURE.toString()));
+    }
+
+    @Test
+    public void testUPFCallback_whenDoesNotInitializeApl_ContentCreationComplete() {
+        // Setup
+        try {
+            when(mLibraryFuture.get(
+                    any(long.class),
+                    any(TimeUnit.class)
+            )).thenReturn(false);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } catch (TimeoutException e) {
+            throw new RuntimeException(e);
+        }
+        when(mOptions.getContentCompleteCallback()).thenReturn(mContentCompleteCallback);
+        when(mOptions.getContentCompleteCallback()).thenReturn(mContentCompleteCallback);
+        when(mRootConfig.getExtensionProvider()).thenReturn(mExtensionRegistrar);
+        when(mOptions.getExtensionRegistration()).thenReturn(mExtensionRegistration);
+        doNothing().when(mExtensionRegistration).registerExtensions(any(), any());
+        mockStatic(ExtensionMediator.class);
+        when(ExtensionMediator.create(any(), any())).thenReturn(mExtensionMediator);
+        doAnswer(invocation -> {
+            ExtensionMediator.ILoadExtensionCallback loadExtensionCallback = invocation.getArgument(2);
+            loadExtensionCallback.onSuccess().run();
+            return null;
+        }).when(mExtensionMediator).loadExtensions(any(RootConfig.class), any(), any());
+        setLibraryFuture(mLibraryFuture);
+
+        // Test
+        APLController controller = (APLController)APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(mOptions)
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .documentSession(mDocumentSession)
+                .render();
+
+        // Verify
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.APL_INITIALIZATION_FAILURE.toString()));
+    }
+
+    @Test
+    public void testUPFCallback_whenInitializeApl_ContentCreationError() {
+        // Setup
+        initializeAPL(mContext, mRuntimeConfig);
+        setLibraryFuture(mLibraryFuture);
+
+        // Test
+        APLController controller = (APLController)APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(mOptions)
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onError(new Exception()); return null;}))
+                .documentSession(mDocumentSession)
+                .render();
+
+        // Verify
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE.toString()));
+    }
+
+    @Test
+    public void testRequiredExtensionLoadingFailure_whenExtensionCallbackReportsFailure() {
+        // Setup
+        initializeAPL(mContext, mRuntimeConfig);
+        when(mOptions.getContentCompleteCallback()).thenReturn(mContentCompleteCallback);
+        when(mRootConfig.getExtensionProvider()).thenReturn(mExtensionRegistrar);
+        when(mOptions.getExtensionRegistration()).thenReturn(mExtensionRegistration);
+        doNothing().when(mExtensionRegistration).registerExtensions(any(), any());
+        mockStatic(ExtensionMediator.class);
+        when(ExtensionMediator.create(any(), any())).thenReturn(mExtensionMediator);
+        doAnswer(invocation -> {
+            ExtensionMediator.ILoadExtensionCallback loadExtensionCallback = invocation.getArgument(2);
+            loadExtensionCallback.onFailure().run();
+
+            return null;
+        }).when(mExtensionMediator).loadExtensions(any(RootConfig.class), any(), any());
+        setLibraryFuture(mLibraryFuture);
+
+        // Test
+        APLController controller = (APLController)APLController.builder()
+                .aplLayout(mAplLayout)
+                .rootConfig(mRootConfig)
+                .aplDocument("{}")
+                .aplOptions(mOptions)
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .documentSession(mDocumentSession)
+                .disableAsyncInflate(true)
+                .render();
+
+        // Verify
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE.toString()));
+    }
+
+    @Test
     public void testDisplayStateChangesIgnoredAfterFinish() {
         mController.finishDocument();
         verify(mRootContext).finishDocument();
 
         mController.updateDisplayState(DisplayState.kDisplayStateHidden);
 
-        verify(mRootContext).getRootConfig();
+        verify(mRootContext, times(2)).getRootConfig();
         verifyNoMoreInteractions(mRootContext);
     }
 
@@ -284,7 +450,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         mController.finishDocument();
         verify(mRootContext).finishDocument();
-        verify(mRootContext).getRootConfig();
+        verify(mRootContext, times(2)).getRootConfig();
 
         mController.getDocVersion();
 
@@ -302,7 +468,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> mContent))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> mContent))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -326,7 +492,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> mContent))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> mContent))
                 .documentSession(mDocumentSession)
                 .render();
 
@@ -358,7 +524,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
                 .rootConfig(mRootConfig)
                 .aplDocument("{}")
                 .aplOptions(aplOptions)
-                .contentCreator(((aplDocument, options, callbackV2, rootConfig) -> {callbackV2.onComplete(mContent); return mContent;}))
+                .contentCreator(((aplDocument, options, callbackV2, rootConfig, dtNetworkRequestHandler) -> {callbackV2.onComplete(mContent); return mContent;}))
                 .documentSession(mDocumentSession)
                 .render();
 

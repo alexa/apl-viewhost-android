@@ -13,59 +13,87 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import android.os.Handler;
-import android.os.Looper;
+import android.view.View;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.alexaext.ExtensionRegistrar;
+import com.amazon.alexaext.IExtensionProvider;
+import com.amazon.apl.android.APLLayout;
+import com.amazon.apl.android.Action;
+import com.amazon.apl.android.Content;
 import com.amazon.apl.android.DocumentSession;
+import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.Session;
+import com.amazon.apl.android.UserPerceivedFatalReporter;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.dependencies.IOpenUrlCallback;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
+import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
+import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
 import com.amazon.apl.android.events.PlayMediaEvent;
 import com.amazon.apl.android.events.SendEvent;
-import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
+import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.enums.DisplayState;
+import com.amazon.apl.enums.ScreenShape;
+import com.amazon.apl.enums.ViewportMode;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 import com.amazon.apl.viewhost.Viewhost;
 import com.amazon.apl.viewhost.config.DocumentOptions;
+import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
+import com.amazon.apl.viewhost.config.EmbeddedDocumentResponse;
 import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.example.ExampleDocumentFactory;
+import com.amazon.apl.viewhost.internal.message.notification.DocumentStateChangedImpl;
+import com.amazon.apl.viewhost.message.BaseMessage;
 import com.amazon.apl.viewhost.message.Message;
-import com.amazon.apl.viewhost.message.MessageHandler;
-import com.amazon.apl.viewhost.message.action.ActionMessage;
 import com.amazon.apl.viewhost.message.action.FetchDataRequest;
 import com.amazon.apl.viewhost.message.action.OpenURLRequest;
-import com.amazon.apl.viewhost.message.action.ReportRuntimeErrorRequest;
 import com.amazon.apl.viewhost.message.action.SendUserEventRequest;
 import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
 import com.amazon.apl.viewhost.request.ExecuteCommandsRequest;
 import com.amazon.apl.viewhost.request.FinishDocumentRequest;
 import com.amazon.apl.viewhost.request.PrepareDocumentRequest;
 import com.amazon.apl.viewhost.request.RenderDocumentRequest;
+import com.amazon.apl.viewhost.request.UpdateDataSourceRequest;
+import com.amazon.apl.viewhost.request.UpdateDataSourceRequest.UpdateDataSourceCallback;
 import com.amazon.apl.viewhost.utils.CapturingMessageHandler;
 import com.amazon.apl.viewhost.utils.ManualExecutor;
 
-import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(AndroidJUnit4.class)
-public class ViewhostTest extends ViewhostRobolectricTest {
+public class ViewhostTest extends AbstractDocUnitTest {
     @Mock
     private DocumentHandle mDocumentHandle;
     @Mock
@@ -73,16 +101,151 @@ public class ViewhostTest extends ViewhostRobolectricTest {
     @Mock
     private DocumentContext mDocumentContext;
 
+    @Mock
+    private IAPLViewPresenter mViewPresenter;
+
     private Viewhost mViewhost;
+
+    private Viewhost mViewhost2;
+
+    private Viewhost mViewhost3;
     private CapturingMessageHandler mMessageHandler;
     private ManualExecutor mRuntimeInteractionWorker;
+    @Mock
+    private IExtensionProvider mExtensionProvider;
+    @Mock
+    DocumentOptions mDocumentOptions;
+    @Mock
+    ExtensionMediator.IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
+    @Mock
+    protected ShadowBitmapRenderer mockShadowRenderer;
+    @Mock
+    private UpdateDataSourceCallback mCallback;
+
+    @Mock
+    private Handler mCoreWorker;
+
+    @Mock
+    private RootContext mRootContext;
+
+    @Mock
+    private Viewhost.ExtensionEventHandlerCallback mExtensionEventHandlerCallback;
+
+    @Mock
+    private Action mAction;
+
+    @Mock
+    private IUserPerceivedFatalCallback mUserPerceivedFatalCallback;
+
+    private APLLayout mAplLayout;
+
+    private static final String SIMPLE_DOC = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.3\"," +
+            "  \"mainTemplate\": {" +
+            "    \"item\":" +
+            "    {" +
+            "      \"type\": \"Frame\"" +
+            "    }" +
+            "  }" +
+            "}";
+    private static final String INVALID_DOC = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.3\"," +
+            "  \"mainTemplate\": " +
+            "    \"item\":" +
+            "    {" +
+            "      \"type\": \"Frame\"" +
+            "    }" +
+            "  }" +
+            "}";
+    private static final String SIMPLE_DOC_WITH_HOST_COMPONENT = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"2023.3\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Container\",\n" +
+            "      \"items\": [\n" +
+            "      \n" +
+            "        {\n" +
+            "          \"type\": \"Host\",\n" +
+            "          \"source\": \"url\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n";
+    private static final String SHOPPING_LIST_DOC = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.2\"," +
+            "  \"mainTemplate\": {" +
+            "    \"parameters\": [" +
+            "      \"shoppingListData\"" +
+            "    ]," +
+            "    \"items\": {" +
+            "      \"type\": \"Sequence\"," +
+            "      \"width\": \"100%\"," +
+            "      \"height\": \"100%\"," +
+            "      \"data\": \"${shoppingListData}\"," +
+            "      \"items\": {" +
+            "        \"type\": \"Text\"," +
+            "        \"text\": \"${index + 1}. ${data.text}\"," +
+            "        \"color\": \"white\"," +
+            "        \"textAlign\": \"center\"," +
+            "        \"textAlignVertical\": \"center\"" +
+            "      }" +
+            "    }" +
+            "  }" +
+            "}";
+    private static final String SHOPPING_LIST_DATA = "{\n" +
+            "  \"shoppingListData\" : {\n" +
+            "    \"type\": \"dynamicIndexList\",\n" +
+            "    \"listId\": \"shoppingListA\",\n" +
+            "    \"startIndex\": 0,\n" +
+            "    \"minimumInclusiveIndex\": 0,\n" +
+            "    \"maximumExclusiveIndex\": 100,\n" +
+            "    \"items\": []\n" +
+            "  }\n" +
+            "}";
+
 
     @Before
     public void setup() {
+        ViewportMetrics metrics = ViewportMetrics.builder()
+                .width(1280)
+                .height(720)
+                .dpi(160)
+                .shape(ScreenShape.RECTANGLE)
+                .theme("dark")
+                .mode(ViewportMode.kViewportModeHub)
+                .build();
+
         mMessageHandler = new CapturingMessageHandler();
         mRuntimeInteractionWorker = new ManualExecutor();
-        ViewhostConfig config = ViewhostConfig.builder().messageHandler(mMessageHandler).build();
-        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, new Handler(Looper.getMainLooper()));
+        mAplLayout = spy(new APLLayout(RuntimeEnvironment.getApplication().getBaseContext(), null));
+        mAplLayout.setAplViewPresenterForTesting(mViewPresenter);
+        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
+        when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(mExtensionGrantRequestCallback);
+        when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
+        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
+        when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
+        when(mViewPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
+        when(mViewPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mViewPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
+        when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
+            Runnable task = invocation.getArgument(0);
+            task.run();
+            return null;
+        });
+        // Create new viewhost for handling embedded documents
+        ViewhostConfig config = ViewhostConfig.builder()
+                .messageHandler(mMessageHandler)
+                .extensionRegistrar(extensionRegistrar)
+                .defaultDocumentOptions(mDocumentOptions)
+                .build();
+        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost2 = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost3 = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
     }
 
     @Test
@@ -109,7 +272,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
         // Basic demonstration of a prepare document request, getting a document handle
         PrepareDocumentRequest request = PrepareDocumentRequest.builder()
                 .token("mytoken")
-                .document(new JsonStringDecodable("document"))
+                .document(new JsonStringDecodable(SIMPLE_DOC))
                 .data(new JsonStringDecodable("data"))
                 .documentSession(DocumentSession.create())
                 .documentOptions(DocumentOptions.builder().build())
@@ -117,23 +280,438 @@ public class ViewhostTest extends ViewhostRobolectricTest {
         PreparedDocument preparedDocument = mViewhost.prepare(request);
         DocumentHandle handle = preparedDocument.getHandle();
         assertNotNull(handle);
+        assertEquals("mytoken", preparedDocument.getToken());
+        assertTrue(preparedDocument.hasToken());
+        assertTrue(preparedDocument.isValid());
+        assertTrue(preparedDocument.isReady());
+        assertEquals(handle.getUniqueId(), preparedDocument.getUniqueID());
 
-        // Could be rendered at this point, if that pathway was implemented
-        assertNull(mViewhost.render(preparedDocument));
+        assertNotNull(mViewhost.render(preparedDocument));
 
         // Could finish document given a handle
         FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
                 .token("mytoken")
                 .build();
         handle.finish(finishRequest);
-
     }
 
     @Test
-    public void testRenderDocument() {
-        // Pathway not implemented
-        DocumentHandle handle = mViewhost.render(mock(RenderDocumentRequest.class));
-        assertNull(handle);
+    public void testPrepareDocument_reportUpfFatal_onContentCreationFailed() throws Content.ContentException {
+        // Basic demonstration of a prepare document request, getting a document handle
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .data(new JsonStringDecodable("data"))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
+
+        mockStatic(Content.class);
+        Content.CallbackV2 callbackV2 = mock(Content.CallbackV2.class);
+
+        doAnswer(invocation -> {
+            Exception e = new Exception();
+            ((Content.CallbackV2) invocation.getMock()).onError(e);
+            return null;
+        }).when(callbackV2).onError(any());
+
+        when(Content.create(any(), any(), any(), any(Session.class), any())).then(invocation -> {
+            Content.CallbackV2 callback = invocation.getArgument(2);
+            callback.onError(new Exception());
+            return null;
+        });
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE.toString()));
+        verify(mUserPerceivedFatalCallback, times(0)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE.toString()));
+    }
+
+    @Test
+    public void testPrepareDocument_reportUpfFatal_onRequiredExtensionFailure() throws Content.ContentException {
+        ExtensionMediator extensionMediator = mock(ExtensionMediator.class);
+        ExtensionRegistrar extensionRegistrar = mock(ExtensionRegistrar.class);
+        ExtensionMediator.IExtensionGrantRequestCallback extensionGrantRequestCallback = mock(ExtensionMediator.IExtensionGrantRequestCallback.class);
+        Content content = mock(Content.class);
+
+        // Basic demonstration of a prepare document request, getting a document handle
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .data(new JsonStringDecodable("data"))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
+        when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
+        when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(extensionGrantRequestCallback);
+
+        mockStatic(Content.class);
+        Content.CallbackV2 callbackV2 = mock(Content.CallbackV2.class);
+
+        doAnswer(invocation -> {
+            ((Content.CallbackV2) invocation.getMock()).onComplete(content);
+            return content;
+        }).when(callbackV2).onComplete(any());
+
+        when(Content.create(any(), any(), any(), any(Session.class), any())).then(invocation -> {
+            Content.CallbackV2 callback = invocation.getArgument(2);
+            callback.onComplete(content);
+            return content;
+        });
+
+        mockStatic(ExtensionMediator.class);
+        when(ExtensionMediator.create(any(), any())).thenReturn(extensionMediator);
+        doAnswer(invocation -> {
+            ExtensionMediator.ILoadExtensionCallback loadExtensionCallback = invocation.getArgument(2);
+            loadExtensionCallback.onFailure().run();
+            return null;
+        }).when(extensionMediator).loadExtensions((Map<String, Object>) any(), any(), any());
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+
+        verify(mUserPerceivedFatalCallback, times(0)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE.toString()));
+        verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE.toString()));
+    }
+
+    @Test
+    public void testPreparedDocument_withoutRender_FinishRequest() {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = preparedDocument.getHandle();
+        assertNotNull(handle);
+        assertNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNull(((DocumentHandleImpl) handle).getDocumentContext());
+
+        //finish request
+        FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
+                .build();
+        boolean result = handle.finish(finishRequest);
+        assertTrue(result);
+    }
+
+    @Test
+    public void testPreparedDocument_withoutRender_FinishRequest_InvalidToken() {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = preparedDocument.getHandle();
+        assertNotNull(handle);
+        assertNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNull(((DocumentHandleImpl) handle).getDocumentContext());
+
+        //finish request
+        FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
+                .token("tokenMistake")
+                .build();
+        boolean result = handle.finish(finishRequest);
+        //result should be false when tokens are not matched
+        assertFalse(result);
+    }
+
+    @Test
+    public void testPreparedDocument_withoutRender_FinishRequest_noToken() {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = preparedDocument.getHandle();
+        assertNotNull(handle);
+        assertNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNull(((DocumentHandleImpl) handle).getDocumentContext());
+
+        //finish request
+        FinishDocumentRequest finishRequest = FinishDocumentRequest.builder().build();
+        boolean result = handle.finish(finishRequest);
+        //result should be true when finishRequest do not have any token specified
+        assertTrue(result);
+    }
+
+    @Test
+    public void testPreparedDocument_Render_Finish() throws InterruptedException {
+        CountDownLatch inflatedLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(1);
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                inflatedLatch.countDown();
+            } else if (state == DocumentState.FINISHED) {
+                finishLatch.countDown();
+            }
+        });
+        DocumentHandle handle = prepareAndRender(SIMPLE_DOC, "");
+        assertTrue(inflatedLatch.await(5, TimeUnit.SECONDS));
+
+        //finish request
+        FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
+                .build();
+        boolean result = handle.finish(finishRequest);
+        assertTrue(result);
+        assertTrue(finishLatch.await(1, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testUpdateDisplayState() throws InterruptedException {
+        CountDownLatch inflatedLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(1);
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                inflatedLatch.countDown();
+            } else if (state == DocumentState.FINISHED) {
+                finishLatch.countDown();
+            }
+        });
+        DocumentHandleImpl handle = (DocumentHandleImpl)prepareAndRender(SIMPLE_DOC, "");
+        inflatedLatch.await(5, TimeUnit.SECONDS);
+        handle.getRootContext().resumeDocument();
+        clearInvocations(mViewPresenter);
+
+        mViewhost.updateDisplayState(DisplayState.kDisplayStateHidden);
+        verify(mViewPresenter).onDocumentPaused();
+
+        mViewhost.updateDisplayState(DisplayState.kDisplayStateForeground);
+        verify(mViewPresenter).onDocumentResumed();
+
+        // Switching to background shouldn't pause when at 2024.1 and above.
+        mViewhost.updateDisplayState(DisplayState.kDisplayStateBackground);
+        verifyNoMoreInteractions(mViewPresenter);
+    }
+
+    @Test
+    public void testRenderPreparedDocumentError() throws InterruptedException {
+        CountDownLatch preparedLatch = new CountDownLatch(1);
+        CountDownLatch errorLatch = new CountDownLatch(1);
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        when(mAplLayout.getPresenter()).thenReturn(null);
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.PREPARED) {
+                preparedLatch.countDown();
+            } else if (state == DocumentState.ERROR) {
+                errorLatch.countDown();
+            }
+        });
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = mViewhost.render(preparedDocument);
+        assertNotNull(handle);
+        assertTrue(preparedLatch.await(1, TimeUnit.SECONDS));
+        assertTrue(errorLatch.await(1, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testRenderPrepareDocument_viewUnbound_requestIgnored() {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = mViewhost.render(preparedDocument);
+        assertNotNull(handle);
+        assertFalse(mViewhost.isBound());
+        assertPrepared(handle);
+    }
+
+    @Test
+    public void testRenderPreparedDocumentInflated() throws InterruptedException {
+        Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
+        testRenderPreparedDocumentInflated(SIMPLE_DOC, documentHandleMap);
+        assertEquals(1, documentHandleMap.size());
+    }
+
+    @Test
+    public void testRenderPreparedDocumentWithEmbeddedDocsInflated() throws InterruptedException {
+        Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
+        EmbeddedDocumentFactory factory = new EmbeddedDocumentFactoryTest(mViewhost, documentHandleMap);
+        when(mDocumentOptions.getEmbeddedDocumentFactory()).thenReturn(factory);
+        testRenderPreparedDocumentInflated(SIMPLE_DOC_WITH_HOST_COMPONENT, documentHandleMap);
+        assertEquals(2, documentHandleMap.size());
+    }
+
+    private void testRenderPreparedDocumentInflated(String document, Map<String, DocumentHandle> documentHandleMap) throws InterruptedException {
+        CountDownLatch inflatedLatch = new CountDownLatch(1);
+
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                inflatedLatch.countDown();
+                documentHandleMap.put(handle.getUniqueId(), handle);
+            }
+        });
+        prepareAndRender(document, "");
+        assertTrue(inflatedLatch.await(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testUpdateDataSourcePrimaryDocument() throws InterruptedException {
+        String type = "dynamicIndexList";
+        String payload = "{\n" +
+                "   \"listId\":\"shoppingListA\",\n" +
+                "   \"listVersion\":1,\n" +
+                "   \"operations\":[\n" +
+                "      {\n" +
+                "         \"type\":\"DeleteMultipleItems\",\n" +
+                "         \"index\":0,\n" +
+                "         \"count\":999\n" +
+                "      },\n" +
+                "      {\n" +
+                "         \"type\":\"InsertMultipleItems\",\n" +
+                "         \"index\":0,\n" +
+                "         \"items\":[\n" +
+                "            {\n" +
+                "               \"primaryText\":\"Updated item 1\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "               \"primaryText\":\"Updated item 2\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "               \"primaryText\":\"Updated item 3\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "               \"primaryText\":\"Updated item 4\"\n" +
+                "            },\n" +
+                "            {\n" +
+                "               \"primaryText\":\"Updated item 5\"\n" +
+                "            }\n" +
+                "         ]\n" +
+                "      }\n" +
+                "   ]\n" +
+                "}";
+        UpdateDataSourceRequest updateDataSourceRequest = UpdateDataSourceRequest
+                .builder()
+                .data(new JsonStringDecodable(payload))
+                .type(type)
+                .callback(mCallback)
+                .build();
+        CountDownLatch updateDataSourceLatch = new CountDownLatch(1);
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                assertTrue(handle.updateDataSource(updateDataSourceRequest));
+                updateDataSourceLatch.countDown();
+            }
+        });
+        prepareAndRender(SHOPPING_LIST_DOC, SHOPPING_LIST_DATA);
+        assertTrue(updateDataSourceLatch.await(5, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testRenderDocument_callsPrepareAndRender() {
+        // This test verifies that the correct calls are made since render(RenderDocumentRequest)
+        // is essentially a chaining of a prepare(PrepareDocumentRequest) and render(PreparedDocument)
+        ViewhostImpl mockViewhost = spy((ViewhostImpl) mViewhost);
+        ArgumentCaptor<PrepareDocumentRequest> captor = ArgumentCaptor.forClass(PrepareDocumentRequest.class);
+
+        RenderDocumentRequest renderDocumentRequest = RenderDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .data(new JsonStringDecodable("data"))
+                .documentSession(DocumentSession.create())
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+        mockViewhost.render(renderDocumentRequest);
+
+        verify(mockViewhost).prepare(captor.capture());
+
+        PrepareDocumentRequest prepareDocumentRequest = captor.getValue();
+        assertEquals(prepareDocumentRequest.getToken(), renderDocumentRequest.getToken());
+        assertEquals(prepareDocumentRequest.getDocument(), renderDocumentRequest.getDocument());
+        assertEquals(prepareDocumentRequest.getData(), renderDocumentRequest.getData());
+        assertEquals(prepareDocumentRequest.getDocumentSession(), renderDocumentRequest.getDocumentSession());
+        assertEquals(prepareDocumentRequest.getDocumentOptions(), renderDocumentRequest.getDocumentOptions());
+
+        verify(mockViewhost).render(any(PreparedDocument.class), any(Long.class));
+    }
+
+    @Test
+    public void testRenderDocument_viewhostNotBound_ignoresRendering() throws InterruptedException {
+        CountDownLatch preparedLatch = new CountDownLatch(1);
+        CountDownLatch errorLatch = new CountDownLatch(1);
+
+        RenderDocumentRequest request = RenderDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+
+        // No Viewhost bound to layout, request should fail
+        mViewhost.bind(null);
+
+        DocumentHandle handle = mViewhost.render(request);
+        assertNotNull(handle);
+        assertFalse(mViewhost.isBound());
+        assertPrepared(handle);
+    }
+
+    @Test
+    public void testRenderDocument_viewhostBound_inflatesAndFinishes() throws InterruptedException {
+        CountDownLatch inflatedLatch = new CountDownLatch(1);
+        CountDownLatch finishLatch = new CountDownLatch(1);
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                inflatedLatch.countDown();
+            } else if (state == DocumentState.FINISHED) {
+                finishLatch.countDown();
+            }
+        });
+
+        DocumentHandle handle = render(SIMPLE_DOC, "");
+        assertTrue(inflatedLatch.await(5, TimeUnit.SECONDS));
+
+        // Finish
+        FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
+                .build();
+        boolean result = handle.finish(finishRequest);
+        assertTrue(result);
+        assertTrue(finishLatch.await(1, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testRenderDocument_inflated() throws InterruptedException {
+        Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
+        testRenderDocument_inflated(SIMPLE_DOC, documentHandleMap);
+        assertEquals(1, documentHandleMap.size());
+    }
+
+    @Test
+    public void testRenderDocument_embeddedDoc_inflated() throws InterruptedException {
+        Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
+        EmbeddedDocumentFactory factory = new EmbeddedDocumentFactoryTest(mViewhost, documentHandleMap);
+        when(mDocumentOptions.getEmbeddedDocumentFactory()).thenReturn(factory);
+        testRenderPreparedDocumentInflated(SIMPLE_DOC_WITH_HOST_COMPONENT, documentHandleMap);
+        assertEquals(2, documentHandleMap.size());
+    }
+
+    private void testRenderDocument_inflated(String document, Map<String, DocumentHandle> documentHandleMap) throws InterruptedException {
+        CountDownLatch inflatedLatch = new CountDownLatch(1);
+
+        mViewhost.registerStateChangeListener((state, handle) -> {
+            if (state == DocumentState.INFLATED) {
+                inflatedLatch.countDown();
+                documentHandleMap.put(handle.getUniqueId(), handle);
+            }
+        });
+
+        render(document, "");
+        assertTrue(inflatedLatch.await(5, TimeUnit.SECONDS));
     }
 
     @Test
@@ -159,8 +737,8 @@ public class ViewhostTest extends ViewhostRobolectricTest {
     public void testAllowsUnrelatedEventsToProceedWithoutOverriding() {
         SendEvent event = mock(SendEvent.class);
         updateDocumentMap(222, mDocumentHandleImpl, mDocumentContext);
-        when(event.getDocumentContextId()).thenReturn((long)333);
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        when(event.getDocumentContextId()).thenReturn((long) 333);
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
         verify(event, never()).overrideCallback(any(ISendEventCallbackV2.class));
     }
 
@@ -168,8 +746,8 @@ public class ViewhostTest extends ViewhostRobolectricTest {
     public void testUnrecognizedEventsPertainingToKnownDocuments() {
         PlayMediaEvent event = mock(PlayMediaEvent.class);
         updateDocumentMap(456, mDocumentHandleImpl, mDocumentContext);
-        when(event.getDocumentContextId()).thenReturn((long)456);
-        assertFalse(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        when(event.getDocumentContextId()).thenReturn((long) 456);
+        assertFalse(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
     }
 
     @Test
@@ -185,7 +763,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
             return null;
         }).when(event).overrideCallback(any(ISendEventCallbackV2.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
 
         assertTrue(mRuntimeInteractionWorker.size() > 0);
         mRuntimeInteractionWorker.flush();
@@ -218,7 +796,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
             return null;
         }).when(event).overrideCallback(any(IDataSourceFetchCallback.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
 
         // Second event
         DataSourceFetchEvent event2 = mock(DataSourceFetchEvent.class);
@@ -229,7 +807,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
             return null;
         }).when(event2).overrideCallback(any(IDataSourceFetchCallback.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event2));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event2));
 
         assertTrue(mRuntimeInteractionWorker.size() > 0);
         mRuntimeInteractionWorker.flush();
@@ -271,7 +849,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
             return null;
         }).when(event).overrideCallback(any(IDataSourceFetchCallback.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
 
         assertEquals(0, mRuntimeInteractionWorker.size());
         mRuntimeInteractionWorker.flush();
@@ -288,14 +866,14 @@ public class ViewhostTest extends ViewhostRobolectricTest {
 
         IOpenUrlCallback.IOpenUrlCallbackResult callbackResult =
                 mock(IOpenUrlCallback.IOpenUrlCallbackResult.class);
-        
+
         doAnswer(invocation -> {
             IOpenUrlCallback callback = invocation.getArgument(0);
             callback.onOpenUrl(source, callbackResult);
             return null;
         }).when(event).overrideCallback(any(IOpenUrlCallback.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
 
         assertTrue(mRuntimeInteractionWorker.size() > 0);
         mRuntimeInteractionWorker.flush();
@@ -329,7 +907,7 @@ public class ViewhostTest extends ViewhostRobolectricTest {
             return null;
         }).when(event).overrideCallback(any(IOpenUrlCallback.class));
 
-        assertTrue(((ViewhostImpl)mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
 
         assertTrue(mRuntimeInteractionWorker.size() > 0);
         mRuntimeInteractionWorker.flush();
@@ -347,37 +925,450 @@ public class ViewhostTest extends ViewhostRobolectricTest {
     }
 
     @Test
-    public void testDataSourceError() throws JSONException {
-
-    }
-
-    @Test
     public void testEventsDroppedWithoutMessageHandler() {
         ViewhostConfig config = ViewhostConfig.builder().build();
         ViewhostImpl viewhost = new ViewhostImpl(config);
 
         when(mDocumentHandleImpl.getDocumentContext()).thenReturn(mDocumentContext);
-        when(mDocumentContext.getId()).thenReturn((long)123);
+        when(mDocumentContext.getId()).thenReturn((long) 123);
         viewhost.updateDocumentMap(mDocumentHandleImpl);
 
         SendEvent sendEvent = mock(SendEvent.class);
-        when(sendEvent.getDocumentContextId()).thenReturn((long)123);
+        when(sendEvent.getDocumentContextId()).thenReturn((long) 123);
 
         DataSourceFetchEvent dataSourceFetchEvent = mock(DataSourceFetchEvent.class);
-        when(dataSourceFetchEvent.getDocumentContextId()).thenReturn((long)123);
+        when(dataSourceFetchEvent.getDocumentContextId()).thenReturn((long) 123);
 
         OpenURLEvent openURLEvent = mock(OpenURLEvent.class);
-        when(openURLEvent.getDocumentContextId()).thenReturn((long)123);
+        when(openURLEvent.getDocumentContextId()).thenReturn((long) 123);
 
         assertFalse(viewhost.interceptEventIfNeeded(sendEvent));
         assertFalse(viewhost.interceptEventIfNeeded(dataSourceFetchEvent));
         assertFalse(viewhost.interceptEventIfNeeded(openURLEvent));
     }
 
+    @Test
+    public void testCancelExecution() {
+        ((ViewhostImpl) mViewhost).setTopDocumentHandleAndRootContext(mDocumentHandleImpl, mRootContext);
+        mViewhost.cancelExecution();
+        verify(mRootContext).cancelExecution();
+    }
+
+
+    @Test
+    public void testInvokeExtensionEventHandler_nullRootContext() {
+        ((ViewhostImpl) mViewhost).setTopDocumentHandleAndRootContext(null, null);
+
+        mViewhost.invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true, null);
+
+        verify(mRootContext, times(0)).invokeExtensionEventHandler(any(String.class), any(String.class), any(Map.class), any(Boolean.class));
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+        // No NPE, test passes
+    }
+    @Test
+    public void testInvokeExtensionEventHandler_nullCallback() {
+        ((ViewhostImpl) mViewhost).setTopDocumentHandleAndRootContext(mDocumentHandleImpl, mRootContext);
+
+        mViewhost.invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true, null);
+
+        verify(mRootContext).invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true);
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+        // No NPE, test passes
+    }
+
+    @Test
+    public void testInvokeExtensionEventHandler_nullAction_callsOnComplete() {
+        ((ViewhostImpl) mViewhost).setTopDocumentHandleAndRootContext(mDocumentHandleImpl, mRootContext);
+        when(mRootContext.invokeExtensionEventHandler(any(String.class), any(String.class), any(Map.class), any(Boolean.class))).thenReturn(null);
+
+        mViewhost.invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true, mExtensionEventHandlerCallback);
+
+        verify(mRootContext).invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true);
+        assertTrue(mRuntimeInteractionWorker.size() == 1);
+        mRuntimeInteractionWorker.flush();
+        verify(mExtensionEventHandlerCallback, times(1)).onComplete();
+        verify(mExtensionEventHandlerCallback, times(0)).onTerminated();
+    }
+
+    @Test
+    public void testInvokeExtensionEventHandler_callback_action_addsCallbacksToAction() {
+        ((ViewhostImpl) mViewhost).setTopDocumentHandleAndRootContext(mDocumentHandleImpl, mRootContext);
+        when(mRootContext.invokeExtensionEventHandler(any(String.class), any(String.class), any(Map.class), any(Boolean.class))).thenReturn(mAction);
+
+        mViewhost.invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true, mExtensionEventHandlerCallback);
+
+        verify(mRootContext).invokeExtensionEventHandler("myextension:10", "MyExtension", new HashMap<>(), true);
+
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+
+        // callback.onComplete() is called when action completed successfully
+        ArgumentCaptor<Runnable> onCompleteRunnable = ArgumentCaptor.forClass(Runnable.class);
+        verify(mAction).then(onCompleteRunnable.capture());
+        onCompleteRunnable.getValue().run();
+        assertTrue(mRuntimeInteractionWorker.size() == 1);
+        mRuntimeInteractionWorker.flush();
+        verify(mExtensionEventHandlerCallback, times(1)).onComplete();
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+
+        // callback.onTerminated() is called when action terminates
+        ArgumentCaptor<Runnable> onTerminateRunnable = ArgumentCaptor.forClass(Runnable.class);
+        verify(mAction).addTerminateCallback(onTerminateRunnable.capture());
+        onTerminateRunnable.getValue().run();
+        assertTrue(mRuntimeInteractionWorker.size() == 1);
+        mRuntimeInteractionWorker.flush();
+        verify(mExtensionEventHandlerCallback, times(1)).onTerminated();
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+    }
+
+    @Test
+    public void testRestoreDocumentSuccess() throws InterruptedException {
+        DocumentHandle doc1 = prepareAndRender(SIMPLE_DOC, "");
+        DocumentHandle doc2 = prepareAndRender(SIMPLE_DOC, "");
+        assertTrue(mViewhost.restoreDocument(SavedDocument.builder().documentHandle(doc1).build()));
+
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+        int doc1InflationCount = 0;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.INFLATED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && doc1.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                doc1InflationCount++;
+            }
+        }
+        assertEquals(2, doc1InflationCount);
+    }
+
+    @Test
+    public void testRestoreDocumentInvalidDoc() throws InterruptedException {
+        DocumentHandle invalidDoc = mViewhost.prepare( PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(INVALID_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build()).getHandle();
+        DocumentHandle doc2 = prepareAndRender(SIMPLE_DOC, "");
+        assertFalse(mViewhost.restoreDocument(SavedDocument.builder().documentHandle(invalidDoc).build()));
+
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+        int invalidDocInflationCount = 0;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.INFLATED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && invalidDoc.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                invalidDocInflationCount++;
+            }
+        }
+        assertEquals(0, invalidDocInflationCount);
+    }
+
+    @Test
+    public void testReusePreparedDocument() {
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl documentHandle = (DocumentHandleImpl) preparedDocument.getHandle();
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        renderSuccess(preparedDocument);
+        assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
+
+        //reuse finished prepared doc
+        renderSuccess(preparedDocument);
+        assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
+
+        documentHandle.finish(FinishDocumentRequest.builder().build());
+        finishSuccess(preparedDocument.getHandle());
+
+        assertEquals(DocumentState.FINISHED, documentHandle.getDocumentState());
+
+        //null response when document not valid
+        DocumentHandle handle = mViewhost.render(preparedDocument);
+        assertNull(handle);
+    }
+
+    @Test
+    public void testMultiViewhost_usingThreeViewhosts_documentReuseSucess() {
+        //prepare using VH1
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
+
+        //bind and reuse using VH3
+        if (!mViewhost3.isBound()) {
+            mViewhost3.bind(mAplLayout);
+        }
+        mViewhost3.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
+
+    }
+
+    @Test
+    public void testMultiViewhost_usingTwoViewhosts_documentReuseSucess() {
+        //prepare using VH1
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
+
+        //reuse using VH2 again
+
+        mViewhost2.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
+
+    }
+
+    private void renderSuccess(PreparedDocument preparedDocument) {
+        mViewhost.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assertMessageReceived(DocumentState.INFLATED, preparedDocument.getHandle().getUniqueId());
+    }
+
+    private void finishSuccess(DocumentHandle documentHandle) {
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assertMessageReceived(DocumentState.FINISHED, documentHandle.getUniqueId());
+    }
+
+    private void assertMessageReceived(DocumentState state, String documentUniqueId) {
+        boolean stateFlag = false;
+        int stateCount = 0;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof DocumentStateChangedImpl
+                    && state.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && documentUniqueId.equals(message.getDocument().getUniqueId())) {
+                stateFlag = true;
+                stateCount++;
+            }
+        }
+        assertTrue(stateFlag);
+        assertEquals(1, stateCount);
+    }
+
+    @Test
+    public void testIsBound() {
+        assertFalse(mViewhost.isBound());
+        mViewhost.bind(mAplLayout);
+        assertTrue(mViewhost.isBound());
+    }
+
+    @Test
+    public void testMultiViewhost_renderPreparedDocumentSuccess() {
+
+        //prepare using VH1
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .data(new JsonStringDecodable(""))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = preparedDocument.getHandle();
+        assertNotNull(handle);
+        //bind VH2
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+
+        //render using VH2
+        mViewhost2.render(preparedDocument);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        assertNotNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNotNull(((DocumentHandleImpl) handle).getDocumentContext());
+
+        int inflatedCount = 0;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.INFLATED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                inflatedCount++;
+            }
+        }
+        assertEquals(1, inflatedCount);
+    }
+
     private void updateDocumentMap(long key, DocumentHandleImpl documentHandle, DocumentContext documentContext) {
         when(documentHandle.getDocumentContext()).thenReturn(documentContext);
         when(documentHandle.isValid()).thenReturn(true);
         when(documentContext.getId()).thenReturn(key);
-        ((ViewhostImpl)mViewhost).updateDocumentMap(documentHandle);
+        ((ViewhostImpl) mViewhost).updateDocumentMap(documentHandle);
+    }
+
+    private class EmbeddedDocumentFactoryTest implements EmbeddedDocumentFactory {
+        private final Viewhost mViewhost;
+        private final Map<String, DocumentHandle> mMap;
+
+        EmbeddedDocumentFactoryTest(Viewhost viewhost, Map<String, DocumentHandle> map) {
+            mViewhost = viewhost;
+            mMap = map;
+        }
+
+        @Override
+        public void onDocumentRequested(EmbeddedDocumentRequest request) {
+            PrepareDocumentRequest prepareDocumentRequest = PrepareDocumentRequest.builder()
+                    .document(new JsonStringDecodable(SIMPLE_DOC))
+                    .documentSession(DocumentSession.create())
+                    .build();
+
+            PreparedDocument preparedDocument = mViewhost.prepare(prepareDocumentRequest);
+            assertNotNull(preparedDocument.getHandle());
+
+            DocumentHandle handle = preparedDocument.getHandle();
+            request.resolve(EmbeddedDocumentResponse.builder().preparedDocument(preparedDocument).visualContextAttached(false).build());
+
+            assertNotNull(((DocumentHandleImpl) handle).getDocumentContext());
+            assertNull(((DocumentHandleImpl) handle).getRootContext());
+            mMap.put(handle.getUniqueId(), handle);
+        }
+    }
+
+    private DocumentHandle render(String document, String data) {
+        RenderDocumentRequest request = RenderDocumentRequest.builder()
+                .document(new JsonStringDecodable(document))
+                .data(new JsonStringDecodable(data))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        // Bind the Viewhost
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        mViewhost.bind(mAplLayout);
+
+        DocumentHandle handle = mViewhost.render(request);
+        assertNotNull(handle);
+        assertNotNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNotNull(((DocumentHandleImpl) handle).getDocumentContext());
+        return handle;
+    }
+    private DocumentHandle prepareAndRender(String document, String data) {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(document))
+                .data(new JsonStringDecodable(data))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build();
+
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+        DocumentHandle handle = mViewhost.render(preparedDocument);
+        assertNotNull(handle);
+        assertNotNull(((DocumentHandleImpl) handle).getRootContext());
+        assertNotNull(((DocumentHandleImpl) handle).getDocumentContext());
+        return handle;
+    }
+
+    private void assertPrepared(DocumentHandle handle) {
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+
+        int prepareCount = 0;
+        int errorCount = 0;
+        int displayedCount = 0;
+        int inflatedCount = 0;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.PREPARED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                prepareCount++;
+            }
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.ERROR.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                errorCount++;
+            }
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.DISPLAYED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                displayedCount++;
+            }
+            if (message instanceof DocumentStateChangedImpl
+                    && DocumentState.INFLATED.toString().equals(((DocumentStateChangedImpl) message).getState())
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                inflatedCount++;
+            }
+        }
+        assertEquals(1, prepareCount);
+        assertEquals(0, errorCount);
+        assertEquals(0, displayedCount);
+        assertEquals(0, inflatedCount);
     }
 }

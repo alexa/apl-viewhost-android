@@ -6,6 +6,8 @@
 package com.amazon.apl.android.dependencies.impl;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.media.AudioAttributes;
@@ -76,6 +78,7 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
             .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
             .setUsage(AudioAttributes.USAGE_MEDIA)
             .build();
+    private static final String ANDROID_ASSET_PATH = "/android_asset/";
 
     private MediaSources mSources;
     @Nullable
@@ -535,8 +538,12 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
             MediaSource mediaSource = mSources.at(mCurrentTrackIndex);
             Map<String, String> headers = mediaSource.headers();
             setCompletionListener(mediaSource);
+            Uri uri = Uri.parse(mediaSource.url());
             if (headers.size() > 0) {
-                mMediaPlayer.setDataSource(mContext, Uri.parse(mediaSource.url()), mediaSource.headers());
+                mMediaPlayer.setDataSource(mContext, uri, mediaSource.headers());
+            } else if ("file".equalsIgnoreCase(uri.getScheme())
+                && uri.getPath() != null && uri.getPath().startsWith(ANDROID_ASSET_PATH)) {
+                setMediaSourceFromAsset(uri);
             } else {
                 mMediaPlayer.setDataSource(mediaSource.url());
             }
@@ -546,6 +553,14 @@ public class MediaPlayer implements IMediaPlayer<TextureView> {
             mCurrentState = MediaState.PREPARING;
         } else {
             Log.w(TAG, "Cannot prepare player or the player is already preparing itself");
+        }
+    }
+
+    private void setMediaSourceFromAsset(Uri uri) throws IOException {
+        AssetManager assetManager = mContext.getAssets();
+        String assetPath = uri.getPath().substring(ANDROID_ASSET_PATH.length());
+        try (AssetFileDescriptor fd = assetManager.openFd(assetPath)) {
+            mMediaPlayer.setDataSource(fd.getFileDescriptor(), fd.getStartOffset(), fd.getLength());
         }
     }
 

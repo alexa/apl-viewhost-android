@@ -260,4 +260,6 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
 
     @Nullable
     APLTrace getAPLTrace();
+
+    boolean isHardwareAccelerationForVectorGraphicsEnabled();
 }

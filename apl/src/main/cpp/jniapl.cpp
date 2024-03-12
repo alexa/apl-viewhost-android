@@ -22,6 +22,14 @@
 #include "jniscaling.h"
 #include "jnitextmeasurecallback.h"
 #include "jniextensionmediator.h"
+#include "jnisession.h"
+
+#ifdef INCLUDE_ALEXAEXT
+#include "jniextensionexecutor.h"
+#include "jniextensionproxy.h"
+#include "jniextensionregistrar.h"
+#include "jniextensionresource.h"
+#endif
 
 #ifdef __ANDROID__
 #include "loggingbridge.h"
@@ -63,13 +71,26 @@ namespace apl {
             jboolean mediaplayerLoaded = mediaplayer_OnLoad(vm, reserved);
             jboolean documentmanagerLoaded = documentmanager_OnLoad(vm, reserved);
             jboolean mediaplayerFactoryLoaded = mediaplayerfactory_OnLoad(vm, reserved);
+            jboolean jnisessionLoaded = jnisession_OnLoad(vm, reserved);
+
+#ifdef INCLUDE_ALEXAEXT
+            jboolean extensionExecutorLoaded = extensionexecutor_OnLoad(vm, reserved);
+            jboolean extensionProxyLoaded = extensionproxy_OnLoad(vm, reserved);
+            jboolean extensionProviderLoaded = extensionprovider_OnLoad(vm, reserved);
+            jboolean extensionResourceProviderLoaded = extensionresource_OnLoad(vm, reserved);
+
+            if (!extensionProxyLoaded || !extensionProviderLoaded || !extensionResourceProviderLoaded
+                || !extensionExecutorLoaded) {
+                    return JNI_ERR;
+            }
+#endif
 
             if (!driverLoaded || !contentLoaded || !rootconfigLoaded
                 || !complexpropertyLoaded || !eventLoaded || !actionLoaded || !graphicLoaded
                 || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded
                 || !localExtensionMediatorLoaded || !audioFactoryLoaded || !audioPlayerLoaded
                 || !localExtensionMediatorLoaded || !mediaplayerLoaded || !mediaplayerFactoryLoaded
-                || !documentmanagerLoaded)  {
+                || !documentmanagerLoaded || !jnisessionLoaded)  {
                 return JNI_ERR;
             }
 
@@ -99,6 +120,14 @@ namespace apl {
             mediaplayer_OnUnload(vm, reserved);
             mediaplayerfactory_OnUnload(vm, reserved);
             documentmanager_OnUnload(vm, reserved);
+            jnisession_OnUnload(vm, reserved);
+#ifdef INCLUDE_ALEXAEXT
+            extensionexecutor_OnUnload(vm, reserved);
+            extensionproxy_OnUnload(vm, reserved);
+            extensionprovider_OnUnload(vm, reserved);
+            extensionresource_OnUnload(vm, reserved);
+#endif
+
         }
 
     } //namespace jni

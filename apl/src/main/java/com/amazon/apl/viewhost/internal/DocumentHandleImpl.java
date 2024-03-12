@@ -5,15 +5,26 @@
 package com.amazon.apl.viewhost.internal;
 
 import android.os.Handler;
+import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.apl.android.Action;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.Session;
+import com.amazon.apl.android.UserPerceivedFatalReporter;
+import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
+import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.config.DocumentOptions;
+import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.primitives.Decodable;
 import com.amazon.apl.viewhost.primitives.JsonDecodable;
 import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
@@ -29,45 +40,90 @@ import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Internal implementation of the document handle
  */
-class DocumentHandleImpl extends DocumentHandle {
+public class DocumentHandleImpl extends DocumentHandle {
     private static final String TAG = "DocumentHandleImpl";
-    private Queue<ExecuteCommandsRequest> mExecuteCommandsRequestQueue= new LinkedList<>();
+    private Queue<ExecuteCommandsRequest> mExecuteCommandsRequestQueue = new LinkedList<>();
     private Handler mCoreWorker;
-    private Collection<DocumentStateChangeListener> mDocumentStateChangeListeners;
+    private Set<DocumentStateChangeListener> mDocumentStateChangeListeners;
     private Content mContent;
     private DocumentState mDocumentState;
     private ExtensionMediator mExtensionMediator;
     private DocumentOptions mDocumentOptions;
+    private ITelemetryProvider mTelemetryProvider = NoOpTelemetryProvider.getInstance();
+    private String mToken;
+
     /**
      * Retain a link to core's DocumentContext. It can be null while the document is being prepared
      * and the core document context hasn't been created yet.
      */
     @Nullable
     private DocumentContext mDocumentContext;
+
+    /**
+     * Root Context only for primary document. Null for embedded docs.
+     */
+    @Nullable
+    private RootContext mRootContext;
     @Nullable
     private DocumentConfig mDocumentConfig;
+    @Nullable
+    private RootConfig mRootConfig;
+    @Nullable
+    private UserPerceivedFatalReporter mUserPerceivedFatalReporter;
 
     /**
      * Retain only a weak reference to the viewhost, since that is the parent object that creates
      * document handles. We want avoid circular references.
      */
     private final WeakReference<ViewhostImpl> mViewhost;
+    private final long mDocumentCreationTime;
+
+    private static final String RENDER_DOCUMENT_TAG = "Viewhost." + ITelemetryProvider.RENDER_DOCUMENT;
+    private Integer mRenderDocumentTimer = ITelemetryProvider.UNKNOWN_METRIC_ID;
+    private final String mUniqueID;
+
+    private final Session mSession;
 
     DocumentHandleImpl(ViewhostImpl viewhost, Handler coreWorker) {
         mViewhost = new WeakReference<ViewhostImpl>(viewhost);
         mCoreWorker = coreWorker;
         mDocumentState = DocumentState.PENDING;
-        mDocumentStateChangeListeners = new LinkedList<>();
+        mDocumentStateChangeListeners = new HashSet<>();
         mContent = null;
         mExtensionMediator = null;
         mDocumentOptions = null;
+        mDocumentCreationTime = SystemClock.elapsedRealtime();
+        mUniqueID = UUID.randomUUID().toString();
+        mUserPerceivedFatalReporter = new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback());
+        mSession = new Session();
+        Log.d(TAG, "Document UniqueID is: " + mUniqueID);
+    }
+
+    public Handler getCoreWorker() {
+        return mCoreWorker;
+    }
+
+    public Session getSession() {
+        return mSession;
+    }
+
+    /**
+     * Start time for prepare document call.
+     *
+     * @return
+     */
+    public long getPrepareDocumentStartTime() {
+        return mDocumentCreationTime;
     }
 
     @Override
@@ -77,12 +133,16 @@ class DocumentHandleImpl extends DocumentHandle {
 
     @Override
     public String getToken() {
-        return "token";
+        return mToken;
+    }
+
+    public void setToken(String token) {
+        mToken = token;
     }
 
     @Override
     public String getUniqueId() {
-        return "1234-ABCD";
+        return mUniqueID;
     }
 
     @Override
@@ -148,12 +208,12 @@ class DocumentHandleImpl extends DocumentHandle {
     }
 
     @Nullable
-    public Content getContent(){
+    public Content getContent() {
         return mContent;
     }
 
     @Nullable
-    public ExtensionMediator getExtensionMediator(){
+    public ExtensionMediator getExtensionMediator() {
         return mExtensionMediator;
     }
 
@@ -170,12 +230,19 @@ class DocumentHandleImpl extends DocumentHandle {
         mDocumentOptions = documentOptions;
     }
 
+    public void setUserPerceivedFatalReporter(UserPerceivedFatalReporter userPerceivedFatalReporter) {
+        mUserPerceivedFatalReporter = userPerceivedFatalReporter;
+    }
+    public UserPerceivedFatalReporter getUserPerceivedFatalReporter() {
+        return mUserPerceivedFatalReporter;
+    }
+
     @Override
     public boolean executeCommands(ExecuteCommandsRequest request) {
         if (!isValid()) {
             return false;
         }
-        String commands = ((JsonStringDecodable)request.getCommands()).getString();
+        String commands = ((JsonStringDecodable) request.getCommands()).getString();
         Log.d(TAG, String.format("Running commands %s for host component", commands));
 
         if (mViewhost.get() == null) {
@@ -222,8 +289,8 @@ class DocumentHandleImpl extends DocumentHandle {
             return false;
         }
 
-        if (getDocumentConfig() == null || getDocumentConfig().getNativeHandle() == 0) {
-            Log.e(TAG, "DocumentConfig handle 0 which means provider not defined in document options, hence ignoring the update data source request");
+        if ((mRootContext == null ) && (getDocumentConfig() == null || getDocumentConfig().getNativeHandle() == 0)) {
+            Log.e(TAG, "RootContext null or DocumentConfig handle 0 which means provider not defined in document options, hence ignoring the update data source request");
             return false;
         }
 
@@ -231,9 +298,10 @@ class DocumentHandleImpl extends DocumentHandle {
         UpdateDataSourceCallback callback = request.getCallback();
         mCoreWorker.post(() -> {
             try {
-                String payload = ((JsonStringDecodable)request.getData()).getString();
+                String payload = ((JsonStringDecodable) request.getData()).getString();
                 JSONObject jsonObject = new JSONObject(payload);
-                if (!jsonObject.has("type")) {
+                String type = jsonObject.has("type") ? jsonObject.getString("type") : request.getType();
+                if (TextUtils.isEmpty(type)) {
                     Log.e(TAG, "Data Source type not defined, hence update failed");
                     if (callback != null) {
                         viewhost.publish(() -> {
@@ -241,8 +309,7 @@ class DocumentHandleImpl extends DocumentHandle {
                         });
                     }
                 } else {
-                    String type = jsonObject.getString("type");
-                    boolean updated = nUpdateDataSource(type,  payload, getDocumentConfig().getNativeHandle());
+                    boolean updated = mRootContext != null ? mRootContext.updateDataSource(type, payload) : nUpdateDataSource(type, payload, getDocumentConfig().getNativeHandle());
                     if (callback != null) {
                         if (updated) {
                             viewhost.publish(() -> {
@@ -276,10 +343,11 @@ class DocumentHandleImpl extends DocumentHandle {
     }
 
     public void setDocumentState(DocumentState state) {
+        Log.d(TAG, String.format("setDocumentState for handle: %s and new state: %s", this, state.toString()));
         mDocumentState = state;
         // update all the listeners with the new state
         for (DocumentStateChangeListener listener : mDocumentStateChangeListeners) {
-            listener.onDocumentStateChanged(state);
+            listener.onDocumentStateChanged(state, this);
         }
         final ViewhostImpl viewhost = mViewhost.get();
         if (viewhost != null) {
@@ -288,9 +356,11 @@ class DocumentHandleImpl extends DocumentHandle {
     }
 
     public void registerStateChangeListener(DocumentStateChangeListener listener) {
-        mDocumentStateChangeListeners.add(listener);
-        // the listener has no state set it to the state of the handler
-        listener.onDocumentStateChanged(mDocumentState);
+        if (!mDocumentStateChangeListeners.contains(listener)) {
+            mDocumentStateChangeListeners.add(listener);
+            // the listener has no state set it to the state of the handler
+            listener.onDocumentStateChanged(mDocumentState, this);
+        }
     }
 
     public void setContent(Content content) {
@@ -338,6 +408,26 @@ class DocumentHandleImpl extends DocumentHandle {
     }
 
     /**
+     * Will be used to set rootContext if a render document request is fulfilled via unified APIs.
+     *
+     * @param rootContext
+     */
+    public void setRootContext(RootContext rootContext) {
+        mRootContext = rootContext;
+        mRootContext.setDocumentHandle(this);
+        DocumentContext documentContext = rootContext.getDocumentContext();
+        setDocumentContext(documentContext);
+    }
+
+    /**
+     * Set the telemetry provider for this instance
+     * @param telemetryProvider
+     */
+    public void setTelemetryProvider(@NonNull ITelemetryProvider telemetryProvider) {
+        mTelemetryProvider = telemetryProvider;
+    }
+
+    /**
      * poll any pending execute command requests.
      */
     private void pollRequests() {
@@ -355,14 +445,114 @@ class DocumentHandleImpl extends DocumentHandle {
         this.mDocumentConfig = documentConfig;
     }
 
+    private boolean isTokenValid(String token) {
+        // If not specified, then we will not attempt to match the token
+        if (token == null) {
+            return true;
+        }
+
+        // If specified, then the specified token must match
+        return token.equals(mToken);
+    }
 
     @Override
     public boolean finish(FinishDocumentRequest request) {
-        return false;
+        if (!isValid()) {
+            Log.w(TAG, "Could not finish, document is no longer valid.");
+            return false;
+        }
+        if (!isTokenValid(request.getToken())) {
+            Log.w(TAG, "Ignoring finish request due to mismatched tokens.");
+            return false;
+        }
+        mExecuteCommandsRequestQueue.clear();
+        mCoreWorker.post(() -> {
+            if (mRootContext != null) {
+                try {
+                    mRootContext.finishDocument();
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception while fulfilling request and the exception is: " + e);
+                    setDocumentState(DocumentState.ERROR);
+                }
+            } else {
+                //when the DocumentState is pending or prepared, but not yet rendered
+                setDocumentState(DocumentState.FINISHED);
+            }
+            if (mExtensionMediator != null) {
+                mExtensionMediator.enable(false);
+            }
+        });
+        return true;
+    }
+
+    void startRenderDocumentTimer(TimeUnit timeUnit, long initialElapsedTime) {
+        if (mRenderDocumentTimer != ITelemetryProvider.UNKNOWN_METRIC_ID) {
+            Log.w(TAG, "Attempting to start renderDocument but it is already running");
+            return;
+        }
+
+        mRenderDocumentTimer = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, RENDER_DOCUMENT_TAG, ITelemetryProvider.Type.TIMER);
+        mTelemetryProvider.startTimer(mRenderDocumentTimer, timeUnit, initialElapsedTime);
+    }
+
+    void failRenderDocumentTimer() {
+        if (mRenderDocumentTimer == ITelemetryProvider.UNKNOWN_METRIC_ID) {
+            Log.w(TAG, "Attempting to fail renderDocument before starting");
+            return;
+        }
+
+        mTelemetryProvider.fail(mRenderDocumentTimer);
+        mRenderDocumentTimer = ITelemetryProvider.UNKNOWN_METRIC_ID;
+    }
+
+    void stopRenderDocumentTimer() {
+        if (mRenderDocumentTimer == ITelemetryProvider.UNKNOWN_METRIC_ID) {
+            Log.w(TAG, "Attempting to stop renderDocument before starting");
+            return;
+        }
+
+        mTelemetryProvider.stopTimer(mRenderDocumentTimer);
+        mRenderDocumentTimer = ITelemetryProvider.UNKNOWN_METRIC_ID;
+    }
+
+    @Override
+    public <K> K getDocumentSetting(String propertyName, K defaultValue) {
+        if (mContent != null) {
+            return mContent.optSetting(propertyName, defaultValue);
+        } else {
+            Log.w(TAG, "Content is null, returning defaultValue");
+            return defaultValue;
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "DocumentHandle{"
+                + "id=" + getUniqueId() + ", "
+                + "state=" + mDocumentState.toString() + ", "
+                + "token=" + getToken()
+                + "}";
+    }
+
+    public DocumentState getDocumentState() {
+        return mDocumentState;
     }
 
     public DocumentContext getDocumentContext() {
         return mDocumentContext;
+    }
+
+    public RootContext getRootContext() {
+        return mRootContext;
+    }
+
+    @Nullable
+    public RootConfig getRootConfig() {
+        return mRootConfig;
+    }
+
+    public void setRootConfig(@Nullable RootConfig rootConfig) {
+        mRootConfig = rootConfig;
     }
 
     private static native boolean nUpdateDataSource(String type, String payload, long documentConfigNativeHandle);

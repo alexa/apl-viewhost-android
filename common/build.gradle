@@ -7,13 +7,14 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 28
+    namespace 'com.amazon.common'
+    compileSdk 34
+    buildToolsVersion = "33.0.0"
     ndkVersion "23.0.7599858"
-    buildToolsVersion "30.0.2"
 
     defaultConfig {
         minSdkVersion 22
-        targetSdkVersion 28
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
 
@@ -24,14 +25,13 @@ android {
                 cppFlags ""
                 targets "common-jni"
             }
-            ndk {
-                // Specifies the ABI configurations for the native libraries
-                // that Gradle will build and package with the APK.
-                abiFilters 'x86', 'armeabi-v7a', 'arm64-v8a'
-            }
         }
     }
-
+    publishing {
+        multipleVariants {
+            allVariants()
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
@@ -40,7 +40,7 @@ android {
     }
     externalNativeBuild {
         cmake {
-            version "3.10.2"
+            version "3.18.1"
             path "CMakeLists.txt"
         }
 
@@ -53,24 +53,27 @@ android {
 
 dependencies {
 
-    implementation 'androidx.appcompat:appcompat:1.0.0'
-    implementation 'androidx.test.ext:junit:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                pom {
-                    description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
-                            ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
-                }
+publishing {
+    publications {
+        release(MavenPublication) {
+            pom {
+                description = 'Commits: APLViewhostAndroid=' + System.env.CODEBUILD_RESOLVED_SOURCE_VERSION +
+                        ',APLCoreEngine=' + System.env.CORE_SOURCE_VERSION
+            }
+            afterEvaluate {
+                from components.default
             }
         }
     }
+}
+
+task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
 }
 
 task release(dependsOn: ['build', 'publish']) {

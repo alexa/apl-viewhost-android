@@ -5,6 +5,8 @@
 
 package com.amazon.alexaext;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 
 import com.amazon.common.BoundObject;
@@ -19,6 +21,8 @@ import java.util.Set;
  * Interface that defines access to the extensions supported by the runtime. Effectively a collection of directly registered local (built-in)
  */
 public class ExtensionRegistrar extends BoundObject {
+
+    private final static String TAG = "ExtensionRegistrar";
     private final Map<String, ExtensionProxy> mProxies;
     private final Set<IExtensionProvider> mProviders;
 
@@ -48,6 +52,27 @@ public class ExtensionRegistrar extends BoundObject {
     public ExtensionRegistrar registerExtension(ExtensionProxy proxy) {
         mProxies.put(proxy.getUri(), proxy);
         return this;
+    }
+
+    /**
+     * Explicitly closes all V1 open connections of RemoteExtensionProxy.
+     * This method will further call onConnectionClosed of the ExtensionMultiplexClient.ConnectionCallback.
+     */
+    public void closeAllRemoteV1Connections(){
+        Log.i(TAG, "Closing connections to all remote extensions");
+        int count = 0;
+        for (ExtensionProxy extensionProxy: mProxies.values()) {
+            if (extensionProxy instanceof RemoteExtensionProxy) {
+                RemoteExtensionProxy proxy = (RemoteExtensionProxy)extensionProxy;
+                try {
+                    proxy.disconnectV1();
+                    count++;
+                } catch (Throwable e) {
+                    Log.e(TAG, "Exception caused while cleaning connections with cause: " + e);
+                }
+            }
+        }
+        Log.i(TAG, String.format("Closing connections to all remote extensions (count=%d)", count));
     }
 
     /**

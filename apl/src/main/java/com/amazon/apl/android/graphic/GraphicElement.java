@@ -183,66 +183,6 @@ public abstract class GraphicElement extends BoundObject {
     }
 
     /**
-     * Checks whether this AVG object has any skew associated with it
-     *
-     * @return true if yes, otherwise false
-     */
-    boolean containsSkew() {
-        if (mProperties.hasProperty(kGraphicPropertyTransform)) {
-            Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
-            float[] matrixValues = new float[9];
-            transformMatrix.getValues(matrixValues);
-
-            float skewX = matrixValues[Matrix.MSKEW_X];
-            float skewY = matrixValues[Matrix.MSKEW_Y];
-
-            if (skewX != 0 || skewY != 0) {
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether this AVG object has any non-uniform scaling
-     *
-     * @return true if yes, otherwise false
-     */
-    boolean containsNonUniformScaling() {
-        if (mProperties.hasProperty(kGraphicPropertyTransform)) {
-            Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
-            float[] matrixValues = new float[9];
-            transformMatrix.getValues(matrixValues);
-
-            float scaleX = matrixValues[Matrix.MSCALE_X];
-            float scaleY = matrixValues[Matrix.MSCALE_Y];
-
-            if (scaleX != scaleY) {
-                return true;
-            }
-            return false;
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether the hierarchy of this group contains a filter
-     * @return true if the hierarchy contains a filter, false otherwise
-     */
-    boolean doesMapContainFilters() {
-        return mGraphicElementMap.doesMapContainFilters();
-    }
-
-    boolean doesMapContainsSkew(){
-        return mGraphicElementMap.doesMapContainSkew();
-    }
-
-    boolean doesMapContainNonUniformScaling(){
-        return mGraphicElementMap.doesMapContainNonUniformScaling();
-    }
-
-    /**
      * Update cached properties when Graphic is marked dirty.
      */
     abstract void applyProperties();

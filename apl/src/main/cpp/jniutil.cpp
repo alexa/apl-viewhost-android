@@ -11,8 +11,15 @@
 
 namespace apl {
     namespace jni {
-        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 
+#ifdef VERSION_NAME
+        /**
+        * Version string embedded for version information in .rodata .
+        */
+        const char* versionString = "APLJNI Library is " VERSION_NAME " version.";
+#endif
+
+        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         /**
          * Convert a Java string into a std::string in UTF-8 encoding
          * @param env The Java environment

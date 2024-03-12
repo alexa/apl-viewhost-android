@@ -1,0 +1,11 @@
+ {
+	     global:
+	         # only mark the following explicitly-specified symbols as global
+	         JNI_OnLoad;
+	         JNI_OnUnload;
+	         Java_*;
+	     local:
+	         # hide all others
+	         *;
+ };
+

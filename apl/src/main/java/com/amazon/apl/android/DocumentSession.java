@@ -5,6 +5,9 @@
 
 package com.amazon.apl.android;
 
+import android.os.Handler;
+
+import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.common.BoundObject;
 
 import java.util.ArrayList;
@@ -22,12 +25,20 @@ public class DocumentSession extends BoundObject {
     private List<ISessionEndedCallback> mCallbacks;
     private IAPLController mController;
 
+    private DocumentHandle mHandle;
+
+    private Handler mCoreWorker;
+
     public static DocumentSession create() {
         return new DocumentSession();
     }
 
     public void bind(IAPLController controller) {
         mController = controller;
+    }
+
+    public void bind(DocumentHandle handle) {
+        mHandle = handle;
     }
 
     private DocumentSession() {
@@ -44,7 +55,7 @@ public class DocumentSession extends BoundObject {
         return nHasEnded(getNativeHandle());
     }
 
-    void onSessionEnded(ISessionEndedCallback callback) {
+    public void onSessionEnded(ISessionEndedCallback callback) {
         mCallbacks.add(callback);
     }
 
@@ -55,9 +66,19 @@ public class DocumentSession extends BoundObject {
             mController.executeOnCoreThread(() -> nEnd(getNativeHandle()));
         }
 
+        if (mHandle != null && mCoreWorker != null) {
+            mCoreWorker.post( () -> {
+                nEnd(getNativeHandle());
+            });
+        }
+
         for (ISessionEndedCallback callback : mCallbacks) {
             callback.onEnded(this);
         }
+    }
+
+    public void setCoreWorker(Handler handler) {
+        mCoreWorker = handler;
     }
 
     private native long nCreate();

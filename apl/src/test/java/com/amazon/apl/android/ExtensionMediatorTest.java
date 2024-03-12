@@ -19,8 +19,8 @@ import com.amazon.apl.android.providers.IExtension;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
+import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -82,9 +82,10 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     private ExtensionRegistrar mExtensionRegistrar;
     @Mock
     private IExtensionProvider mExtensionProvider;
-
     @Mock
     private Session mSession;
+    @Mock
+    private IDTNetworkRequestHandler mDTNetworkRequestHandler;
 
     @Before
     public void setup() {
@@ -133,7 +134,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
 
     @Test
     public void testInitializeExtensions_specific_grantedExtensions_loads_only_those_extensions() throws InterruptedException {
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         RootConfig rootConfig = RootConfig.create();
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
         ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
@@ -151,7 +152,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
 
     @Test
     public void testInitializeExtensions_without_rootConfig_specific_grantedExtensions_loads_only_those_extensions() throws InterruptedException {
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
         ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
         mediator.initializeExtensions(new HashMap<>(), content, (uri) -> {
@@ -170,7 +171,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     public void testExecutor() throws InterruptedException {
         // given
         RootConfig rootConfig = RootConfig.create();
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
@@ -193,7 +194,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     @Test
     public void testExecutorWithoutRootConfig() throws InterruptedException {
         // given
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
@@ -214,7 +215,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     }
 
     private ExtensionMediator loadExtensions() {
-        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(mTestDoc, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         RootConfig rootConfig = RootConfig.create();
         ExtensionMediator mediator = ExtensionMediator.create(mExtensionRegistrar, DocumentSession.create());
         mediator.initializeExtensions(rootConfig, content, null);
@@ -243,7 +244,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     @Test
     public void test_loadExtensions_requiredExtension_registeredAndGranted_callsOnSuccessCallback() throws InterruptedException {
         // given
-        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
         TestLiveDataLocalExtension extension = new TestLiveDataLocalExtension();
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
@@ -262,7 +263,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     @Test
     public void test_loadExtensions_requiredExtension_notRegistered_callsOnFailCallback() throws InterruptedException {
         // given that the required extension is not registered in the ExtensionRegistrar
-        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
         ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
         // when callback grants this extension
@@ -277,7 +278,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
     @Test
     public void test_loadExtensions_requiredExtension_notGranted_callsOnFailCallback() throws InterruptedException {
         // given
-        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar();
         TestLiveDataLocalExtension extension = spy(new TestLiveDataLocalExtension());
         LegacyLocalExtensionProxy legacyLocalExtensionProxy = new LegacyLocalExtensionProxy(extension);
@@ -298,7 +299,7 @@ public class ExtensionMediatorTest extends ViewhostRobolectricTest {
         ProxyWithFailingRegistration legacyLocalExtensionProxy = new ProxyWithFailingRegistration(new TestLiveDataLocalExtension());
         ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().registerExtension(legacyLocalExtensionProxy);
         ExtensionMediator mediator = ExtensionMediator.create(extensionRegistrar, DocumentSession.create());
-        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession);
+        Content content = Content.create(requiredExtension, mOptions, mContentCallbackV2, mSession, mDTNetworkRequestHandler);
         // when
         mediator.initializeExtensions(new HashMap<>(), content, uri -> true);
         mediator.loadExtensions(new HashMap<>(), content, mLoadExtensionCallback);

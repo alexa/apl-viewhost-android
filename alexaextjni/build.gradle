@@ -1,0 +1,95 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.library'
+
+ext {
+    cmakeProjectPath = projectDir.absolutePath
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        cmakeProjectPath = cmakeProjectPath.replace('\\', '/')
+    }
+    aplAndroidCmakeArgs = "-DCMAKE_VERBOSE_MAKEFILE=ON"
+}
+
+android {
+    namespace 'com.amazon.alexa.android.extension.alexaextjni'
+    compileSdk 34
+    buildToolsVersion = "33.0.0"
+    ndkVersion "23.0.7599858"
+
+    defaultConfig {
+        minSdkVersion 22
+        versionCode 1
+        versionName "1.0"
+        targetSdkVersion 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+
+        externalNativeBuild {
+            cmake {
+                // Sets optional flags for the C++ compiler.
+                cppFlags "-std=c++11", "-fno-rtti", "-fno-exceptions"
+                // Build the APL Core JNI library (excludes all other targets)
+                targets "alexaextjni"
+                // Enable APL Core JNI build, and be verbose.
+                arguments aplAndroidCmakeArgs
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            version "3.18.1"
+            path "CMakeLists.txt"
+        }
+    }
+
+    buildFeatures {
+        prefab true
+        prefabPublishing true
+    }
+    prefab {
+        alexaextjni {
+            headers "src/main/cpp/include"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(":common")
+    implementation project(':coreengine')
+}
+
+task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
+    cmakeArgs aplAndroidCmakeArgs
+    makeTargets "alexaextjni"
+    dependsOn ':coreengine:buildHostJNI'
+}
+
+project.afterEvaluate {
+    // Dump configuration settings
+    println "APL CMake Args: " + aplAndroidCmakeArgs
+    println "Android SDK Directory: " + android.sdkDirectory.path
+    println "Android NDK Directory: " + android.ndkDirectory.path
+
+    // We need to make sure the host jni library is built before any debug or release unit testing.
+    tasks.preDebugUnitTestBuild.dependsOn(buildHostJNI)
+    tasks.preReleaseUnitTestBuild.dependsOn(buildHostJNI)
+    tasks.buildHostJNI.dependsOn(':coreengine:buildHostJNI')
+    tasks.buildHostJNI.dependsOn(':common:buildHostJNI')
+}
+
+tasks.build.dependsOn(buildHostJNI)
+

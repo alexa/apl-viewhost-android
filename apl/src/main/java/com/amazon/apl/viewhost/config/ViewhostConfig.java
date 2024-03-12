@@ -5,12 +5,16 @@
 package com.amazon.apl.viewhost.config;
 
 import com.amazon.alexaext.ExtensionRegistrar;
+import com.amazon.apl.android.audio.IAudioPlayerFactory;
+import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.viewhost.message.MessageHandler;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.google.auto.value.AutoValue;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -51,12 +55,6 @@ public abstract class ViewhostConfig {
     public abstract ExtensionRegistrar getExtensionRegistrar();
 
     /**
-     * Defines how to resolve requests for embedded documents
-     */
-    @Nullable
-    public abstract EmbeddedDocumentFactory getEmbeddedDocumentFactory();
-
-    /**
      * Defines how to resolve packages
      */
     @Nullable
@@ -68,6 +66,18 @@ public abstract class ViewhostConfig {
     @Nullable
     public abstract IContentRetriever getIContentRetriever();
 
+    @Nullable
+    public abstract Map<RootProperty, Object> getRootProperties();
+
+    @Nullable
+    public abstract Map<String, Object> getEnvironmentProperties();
+
+    @Nullable
+    public abstract IAudioPlayerFactory getAudioPlayerFactory();
+
+    @Nullable
+    public abstract RuntimeMediaPlayerFactory getMediaPlayerFactory();
+
     public static Builder builder() {
         return new AutoValue_ViewhostConfig.Builder();
     }
@@ -78,9 +88,16 @@ public abstract class ViewhostConfig {
         public abstract Builder messageHandler(MessageHandler handler);
         public abstract Builder messageHandlers(List<MessageHandler> handler);
         public abstract Builder extensionRegistrar(ExtensionRegistrar registrar);
-        public abstract Builder embeddedDocumentFactory(EmbeddedDocumentFactory factory);
         public abstract Builder IPackageLoader(IPackageLoader packageLoader);
         public abstract Builder IContentRetriever(IContentRetriever contentRetriever);
+
+        public abstract Builder audioPlayerFactory(IAudioPlayerFactory audioPlayerFactory);
+
+        public abstract Builder mediaPlayerFactory(RuntimeMediaPlayerFactory mediaPlayerFactory);
+
+        public abstract Builder rootProperties(Map<RootProperty, Object> map);
+
+        public abstract Builder environmentProperties(Map<String, Object> map);
         public abstract ViewhostConfig build();
     }
 }

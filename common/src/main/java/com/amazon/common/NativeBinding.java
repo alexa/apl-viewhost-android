@@ -6,6 +6,9 @@
 package com.amazon.common;
 
 
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
@@ -29,6 +32,8 @@ public class NativeBinding extends PhantomReference<BoundObject> {
     // bound to the same native handle, we only want to unbind the handle if there are no
     // more references to it.
     private static final Map<Long, Set<NativeBinding>> sReferenceMap = new ConcurrentHashMap<>();
+
+    private static Handler mainThreadHandler = new Handler(Looper.getMainLooper());
 
     // The native object handle
     private final long mNativeHandle;
@@ -97,7 +102,12 @@ public class NativeBinding extends PhantomReference<BoundObject> {
         bindingSet.remove(binding);
         if (bindingSet.isEmpty()) {
             sReferenceMap.remove(binding.mNativeHandle);
-            nUnbind(binding.mNativeHandle);
+
+            // Post the unbinding to the main thread since we need core's cleanup to run on the
+            // same thread that invokes core.
+            mainThreadHandler.post(() -> {
+                nUnbind(binding.mNativeHandle);
+            });
         }
     }
 

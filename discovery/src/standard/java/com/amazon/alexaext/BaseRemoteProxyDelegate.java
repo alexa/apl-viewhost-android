@@ -98,6 +98,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
         reset();
     }
 
+    void disconnectV1(@NonNull final String uri, final String message) {
+        mMultiplexClient.disconnectV1(uri, this, message);
+        reset();
+    }
+
     @CallSuper
     synchronized boolean onRequestRegistration(@NonNull final ActivityDescriptor activity, final String request) {
         mCachedDescriptor = activity;
@@ -132,6 +137,12 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             return;
         }
 
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            return;
+        }
+
+
         try {
             mConnection.onRegistered(this, activity);
         } catch (RemoteException e) {
@@ -163,6 +174,15 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     }
 
     void onUnregisteredInternal(@NonNull final ActivityDescriptor activity) {
+
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            mCachedDescriptor = null;
+            mRegistered = false;
+
+            return;
+        }
+
         try {
             mConnection.onUnregistered(this, activity);
         } catch (RemoteException e) {
@@ -179,6 +199,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             return;
         }
 
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            return;
+        }
+
         try {
             mConnection.onSessionStarted(this, session);
         } catch (RemoteException e) {
@@ -188,6 +213,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
 
     void onSessionEndedInternal(@NonNull final SessionDescriptor session) {
         if (!mConnected) {
+            return;
+        }
+
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
             return;
         }
 
@@ -203,6 +233,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             return;
         }
 
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            return;
+        }
+
         try {
             mConnection.onForeground(this, activity);
         } catch (RemoteException e) {
@@ -215,6 +250,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             return;
         }
 
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            return;
+        }
+
         try {
             mConnection.onBackground(this, activity);
         } catch (RemoteException e) {
@@ -224,6 +264,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
 
     void onHiddenInternal(@NonNull final ActivityDescriptor activity) {
         if (!mConnected) {
+            return;
+        }
+
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
             return;
         }
 
@@ -264,6 +309,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
             return;
         }
 
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
+            return;
+        }
+
         try {
             final SurfaceHolder surface = (SurfaceHolder) resourceHolder.getFacet(SurfaceHolder.class);
             mConnection.resourceAvailable(this, activity, surface.getSurface(),
@@ -281,6 +331,11 @@ abstract class BaseRemoteProxyDelegate implements ExtensionMultiplexClient.Conne
     synchronized boolean sendMessage(@NonNull final ActivityDescriptor activity, final String message) {
         if (!mConnected) {
             Log.w(TAG, "Calling command when service is not connected");
+            return false;
+        }
+
+        if(mConnection == null) {
+            Log.e(TAG, "mConnection should not be null while mConnected is true");
             return false;
         }
 

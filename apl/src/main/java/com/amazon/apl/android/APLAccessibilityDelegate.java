@@ -15,6 +15,7 @@ import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
 import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.enums.PropertyKey;
+import com.amazon.apl.enums.Role;
 import com.amazon.apl.enums.UpdateType;
 
 import java.util.HashMap;
@@ -30,6 +31,7 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
 
     private static final int ACTION_BASE_ID = 0x3f000000;
     private static final Map<String, Integer> STANDARD_ACTION_MAP;  // apl actionName -> android actionId
+    private static final Map<String, Integer> ADJUSTABLE_STANDARD_ACTION_MAP;
 
     private static int sCustomActionCount = ACTION_BASE_ID;
 
@@ -45,6 +47,14 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
         STANDARD_ACTION_MAP.put("scrollbackward", AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
         STANDARD_ACTION_MAP.put("scrollforward", AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
         STANDARD_ACTION_MAP.put("swipeaway", R.id.action_swipe_away);
+
+        ADJUSTABLE_STANDARD_ACTION_MAP = new HashMap<>();
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("activate", AccessibilityNodeInfoCompat.ACTION_CLICK);
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("doubletap", R.id.action_double_tap);
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("longpress", AccessibilityNodeInfoCompat.ACTION_LONG_CLICK);
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("decrement", AccessibilityNodeInfoCompat.ACTION_SCROLL_BACKWARD);
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("increment", AccessibilityNodeInfoCompat.ACTION_SCROLL_FORWARD);
+        ADJUSTABLE_STANDARD_ACTION_MAP.put("swipeaway", R.id.action_swipe_away);
     }
 
     protected APLAccessibilityDelegate(C c, Context context) {
@@ -64,6 +74,7 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
         setActions(info);
         setResourceId(info);
         setText(info);
+        setRangeInfo(info);
     }
 
     @Override
@@ -84,6 +95,11 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
     private void setActions(AccessibilityNodeInfoCompat info) {
         AccessibilityActions actions = mComponent.getAccessibilityActions();
         Set<String> actionSet = new HashSet<>();
+        Map<String, Integer> actionMap = STANDARD_ACTION_MAP;
+
+        if (mComponent.getRole() == Role.kRoleAdjustable) {
+            actionMap = ADJUSTABLE_STANDARD_ACTION_MAP;
+        }
 
         for (AccessibilityActions.AccessibilityAction action : actions) {
             // ignore repeated action names. Consider only the first one.
@@ -91,8 +107,8 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
                 continue;
 
             int actionId;
-            if (STANDARD_ACTION_MAP.containsKey(action.name())) {
-                actionId = STANDARD_ACTION_MAP.get(action.name());
+            if (actionMap.containsKey(action.name())) {
+                actionId = actionMap.get(action.name());
             } else {
                 actionId = sCustomActionCount++;
             }
@@ -234,6 +250,20 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
     private void setText(AccessibilityNodeInfoCompat nodeInfo) {
         if (mComponent.hasProperty(PropertyKey.kPropertyText)) {
             nodeInfo.setText(mComponent.getProperties().getString(PropertyKey.kPropertyText));
+        }
+    }
+
+    private void setRangeInfo(AccessibilityNodeInfoCompat nodeInfo) {
+        if (mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableValue) &&
+            (mComponent.getAccessibilityAdjustableValue() != null && !mComponent.getAccessibilityAdjustableValue().isEmpty()))
+            return;
+
+        if (mComponent.getRole() == Role.kRoleAdjustable && mComponent.hasProperty(PropertyKey.kPropertyAccessibilityAdjustableRange)) {
+            nodeInfo.setRangeInfo(AccessibilityNodeInfoCompat.RangeInfoCompat.obtain(
+                AccessibilityNodeInfoCompat.RangeInfoCompat.RANGE_TYPE_FLOAT,
+                mComponent.getAccessibilityAdjustableRange().minValue(),
+                mComponent.getAccessibilityAdjustableRange().maxValue(),
+                mComponent.getAccessibilityAdjustableRange().currentValue()));
         }
     }
 }

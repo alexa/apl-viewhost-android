@@ -15,6 +15,7 @@ import androidx.annotation.VisibleForTesting;
 import android.util.Log;
 
 import com.amazon.apl.android.primitive.AccessibilityActions;
+import com.amazon.apl.android.primitive.AccessibilityAdjustableRange;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -309,11 +310,27 @@ public abstract class Component extends BoundObject {
     }
 
     /**
+     * @return Voice-over will read this string along with accessibility label when the user selects this component
+     */
+    @Nullable
+    public final String getAccessibilityAdjustableValue() {
+        return mProperties.getString(PropertyKey.kPropertyAccessibilityAdjustableValue);
+    }
+
+    /**
      * @return Programmatic equivalents for complex touch interactions
      */
     @NonNull
     public final AccessibilityActions getAccessibilityActions() {
         return mProperties.getAccessibilityActions(PropertyKey.kPropertyAccessibilityActions);
+    }
+
+    /**
+     * @return Provides range information to accessibility node for Voice-over.
+     */
+    @Nullable
+    public final AccessibilityAdjustableRange getAccessibilityAdjustableRange() {
+        return mProperties.getAccessibilityAdjustableRange(PropertyKey.kPropertyAccessibilityAdjustableRange);
     }
 
     /**
@@ -571,6 +588,42 @@ public abstract class Component extends BoundObject {
         return mProperties.hasProperty(propertyKey);
     }
 
+    /**
+     * Used to get the component path coordinates.
+     * For Document Command Request Highlight only.
+     *
+     * @return The path coordinates containing 4 points.
+     */
+    public ArrayList<float[]> getPathCoordinates() {
+        float calculatedWidth = getCalculatedWidth();
+        float calculatedHeight = getCalculatedHeight();
+
+        float[] p1 = getGlobalPointCoordinates(0, 0);
+        float[] p2 = getGlobalPointCoordinates(calculatedWidth, 0);
+        float[] p3 = getGlobalPointCoordinates(calculatedWidth,calculatedHeight);
+        float[] p4 = getGlobalPointCoordinates(0, calculatedHeight);
+
+        ArrayList<float[]> pathCoordinates = new ArrayList<>();
+        pathCoordinates.add(p1);
+        pathCoordinates.add(p2);
+        pathCoordinates.add(p3);
+        pathCoordinates.add(p4);
+
+        return pathCoordinates;
+    }
+
+    private float getCalculatedWidth() {
+        return nGetCalculatedWidth(getNativeHandle());
+    }
+
+    private float getCalculatedHeight() {
+        return nGetCalculatedHeight(getNativeHandle());
+    }
+
+    private float[] getGlobalPointCoordinates(float pointA, float pointB) {
+        return nGetGlobalPointCoordinates(getNativeHandle(), pointA, pointB);
+    }
+
     @Deprecated
     @VisibleForTesting
     public RootContext getRootContext() {
@@ -610,6 +663,12 @@ public abstract class Component extends BoundObject {
     private static native boolean nCheckDirtyProperty(long nativeHandle, int propIndex);
 
     private static native boolean nCheckDirty(long nativeHandle);
+
+    private static native float nGetCalculatedWidth(long nativeHandle);
+
+    private static native float nGetCalculatedHeight(long nativeHandle);
+
+    private static native float[] nGetGlobalPointCoordinates(long nativeHandle, float pointA, float pointB);
 
     public String toString() {
         return "{type: " + getComponentType() + ", uid: " + getComponentId() + ", id: " + getId() + ", parent: " + getParentId() + "}";
