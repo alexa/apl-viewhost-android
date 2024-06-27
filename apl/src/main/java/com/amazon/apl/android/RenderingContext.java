@@ -19,6 +19,7 @@ import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.dependencies.IImageProcessor;
 import com.amazon.apl.android.dependencies.IImageUriSchemeValidator;
+import com.amazon.apl.android.media.ImageFilterProcessor;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IImageLoaderProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -48,6 +49,7 @@ public class RenderingContext {
     private final IExtensionImageFilterCallback extensionImageFilterCallback;
     private final IBitmapFactory bitmapFactory;
     private final IBitmapCache bitmapCache;
+    private final ImageFilterProcessor imageFilterProcessor;
     private final ShadowCache mShadowCache;
     private final WeakCache<String, Path> mPathCache;
     private final IContentRetriever<Uri, String> avgRetriever;
@@ -69,6 +71,7 @@ public class RenderingContext {
             IExtensionImageFilterCallback extensionImageFilterCallback,
             IBitmapFactory bitmapFactory,
             IBitmapCache bitmapCache,
+            ImageFilterProcessor imageFilterProcessor,
             IContentRetriever<Uri, String> avgRetriever,
             IExtensionEventCallback extensionEventCallback,
             APLTrace aplTrace,
@@ -86,6 +89,7 @@ public class RenderingContext {
         this.extensionImageFilterCallback = extensionImageFilterCallback;
         this.bitmapFactory = bitmapFactory;
         this.bitmapCache = bitmapCache;
+        this.imageFilterProcessor = imageFilterProcessor;
         this.avgRetriever = avgRetriever;
         this.extensionEventCallback = extensionEventCallback;
         this.aplTrace = aplTrace;
@@ -151,6 +155,10 @@ public class RenderingContext {
         return bitmapCache;
     }
 
+    public ImageFilterProcessor getImageFilterProcessor() {
+        return imageFilterProcessor;
+    }
+
     public ShadowCache getShadowCache() {
         return mShadowCache;
     }
@@ -203,6 +211,7 @@ public class RenderingContext {
         private IExtensionImageFilterCallback extensionImageFilterCallback;
         private IBitmapFactory bitmapFactory;
         private IBitmapCache bitmapCache;
+        private ImageFilterProcessor imageFilterProcessor;
         private IContentRetriever<Uri, String> avgRetriever;
         private IExtensionEventCallback extensionEventCallback;
         private APLTrace aplTrace;
@@ -273,6 +282,11 @@ public class RenderingContext {
             return this;
         }
 
+        public RenderingContext.Builder imageDecodeManager(ImageFilterProcessor imageFilterProcessor) {
+            this.imageFilterProcessor = imageFilterProcessor;
+            return this;
+        }
+
         public RenderingContext.Builder avgContentRetriever(IContentRetriever<Uri, String> avgContentRetriever) {
             this.avgRetriever = avgContentRetriever;
             return this;
@@ -312,6 +326,7 @@ public class RenderingContext {
                     this.extensionImageFilterCallback,
                     this.bitmapFactory,
                     this.bitmapCache,
+                    this.imageFilterProcessor,
                     this.avgRetriever,
                     this.extensionEventCallback,
                     this.aplTrace,

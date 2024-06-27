@@ -11,6 +11,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import androidx.collection.LruCache;
 
 import com.amazon.apl.android.utils.ConcurrencyUtils;
@@ -30,7 +31,10 @@ import java.util.concurrent.TimeoutException;
  * Responsible for obtaining font {@link Typeface} information.
  */
 public class TypefaceResolver {
+    Context mContext;
     private IFontResolver mRuntimeFontResolver;
+    private IFontResolver mEmbeddedFontResolver;
+    private boolean mEnableEmbeddedFontResolver;
     private static final TypefaceResolver sInstance = new TypefaceResolver();
     private static final String TAG = "TypefaceResolver";
     private static final Typeface DEFAULT_TYPEFACE = Typeface.SANS_SERIF;
@@ -72,8 +76,17 @@ public class TypefaceResolver {
             // set state to initializing
             mInitializationState = InitializationState.INITIALIZING;
             mRuntimeFontResolver = runtimeConfig.getFontResolver();
+            mContext = context;
+            mEnableEmbeddedFontResolver = runtimeConfig.isEmbeddedFontResolverEnabled();
             mInitializeResolvers = FontUtil.SEQUENTIAL_EXECUTOR.submit(new InitializeResolvers(runtimeConfig.isPreloadingFontsEnabled()));
         }
+    }
+
+    @VisibleForTesting
+    public void reset() {
+        mInitializationState = InitializationState.UNINITIALIZED;
+        FONT_CACHE.evictAll();
+        FontUtil.SEQUENTIAL_EXECUTOR.clearTaskQueue();
     }
 
     private boolean waitUntilFontsAvailable() {
@@ -119,6 +132,16 @@ public class TypefaceResolver {
         return mRuntimeFontResolver;
     }
 
+    /* Gets a IFontResolver instance.
+     * @return Returns a stored instance of the embedded font resolver
+     */
+    private IFontResolver getEmbeddedResolver() {
+        if (mEmbeddedFontResolver == null) {
+            mEmbeddedFontResolver = new EmbeddedFontResolver(mContext);
+        }
+        return mEmbeddedFontResolver;
+    }
+
     /**
      * Gets a FileFontKey based on font-family, fontWeight, italic.
      *
@@ -136,7 +159,7 @@ public class TypefaceResolver {
             final String language,
             final boolean isAPLOneZero) {
 
-        if(waitUntilFontsAvailable()) {
+        if (waitUntilFontsAvailable()) {
             try {
                 FontKey fontKey = FontKey.build(fontFamily, fontWeight).italic(italic).language(language).build();
                 final Typeface cachedFont = TypefaceResolver.FONT_CACHE.get(fontKey);
@@ -144,9 +167,18 @@ public class TypefaceResolver {
                 if (cachedFont != null) {
                     return cachedFont;
                 }
+
                 Typeface typeface;
 
-                typeface = getTypefaceFromFontFamily(fontKey, getRuntimeResolver());
+                if (FontUtil.isArabicFontKey(fontKey) && mEnableEmbeddedFontResolver) {
+                    typeface = getTypefaceFromFontFamily(fontKey, getEmbeddedResolver());
+                } else {
+                    typeface = getTypefaceFromFontFamily(fontKey, getRuntimeResolver());
+                    if (typeface == null && mEnableEmbeddedFontResolver) {
+                        typeface = getTypefaceFromFontFamily(fontKey, getEmbeddedResolver());
+                    }
+                }
+
                 if (typeface == null) {
                     typeface = Typeface.create(
                             isAPLOneZero ? null : DEFAULT_TYPEFACE,
@@ -160,7 +192,6 @@ public class TypefaceResolver {
             } catch (final RuntimeException e) {
                 Log.e(TAG, "FileFontKey file " + fontFamily + " not found on the device", e);
             }
-
         }
 
         return null;

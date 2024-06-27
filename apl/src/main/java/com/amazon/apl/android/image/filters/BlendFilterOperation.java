@@ -6,6 +6,8 @@
 package com.amazon.apl.android.image.filters;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
+import android.graphics.RectF;
 import android.renderscript.Element;
 import android.renderscript.ScriptIntrinsicBlend;
 import androidx.annotation.NonNull;
@@ -16,6 +18,7 @@ import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.image.filters.blender.Blender;
 import com.amazon.apl.android.image.filters.blender.BlenderFactory;
 import com.amazon.apl.android.primitive.Filters;
@@ -32,6 +35,8 @@ import java.util.concurrent.Future;
  */
 public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntrinsicBlend> {
     private static final String TAG = "BlendFilterOperation";
+    private final BlendMode mBlendMode;
+    private final Size mTargetSize;
     private static final Map<BlendMode, ScriptActor<ScriptIntrinsicBlend>> mModeActorMap = new HashMap<>();
     static {
         mModeActorMap.put(BlendMode.kBlendModeNormal, ScriptIntrinsicBlend::forEachSrcOver);
@@ -43,6 +48,14 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
 
     BlendFilterOperation(List<Future<FilterResult>> sourceFutures, Filters.Filter filter, IBitmapFactory bitmapFactory, @NonNull RenderScriptWrapper renderScript) {
         super(sourceFutures, filter, bitmapFactory, renderScript);
+        mBlendMode = filter.blendMode();
+        mTargetSize = null;
+    }
+
+    public BlendFilterOperation(List<Future<FilterResult>> sourceFutures, BlendMode blendMode, IBitmapFactory bitmapFactory, @NonNull RenderScriptWrapper renderScript, Size targetSize) {
+        super(sourceFutures, null, bitmapFactory, renderScript);
+        mBlendMode = blendMode;
+        mTargetSize = targetSize;
     }
 
     FilterBitmaps createFilterBitmaps() throws BitmapCreationException {
@@ -57,12 +70,18 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
         Bitmap resultBitmap = null;
         if (destination.isBitmap()) {
             // If destination is a bitmap, then pad/truncate the source to fit into the destination
-            sourceBitmap = source.getBitmap(destination.getSize());
-            destinationBitmap = destination.getBitmap();
+            if (mTargetSize == null) {
+                // If destination is a bitmap, then pad/truncate the source to fit into the destination
+                sourceBitmap = source.getBitmap(destination.getSize());
+                destinationBitmap = destination.getBitmap();
+            } else {
+                destinationBitmap = destination.getBitmap(mTargetSize);
+                sourceBitmap = source.getBitmap(mTargetSize);
+            }
         } else if (source.isBitmap()) {
             // If destination is not a bitmap, then scale it to be the size of source
-            sourceBitmap = source.getBitmap();
-            destinationBitmap = destination.getBitmap(source.getSize());
+            sourceBitmap = mTargetSize == null ? source.getBitmap() : source.getBitmap(mTargetSize);
+            destinationBitmap = destination.getBitmap(Size.create(sourceBitmap.getWidth(), sourceBitmap.getHeight()));
         }
 
         if (destinationBitmap != null) {
@@ -80,7 +99,7 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
     @Nullable
     @Override
     ScriptActor<ScriptIntrinsicBlend> getScriptActor() {
-        return mModeActorMap.get(getFilter().blendMode());
+        return mModeActorMap.get(mBlendMode);
     }
 
     @Override
@@ -89,7 +108,7 @@ public class BlendFilterOperation extends RenderscriptFilterOperation<ScriptIntr
             // If renderscript hasn't been implemented yet, we fallback to the slower Blender implementation.
             if (getScriptActor() == null) {
                 FilterBitmaps bitmaps = createFilterBitmaps();
-                return new BitmapFilterResult(BlenderFactory.getBlender(getFilter().blendMode()).performBlending(bitmaps.source(), bitmaps.destination(), bitmaps.result()), getBitmapFactory());
+                return new BitmapFilterResult(BlenderFactory.getBlender(mBlendMode).performBlending(bitmaps.source(), bitmaps.destination(), bitmaps.result()), getBitmapFactory());
             } else {
                 return super.call();
             }

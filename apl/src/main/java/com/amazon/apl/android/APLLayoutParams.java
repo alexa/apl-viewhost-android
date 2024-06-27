@@ -13,9 +13,9 @@ import android.widget.FrameLayout;
 @SuppressWarnings("WeakerAccess")
 public class APLLayoutParams extends FrameLayout.LayoutParams {
     //The horizontal, or X, location of the child within the view group.
-    final int x;
+    public final int x;
     //The vertical, or Y, location of the child within the view group.
-    final int y;
+    public final int y;
 
     /**
      * Creates a new set of layout parameters with the specified width,

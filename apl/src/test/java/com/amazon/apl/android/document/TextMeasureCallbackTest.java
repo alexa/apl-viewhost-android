@@ -9,31 +9,31 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLOptions;
-import com.amazon.apl.android.Component;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.DocumentState;
-import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.IAPLViewPresenter;
-import com.amazon.apl.android.RenderingContext;
+import com.amazon.apl.android.ITextProxy;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.RuntimeConfig;
-import com.amazon.apl.android.Text;
 import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.TextMeasure.MeasureMode;
 import com.amazon.apl.android.TextMeasureCallback;
-import com.amazon.apl.android.TextProxy;
 import com.amazon.apl.android.font.CompatFontResolver;
+import com.amazon.apl.android.primitive.StyledText;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.ITimer;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.scenegraph.text.APLTextProperties;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
@@ -63,6 +63,12 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
 
     @Mock
     IAPLViewPresenter mPresenter;
+    @Mock
+    MetricsRecorder mMetricsRecorder;
+    @Mock
+    ICounter mCounter;
+    @Mock
+    ITimer mTimer;
     ViewportMetrics mMetrics = ViewportMetrics.builder()
             .width(640)
             .height(480)
@@ -96,6 +102,7 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
             return mCallback;
         });
         when(mPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mPresenter.metricsRecorder()).thenReturn(mMetricsRecorder);
         doAnswer(answer).when(mFactorySpy).create(any(IMetricsTransform.class), any(TextMeasure.class));
         doAnswer(answer).when(mFactorySpy).create(any(RootConfig.class),
                 any(IMetricsTransform.class), any(TextMeasure.class));
@@ -113,8 +120,10 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         if (mContent == null || !mContent.isReady()) {
             fail("Content failed to inflate");
         }
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
         RootContext ctx = RootContext.create(mMetrics, mContent, mRootConfig,
-                mOptions, mPresenter);
+                mOptions, mPresenter, mMetricsRecorder);
         if (ctx == null || ctx.getNativeHandle() == 0) {
             fail("The document failed to load.");
         }
@@ -176,22 +185,10 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         // The factory created a callback
         verify(mFactorySpy).create(eq(ctx.getRenderingContext().getMetricsTransform()), any(TextMeasure.class));
 
-        // The text measure is prepared with the callback as a proxy
-        verify(mMeasureSpy).prepare(any(TextProxy.class), any(EditTextProxy.class));
-
         // the first two children should be measured, all other children have the same hash
-        Component container = ctx.getTopComponent().getChildAt(0);
-        Text auto1 = (Text) container.getChildAt(0);
         // two layout passes are needed, one at the full width and one at 50%
-        verify(mMeasureSpy).measure(eq(auto1.getProxy().getVisualHash()), eq(kComponentTypeText),
-                eq(640.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
-        verify(mMeasureSpy).measure(eq(auto1.getProxy().getVisualHash()), eq(kComponentTypeText),
-                eq(320.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
-        Text relative1 = (Text) container.getChildAt(1);
-        verify(mMeasureSpy).measure(eq(relative1.getProxy().getVisualHash()), eq(kComponentTypeText),
-                eq(640.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
-        verify(mMeasureSpy).measure(eq(relative1.getProxy().getVisualHash()), eq(kComponentTypeText),
-                eq(320.0f), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
+        verify(mMeasureSpy).measure(any(APLTextProperties.class), eq(640.0f), eq(MeasureMode.Exactly), eq(480.0f), eq(MeasureMode.AtMost), any(StyledText.class));
+        verify(mMeasureSpy).measure(any(APLTextProperties.class), eq(320.0f), eq(MeasureMode.Exactly), eq(480.0f), eq(MeasureMode.AtMost), any(StyledText.class));
         verify(mMeasureSpy).onRootContextCreated();
         verifyNoMoreInteractions(mMeasureSpy);
     }
@@ -204,9 +201,7 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         RootContext ctx = inflateDoc(doc);
         // The factory created and used a callback (as tested above)
         verify(mFactorySpy).create(eq(ctx.getRenderingContext().getMetricsTransform()), any(TextMeasure.class));
-        verify(mMeasureSpy).prepare(any(TextProxy.class), any(EditTextProxy.class));
-        verify(mMeasureSpy, times(2)).measure(anyString(), eq(kComponentTypeText),
-                anyFloat(), any(MeasureMode.class), anyFloat(), any(MeasureMode.class));
+        verify(mMeasureSpy, times(2)).measure(any(ITextProxy.class), anyFloat(), any(MeasureMode.class), anyFloat(), any(MeasureMode.class), any(StyledText.class));
         verify(mMeasureSpy).onRootContextCreated();
         verifyNoMoreInteractions(mMeasureSpy);
 
@@ -224,7 +219,6 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         assertEquals(address, mCallback.getNativeAddress());
 
         // The text measure is prepared with the callback as a proxy
-        verify(mMeasureSpy).prepare(any(TextProxy.class), any(EditTextProxy.class));
         verify(mMeasureSpy).onRootContextCreated();
 
         // There is no need for callback because the context was already inflated

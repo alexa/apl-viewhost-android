@@ -95,8 +95,10 @@ public class APLAccessibilityDelegateTest extends ViewhostRobolectricTest {
     @Test
     public void test_nodeTextSetIfComponentTextPresent() {
         when(mComponent.hasProperty(PropertyKey.kPropertyText)).thenReturn(true);
+        when(mComponent.hasTextProperty()).thenReturn(true);
         when(mComponent.getProperties()).thenReturn(mPropertyMap);
         when(mPropertyMap.getString(PropertyKey.kPropertyText)).thenReturn(TEXT);
+        when(mComponent.getAccessibilityNodeText()).thenReturn(TEXT);
 
         mAccessibilityDelegate.onInitializeAccessibilityNodeInfo(mView, mNode);
 

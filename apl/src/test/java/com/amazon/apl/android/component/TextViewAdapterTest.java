@@ -6,7 +6,6 @@
 package com.amazon.apl.android.component;
 
 import android.text.Layout;
-import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.view.Gravity;
 import android.view.View;
@@ -18,6 +17,8 @@ import com.amazon.apl.android.TextLayoutFactory;
 import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.TextProxy;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.scaling.IMetricsTransform;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 import com.amazon.apl.android.views.APLTextView;
 import com.amazon.apl.enums.LayoutDirection;
 import com.amazon.apl.enums.PropertyKey;
@@ -28,6 +29,7 @@ import org.mockito.Mock;
 import static com.amazon.apl.enums.TextAlignVertical.kTextAlignVerticalAuto;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyFloat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.spy;
@@ -46,8 +48,10 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
     private TextProxy mockTextProxy;
     @Mock
     private RenderingContext mMockRenderingContext;
+    @Mock
+    private IMetricsTransform mMetricsTransform;
 
-    private StaticLayout mStaticLayout;
+    private APLTextLayout mTextLayout;
 
     @Override
     Text component() {
@@ -60,7 +64,17 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
 
     @Override
     void componentSetup() throws StaticLayoutBuilder.LayoutBuilderException {
-        mStaticLayout = StaticLayoutBuilder.create().
+        when(mMetricsTransform.toViewhost(anyFloat())).thenAnswer(invocation -> {
+            Float argument = invocation.getArgument(0);
+            return argument;
+        });
+
+        when(mMetricsTransform.toCore(anyFloat())).thenAnswer(invocation -> {
+            Float argument = invocation.getArgument(0);
+            return argument;
+        });
+        when(mMockRenderingContext.getMetricsTransform()).thenReturn(mMetricsTransform);
+        Layout layout = StaticLayoutBuilder.create().
                 textPaint(new TextPaint()).
                 innerWidth(10).
                 alignment(Layout.Alignment.ALIGN_CENTER).
@@ -68,11 +82,12 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
                 maxLines(10).
                 ellipsizedWidth(10).
                 build();
+        mTextLayout = new APLTextLayout(layout, proxy().getStyledText(), false, layout.getWidth(), layout.getHeight());
         when(component().getProxy()).thenReturn(proxy());
         when(component().getRenderingContext()).thenReturn(mMockRenderingContext);
         when(mMockRenderingContext.getTextLayoutFactory()).thenReturn(mockLayoutFactory);
-        when(mockLayoutFactory.getOrCreateTextLayout(anyInt(), eq(proxy()), anyInt(), any(), anyInt(), any()))
-                .thenReturn(mStaticLayout);
+        when(mockLayoutFactory.getOrCreateTextLayout(anyInt(), eq(proxy()), anyFloat(), any(), anyFloat(), any(), any(), any()))
+                .thenReturn(mTextLayout);
         when(proxy().getTextAlignVertical()).thenReturn(kTextAlignVerticalAuto);
         when(proxy().getLayoutDirection()).thenReturn(LayoutDirection.kLayoutDirectionRTL);
         when(proxy().getVisualHash()).thenReturn(MOCK_TEXT_HASH);
@@ -140,7 +155,7 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
         verify(component()).getRenderingContext();
         verify(component()).getKaraokeLineSpan();
         verify(mockLayoutFactory).getOrCreateTextLayout(0, mockTextProxy,
-                30, TextMeasure.MeasureMode.Exactly, 20, null);
-        assertEquals(mStaticLayout, textView.getLayout());
+                30, TextMeasure.MeasureMode.Exactly, 20, TextMeasure.MeasureMode.Exactly, null, mMetricsTransform);
+        assertEquals(mTextLayout.getLayout(), textView.getLayout());
     }
 }

@@ -28,7 +28,7 @@ public class MediaPlayerFactoryProxy extends BoundObject {
      */
     @SuppressWarnings("unused")
     private MediaPlayer createPlayer(long nativeHandler) {
-        return new LocalMediaPlayer(nativeHandler);
+        return new MediaPlayer(nativeHandler);
     }
 
     private native long nCreate();

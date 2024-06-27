@@ -90,6 +90,7 @@ namespace apl {
          Java_com_amazon_apl_android_RootConfig_nCreate(JNIEnv *env, jclass clazz) {
              // TODO remove when Core has this enabled by default.
              auto rc = RootConfig()
+                     .enableExperimentalFeature(RootConfig::kExperimentalFeatureDynamicAccessibilityActions)
                      .enableExperimentalFeature(RootConfig::kExperimentalFeatureRequestKeyboard)
                      .enableExperimentalFeature(RootConfig::kExperimentalFeatureExtensionProvider);
              // Enable by default to support mediaLoad/mediaLoadFailed callbacks.
@@ -502,11 +503,27 @@ namespace apl {
             rc->audioPlayerFactory(get<AudioPlayerFactory>(factoryHandler));
         }
 
+        #ifdef SCENEGRAPH
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nEditTextFactory(JNIEnv *env, jclass clazz, jlong nativeHandle,
+                                                                jlong factoryHandler) {
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->editTextFactory(get<apl::sg::EditTextFactory>(factoryHandler));
+        }
+        #endif
+
         JNIEXPORT void JNICALL
         Java_com_amazon_apl_android_RootConfig_nMediaPlayerFactory(JNIEnv *env, jclass clazz, jlong nativeHandle,
                                                                     jlong nativeHandler) {
             auto rc = get<RootConfig>(nativeHandle);
             rc->mediaPlayerFactory(get<MediaPlayerFactory>(nativeHandler));
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nMediaManager(JNIEnv *env, jclass clazz, jlong nativeHandle,
+                                                                   jlong nativeHandler) {
+            auto rc = get<RootConfig>(nativeHandle);
+            rc->mediaManager(get<MediaManager>(nativeHandler));
         }
 
         JNIEXPORT void JNICALL

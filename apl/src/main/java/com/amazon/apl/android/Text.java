@@ -206,14 +206,18 @@ public class Text extends Component {
 
     private Layout getTextLayout() {
         final Rect bounds = getProxy().getInnerBounds();
+        // bounds dimensions are in pixel values, convert to dp before layout creation
+        IMetricsTransform metricsTransform = getRenderingContext().getMetricsTransform();
         return getRenderingContext().getTextLayoutFactory().getOrCreateTextLayout(
                 getRenderingContext().getDocVersion(),
                 getProxy(),
-                bounds.intWidth(),
+                metricsTransform.toCore(bounds.getWidth()),
                 TextMeasure.MeasureMode.Exactly,
-                bounds.intHeight(),
-                getKaraokeLineSpan()
-        );
+                metricsTransform.toCore(bounds.getHeight()),
+                TextMeasure.MeasureMode.Exactly,
+                getKaraokeLineSpan(),
+                getRenderingContext().getMetricsTransform()
+        ).getLayout();
     }
 
     @Override

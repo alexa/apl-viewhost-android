@@ -1,21 +1,22 @@
-/*
+/**
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #include <jni.h>
-#include <string>
-#include "apl/apl.h"
-#include "apl/dynamicdata.h"
+#include <codecvt>
 #include <list>
 #include <queue>
+#include <string>
+
+#include "apl/apl.h"
+#include "apl/dynamicdata.h"
+#include "apl/touch/pointerevent.h"
 
 #include "jnidocumentcontext.h"
-#include "jniutil.h"
 #include "jnimetricstransform.h"
 #include "jnitextmeasurecallback.h"
+#include "jniutil.h"
 #include "scaling.h"
-#include "apl/touch/pointerevent.h"
-#include <codecvt>
 
 namespace apl {
     namespace jni {
@@ -27,8 +28,6 @@ namespace apl {
 #pragma clang diagnostic ignored "-Wunused-parameter"
 
         const bool DEBUG_JNI = true;
-
-        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 
         // Access APL view host RootContext class.
         static jclass ROOTCONTEXT_CLASS;
@@ -170,7 +169,7 @@ namespace apl {
                                                                   jint mode) {
             auto content = get<Content>(contentHandle);
             auto rootConfig = get<RootConfig>(rootConfigHandle);
-            auto measure = get<JniTextMeasurement>(textMeasureHandle);
+            auto measure = get<APLTextMeasurement>(textMeasureHandle);
 
             // If the document states version 1.0, then set the old defaults
             // for backwards compatibility
@@ -216,6 +215,61 @@ namespace apl {
             }
             return createHandle<RootContext>(context);
         }
+
+        /**
+         * Create a RootContext from a Metrics and Content handle and attaches it to the view host peer.
+         */
+        #ifdef SCENEGRAPH
+        JNIEXPORT jlong JNICALL
+        Java_com_amazon_apl_android_RootContext_nCreateSG(JNIEnv *env, jobject instance,
+                                                        jlong contentHandle,
+                                                        jlong rootConfigHandle,
+                                                        jlong textMeasureHandle,
+                                                        jint width,
+                                                        jint height,
+                                                        jint dpi,
+                                                        jint shape,
+                                                        jstring theme_,
+                                                        jint mode) {
+            auto content = get<Content>(contentHandle);
+            auto rootConfig = get<RootConfig>(rootConfigHandle);
+            auto measure = get<APLTextMeasurement>(textMeasureHandle);
+
+            // If the document states version 1.0, then set the old defaults
+            // for backwards compatibility
+            if (content->getAPLVersion() == "1.0") {
+                LOG(LogLevel::kDebug) << "Setting APL 1.0 default property values";
+                Dimension _100p(DimensionType::Relative, 100);
+                rootConfig->defaultComponentSize(kComponentTypeSequence, _100p, _100p);
+                rootConfig->defaultComponentSize(kComponentTypeScrollView, _100p, _100p);
+                rootConfig->defaultComponentSize(kComponentTypePager, _100p, _100p);
+            }
+
+            rootConfig->measure(measure);
+
+            auto localeMethods = std::make_shared<JniLocaleMethods>();
+            rootConfig->localeMethods(localeMethods);
+
+            // TODO: Ignore for now.To be changed when imports versions fixed.
+            rootConfig->enforceAPLVersion(APLVersion::kAPLVersionIgnore);
+
+            const char *theme = env->GetStringUTFChars(theme_, nullptr);
+            auto metrics = Metrics()
+                    .size(static_cast<int>(width), static_cast<int>(height))
+                    .shape(static_cast<ScreenShape>(shape))
+                    .theme(theme)
+                    .dpi(static_cast<int>(dpi))
+                    .mode(static_cast<ViewportMode>(mode));
+            env->ReleaseStringUTFChars(theme_, theme);
+            RootContextPtr context = RootContext::create(metrics, content, *rootConfig);
+
+            if (!context) {
+                LOG(LogLevel::kError) << "Error creating RootContext";
+                return static_cast<jlong>(0);
+            }
+            return createHandle<RootContext>(context);
+        }
+        #endif
 
         JNIEXPORT jfloat JNICALL
         Java_com_amazon_apl_android_RootContext_viewportHeight(JNIEnv *env, jobject thiz,

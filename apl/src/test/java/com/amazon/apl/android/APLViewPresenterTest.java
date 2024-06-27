@@ -5,6 +5,7 @@
 
 package com.amazon.apl.android;
 
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
@@ -27,6 +28,8 @@ public class APLViewPresenterTest extends ViewhostRobolectricTest {
     private APLOptions mockAPLOptions;
     @Mock
     private RenderingContext mockRenderingContext;
+    @Mock
+    private MetricsRecorder mMetricsRecorder;
 
     @Before
     public void setup() {
@@ -37,6 +40,7 @@ public class APLViewPresenterTest extends ViewhostRobolectricTest {
     public void testPresenterUpdatesVisualContext() {
         when(mockAPLOptions.getTelemetryProvider()).thenReturn(NoOpTelemetryProvider.getInstance());
         when(mockRootContext.getOptions()).thenReturn(mockAPLOptions);
+        when(mockRootContext.getMetricsRecorder()).thenReturn(mMetricsRecorder);
         when(mockRootContext.getRenderingContext()).thenReturn(mockRenderingContext);
 
         IDocumentLifecycleListener lifeCycleListener = mock(IDocumentLifecycleListener.class);

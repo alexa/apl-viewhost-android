@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-include ':apl', ':common', ':commonTest', ':discovery'
+include ':apl', ':common', ':commonTest', ':app', ':ttsplayer', ':back', ':metrics',  ':discovery', ':service', ':e2ee'
+include ':automationapp'
 include ':coreengine'
 include ':alexaextjni'

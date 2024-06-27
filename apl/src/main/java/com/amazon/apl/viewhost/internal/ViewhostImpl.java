@@ -32,9 +32,11 @@ import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
 import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.events.SendEvent;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.thread.Threading;
+import com.amazon.apl.devtools.DevToolsProvider;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.viewhost.DocumentHandle;
@@ -94,6 +96,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     private final DTNetworkRequestManager mDTNetworkRequestManager;
 
     private APLLayout mAplLayout;
+    private DevToolsProvider mDevToolsProvider;
 
     private Set<DocumentStateChangeListener> mDocumentStateChangeListeners;
 
@@ -101,6 +104,8 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
 
     private static final String RENDER_DOCUMENT_COUNT_TAG = "Viewhost." + ITelemetryProvider.RENDER_DOCUMENT + "Count";
     private Integer mRenderDocumentCount;
+
+    private APLProperties mProperties;
 
     /**
      * Maintain a map of documents that are known to the new viewhost. This is needed for event
@@ -119,12 +124,19 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         if (mConfig.getDefaultDocumentOptions() != null && mConfig.getDefaultDocumentOptions().getTelemetryProvider() != null) {
             mTelemetryProvider = mConfig.getDefaultDocumentOptions().getTelemetryProvider();
         }
+
         mDocumentMap = new HashMap<>();
         mRuntimeInteractionWorker = runtimeInteractionWorker;
         mCoreWorker = coreWorker;
         mNextMessageId = new AtomicInteger(1);
         mDocumentStateChangeListeners = new HashSet<>();
         mDTNetworkRequestManager = new DTNetworkRequestManager();
+
+        // Copy over configuration properties
+        mProperties = new APLProperties();
+        for (Map.Entry<String, Object> entry : config.getProperties().entrySet()) {
+            mProperties.set(entry.getKey(), entry.getValue());
+        }
 
         mRenderDocumentCount = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, RENDER_DOCUMENT_COUNT_TAG, ITelemetryProvider.Type.COUNTER);
     }
@@ -139,10 +151,10 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         // For first iteration of M1 milestone we are keeping the content creation in this block. May move it later
         String document = request.getDocument() != null ? ((JsonStringDecodable) request.getDocument()).getString() : EMPTY;
         APLOptions options = createAPLOptions(request);
-
-        DocumentHandleImpl handle = new DocumentHandleImpl(this, mCoreWorker);
-        handle.setToken(request.getToken());
         DocumentOptions documentOptions = request.getDocumentOptions() != null ? request.getDocumentOptions() : mConfig.getDefaultDocumentOptions();
+
+        DocumentHandleImpl handle = new DocumentHandleImpl(this, mCoreWorker, options.getMetricsOptions());
+        handle.setToken(request.getToken());
         if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
             handle.setUserPerceivedFatalReporter(new UserPerceivedFatalReporter(documentOptions.getUserPerceivedFatalCallback()));
         }
@@ -208,7 +220,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
             public void onPackageLoaded(Content content) {
                 // do nothing when packages are loaded
             }
-        }, handle.getSession(), mDTNetworkRequestManager);
+        }, handle.getSession(), mDTNetworkRequestManager, true);
         return new PreparedDocumentImpl(handle);
     }
 
@@ -251,15 +263,6 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         );
     }
 
-    private IUserPerceivedFatalCallback getUserPerceivedFatalCallback(final PrepareDocumentRequest request) {
-        final DocumentOptions documentOptions = request.getDocumentOptions();
-        if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
-            return documentOptions.getUserPerceivedFatalCallback();
-        }
-        Log.d(TAG, "No UserPerceivedFatalCallback provided by the runtime to report UPF.");
-        return new NoOpUserPerceivedFatalCallback();
-    }
-
     private APLOptions createAPLOptions(final PrepareDocumentRequest request) {
         // Since Data is optional, if it is not included, this will be serialized into a null content in APLOptions,
         // and ignored later in the content creation process
@@ -267,9 +270,18 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         // In order to re-use the existing Content::Create methods creating an APLOptions instance here
         // This wil be eventually phased out in favor of other unified Viewhost APIs
         IPackageLoader packageLoader = mConfig.getIPackageLoader() == null ? (importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented.") : mConfig.getIPackageLoader();
+        DocumentOptions documentOptions = request.getDocumentOptions() != null ? request.getDocumentOptions() : mConfig.getDefaultDocumentOptions();
+
+        MetricsOptions metricsOptions;
+        if (documentOptions != null && documentOptions.getMetricsOptions() != null) {
+            metricsOptions = documentOptions.getMetricsOptions();
+        } else {
+            metricsOptions = MetricsOptions.builder().metricsSinkList(Collections.emptyList()).build();
+        }
         APLOptions options = APLOptions.builder()
                 .packageLoader(packageLoader)
                 .telemetryProvider(mTelemetryProvider)
+                .metricsOptions(metricsOptions)
                 .contentDataRetriever((source, successCallback, failureCallback) -> {
                     JSONObject currentData;
                     try {
@@ -280,13 +292,11 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                         // if data cannot be serialized into a JSONObject then use an empty object
                         currentData = new JSONObject();
                     }
-                    String result;
                     if (currentData.has(source)) {
-                        result = currentData.optString(source);
-                    } else {
-                        result = currentData.toString();
+                        successCallback.onSuccess(source, currentData.optString(source));
+                    } else if (source.equals("payload")) { // payload has special handling for backwards compatibility.
+                        successCallback.onSuccess(source, currentData.toString());
                     }
-                    successCallback.onSuccess(source, result);
                 })
                 .build();
         return options;
@@ -331,12 +341,6 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         handle.startRenderDocumentTimer(TimeUnit.MILLISECONDS, initialElapsedTime);
         Log.i(TAG, "Rendering document with handle: " + handle);
 
-        if ((DocumentState.DISPLAYED.equals(handle.getDocumentState()) || DocumentState.INFLATED.equals(handle.getDocumentState()))
-                && handle.getContent() != null) {
-            Log.d(TAG, "Reusing prepared document to render");
-            handle.setDocumentState(DocumentState.PREPARED);
-        }
-
         for (DocumentStateChangeListener listener : mDocumentStateChangeListeners) {
             handle.registerStateChangeListener(listener);
         }
@@ -356,7 +360,15 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         } else {
             mAplLayout = aplLayout;
             if (mAplLayout != null) {
-                mDTNetworkRequestManager.bindDTNetworkRequest(aplLayout.getDTView().getDTNetworkRequestHandler());
+                mDevToolsProvider = aplLayout.getDevToolsProvider();
+                mDTNetworkRequestManager.bindDTNetworkRequest(mDevToolsProvider.getNetworkRequestHandler());
+            }
+
+            DocumentHandleImpl topDocument = (DocumentHandleImpl) mTopDocument;
+            if (mTopDocument != null && topDocument.getContent() != null &&
+                    (DocumentState.DISPLAYED.equals(topDocument.getDocumentState()) || DocumentState.INFLATED.equals(topDocument.getDocumentState()))) {
+                Log.d(TAG, "Reusing prepared document to render");
+                inflate(topDocument);
             }
         }
     }
@@ -400,7 +412,9 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     }
 
     /**
+     * TODO: Revisit the restore API design.
      * @param savedDocument The document to restore.
+     *
      */
     @Override
     public boolean restoreDocument(SavedDocument savedDocument) {
@@ -720,7 +734,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
 
                 publish(() -> handler.handleAction(actionMessage));
                 writeAPLSessionLog(document.getSession(), Session.LogEntryLevel.INFO, String.format("%s Arguments: %s Components: %s Flags: %s Source: %s",
-                        SEND_USER_EVENT_REQUEST, Arrays.toString(args), components.toString(), sources.toString(), flags.toString()));
+                        SEND_USER_EVENT_REQUEST, Arrays.toString(args), components.toString(), sources.toString(), flags ==  null ? "" : flags.toString()));
             }
         });
 
@@ -822,24 +836,39 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                 state.toString(), handle.toString()));
 
         DocumentHandleImpl documentHandle = (DocumentHandleImpl) handle;
-        IUserPerceivedFatalCallback userPerceivedFatalCallback;
-        final DocumentOptions documentOptions = documentHandle.getDocumentOptions();
-        if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
-            userPerceivedFatalCallback = documentOptions.getUserPerceivedFatalCallback();
-        } else {
-            Log.d(TAG, "No UserPerceivedFatalCallback provided by the runtime to report UPF.");
-            userPerceivedFatalCallback = new NoOpUserPerceivedFatalCallback();
-        }
 
         if (state == DocumentState.PREPARED) {
+            inflate(documentHandle);
+        }else if (state == DocumentState.DISPLAYED) {
+            documentHandle.stopRenderDocumentTimer();
+            mTelemetryProvider.incrementCount(mRenderDocumentCount);
+        } else if (state == DocumentState.ERROR) {
+            documentHandle.failRenderDocumentTimer();
+            mTelemetryProvider.fail(mRenderDocumentCount);
+            Log.e(TAG, String.format("Document %s moved to error state", handle));
+        }
+    }
+
+    private void inflate(DocumentHandleImpl documentHandle) {
+        {
             if (!isBound()) {
                 Log.i(TAG, "No view bound to Viewhost, hence request not fulfilled");
                 return;
             }
 
+            IUserPerceivedFatalCallback userPerceivedFatalCallback;
+            final DocumentOptions documentOptions = documentHandle.getDocumentOptions();
+            if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
+                userPerceivedFatalCallback = documentOptions.getUserPerceivedFatalCallback();
+            } else {
+                Log.d(TAG, "No UserPerceivedFatalCallback provided by the runtime to report UPF.");
+                userPerceivedFatalCallback = new NoOpUserPerceivedFatalCallback();
+            }
+
             APLOptions options = APLOptions.builder()
                     .telemetryProvider(mTelemetryProvider)
                     .userPerceivedFatalCallback(userPerceivedFatalCallback)
+                    .metricsOptions(documentHandle.getMetricsOptions())
                     .viewhost(this).build();
             RootConfig rootConfig;
             if (documentHandle.getRootConfig() == null) {
@@ -848,9 +877,10 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
             } else {
                 rootConfig = documentHandle.getRootConfig();
             }
-            rootConfig.session(((DocumentHandleImpl) handle).getSession());
+            rootConfig.session(documentHandle.getSession());
             mAplLayout.setAPLSession(documentHandle.getSession());
-            documentHandle.getSession().setAPLListener(mAplLayout.getDTView());
+            documentHandle.getSession().setAPLListener(mDevToolsProvider.getAPLSessionListener());
+            mDevToolsProvider.registerSink(options.getMetricsOptions().getMetricsSinkList());
 
             if (documentHandle.getExtensionMediator() != null) {
                 rootConfig.extensionMediator(documentHandle.getExtensionMediator());
@@ -872,11 +902,11 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                                 rootContext.handleConfigurationChange(presenter.getConfigurationChange());
                             }
                         } else {
-                            rootContext = RootContext.create(viewportMetrics, documentHandle.getContent(), rootConfig, options, presenter, documentHandle.getUserPerceivedFatalReporter());
+                            rootContext = RootContext.create(viewportMetrics, documentHandle.getContent(), rootConfig, options, presenter, documentHandle.getUserPerceivedFatalReporter(), documentHandle.getContent().getMetricsRecorder());
                         }
                         presenter.onDocumentRender(rootContext);
-                        documentHandle.setRootContext(rootContext);
-                        setTopDocumentHandleAndRootContext(handle, rootContext);
+                        documentHandle.setPrimary(rootContext, this);
+                        setTopDocumentHandleAndRootContext(documentHandle, rootContext);
                     } catch (Exception e) {
                         Log.e(TAG, "Exception occurred while fulfilling request and the exception is: " + e);
                         documentHandle.setDocumentState(DocumentState.ERROR);
@@ -887,13 +917,6 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                     presenter.loadBackground(documentHandle.getContent().getDocumentBackground());
                 }
             });
-        } else if (state == DocumentState.DISPLAYED) {
-            documentHandle.stopRenderDocumentTimer();
-            mTelemetryProvider.incrementCount(mRenderDocumentCount);
-        } else if (state == DocumentState.ERROR) {
-            documentHandle.failRenderDocumentTimer();
-            mTelemetryProvider.fail(mRenderDocumentCount);
-            Log.e(TAG, String.format("Document %s moved to error state", handle));
         }
     }
 

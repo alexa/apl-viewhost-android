@@ -23,6 +23,8 @@ import java.util.List;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -50,7 +52,9 @@ public abstract class LiveObjectTest extends AbstractDocUnitTest {
         when(mockShadowRenderer.getCache()).thenReturn(mShadowCache);
         when(mAPLPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
-        mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter));
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+        mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter, mMetricsRecorder));
         assertNotNull(mRootContext);
 
         mRootContext.initTime();

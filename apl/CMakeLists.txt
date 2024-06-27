@@ -19,6 +19,27 @@ endif()
 
 project (apl-jni VERSION 1.0.0 LANGUAGES C CXX)
 
+# Load Scenegraph JNI sources only when enabled
+set(SCENEGRAPH_SOURCES)
+if (ENABLE_SCENEGRAPH)
+        set(SCENEGRAPH_SOURCES ${SCENEGRAPH_SOURCES}
+                src/main/cpp/jnisgcontent.cpp
+                src/main/cpp/jnisglayer.cpp
+                src/main/cpp/scenegraph/jniedittext.cpp
+                src/main/cpp/scenegraph/jniedittextfactory.cpp
+                src/main/cpp/scenegraph/jniedittextconfig.cpp
+                src/main/cpp/jniaplview.cpp
+                src/main/cpp/jniapllayer.cpp
+                src/main/cpp/jniaplscenegraph.cpp
+                src/main/cpp/scenegraph/jnipaint.cpp
+                src/main/cpp/scenegraph/jnishadow.cpp
+                src/main/cpp/scenegraph/jnifilter.cpp
+                src/main/cpp/scenegraph/jnimediaobject.cpp
+                src/main/cpp/scenegraph/jnimediamanager.cpp
+                src/main/cpp/scenegraph/jnisgaccessibility.cpp
+                )
+endif()
+
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
 # You can define multiple libraries, and CMake builds them for you.
@@ -31,6 +52,7 @@ add_library(
         # Provides a relative path to source file(s).
         src/main/cpp/jniapl.cpp
         src/main/cpp/jniaction.cpp
+        src/main/cpp/jniapltextproperties.cpp
         src/main/cpp/jniaudioplayer.cpp
         src/main/cpp/jniaudioplayerfactory.cpp
         src/main/cpp/jnicontent.cpp
@@ -57,9 +79,12 @@ add_library(
         src/main/cpp/jniscaling.cpp
         src/main/cpp/jnimetricstransform.cpp
         src/main/cpp/jnigraphic.cpp
+        src/main/cpp/jnitextlayout.cpp
         src/main/cpp/jnitextmeasurecallback.cpp
+        src/main/cpp/jnistyledtext.cpp
         src/main/cpp/jnishadowblur.cpp
         src/main/cpp/jninoisefilter.cpp
+        ${SCENEGRAPH_SOURCES}
         src/main/cpp/jnitext.cpp
 )
 

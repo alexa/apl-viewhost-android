@@ -17,7 +17,6 @@ import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.enums.ComponentType;
-import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.VectorGraphicAlign;
 import com.amazon.apl.enums.VectorGraphicScale;
@@ -32,6 +31,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 
 public class VectorGraphicTest extends AbstractComponentUnitTest<APLVectorGraphicView, VectorGraphic> {
@@ -257,7 +259,9 @@ public class VectorGraphicTest extends AbstractComponentUnitTest<APLVectorGraphi
                 .build();
 
         RootConfig rootConfig = RootConfig.create("Unit Test", "1.0");
-        mRootContext = RootContext.create(mMetrics, content, rootConfig, options, mAPLPresenter);
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+        mRootContext = RootContext.create(mMetrics, content, rootConfig, options, mAPLPresenter, mMetricsRecorder);
 
         if (mRootContext.getNativeHandle() == 0) {
             Assert.fail("The document failed to load.");

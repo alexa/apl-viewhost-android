@@ -15,8 +15,10 @@ import androidx.annotation.VisibleForTesting;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.audio.AudioPlayerFactoryProxy;
 import com.amazon.apl.android.audio.IAudioPlayerFactory;
+import com.amazon.apl.android.media.MediaManager;
 import com.amazon.apl.android.media.MediaPlayerFactoryProxy;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.scenegraph.edittext.EditTextFactory;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
@@ -65,11 +67,21 @@ public class RootConfig extends BoundObject {
     private AudioPlayerFactoryProxy mAudioPlayerFactoryProxy;
 
     /**
+     * Factory for creating EditText
+     */
+    private EditTextFactory mEditTextFactory;
+
+    /**
      * Factory for creating MediaPlayer
      */
     private MediaPlayerFactoryProxy mMediaPlayerFactoryProxy;
 
     private DocumentManager mDocumentManager;
+
+    /**
+     * MediaManager handles media requests from core.
+     */
+    private MediaManager mMediaManager;
 
     /**
      * Creates a default RootConfig.
@@ -510,7 +522,7 @@ public class RootConfig extends BoundObject {
      * @return The extension mediator, may be null;
      */
     @Deprecated
-    ExtensionRegistrar getExtensionProvider() {
+    public ExtensionRegistrar getExtensionProvider() {
         return mExtensionProvider;
     }
 
@@ -530,6 +542,7 @@ public class RootConfig extends BoundObject {
      */
     @NonNull
     @Deprecated
+    // TODO: Marking as public temporarily for access from scenegraph namespace
     public RootConfig extensionMediator(@NonNull ExtensionMediator extensionMediator) {
         mExtensionMediator = extensionMediator;
         nExtensionMediator(getNativeHandle(), extensionMediator.getNativeHandle());
@@ -542,7 +555,7 @@ public class RootConfig extends BoundObject {
      * @return The extension mediator, may be null;
      */
     @Deprecated
-    ExtensionMediator getExtensionMediator() {
+    public ExtensionMediator getExtensionMediator() {
         return mExtensionMediator;
     }
 
@@ -627,6 +640,18 @@ public class RootConfig extends BoundObject {
     }
 
     /**
+     * Sets the media manager.
+     * @return This object for chaining
+     */
+    @NonNull
+    public RootConfig mediaManager(@NonNull MediaManager mediaManager) {
+        // keeping reference to media manager to ensure it is not GC'd before RootContext
+        mMediaManager = mediaManager;
+        nMediaManager(getNativeHandle(), mediaManager.getNativeHandle());
+        return this;
+    }
+
+    /**
      * Set audio player factory.
      * @return This object for chaining
      */
@@ -635,6 +660,14 @@ public class RootConfig extends BoundObject {
         // A reference to the factory needs to be held in the Java layer, else it would be cleaned.
         mAudioPlayerFactoryProxy = new AudioPlayerFactoryProxy(audioPlayerFactory);
         nAudioPlayerFactory(getNativeHandle(), mAudioPlayerFactoryProxy.getNativeHandle());
+        return this;
+    }
+
+    @NonNull
+    public RootConfig editTextFactory(@NonNull EditTextFactory editTextFactory) {
+        // A reference to the factory needs to be held in the Java layer, else it would be cleaned.
+        mEditTextFactory = editTextFactory;
+        nEditTextFactory(getNativeHandle(), editTextFactory.getNativeHandle());
         return this;
     }
 
@@ -928,8 +961,11 @@ public class RootConfig extends BoundObject {
 
     private static native void nAudioPlayerFactory(long nativehandle, long factoryHandler);
 
+    private static native void nEditTextFactory(long nativeHandle, long factoryHandler);
+
     private static native void nMediaPlayerFactory(long nativehandle, long factoryHandler);
 
-    private static native void nSetDocumentManager(long nativehandle, long documentManagerHandle);
+    private static native void nMediaManager(long nativehandle, long mediaManagerHandle);
 
+    private static native void nSetDocumentManager(long nativehandle, long documentManagerHandle);
 }

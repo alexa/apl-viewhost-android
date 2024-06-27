@@ -9,6 +9,7 @@ import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
 import com.amazon.apl.android.image.filters.bitmap.GradientFilterResult;
 import com.amazon.apl.android.primitive.Filters;
+import com.amazon.apl.android.primitive.Gradient;
 
 import java.util.Collections;
 
@@ -16,13 +17,19 @@ import java.util.Collections;
  * Apply a specified gradient overlay on the image bitmap
  */
 public class GradientFilterOperation extends FilterOperation {
+    private final Gradient mGradient;
 
     GradientFilterOperation(Filters.Filter filter, IBitmapFactory bitmapFactory) {
-        super(Collections.emptyList(), filter, bitmapFactory);
+        this(filter.gradient(), bitmapFactory);
+    }
+
+    GradientFilterOperation(Gradient gradient, IBitmapFactory bitmapFactory) {
+        super(Collections.emptyList(), null, bitmapFactory);
+        mGradient = gradient;
     }
 
     @Override
     public FilterResult call() {
-        return new GradientFilterResult(getFilter().gradient(), getBitmapFactory());
+        return new GradientFilterResult(mGradient, getBitmapFactory());
     }
 }

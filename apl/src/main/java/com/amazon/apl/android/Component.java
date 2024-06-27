@@ -17,6 +17,7 @@ import android.util.Log;
 import com.amazon.apl.android.primitive.AccessibilityActions;
 import com.amazon.apl.android.primitive.AccessibilityAdjustableRange;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.IMetricsTransform;
@@ -37,11 +38,13 @@ import java.nio.charset.StandardCharsets;
 import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 import static com.amazon.apl.android.providers.ITelemetryProvider.UNKNOWN_METRIC_ID;
+import static com.amazon.apl.enums.PropertyKey.kPropertyBackground;
+import static com.amazon.apl.enums.PropertyKey.kPropertyDrawnBorderWidth;
 
 /**
  * APL logical representation of a View.
  */
-public abstract class Component extends BoundObject {
+public abstract class Component extends BoundObject implements IAccessibilityProvider {
 
     private final static String TAG = "Component";
 
@@ -108,11 +111,45 @@ public abstract class Component extends BoundObject {
     }
 
     /**
+     * @return Width of the drawn border. Defaults to 0 (no border)
+     */
+    @NonNull
+    public Dimension getDrawnBorderWidth() {
+        return mProperties.getDimension(kPropertyDrawnBorderWidth);
+    }
+
+    public boolean isGradientBackground() {
+        return mProperties.isGradient(PropertyKey.kPropertyBackground);
+    }
+
+    /**
+     * @return Background color. Defaults to transparent.
+     */
+    public int getBackgroundColor() {
+        return mProperties.getColor(kPropertyBackground);
+    }
+
+    public Gradient getBackgroundGradient() {
+        return mProperties.getGradient(kPropertyBackground);
+    }
+
+
+    /**
      * @return The collection of properties describing this Component..
      */
     @NonNull
     public final PropertyMap<Component, PropertyKey> getProperties() {
         return mProperties;
+    }
+
+    @Override
+    public boolean hasTextProperty() {
+        return hasProperty(PropertyKey.kPropertyText);
+    }
+
+    @Override
+    public final String getAccessibilityNodeText() {
+        return mProperties.getString(PropertyKey.kPropertyText);
     }
 
     public IAPLViewPresenter getViewPresenter() {
@@ -251,6 +288,7 @@ public abstract class Component extends BoundObject {
     /**
      * @return The ID assigned to this component by the APL author, if not assigned the empty string.
      */
+    @Override
     @NonNull
     final public String getId() {
         return nGetId(getNativeHandle());
@@ -304,6 +342,7 @@ public abstract class Component extends BoundObject {
     /**
      * @return Voice-over will read this string when the user selects this component
      */
+    @Override
     @Nullable
     public final String getAccessibilityLabel() {
         return mProperties.getString(PropertyKey.kPropertyAccessibilityLabel);
@@ -343,6 +382,7 @@ public abstract class Component extends BoundObject {
     /**
      * @return If true, this component does not respond to touch or focus.
      */
+    @Override
     public final boolean isDisabled() {
         return mProperties.getBoolean(PropertyKey.kPropertyDisabled);
     }

@@ -12,6 +12,5 @@ public class APLViewhostTest extends LeakRulesBaseClass {
     static {
         System.loadLibrary("common-jni");
         System.loadLibrary("apl-jni");
-        System.loadLibrary("discovery-jni");
     }
 }

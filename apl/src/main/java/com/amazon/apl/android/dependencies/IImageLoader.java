@@ -7,11 +7,16 @@ package com.amazon.apl.android.dependencies;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
+
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.sgcontent.Node;
 import com.google.auto.value.AutoValue;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -37,6 +42,8 @@ public interface IImageLoader {
     default void loadImage(LoadImageParams load) {
         loadImage(load.path(), load.imageView(), load.callback(), load.needsScaling());
     }
+
+    void downloadImage(DownloadImageParams load);
 
     /**
      * @deprecated Use {@link #loadImage(LoadImageParams)}.
@@ -152,6 +159,52 @@ public interface IImageLoader {
          */
         default void onError(Exception exception, int errorCode, String source) {
             onError(exception, source);
+        }
+    }
+
+    interface DownloadImageCallback {
+        void onSuccess(File file, String source);
+
+        /**
+         * Called when there is an error downloading the requested image.
+         * @param exception The exception that occurred
+         * @param errorCode An error code as defined by the runtime, such as the HttpResponseCode.
+         * @param source The url of the image source that failed to download
+         */
+        void onError(Exception exception, int errorCode, String source);
+    }
+
+    /**
+     * Parameters for an Image download.
+     */
+    @AutoValue
+    abstract class DownloadImageParams {
+        /**
+         * @return the path to the image
+         */
+        public abstract String path();
+
+        /**
+         * @return the callback for completion or error
+         */
+        public abstract DownloadImageCallback callback();
+
+        /**
+         * @return the request headers.
+         */
+        public abstract Map<String, String> headers();
+
+
+        public static Builder builder() {
+            return new AutoValue_IImageLoader_DownloadImageParams.Builder();
+        }
+
+        @AutoValue.Builder
+        public static abstract class Builder {
+            public abstract Builder path(String path);
+            public abstract Builder callback(DownloadImageCallback callbacks);
+            public abstract Builder headers(Map<String, String> headers);
+            public abstract DownloadImageParams build();
         }
     }
 

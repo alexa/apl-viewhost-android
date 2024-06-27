@@ -35,21 +35,6 @@ public class Frame extends MultiChildComponent {
         super(nativeHandle, componentId, renderingContext);
     }
 
-    public boolean isGradientBackground() {
-        return mProperties.isGradient(PropertyKey.kPropertyBackground);
-    }
-
-    /**
-     * @return Background color. Defaults to transparent.
-     */
-    public int getBackgroundColor() {
-        return mProperties.getColor(kPropertyBackground);
-    }
-
-    public Gradient getBackgroundGradient() {
-        return mProperties.getGradient(kPropertyBackground);
-    }
-
     /**
      * @return Corner radius for rounded-rectangle variant. Defaults to 0.
      */
@@ -68,14 +53,6 @@ public class Frame extends MultiChildComponent {
     @NonNull
     public Dimension getBorderWidth() {
         return mProperties.getDimension(kPropertyBorderWidth);
-    }
-
-    /**
-     * @return Width of the drawn border. Defaults to 0 (no border)
-     */
-    @NonNull
-    public Dimension getDrawnBorderWidth() {
-        return mProperties.getDimension(kPropertyDrawnBorderWidth);
     }
 
     /**

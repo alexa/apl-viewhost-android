@@ -5,6 +5,8 @@
 
 package com.amazon.apl.devtools.views;
 
+import android.view.MotionEvent;
+
 import com.amazon.apl.android.LiveData;
 import com.amazon.apl.devtools.enums.DTError;
 import com.amazon.apl.devtools.models.view.ExecuteCommandStatus;
@@ -83,5 +85,28 @@ public interface IAPLView {
      */
     default void executeCommands(String commands, IDTCallback<ExecuteCommandStatus> callback) {
         callback.execute(RequestStatus.failed(0, DTError.METHOD_NOT_IMPLEMENTED));
+    }
+
+    /**
+     * Enqueue motion events to be driven to the rendered document
+     * @param motionEvents
+     * @param callback
+     */
+    default void enqueueMotionEvents(List<MotionEvent> motionEvents, IDTCallback<Boolean> callback) {
+        callback.execute(RequestStatus.failed(0, DTError.METHOD_NOT_IMPLEMENTED));
+    }
+
+    /**
+     * Clear any previously queued pending motion events
+     */
+    default void clearMotionEvents() {
+    }
+
+    /**
+     * Return the device display refresh rate in frames per second
+     * @return FPS
+     */
+    default float getDisplayRefreshRate() {
+        return 60.0f;
     }
 }

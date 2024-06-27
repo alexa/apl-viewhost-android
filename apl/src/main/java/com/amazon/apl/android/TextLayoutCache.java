@@ -7,7 +7,6 @@ package com.amazon.apl.android;
 
 import android.graphics.Paint;
 import android.graphics.Typeface;
-import android.text.Layout;
 import android.text.StaticLayout;
 import android.text.TextPaint;
 
@@ -19,6 +18,7 @@ import androidx.collection.LruCache;
 import com.amazon.apl.android.font.FontConstant;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 
 /**
  * Cache for text layouts (generally {@link StaticLayout}) and also caches
@@ -29,7 +29,7 @@ public final class TextLayoutCache {
     /**
      * A LruCache of Layouts using the visual hash and some other identifying info as a key.
      */
-    private final LruCache<String, Layout> mLayoutCache = new LruCache<>(256);
+    private final LruCache<String, APLTextLayout> mLayoutCache = new LruCache<>(256);
     /**
      * A LruCache of TextPaint using the visual hash and scaling as a key.
      */
@@ -45,7 +45,7 @@ public final class TextLayoutCache {
      * @param key A key that makes reuse of layouts possible
      * @param layout The layout that is associated with the key
      */
-    public void putLayout(String key, Layout layout) {
+    public void putLayout(String key, APLTextLayout layout) {
         mLayoutCache.put(key, layout);
     }
 
@@ -56,7 +56,7 @@ public final class TextLayoutCache {
      * @return cached {@link StaticLayout} for a given key.
      */
     @Nullable
-    public Layout getLayout(String key) {
+    public APLTextLayout getLayout(String key) {
         return mLayoutCache.get(key);
     }
 
@@ -87,12 +87,24 @@ public final class TextLayoutCache {
      */
     @VisibleForTesting
     @NonNull
-    public TextPaint getOrCreateTextPaint(int version, String key, TextProxy textProxy, float density) {
+    public TextPaint getOrCreateTextPaint(int version, String key, ITextProxy textProxy, float density) {
         final TextPaint cachedPaint = mPaintCache.get(key);
         if (cachedPaint != null) {
             return cachedPaint;
         }
+        TextPaint textPaint = createTextPaint(version, textProxy, density);
+        mPaintCache.put(key, textPaint);
+        return textPaint;
+    }
 
+    /**
+     * Creates a {@link TextPaint}
+     * @param version
+     * @param textProxy
+     * @param density
+     * @return {@link TextPaint}
+     */
+    public TextPaint createTextPaint(int version, ITextProxy textProxy, float density) {
         TypefaceResolver typefaceResolver = TypefaceResolver.getInstance();
         final Typeface tf = typefaceResolver.getTypeface(textProxy.getFontFamily(),
                 textProxy.getFontWeight(), textProxy.isItalic(), textProxy.getFontLanguage(),
@@ -115,11 +127,12 @@ public final class TextLayoutCache {
             // If this is less than 1 then shadow wont render at all on fos5 devices
             shadowBlur = 1.0f;
         }
-        final int fontSize = textProxy.getFontSize().intValue();
+        final int fontSize = Math.round(textProxy.getFontSize());
         Dimension letterSpacingDim = textProxy.getLetterSpacing();
         final float letterSpacing = letterSpacingDim == null ? 1.0f : letterSpacingDim.value();
 
         textPaint.setColor(textProxy.getColor());
+        // The fontSize is expected to be in pixel units.
         textPaint.setTextSize(fontSize);
         textPaint.setTypeface(tf);
         // letterSpacing needs to be calculated as EM
@@ -127,9 +140,6 @@ public final class TextLayoutCache {
         textPaint.density = density;
         textPaint.setTextScaleX(1.0f);
         textPaint.setShadowLayer(shadowBlur, shadowOffsetX, shadowOffsetY, shadowColor);
-
-        mPaintCache.put(key, textPaint);
-
         return textPaint;
     }
 

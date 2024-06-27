@@ -15,14 +15,19 @@ import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_GET_SCENE_GRA
 import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_GET_VISUAL_CONTEXT;
 import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_HIDE_HIGHLIGHT;
 import static com.amazon.apl.devtools.enums.CommandMethod.DOCUMENT_HIGHLIGHT_COMPONENT;
+import static com.amazon.apl.devtools.enums.CommandMethod.INPUT_CANCEL;
+import static com.amazon.apl.devtools.enums.CommandMethod.INPUT_TOUCH;
 
 import android.util.Log;
 
 import com.amazon.apl.devtools.controllers.DTConnection;
 import com.amazon.apl.devtools.enums.DTError;
+import com.amazon.apl.devtools.executers.DetachFromTargetCommandRequest;
 import com.amazon.apl.devtools.executers.DocumentCommandRequest;
 import com.amazon.apl.devtools.executers.FrameMetricsRecordCommandRequest;
 import com.amazon.apl.devtools.executers.FrameMetricsStopCommandRequest;
+import com.amazon.apl.devtools.executers.InputCancelCommandRequest;
+import com.amazon.apl.devtools.executers.InputTouchCommandRequest;
 import com.amazon.apl.devtools.executers.LiveDataUpdateCommandRequest;
 import com.amazon.apl.devtools.executers.MemoryGetMemoryCommandRequest;
 import com.amazon.apl.devtools.executers.NetworkDisableCommandRequest;
@@ -30,6 +35,9 @@ import com.amazon.apl.devtools.executers.NetworkEnableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceDisableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceEnableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceGetMetricsCommandRequest;
+import com.amazon.apl.devtools.executers.SystemInfoGetApplicationProcessorUsageCommandRequest;
+import com.amazon.apl.devtools.executers.SystemInfoGetEnvironmentMemoryCommandRequest;
+import com.amazon.apl.devtools.executers.SystemInfoGetEnvironmentProcessorUsageCommandRequest;
 import com.amazon.apl.devtools.executers.TargetAttachToTargetCommandRequest;
 import com.amazon.apl.devtools.executers.TargetGetTargetsCommandRequest;
 import com.amazon.apl.devtools.executers.ViewCaptureImageCommandRequest;
@@ -69,6 +77,9 @@ public final class CommandRequestFactory {
                 return new TargetGetTargetsCommandRequest(mTargetCatalog, obj);
             case TARGET_ATTACH_TO_TARGET:
                 return new TargetAttachToTargetCommandRequest(mTargetCatalog,
+                        mCommandRequestValidator, obj, connection);
+            case TARGET_DETACH_FROM_TARGET:
+                return new DetachFromTargetCommandRequest(
                         mCommandRequestValidator, obj, connection);
             case VIEW_SET_DOCUMENT:
                 return new ViewSetDocumentCommandRequest(mCommandRequestValidator, obj, connection);
@@ -122,10 +133,20 @@ public final class CommandRequestFactory {
                 return new DocumentCommandRequest(DOCUMENT_HIGHLIGHT_COMPONENT, mCommandRequestValidator, obj, connection);
             case DOCUMENT_HIDE_HIGHLIGHT:
                 return new DocumentCommandRequest(DOCUMENT_HIDE_HIGHLIGHT, mCommandRequestValidator, obj, connection);
+            case INPUT_TOUCH:
+                return new InputTouchCommandRequest(INPUT_TOUCH, mCommandRequestValidator, obj, connection);
+            case INPUT_CANCEL:
+                return new InputCancelCommandRequest(INPUT_CANCEL, mCommandRequestValidator, obj, connection);
             case NETWORK_ENABLE:
                 return new NetworkEnableCommandRequest(mCommandRequestValidator, obj, connection);
             case NETWORK_DISABLE:
                 return new NetworkDisableCommandRequest(mCommandRequestValidator, obj, connection);
+            case SYSTEM_INFO_GET_APPLICATION_PROCESSOR_USAGE:
+                return new SystemInfoGetApplicationProcessorUsageCommandRequest(obj);
+            case SYSTEM_INFO_GET_ENVIRONMENT_PROCESSOR_USAGE:
+                return new SystemInfoGetEnvironmentProcessorUsageCommandRequest(obj);
+            case SYSTEM_INFO_GET_ENVIRONMENT_MEMORY:
+                return new SystemInfoGetEnvironmentMemoryCommandRequest(mTargetCatalog, obj);
             default:
                 throw new DTException(requestHeader.getId(),
                         DTError.METHOD_NOT_IMPLEMENTED.getErrorCode(), DTError.METHOD_NOT_IMPLEMENTED.getErrorMsg());

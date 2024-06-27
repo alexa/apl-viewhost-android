@@ -15,12 +15,11 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.primitive.StyledText;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 import com.amazon.apl.android.text.LineSpan;
-import com.amazon.apl.enums.LayoutDirection;
-
-import java.util.Objects;
 
 /**
  * Factory for Text (and EditText) Layouts, which returns a cached layout
@@ -36,7 +35,7 @@ public class TextLayoutFactory {
 
     // Typical APL displays are 160dip, consider this the default when MetricsTransform is absent.
     // equivalent to DisplayMetrics.DENSITY_MEDIUM / 160;
-    static float DEFAULT_DENSITY = 1.0f;
+    public static float DEFAULT_DENSITY = 1.0f;
 
     private final TextLayoutCache mTextLayoutCache;
     private final float mDensity;
@@ -93,32 +92,39 @@ public class TextLayoutFactory {
      *
      * @param versionCode The document version.
      * @param textProxy   Proxy for component property lookup.
-     * @param innerWidth  The inner width of the text area
+     * @param innerWidthDp  The inner width of the text area in dp
      * @param widthMode   The text measurement width strategy.
-     * @param innerHeight The inner height of the text area
+     * @param innerHeightDp The inner height of the text area in dp
      * @param karaokeLine The current karaoke LineSpan.
+     * @param metricsTransform {@link IMetricsTransform} The metrics transform
      *
      * @return Layout
      */
-    public Layout getOrCreateTextLayout(int versionCode, @NonNull TextProxy textProxy,
-                                        int innerWidth, @NonNull TextMeasure.MeasureMode widthMode,
-                                        int innerHeight, LineSpan karaokeLine) {
+    public APLTextLayout getOrCreateTextLayout(
+            int versionCode, @NonNull TextProxy textProxy,
+            float innerWidthDp, @NonNull TextMeasure.MeasureMode widthMode,
+            float innerHeightDp, @NonNull TextMeasure.MeasureMode heightMode,
+            LineSpan karaokeLine, IMetricsTransform metricsTransform) {
         // The key must consist of everything that could result in a different layout, otherwise
         // the wrong layout may be returned (due to erroneously resolving to the same key)
         final Float scalingFactor = textProxy.getScalingFactor();
         final String scaledVisualHash = textProxy.getVisualHash() + "x" + scalingFactor.hashCode();
         final String key = versionCode + ":" + scaledVisualHash + ":" + widthMode +
-                           (karaokeLine != null ? ":" + karaokeLine.hashCode() : "");
+                (karaokeLine != null ? ":" + karaokeLine.hashCode() : "");
 
+        StyledText styledText = null;
         CharSequence text = null;
         int desiredTextWidth = -1;
         // use cached layout if possible
-        final Layout cachedTextLayout = mTextLayoutCache.getLayout(key);
+        final APLTextLayout cachedTextLayout = mTextLayoutCache.getLayout(key);
+        final TextPaint textPaint = mTextLayoutCache.getOrCreateTextPaint(versionCode, scaledVisualHash, textProxy, mDensity);
         if (cachedTextLayout != null) {
-            final int textLayoutWidth = cachedTextLayout.getWidth();
-            final int textLayoutHeight = cachedTextLayout.getHeight();
+            final int textLayoutWidth = cachedTextLayout.getLayout().getWidth();
+            final int textLayoutHeight = cachedTextLayout.getLayout().getHeight();
             // Early check if size hasn't changed then just reuse
-            if (textLayoutWidth == innerWidth && textLayoutHeight == innerHeight) {
+            final int innerWidthPx = getPermissiblePixelDimension(widthMode, innerWidthDp, metricsTransform);
+            final int innerHeightPx = getPermissiblePixelDimension(heightMode, innerHeightDp, metricsTransform);
+            if (textLayoutWidth == innerWidthPx && textLayoutHeight == innerHeightPx) {
                 if (DEBUG) Log.d(TAG, "TextLayout cache hit: " + key);
                 return cachedTextLayout;
             }
@@ -134,14 +140,13 @@ public class TextLayoutFactory {
             // Further optimization consideration, if the text is 1 line we could use Gravity
             // to position the text (thereby allowing more layout reuse) instead of Layout.Align.
             if (isLeftAligned)  {
-                final TextPaint textPaint = mTextLayoutCache.getOrCreateTextPaint(versionCode, scaledVisualHash, textProxy, mDensity);
                 // Calculate desired width
-                text = textProxy.getText(textProxy.getStyledText(), karaokeLine);
-
+                styledText = textProxy.getStyledText();
+                text = styledText.getText(karaokeLine, textProxy.getMetricsTransform());
                 desiredTextWidth = getOrCalculateDesiredWidth(scaledVisualHash, text, textPaint);
 
                 // If both the bounds and the built static layout can contain the text then we can reuse
-                if (desiredTextWidth <= innerWidth &&
+                if (desiredTextWidth <= innerWidthPx &&
                         desiredTextWidth <= textLayoutWidth) {
                     if (DEBUG) Log.d(TAG, "TextLayout cache inner hit: " + key);
                     return cachedTextLayout;
@@ -150,11 +155,57 @@ public class TextLayoutFactory {
         }
 
         // create one if necessary
-        final Layout newTextLayout = createTextLayout(versionCode, scaledVisualHash, textProxy,
-                innerWidth, widthMode, innerHeight, karaokeLine, text, desiredTextWidth);
+        if (styledText == null || text == null) {
+            // Calculate desired width
+            styledText = textProxy.getStyledText();
+            text = styledText.getText(karaokeLine, textProxy.getMetricsTransform());
+            desiredTextWidth = getOrCalculateDesiredWidth(key, text, textPaint);
+        }
+        final APLTextLayout newTextLayout = createTextLayout(versionCode, textProxy, textPaint,
+                innerWidthDp, widthMode, innerHeightDp, heightMode, styledText, text, desiredTextWidth,
+                metricsTransform);
         if (DEBUG) Log.d(TAG, "TextLayout cache miss: " + key);
         mTextLayoutCache.putLayout(key, newTextLayout);
         return newTextLayout;
+    }
+
+    /**
+     * Create Text layout or retrieve an appropriate one from cache.
+     * @param versionCode The document version.
+     * @param aplTextProperties   Proxy for component property lookup.
+     * @param innerWidthDp  The inner width of the text area in dp
+     * @param widthMode   The text measurement width strategy.
+     * @param innerHeightDp The inner height of the text area in dp
+     * @param metricsTransform The {@link IMetricsTransform} to use to convert dp values to px
+     *
+     * @return Layout
+     */
+    public APLTextLayout getOrCreateTextLayoutForTextMeasure(
+            int versionCode, @NonNull ITextProxy aplTextProperties, final StyledText text,
+            float innerWidthDp, @NonNull TextMeasure.MeasureMode widthMode,
+            float innerHeightDp, @NonNull TextMeasure.MeasureMode heightMode, IMetricsTransform metricsTransform) {
+        // The key must consist of everything that could result in a different layout, otherwise
+        // the wrong layout may be returned (due to erroneously resolving to the same key)
+        String combinedTextPropertyHash = aplTextProperties.getVisualHash() + ":" + text.getHash();
+        final int innerWidthPx = getPermissiblePixelDimension(widthMode, innerWidthDp, metricsTransform);
+        final int innerHeightPx = getPermissiblePixelDimension(heightMode, innerHeightDp, metricsTransform);
+        final String key = innerWidthPx + ":" + widthMode + ":" + innerHeightPx + ":" + heightMode + ":" + combinedTextPropertyHash;
+
+        APLTextLayout cachedLayout = mTextLayoutCache.getLayout(key);
+        if (cachedLayout != null) {
+            if (DEBUG) Log.d(TAG, "TextMeasure layout cache hit: " + key);
+            return cachedLayout;
+        }
+        final TextPaint textPaint = mTextLayoutCache.getOrCreateTextPaint(versionCode, combinedTextPropertyHash, aplTextProperties, mDensity);
+        CharSequence t = text.getText(null, metricsTransform);
+        final int desiredTextWidth = getOrCalculateDesiredWidth(combinedTextPropertyHash, t, textPaint);
+        APLTextLayout newLayout = createTextLayout(versionCode, aplTextProperties, textPaint, innerWidthDp, widthMode,
+                innerHeightDp, heightMode, text, t, desiredTextWidth, metricsTransform);
+
+        if (DEBUG) Log.d(TAG, "TextMeasure layout cache miss: " + key);
+        mTextLayoutCache.putLayout(key, newLayout);
+
+        return newLayout;
     }
 
     /**
@@ -167,9 +218,9 @@ public class TextLayoutFactory {
      * @param versionCode   The document version.
      * @param editTextProxy Proxy for component property lookup.
      */
-    public Layout createEditTextLayout(int versionCode, EditTextProxy editTextProxy,
-                                       int innerWidth, int innerHeight) {
-        String text = editTextProxy.getMeasureText();
+    public Layout createEditTextLayout(int versionCode, ITextProxy editTextProxy,
+                                       int innerWidth, int innerHeight, int size) {
+        String text = ITextProxy.getMeasureText(size);
         TextPaint textPaint = editTextProxy.getTextPaint(mDensity);
 
         final BoringLayout.Metrics boring = BoringLayout.isBoring(text, textPaint);
@@ -179,7 +230,7 @@ public class TextLayoutFactory {
 
         try {
             // TODO should be BoringLayout
-            StaticLayout textLayout = StaticLayoutBuilder.create().
+            return StaticLayoutBuilder.create().
                     text(text).
                     textPaint(textPaint).
                     innerWidth(layoutWidth).
@@ -189,7 +240,6 @@ public class TextLayoutFactory {
                     ellipsizedWidth(innerWidth).
                     aplVersionCode(versionCode).
                     build();
-            return textLayout;
         } catch (
                 StaticLayoutBuilder.LayoutBuilderException e) {
             Log.wtf(TAG, "Layout build failed.", e);
@@ -198,49 +248,41 @@ public class TextLayoutFactory {
         return null;
     }
 
-
     /**
      * Creates a new layout for a Text component
      */
-    private Layout createTextLayout(int versionCode, String key, TextProxy textProxy,
-                                    int innerWidth, @NonNull TextMeasure.MeasureMode widthMode,
-                                    int innerHeight, LineSpan karaokeLine, CharSequence text, int desiredTextWidth) {
-
-        // Create or get text paint.
-        // TODO ask core for a paint hash
-        final TextPaint textPaint = mTextLayoutCache.getOrCreateTextPaint(versionCode, key, textProxy, mDensity);
-
-        if (text == null) {
-            // Calculate desired width
-            text = textProxy.getText(textProxy.getStyledText(), karaokeLine);
-            desiredTextWidth = getOrCalculateDesiredWidth(key, text, textPaint);
-        }
-
+    private APLTextLayout createTextLayout(
+            int versionCode, ITextProxy textProxy, TextPaint textPaint,
+            float innerWidthDp, @NonNull final TextMeasure.MeasureMode widthMode,
+            float innerHeightDp, @NonNull final TextMeasure.MeasureMode heightMode,
+            StyledText styledText, CharSequence text, int desiredTextWidth, IMetricsTransform metricsTransform) {
         // Create a new StaticLayout.
         try {
             //TODO - return a boring layout if we don't need all the features of StaticLayout
-            final StaticLayout textLayout = createStaticLayout(versionCode,
-                    text, textPaint, textProxy,
-                    widthMode, innerWidth, innerHeight, desiredTextWidth);
-            return textLayout;
+            return createStaticLayout(versionCode, styledText, text, textPaint, textProxy,
+                    innerWidthDp, widthMode, innerHeightDp, heightMode, desiredTextWidth, metricsTransform);
         } catch (StaticLayoutBuilder.LayoutBuilderException e) {
             Log.wtf(TAG, "Layout build failed.", e);
         }
-
         return null;
     }
 
     /**
      * Creates a new static layout for a Text component
      */
-    private StaticLayout createStaticLayout(int versionCode, CharSequence text,
-                                            TextPaint textPaint, TextProxy proxy,
-                                            TextMeasure.MeasureMode widthMode,
-                                            int innerWidth, int innerHeight,
-                                            int boringTextWidth) throws StaticLayoutBuilder.LayoutBuilderException {
-        final int layoutWidth = getLayoutWidthForWidthMode(widthMode, innerWidth, boringTextWidth);
+    private APLTextLayout createStaticLayout(int versionCode, StyledText styledText,
+                                             CharSequence text,
+                                             TextPaint textPaint, ITextProxy proxy,
+                                             float innerWidthDp, @NonNull final TextMeasure.MeasureMode widthMode,
+                                             float innerHeightDp, @NonNull final TextMeasure.MeasureMode heightMode,
+                                             int boringTextWidth,
+                                             IMetricsTransform metricsTransform) throws StaticLayoutBuilder.LayoutBuilderException {
+        final int layoutWidth = getLayoutWidthForWidthMode(widthMode, innerWidthDp, boringTextWidth, metricsTransform);
         final boolean limitLines = proxy.limitLines();
         final int maxLines = proxy.getMaxLines();
+
+        // Ellipsized width would be the maximum width that can be used
+        int ellipsizedWidth = getPermissiblePixelDimension(widthMode, innerWidthDp, metricsTransform);
 
         StaticLayoutBuilder.Builder builder = StaticLayoutBuilder.create().
                 text(text).
@@ -250,11 +292,13 @@ public class TextLayoutFactory {
                 alignment(proxy.getTextAlignment()).
                 limitLines(limitLines).
                 maxLines(maxLines).
-                ellipsizedWidth(innerWidth).
+                ellipsizedWidth(ellipsizedWidth).
                 textDirection(proxy.getDirectionHeuristic()).
                 aplVersionCode(versionCode);
 
         StaticLayout textLayout = builder.build();
+        int lineCount = textLayout.getLineCount();
+        int linesFullyVisible = lineCount;
 
         // In case the text does not fit into the view, we need to indicate the user that there is more
         // text remaining now being shown. We'd proceed truncating the text until the last fully
@@ -265,17 +309,25 @@ public class TextLayoutFactory {
         // box dimensions.
         final int staticLayoutHeight = textLayout.getHeight();
 
+        int innerHeight = Math.round(metricsTransform.toViewhost(innerHeightDp));
         if (!limitLines && staticLayoutHeight > innerHeight) {
-            final int linesNeeded = textLayout.getLineCount();
-            final int lineHeight = staticLayoutHeight / linesNeeded;
-            final int linesFullyVisible = innerHeight / lineHeight;
+            final int lineHeight = staticLayoutHeight / lineCount;
+            linesFullyVisible = innerHeight / lineHeight;
 
             // Create a new and similar layout but setting maxLines param.
             builder.limitLines(true).maxLines(linesFullyVisible);
             textLayout = builder.build();
         }
 
-        return textLayout;
+        // Width mode is already taken into account when building the layout. No need to do extra magic.
+        int measureHeightPx = Math.round(ITextProxy.adjustHeightByMode(innerHeight, heightMode, textLayout));
+
+        // Convert layout width and height back to dp, ensuring maximum integer value permissible within limits
+        float layoutWidthDp = (float)Math.min(Math.ceil(metricsTransform.toCore((float)textLayout.getWidth())), innerWidthDp);
+        float layoutHeightDp = (float)Math.min(Math.ceil(metricsTransform.toCore((float)measureHeightPx)), innerHeightDp);
+
+        APLTextLayout result = new APLTextLayout(textLayout, styledText, lineCount > linesFullyVisible, layoutWidthDp, layoutHeightDp);
+        return result;
     }
 
     private int getOrCalculateDesiredWidth(String key, CharSequence text, TextPaint paint) {
@@ -283,21 +335,29 @@ public class TextLayoutFactory {
         if (desiredTextWidth != null) {
             return desiredTextWidth;
         }
-        desiredTextWidth = mAndroidTextMeasure.getDesiredTextWidth(text, paint);
+        desiredTextWidth = calculateDesiredWidth(text, paint);
         mTextLayoutCache.putTextWidth(key, desiredTextWidth);
         return desiredTextWidth;
     }
 
-    private int getLayoutWidthForWidthMode(TextMeasure.MeasureMode widthMode, int innerWidth, int boringTextWidth) {
+    private int calculateDesiredWidth(CharSequence text, TextPaint paint) {
+        return mAndroidTextMeasure.getDesiredTextWidth(text, paint);
+    }
+
+    private int getPermissiblePixelDimension(TextMeasure.MeasureMode mode, float dimensionDp, IMetricsTransform metricsTransform) {
+        return mode == TextMeasure.MeasureMode.Exactly ? Math.round(metricsTransform.toViewhost(dimensionDp)) : (int)Math.ceil(metricsTransform.toViewhost(dimensionDp));
+    }
+
+    private int getLayoutWidthForWidthMode(TextMeasure.MeasureMode widthMode, float innerWidthDp, int boringTextWidth, IMetricsTransform metricsTransform) {
         switch (widthMode) {
             case Exactly:
                 // force the width as directed by the parent or current one
-                return innerWidth;
+                return Math.round(metricsTransform.toViewhost(innerWidthDp));
             case Undefined:
             case AtMost:
             default:
                 // use the measured boringTextWidth, unless it exceeds the view's limit
-                return Math.min(innerWidth, boringTextWidth);
+                return Math.min((int)Math.ceil(metricsTransform.toViewhost(innerWidthDp)), boringTextWidth);
         }
     }
 

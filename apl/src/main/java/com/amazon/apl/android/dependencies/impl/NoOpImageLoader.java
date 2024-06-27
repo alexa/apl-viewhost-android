@@ -11,6 +11,11 @@ import com.amazon.apl.android.dependencies.IImageLoader;
 
 public class NoOpImageLoader implements IImageLoader {
     @Override
+    public void downloadImage(DownloadImageParams downloadImageParams) {
+
+    }
+
+    @Override
     public void loadImage(String path, ImageView imageView, LoadImageCallback callback, boolean needsScaling) {
 
     }

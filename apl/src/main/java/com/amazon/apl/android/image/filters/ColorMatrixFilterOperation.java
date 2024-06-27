@@ -16,6 +16,7 @@ import androidx.annotation.VisibleForTesting;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.enums.FilterType;
 
@@ -27,9 +28,15 @@ import java.util.concurrent.Future;
  */
 public class ColorMatrixFilterOperation extends RenderscriptFilterOperation<ScriptIntrinsicColorMatrix> {
     private static final String TAG = "ColorMatrixFilter";
+    Size mTargetSize;
 
-    ColorMatrixFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory, RenderScriptWrapper renderScript) {
+    public ColorMatrixFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory, RenderScriptWrapper renderScript) {
+        this(sourceBitmaps, filter, bitmapFactory, renderScript, null);
+    }
+
+    public ColorMatrixFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory, RenderScriptWrapper renderScript, Size targetSize) {
         super(sourceBitmaps, filter, bitmapFactory, renderScript);
+        mTargetSize = targetSize;
     }
 
     @Override
@@ -39,7 +46,7 @@ public class ColorMatrixFilterOperation extends RenderscriptFilterOperation<Scri
             throw new IllegalArgumentException(TAG + ": Source bitmap must be an actual bitmap.");
         }
 
-        Bitmap sourceBitmap = source.getBitmap();
+        Bitmap sourceBitmap = mTargetSize == null ? source.getBitmap() : source.getBitmap(mTargetSize);
         Bitmap destinationBitmap = getBitmapFactory().createBitmap(sourceBitmap.getWidth(), sourceBitmap.getHeight());
         return FilterBitmaps.create(sourceBitmap, destinationBitmap, destinationBitmap);
     }

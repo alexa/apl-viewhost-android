@@ -11,6 +11,8 @@ import android.view.View;
 
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
@@ -26,6 +28,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import static junit.framework.TestCase.fail;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,6 +69,8 @@ public class APLTestContext {
     private IAPLViewPresenter mPresenter = mock(IAPLViewPresenter.class);
 
     private IMediaPlayer mMockMediaPlayer = mock(IMediaPlayer.class);
+
+    private IMetricsRecorder mMetricsRecorder = mock(IMetricsRecorder.class);
 
     public Content buildContent() {
         if (mContent == null) {
@@ -153,6 +158,11 @@ public class APLTestContext {
         return mPresenter;
     }
 
+    public IMetricsRecorder buildMetricsRecorder() {
+        when(mMetricsRecorder.createCounter(any(String.class))).thenReturn(mock(ICounter.class));
+        return mMetricsRecorder;
+    }
+
 
     public APLTestContext buildRootContextDependencies() {
         buildContent();
@@ -160,6 +170,7 @@ public class APLTestContext {
         buildMetrics();
         buildRootConfig();
         buildPresenter();
+        buildMetricsRecorder();
         return this;
     }
 
@@ -169,7 +180,7 @@ public class APLTestContext {
         buildRootContextDependencies();
 
         if (mRootContext == null)
-            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter);
+            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter, mMetricsRecorder);
 
         return mRootContext;
     }

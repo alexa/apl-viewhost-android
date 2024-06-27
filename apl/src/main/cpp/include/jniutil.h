@@ -8,7 +8,7 @@
 #include "alexaext/alexaext.h"
 #include "apl/apl.h"
 #include "jninativeowner.h"
-
+#include "codecvt"
 #include <jni.h>
 #include <jnimetricstransform.h>
 #include <utility>
@@ -83,6 +83,7 @@ namespace apl {
         static jlong JAVA_INTEGER_MIN_VALUE = -2147483648;
 
         static jstring UTF8_STRING;
+        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
     }
 }
 

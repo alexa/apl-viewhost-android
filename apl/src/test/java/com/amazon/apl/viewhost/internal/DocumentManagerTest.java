@@ -1,16 +1,17 @@
 package com.amazon.apl.viewhost.internal;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import android.os.Handler;
-import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
@@ -32,11 +33,17 @@ public class DocumentManagerTest extends ViewhostRobolectricTest {
     @Mock
     ITelemetryProvider mTelemetryProvider;
 
+    @Mock
+    MetricsRecorder mMetricsRecorder;
+    @Mock
+    ICounter mCounter;
+
     DocumentManager documentManager;
 
     @Before
     public void setup() {
         MockitoAnnotations.openMocks(this);
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         documentManager = new DocumentManager(mEmbeddedDocumentFactory, mHandler, mTelemetryProvider);
     }
 

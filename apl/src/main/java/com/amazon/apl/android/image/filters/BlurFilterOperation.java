@@ -10,7 +10,6 @@ import static java.lang.Math.min;
 import android.graphics.Bitmap;
 import android.renderscript.Element;
 import android.renderscript.ScriptIntrinsicBlur;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -36,14 +35,30 @@ public class BlurFilterOperation extends RenderscriptFilterOperation<ScriptIntri
     private final Size mImageSize;
     private final ImageScale mImageScale;
 
+    private final Size mTargetSize;
+    private final float mRadiusInAbsoluteDimensions;
+
     BlurFilterOperation(List<Future<FilterResult>> sourceFutures, Filters.Filter filter,
                         IBitmapFactory bitmapFactory,
                         RenderScriptWrapper renderScript,
                         Size imageSize,
-                        ImageScale imageScale) {
+                        ImageScale imageScale
+                        ) {
         super(sourceFutures, filter, bitmapFactory, renderScript);
         mImageScale = imageScale;
         mImageSize = imageSize;
+        mRadiusInAbsoluteDimensions = 0f;
+        mTargetSize = null;
+    }
+
+    public BlurFilterOperation(List<Future<FilterResult>> sourceFutures, Filters.Filter filter,
+                        IBitmapFactory bitmapFactory,
+                        RenderScriptWrapper renderScript, float radiusInAbsoluteDimensions, Size targetSize) {
+        super(sourceFutures, filter, bitmapFactory, renderScript);
+        mImageScale = null;
+        mImageSize = null;
+        mRadiusInAbsoluteDimensions = Math.min(BlurFilterOperation.MAX_RADIUS, Math.max(BlurFilterOperation.MIN_RADIUS, radiusInAbsoluteDimensions));
+        mTargetSize = targetSize;
     }
 
     FilterBitmaps createFilterBitmaps() throws BitmapCreationException {
@@ -52,7 +67,7 @@ public class BlurFilterOperation extends RenderscriptFilterOperation<ScriptIntri
             throw new IllegalArgumentException(TAG + ": Source bitmap must be an actual bitmap.");
         }
 
-        Bitmap sourceBitmap = source.getBitmap();
+        Bitmap sourceBitmap = mTargetSize == null ? source.getBitmap() : source.getBitmap(mTargetSize);
         Bitmap destinationBitmap = getBitmapFactory().createBitmap(sourceBitmap.getWidth(), sourceBitmap.getHeight());
         return FilterBitmaps.create(sourceBitmap, destinationBitmap, destinationBitmap);
     }
@@ -64,16 +79,21 @@ public class BlurFilterOperation extends RenderscriptFilterOperation<ScriptIntri
             throw new IllegalArgumentException(TAG + ": Source bitmap must be an actual bitmap.");
         }
 
-        Bitmap sourceBitmap = source.getBitmap();
+
         ScriptIntrinsicBlur scriptIntrinsicBlur = mRenderscriptWrapper.createScript(element, ScriptIntrinsicBlur.class);
-        // Blur needs to take into account scaling done on the image size, since it is
-        // an "Absolute Dimension" (See spec here https://aplspec.aka.corp.amazon.com/release-1.9/html/filters.html#blur)
-        // meaning it applies the radius based on the screen size not the original image size.
-        float[] scaleWidthHeight = ImageScaleCalculator.getScale(mImageScale, mImageSize.width(), mImageSize.height(), sourceBitmap.getWidth(), sourceBitmap.getHeight());
-        final float scalingFactor = min(scaleWidthHeight[0], scaleWidthHeight[1]);
-        // Render script does not support a radius larger than 25px.
-        final float clampedRadius = Math.min(BlurFilterOperation.MAX_RADIUS, Math.max(BlurFilterOperation.MIN_RADIUS, getFilter().radius()/scalingFactor));
-        scriptIntrinsicBlur.setRadius(clampedRadius);
+        if (mRadiusInAbsoluteDimensions != 0f) {
+            scriptIntrinsicBlur.setRadius(mRadiusInAbsoluteDimensions);
+        } else {
+            Bitmap sourceBitmap = source.getBitmap();
+            // Blur needs to take into account scaling done on the image size, since it is
+            // an "Absolute Dimension" (See spec here https://aplspec.aka.corp.amazon.com/release-1.9/html/filters.html#blur)
+            // meaning it applies the radius based on the screen size not the original image size.
+            float[] scaleWidthHeight = ImageScaleCalculator.getScale(mImageScale, mImageSize.width(), mImageSize.height(), sourceBitmap.getWidth(), sourceBitmap.getHeight());
+            final float scalingFactor = min(scaleWidthHeight[0], scaleWidthHeight[1]);
+            // Render script does not support a radius larger than 25px.
+            final float clampedRadius = Math.min(BlurFilterOperation.MAX_RADIUS, Math.max(BlurFilterOperation.MIN_RADIUS, getFilter().radius() / scalingFactor));
+            scriptIntrinsicBlur.setRadius(clampedRadius);
+        }
         return scriptIntrinsicBlur;
     }
 

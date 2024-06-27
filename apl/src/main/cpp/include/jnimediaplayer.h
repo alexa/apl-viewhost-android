@@ -27,7 +27,7 @@ namespace apl {
 
             void setInstance(jobject instance);
 
-            jobject getInstance() { return mInstance; }
+            jobject getInstance() const { return mInstance; }
 
             /// apl::MediaPlayer methods
             void release() override;

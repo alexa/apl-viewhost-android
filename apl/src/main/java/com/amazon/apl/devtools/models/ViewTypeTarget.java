@@ -9,10 +9,11 @@ import android.graphics.Bitmap;
 import android.os.Handler;
 
 import android.view.View;
+import android.view.MotionEvent;
+import androidx.annotation.VisibleForTesting;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.LiveData;
 import com.amazon.apl.android.dependencies.IAPLSessionListener;
-import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
 import com.amazon.apl.android.utils.MetricInfo;
 import com.amazon.apl.developer.views.CaptureImageHelper;
@@ -21,11 +22,10 @@ import com.amazon.apl.devtools.enums.TargetType;
 import com.amazon.apl.devtools.enums.ViewState;
 import com.amazon.apl.devtools.models.log.LogEntry;
 import com.amazon.apl.devtools.models.log.LogEntryAddedEvent;
-import com.amazon.apl.devtools.models.network.DTNetworkRequestHandler;
-import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.devtools.models.network.NetworkLoadingFailedEvent;
 import com.amazon.apl.devtools.models.network.NetworkLoadingFinishedEvent;
 import com.amazon.apl.devtools.models.network.NetworkRequestWillBeSentEvent;
+import com.amazon.apl.devtools.models.performance.IMetricsService;
 import com.amazon.apl.devtools.models.performance.PerformanceMetricsEvent;
 import com.amazon.apl.devtools.models.view.ExecuteCommandStatus;
 import com.amazon.apl.devtools.models.view.ViewStateChangeEvent;
@@ -44,21 +44,31 @@ import java.util.List;
  * ViewTypeTarget is a Target that contains a single Android view.
  */
 public final class ViewTypeTarget extends Target implements IAPLSessionListener {
+    private static final String TARGET_NAME = "main";
     private IAPLView mView;
     private final Handler mHandler;
     private final List<LogEntry> mLogEntries = new ArrayList<>();
     private final IdGenerator mIdGenerator = new IdGenerator();
-    private final IDTNetworkRequestHandler mDTNetworkRequestHandler;
     private int mCurrentDocumentId = 0;
-    private ViewState mCurrentDocumentView = ViewState.EMPTY;
+    private ViewState mCurrentDocumentViewState = ViewState.EMPTY;
+
+    // The metric revamp is fairly new and to avoid blocking any pipeline/QA testing
+    // due to missing metrics when running the automationapp. We will keep the old approach for now
+    // and remove later once we have all metrics inplace.
+    // TODO: remove APLOptions dependency.
     private APLOptions mAPLOptions;
+    private IMetricsService mMetricRetriever;
 
     private final CaptureImageHelper mCaptureImageHelper = new CaptureImageHelper();
 
-    public ViewTypeTarget(String name) {
-        super(TargetType.VIEW, name );
-        mHandler = DependencyContainer.getInstance().getTargetCatalog().getHandler();
-        mDTNetworkRequestHandler = new DTNetworkRequestHandler(this);
+    public ViewTypeTarget() {
+        this(DependencyContainer.getInstance().getTargetCatalog().getHandler());
+    }
+
+    @VisibleForTesting
+    ViewTypeTarget(final Handler handler) {
+        super(TargetType.VIEW, TARGET_NAME);
+        mHandler = handler;
     }
 
     public void post(Runnable runnable) {
@@ -69,6 +79,10 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
         mView = aplViewLayout;
     }
 
+    public void setMetricsRetriever(final IMetricsService metricsRetriever) {
+        mMetricRetriever = metricsRetriever;
+    }
+
     public void addLiveData(String name, LiveData data) {
         mView.addLiveData(name, data);
     }
@@ -77,7 +91,9 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
     @Override
     public void registerSession(Session session) {
         super.registerSession(session);
-        post(() -> onViewStateChange(mCurrentDocumentView, System.currentTimeMillis() / 1000D));
+
+        final double timestamp = System.currentTimeMillis() / 1000D;
+        post(() -> reportLatestViewState(session, timestamp));
     }
 
     public void setDocument(String aplDocument, String aplDocumentData) {
@@ -96,22 +112,25 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
         mView.post(() -> mView.stopFrameMetricsRecording(id, callback));
     }
 
+    public float getDisplayRefreshRate() {
+        return mView.getDisplayRefreshRate();
+    }
+
     public void getPerformanceMetrics(int id, IDTCallback<List<MetricInfo>> callback) {
-        if (mAPLOptions == null) {
-            callback.execute(RequestStatus.failed(id, DTError.NO_PERFORMANCE_METRICS));
-        }
-
-        ITelemetryProvider telemetryProvider = mAPLOptions.getTelemetryProvider();
-
-        // TODO: Update when the refactoring is completed. Jira:ELON-40529
-        if (telemetryProvider instanceof LoggingTelemetryProvider) {
-            post(() -> {
-                List<MetricInfo> result = ((LoggingTelemetryProvider) telemetryProvider).getPerformanceMetrics();
+        post(() -> {
+            List<MetricInfo> result = null;
+            // TODO: Update to use MetricRetrieve when we have all metrics implemented with the revamp.
+            if (mAPLOptions != null && mAPLOptions.getTelemetryProvider() instanceof LoggingTelemetryProvider) {
+                result = ((LoggingTelemetryProvider) mAPLOptions.getTelemetryProvider()).getPerformanceMetrics();
+            } else if (mMetricRetriever != null){
+                result = mMetricRetriever.retrieveMetrics();
+            }
+            if (result != null) {
                 callback.execute(result, RequestStatus.successful());
-            });
-        } else {
-            post(() -> callback.execute(RequestStatus.failed(id, DTError.NO_PERFORMANCE_METRICS)));
-        }
+            } else {
+                callback.execute(RequestStatus.failed(id, DTError.NO_PERFORMANCE_METRICS));
+            }
+        });
     }
 
     public void getCurrentBitmap(IDTCallback<Bitmap> callback) {
@@ -126,29 +145,62 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
         mView.post(() -> mView.updateLiveData(name, operations, callback));
     }
 
+    public void requestScenegraph(IDTCallback<String> callback) {
+        /* to do: implement */
+    }
+
+    public void requestVisualContext(IDTCallback<String> callback) {
+        /* to do: implement */
+    }
+
+    public void requestDOM(IDTCallback<String> callback) {
+        /* to do: implement */
+    }
+
+    public void enqueueInputEvents(int id, List<MotionEvent> events, IDTCallback<Boolean> callback) {
+        mView.post(() -> mView.enqueueMotionEvents(events, callback));
+    }
+
+    public void clearInputEvents() {
+        mView.post(() -> mView.clearMotionEvents());
+    }
+
     public void onViewStateChange(ViewState viewState, double timestamp) {
-        mCurrentDocumentView = viewState;
+        mCurrentDocumentViewState = viewState;
         for (Session session : getRegisteredSessions()) {
-            session.sendEvent(new ViewStateChangeEvent(session.getSessionId(), viewState,
-                    mCurrentDocumentId, timestamp));
+            reportLatestViewState(session, timestamp);
         }
 
-        if (mCurrentDocumentView == ViewState.READY) {
-            sendPerformanceMetricsEvent();
+        if (ViewState.READY.equals(viewState)) {
+            post(this::sendPerformanceMetricsEvent);
+        }
+
+        if (ViewState.EMPTY.equals(viewState)) {
+            if (mMetricRetriever != null) {
+                mMetricRetriever.clearMetrics();
+            }
         }
     }
 
+    private void reportLatestViewState(final Session session, final double timestamp) {
+        session.sendEvent(new ViewStateChangeEvent(session.getSessionId(), mCurrentDocumentViewState,
+                mCurrentDocumentId, timestamp));
+    }
+
     private void sendPerformanceMetricsEvent() {
-        post(() -> {
-            if (mAPLOptions != null && mAPLOptions.getTelemetryProvider() instanceof  LoggingTelemetryProvider) {
-                List<MetricInfo> result = ((LoggingTelemetryProvider) mAPLOptions.getTelemetryProvider()).getPerformanceMetrics();
-                for (Session session : getRegisteredSessions()) {
-                    if (session.isPerformanceEnabled()) {
-                        session.sendEvent(new PerformanceMetricsEvent(session.getSessionId(), result));
-                    }
+        List<MetricInfo> result = null;
+        if (mAPLOptions != null && mAPLOptions.getTelemetryProvider() instanceof  LoggingTelemetryProvider) {
+            result = ((LoggingTelemetryProvider) mAPLOptions.getTelemetryProvider()).getPerformanceMetrics();
+        } else if (mMetricRetriever != null) {
+            result = mMetricRetriever.retrieveMetrics();
+        }
+        if (result != null) {
+            for (Session session : getRegisteredSessions()) {
+                if (session.isPerformanceEnabled()) {
+                    session.sendEvent(new PerformanceMetricsEvent(session.getSessionId(), result));
                 }
             }
-        });
+        }
     }
 
     public void onLogEntryAdded(com.amazon.apl.android.Session.LogEntryLevel level, com.amazon.apl.android.Session.LogEntrySource source, String messageText, double timestamp, Object[] arguments) {
@@ -193,7 +245,7 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
     }
 
     public void documentCommandRequest(int id, String method, JSONObject params, IDTCallback<String> callback) {
-        mView.documentCommandRequest(id, method, params, callback);
+        mView.post(() -> mView.documentCommandRequest(id, method, params, callback));
     }
 
     public void onNetworkRequestWillBeSent(int requestId,  double timestamp,
@@ -221,9 +273,5 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
                         timestamp, encodedDataLength));
             }
         }
-    }
-
-    public IDTNetworkRequestHandler getDTNetworkRequestHandler() {
-        return mDTNetworkRequestHandler;
     }
 }

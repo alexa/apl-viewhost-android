@@ -16,8 +16,8 @@ import com.amazon.apl.android.bitmap.IBitmapFactory;
  * Class representing an actual bitmap.
  */
 public class BitmapFilterResult implements FilterResult {
-    private final Bitmap mBitmap;
-    private final IBitmapFactory mBitmapFactory;
+    protected final Bitmap mBitmap;
+    protected final IBitmapFactory mBitmapFactory;
 
     public BitmapFilterResult(Bitmap bitmap, IBitmapFactory bitmapFactory) {
         mBitmap = bitmap;
@@ -36,7 +36,7 @@ public class BitmapFilterResult implements FilterResult {
         } else {
             try {
                 // Best case is that size is smaller and we return a subset of the bitmap
-                if (size.width() < mBitmap.getWidth() && size.height() < mBitmap.getHeight()) {
+                if (size.width() <= mBitmap.getWidth() && size.height() <= mBitmap.getHeight()) {
                     return mBitmapFactory.createBitmap(mBitmap, 0, 0, size.width(), size.height(), null,false);
                 }
 

@@ -4,56 +4,195 @@
  */
 package com.amazon.apl.android.media;
 
+import static com.amazon.apl.android.dependencies.IMediaPlayer.IMediaListener.MediaState.PLAYING;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
+import com.amazon.apl.android.BuildConfig;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
+import com.amazon.apl.android.primitive.MediaSources;
+import com.amazon.apl.android.utils.HttpUtils;
+import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.MediaPlayerEventType;
-import com.amazon.common.BoundObject;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
-public abstract class MediaPlayer extends BoundObject implements IMediaPlayer.IMediaListener {
+public class MediaPlayer implements IMediaPlayer.IMediaListener {
     private static final String TAG = "MediaPlayer";
+    private final long mAddress;
     private MediaState mState = MediaState.IDLE;
+    private IMediaPlayer mPlayer;
+    private final Queue<Runnable> mQueuedTasks = new LinkedList<>();
     private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     // Variables used for reviving media player on back navigation
     private int mCurrentTrackIndex;
     private int mCurrentSeekPosition;
+    private MediaSources mMediaSources = MediaSources.create();
+    private AudioTrack mAudioTrack = AudioTrack.kAudioTrackForeground;
+    private boolean mMuted;
 
     public MediaPlayer(long nativeHandle) {
-        bind(nativeHandle);
+        mAddress = nativeHandle;
     }
 
-    public abstract void play();
 
-    public abstract void pause();
+    public void play() {
+        runOrDeferFunction("play", () -> {
+            if (mPlayer != null) {
+                mPlayer.play();
+            }
+        });
+    }
 
-    public abstract void next();
+    public void pause() {
+        runOrDeferFunction("pause", () -> {
+            if (mPlayer != null) {
+                mPlayer.pause();
+            }
+        });
+    }
 
-    public abstract void previous();
+    public void next() {
+        runOrDeferFunction("next", () -> {
+            if (mPlayer != null) {
+                mPlayer.next();
+            }
+        });
+    }
 
-    public abstract void rewind();
+    public void previous() {
+        runOrDeferFunction("previous", () -> {
+            if (mPlayer != null) {
+                mPlayer.previous();
+            }
+        });
+    }
 
-    public abstract void seek(int offset);
+    public void rewind() {
+        runOrDeferFunction("rewind", () -> {
+            if (mPlayer != null) {
+                mPlayer.rewind();
+            }
+        });
+    }
 
-    public abstract void seekTo(int offset);
+    public void seek(int offset) {
+        runOrDeferFunction("seek", () -> {
+            if (mPlayer != null) {
+                mPlayer.seek(mPlayer.getCurrentSeekPosition() + offset);
+            }
+        });
+    }
 
-    public abstract void setTrackList(List<MediaTrack> trackList);
+    public void seekTo(int offset) {
+        runOrDeferFunction("seekTo", () -> {
+            if (mPlayer != null) {
+                mPlayer.seekTo(offset);
+            }
+        });
+    }
 
-    public abstract void setTrackIndex(int trackIndex);
+    public void setTrackList(List<MediaTrack> trackList) {
+        MediaSources sources = MediaSources.create();
+        for (MediaTrack mediaTrack : trackList) {
+            MediaSources.MediaSource source = MediaSources.MediaSource.builder()
+                    .url(mediaTrack.getUrl())
+                    .duration(mediaTrack.getDuration())
+                    .offset(mediaTrack.getOffset())
+                    .repeatCount(mediaTrack.getRepeatCount())
+                    .headers(HttpUtils.listToHeadersMap(mediaTrack.getHeaders()))
+                    .textTracks(Arrays.asList(mediaTrack.getTextTracks()))
+                    .build();
+            sources.add(source);
+        }
+        mMediaSources = sources;
+        runOrDeferFunction("setTrackList", () -> {
+            if (mPlayer != null) {
+                mPlayer.setMediaSources(sources);
+                if (mPlayer.getCurrentMediaState() == PLAYING) {
+                    mPlayer.setTrack(0);
+                }
+            }
+        });
+    }
 
-    public abstract void release();
+    public void setTrackIndex(int trackIndex) {
+        runOrDeferFunction("setTrackIndex", () -> {
+            if (mPlayer != null) {
+                mPlayer.setTrack(trackIndex);
+            }
+        });
+    }
 
-    public abstract void setAudioTrack(int index);
+    public void release() {
+        Log.e(TAG, "Release is called");
+        runOrDeferFunction("release", () -> {
+            if (mPlayer != null) {
+                mPlayer.stop();
+                mPlayer.release();
+                mPlayer = null;
+            }
+        });
+    }
 
-    public abstract void setMute(boolean mute);
+    public void setAudioTrack(int index) {
+        mAudioTrack = AudioTrack.valueOf(index);
+        runOrDeferFunction("setAudioTrack", () -> {
+            if (mPlayer != null) {
+                mPlayer.setAudioTrack(AudioTrack.valueOf(index));
+            }
+        });
+    }
 
-    public abstract IMediaPlayer getMediaPlayer();
+    public void setMute(boolean mute) {
+        mMuted = mute;
+        runOrDeferFunction("setMute", () -> {
+            if (mPlayer != null) {
+                if (mute) {
+                    mPlayer.mute();
+                } else {
+                    mPlayer.unmute();
+                }
+            }
+        });
+    }
 
-    public abstract void setMediaPlayer(IMediaPlayer player);
+    public IMediaPlayer getMediaPlayer() {
+        return mPlayer;
+    }
+
+    public void setMediaPlayer(IMediaPlayer player) {
+        mPlayer = player;
+        player.addMediaStateListener(this);
+        runQueuedOperations();
+    }
+
+    private void runOrDeferFunction(String functionName, Runnable task) {
+        // So queue all the operations until MediaPlayer is available.
+        if (mPlayer != null) {
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Calling " + functionName);
+            task.run();
+        } else {
+            if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Queuing " + functionName);
+            mQueuedTasks.add(task);
+        }
+    }
+
+    private void runQueuedOperations() {
+        Runnable task = mQueuedTasks.poll();
+        while (task != null) {
+            task.run();
+            task = mQueuedTasks.poll();
+        }
+    }
 
     public int getCurrentTrackIndex() {
         return mCurrentTrackIndex;
@@ -61,6 +200,24 @@ public abstract class MediaPlayer extends BoundObject implements IMediaPlayer.IM
 
     public int getCurrentSeekPosition() {
         return mCurrentSeekPosition;
+    }
+
+    @NonNull
+    public MediaSources getMediaSources() {
+        return mMediaSources;
+    }
+
+    public boolean isCurrentlyPlaying() {
+        return mState == PLAYING;
+    }
+
+    @NonNull
+    public AudioTrack getCurrentAudioTrack() {
+        return mAudioTrack;
+    }
+
+    public boolean isCurrentlyMuted() {
+        return mMuted;
     }
 
     @Override
@@ -114,7 +271,7 @@ public abstract class MediaPlayer extends BoundObject implements IMediaPlayer.IM
         final int error = player.getCurrentError();
         final MediaPlayerEventType mediaEvent = event;
         mMainHandler.post(() -> {
-            nUpdateMediaState(getNativeHandle(),
+            nUpdateMediaState(mAddress,
                     mCurrentTrackIndex,
                     trackCount,
                     mCurrentSeekPosition,

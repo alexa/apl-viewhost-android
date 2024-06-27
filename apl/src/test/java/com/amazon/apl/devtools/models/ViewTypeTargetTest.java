@@ -6,16 +6,19 @@ package com.amazon.apl.devtools.models;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import android.os.Handler;
 import com.amazon.apl.devtools.models.log.LogEntry;
 import com.amazon.apl.devtools.models.log.LogEntryAddedEvent;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
@@ -27,15 +30,39 @@ import java.util.List;
 @Config(sdk = 32)
 public class ViewTypeTargetTest {
     @Mock
+    private Handler mockHandler;
+    @Mock
     private Session mockSession;
+
+    private ArgumentCaptor<Runnable> mHandlerArgumentCaptor;
     private ViewTypeTarget viewTypeTarget;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
+        mHandlerArgumentCaptor = ArgumentCaptor.forClass(Runnable.class);
         when(mockSession.isLogEnabled()).thenReturn(true);
-        viewTypeTarget = new ViewTypeTarget("mockName");
+        when(mockSession.getSessionId()).thenReturn("session1");
+        viewTypeTarget = new ViewTypeTarget(mockHandler);
         viewTypeTarget.registerSession(mockSession);
+    }
+
+    @Test
+    public void testOnRegisterSessionGetsNotifiedOnLatestViewState() {
+        // Set up
+        verify(mockHandler).post(mHandlerArgumentCaptor.capture());
+        mHandlerArgumentCaptor.getValue().run();
+        Session mockSession2 = mock(Session.class);
+        when(mockSession2.getSessionId()).thenReturn("session2");
+
+        // Test
+        viewTypeTarget.registerSession(mockSession2);
+        verify(mockHandler, times(2)).post(mHandlerArgumentCaptor.capture());
+        mHandlerArgumentCaptor.getValue().run();
+
+        // Verify
+        verify(mockSession, times(1)).sendEvent(any());
+        verify(mockSession2, times(1)).sendEvent(any());
     }
 
     @Test

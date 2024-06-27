@@ -12,9 +12,11 @@ import static com.amazon.apl.enums.EventType.valueOf;
 
 import android.os.Looper;
 import android.os.SystemClock;
+import android.renderscript.RenderScript;
 import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,7 +28,6 @@ import com.amazon.apl.android.bitmap.PooledBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
-import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
 import com.amazon.apl.android.events.ControlMediaEvent;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
@@ -45,6 +46,12 @@ import com.amazon.apl.android.events.RequestFirstLineBounds;
 import com.amazon.apl.android.events.RequestLineBoundsEvent;
 import com.amazon.apl.android.events.SendEvent;
 import com.amazon.apl.android.events.SpeakEvent;
+import com.amazon.apl.android.image.filters.RenderScriptProvider;
+import com.amazon.apl.android.image.filters.RenderScriptWrapper;
+import com.amazon.apl.android.media.ImageFilterProcessor;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
+import com.amazon.apl.android.metrics.MetricsMilestoneConstants;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ILocalTimeOffsetProvider;
@@ -52,8 +59,11 @@ import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.scenegraph.edittext.EditTextFactory;
+import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.touch.Pointer;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FluidityIncidentCounter;
 import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.android.utils.JNIUtils;
 import com.amazon.apl.android.utils.TracePoint;
@@ -114,7 +124,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private static final String METRIC_DROP_FRAME = TAG + ".dropFrame";
     private static final long TARGET_DO_FRAME_TIME = 16700000; //16.7ms
     private int cDoFrameFail;
+    private ICounter mDoFrameFailCounter;
     private int cDropFrame;
+    private ICounter mDropFrameCounter;
+
+    // Frame metrics
+    private static final String METRIC_FLUIDITY_INCIDENT_COUNT = "fluidityIncidentCount";
+    private static final double FLUIDITY_THRESHOLD_UPS = 1.1d;
+    private static final int FLUIDITY_WINDOW_SIZE = 60;
+    private static final double DISPLAY_REFRESH_RATE_MS = 16.8d;
 
     // Inflate metrics
     private static final String METRIC_INFLATE = TAG + ".inflate";
@@ -126,6 +144,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
     private static final String METRIC_COMPONENT_COUNT = TAG + ".componentCount";
     private int cComponent;
+    private ICounter mComponentCounter;
+    private long cComponentBatchedIncrementCount;
 
     // Visual Context update timing
     private static final long VISUAL_CONTEXT_UPDATE_INTERVAL_MS = 500;
@@ -204,8 +224,16 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private int mAutoSizedWidth;
 
     private boolean mShouldRecordFrameMetrics;
+    private FluidityIncidentCounter mFluidityIncidentCounter;
+
+    @NonNull
+    private final IMetricsRecorder mMetricsRecorder;
 
     private List<FrameStat> mFrameStats = new ArrayList<>();
+    IMetricsRecorder getMetricsRecorder() {
+        return mMetricsRecorder;
+    }
+
     /**
      * Construct a new RootContext object.
      *
@@ -215,13 +243,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param options                       the apl options
      * @param viewPresenter                 the view presenter
      * @param userPerceivedFatalReporter    the user perceived fatal reporter
+     * @param metricsRecorder               the metrics Recorder
      */
     private RootContext(@NonNull ViewportMetrics metrics,
                         @NonNull Content content,
                         @NonNull RootConfig rootConfig,
                         @NonNull APLOptions options,
                         @NonNull IAPLViewPresenter viewPresenter,
-                        @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter) {
+                        @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter,
+                        @NonNull IMetricsRecorder metricsRecorder) {
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
@@ -229,18 +259,24 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             mAplClock = options.getAplClockProvider().create(this);
             mContent = content;
             mTelemetryProvider = mOptions.getTelemetryProvider();
+            mMetricsRecorder = metricsRecorder;
             mViewPresenter = viewPresenter;
             mRootConfig = rootConfig;
             mMetricsTransform = MetricsTransform.create(metrics);
             mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(content.getAPLVersion()),
                     options, rootConfig, mMetricsTransform, content);
+            if (options.isScenegraphEnabled()) {
+                mRootConfig.editTextFactory(new EditTextFactory());
+            }
             mTextMeasureCallback = TextMeasureCallback.factory().create(mMetricsTransform, new TextMeasure(mRenderingContext));
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
-            final long nativeHandle = createHandle(metrics, rootConfig, mTextMeasureCallback);
+            long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
             mTextMeasureCallback.onRootContextCreated();
             bind(nativeHandle);
-            inflate();
+            if (!options.isScenegraphEnabled()) {
+                inflate();
+            }
             checkIfAutoSizeNeeded(mMetricsTransform.getScaledViewhostWidth(), mMetricsTransform.getScaledViewhostHeight());
             mDocumentContext = new DocumentContext(nGetDocumentContext(getNativeHandle()));
         }
@@ -249,9 +285,10 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     /**
      * Construct a RootContext object from a previously inflated core RootContext.
      *
-     * @param options       the apl options
-     * @param viewPresenter the view presenter
-     * @param nativeHandle  a pointer to the core RootContext
+     * @param options         the apl options
+     * @param viewPresenter   the view presenter
+     * @param nativeHandle    a pointer to the core RootContext
+     * @param metricsRecorder metrics recorder
      */
     private RootContext(@NonNull APLOptions options,
                         @NonNull IAPLViewPresenter viewPresenter,
@@ -259,13 +296,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                         @NonNull RootConfig rootConfig,
                         @NonNull Content content,
                         long nativeHandle,
-                        @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter) {
+                        @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter,
+                        @NonNull IMetricsRecorder metricsRecorder) {
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
             mUserPerceivedFatalReporter = userPerceivedFatalReporter;
             mAplClock = options.getAplClockProvider().create(this);
             mTelemetryProvider = mOptions.getTelemetryProvider();
+            mMetricsRecorder = metricsRecorder;
             mMetricsTransform = metricsTransform;
             mRootConfig = rootConfig;
             mViewPresenter = viewPresenter;
@@ -274,11 +313,13 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(nGetVersionCode(nativeHandle)),
                     options, rootConfig, metricsTransform, content);
             // rebind to the previously configured text measure.
-            mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
-            mTextMeasureCallback.onRootContextCreated();
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
-            inflate();
+            mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
+            mTextMeasureCallback.onRootContextCreated();
+            if (!options.isScenegraphEnabled()) {
+                inflate();
+            }
             checkIfAutoSizeNeeded(mMetricsTransform.getScaledViewhostWidth(), mMetricsTransform.getScaledViewhostHeight());
             mDocumentContext = new DocumentContext(nGetDocumentContext(getNativeHandle()));
         }
@@ -322,6 +363,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                 .mediaPlayerProvider(getMediaPlayerProvider(options))
                 .bitmapFactory(PooledBitmapFactory.create(options.getTelemetryProvider(), APLController.getRuntimeConfig().getBitmapPool()))
                 .bitmapCache(APLController.getRuntimeConfig().getBitmapCache())
+                .imageDecodeManager(ImageFilterProcessor.create(APLController.getRuntimeConfig().getBitmapCache(), Threading.THREAD_POOL_EXECUTOR, new RenderScriptWrapper(new RenderScriptProvider(RenderScript::create, mViewPresenter.getContext()))))
                 .textLayoutFactory(TextLayoutFactory.create(metricsTransform))
                 .extensionImageFilterCallback(ifCB)
                 .extensionEventCallback(eeCB)
@@ -349,13 +391,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param textMeasureCallback the callback for text measurement
      * @return a non-zero handle if created, 0 if failed.
      */
-    private long createHandle(ViewportMetrics metrics, RootConfig rootConfig, TextMeasureCallback textMeasureCallback) {
+    private long createHandle(ViewportMetrics metrics, Content content,
+                              RootConfig rootConfig, TextMeasureCallback textMeasureCallback) {
         final Scaling scaling = metrics.scaling();
         boolean retry;
         long rootContextHandle;
         do {
             final ViewportMetrics scaledMetrics = mMetricsTransform.getScaledMetrics();
             mTelemetryProvider.startTimer(tInflate);
+            mMetricsRecorder.recordMilestone(MetricsMilestoneConstants.ROOTCONTEXT_INFLATE_START_MILESTONE);
             rootContextHandle = nCreate(
                     mContent.getNativeHandle(),
                     rootConfig.getNativeHandle(),
@@ -371,6 +415,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                     scaledMetrics.theme(),
                     scaledMetrics.mode().getIndex());
             mTelemetryProvider.stopTimer(tInflate);
+            mMetricsRecorder.recordMilestone(MetricsMilestoneConstants.ROOTCONTEXT_INFLATE_END_MILESTONE);
             // We continue to try different specifications if the RootContext fails to create
             // and we have specifications to try
             retry = rootContextHandle == 0 &&
@@ -383,6 +428,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         } while(retry);
         return rootContextHandle;
     }
+
 
     /**
      * Retrieves viewport height set in root context.
@@ -432,42 +478,52 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      */
     private void preBindInit() {
         cDoFrameFail = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_DO_FRAME_FAIL, COUNTER);
+        mDoFrameFailCounter = mMetricsRecorder.createCounter(APL_DOMAIN + "." +METRIC_DO_FRAME_FAIL);
+
         cDropFrame = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_DROP_FRAME, COUNTER);
+
+        mDropFrameCounter = mMetricsRecorder.createCounter(APL_DOMAIN + "." + METRIC_DROP_FRAME);
 
         tInflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_INFLATE, TIMER);
         tReinflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_REINFLATE, TIMER);
         cComponent = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_COMPONENT_COUNT, COUNTER);
+        mComponentCounter = mMetricsRecorder.createCounter(APL_DOMAIN + "." + METRIC_COMPONENT_COUNT);
+
+        final int cFluidityIncident = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_FLUIDITY_INCIDENT_COUNT, COUNTER);
+        mFluidityIncidentCounter = new FluidityIncidentCounter(FLUIDITY_WINDOW_SIZE, mTelemetryProvider, FLUIDITY_THRESHOLD_UPS, DISPLAY_REFRESH_RATE_MS, cFluidityIncident);
     }
 
     /**
      * Request to create a RootContext.
      *
-     * @param metrics APL display metrics.
-     * @param content APL document content.
+     * @param metrics         APL display metrics.
+     * @param content         APL document content.
+     * @param metricsRecorder
      * @return a RootContext.
      */
     public static RootContext create(
             @NonNull final ViewportMetrics metrics, @NonNull final Content content, @NonNull final RootConfig rootConfig,
-            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter)
+            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, IMetricsRecorder metricsRecorder)
             throws IllegalArgumentException, IllegalStateException {
         return create(metrics, content, rootConfig, options, presenter,
-                new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback()));
+                new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback()), metricsRecorder);
     }
 
     /**
      * Request to create a RootContext with UserPerceivedFatalReporter.
      *
-     * @param metrics                       APL display metrics.
-     * @param content                       APL document content.
-     * @param rootConfig                    APL root config.
-     * @param options                       APL options.
-     * @param presenter                     APL presenter.
-     * @param userPerceivedFatalReporter    APL UPF Reporter.
+     * @param metrics                    APL display metrics.
+     * @param content                    APL document content.
+     * @param rootConfig                 APL root config.
+     * @param options                    APL options.
+     * @param presenter                  APL presenter.
+     * @param userPerceivedFatalReporter APL UPF Reporter.
+     * @param metricsRecorder
      * @return a RootContext.
      */
     public static RootContext create(
             @NonNull final ViewportMetrics metrics, @NonNull final Content content, @NonNull final RootConfig rootConfig,
-            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, UserPerceivedFatalReporter userPerceivedFatalReporter)
+            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, UserPerceivedFatalReporter userPerceivedFatalReporter, @NonNull IMetricsRecorder metricsRecorder)
             throws IllegalArgumentException, IllegalStateException {
         if (metrics == null) {
             throw new IllegalArgumentException("Metrics must not be null");
@@ -475,15 +531,18 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             throw new IllegalArgumentException("Content must not be null");
         } else if (rootConfig == null) {
             throw new IllegalArgumentException("RootConfig must not be null.");
-        } else if (!content.isReady()) {
-            throw new IllegalArgumentException("Content must be in the 'ready' state.");
+        } else if (content.isWaiting()) {
+            throw new IllegalArgumentException("Content cannot be in the 'waiting' state.");
+        } else if (content.isError()) {
+            throw new IllegalArgumentException("Content cannot be in an 'error' state.");
         } else if (options == null) {
             throw new IllegalArgumentException("APLOptions must not be null");
         } else if (presenter == null) {
             throw new IllegalArgumentException("APLPresenter must not be null");
         }
+        presenter.setMetricsRecorder(metricsRecorder);
         presenter.preDocumentRender();
-        RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter, userPerceivedFatalReporter);
+        RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter, userPerceivedFatalReporter, metricsRecorder);
         if (!rootContext.isBound()) {
             throw new IllegalStateException("Could not create RootContext");
         }
@@ -509,11 +568,18 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * This results in core calling back to {@link #buildComponent(String, long, int)}.
      */
     private void inflate() {
-        try {
-            nInflate(getNativeHandle());
-        } catch (Exception e) {
-            mTelemetryProvider.fail(tInflate);
-            throw (e);
+        if (!mOptions.isScenegraphEnabled()) {
+            try {
+                cComponentBatchedIncrementCount = 0;
+                nInflate(getNativeHandle());
+            } catch (Exception e) {
+                mTelemetryProvider.fail(tInflate);
+                mMetricsRecorder.recordMilestone(MetricsMilestoneConstants.ROOTCONTEXT_INFLATE_FAILED_MILESTONE);
+                throw (e);
+            } finally {
+                mTelemetryProvider.incrementCount(cComponent, (int) cComponentBatchedIncrementCount);
+                mComponentCounter.increment(cComponentBatchedIncrementCount);
+            }
         }
     }
 
@@ -525,6 +591,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         Log.i(TAG, "Reinflating");
         try (APLTrace.AutoTrace trace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_RE_INFLATE)) {
             mTelemetryProvider.startTimer(tReinflate);
+            cComponentBatchedIncrementCount = 0;
+            mMetricsRecorder.recordMilestone(MetricsMilestoneConstants.ROOTCONTEXT_REINFLATE_START_MILESTONE);
             // Finish component and views resources
             clearComponentAndViewsResources();
 
@@ -576,6 +644,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             } else {
                 reinflateAndNotify();
             }
+        } finally {
+            mTelemetryProvider.incrementCount(cComponent, (int) cComponentBatchedIncrementCount);
+            mComponentCounter.increment(cComponentBatchedIncrementCount);
         }
     }
 
@@ -589,8 +660,10 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             notifyContext();
         } catch (Exception e) {
             mTelemetryProvider.fail(tReinflate);
+            mMetricsRecorder.recordMilestone(MetricsMilestoneConstants.ROOTCONTEXT_REINFLATE_FAILED_MILESTONE);
             throw (e);
         }
+
         // Initialize presenter using existing rootContext.
         mViewPresenter.reinflate();
     }
@@ -613,7 +686,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     public static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState, @NonNull IAPLViewPresenter viewPresenter) {
         // Recording the mRenderStartTime when we are trying to restore the document from cache.
         viewPresenter.preDocumentRender();
-        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getContent(), documentState.getNativeHandle(), new UserPerceivedFatalReporter());
+        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getContent(), documentState.getNativeHandle(), new UserPerceivedFatalReporter(), viewPresenter.metricsRecorder());
     }
 
     /**
@@ -630,7 +703,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
         // Recording the mRenderStartTime when we are trying to restore the document from cache.
         viewPresenter.preDocumentRender();
-        return new RootContext(options, viewPresenter, metricsTransform, rootConfig, content, rootContextNativeHandle, new UserPerceivedFatalReporter());
+        return new RootContext(options, viewPresenter, metricsTransform, rootConfig, content, rootContextNativeHandle, new UserPerceivedFatalReporter(), viewPresenter.metricsRecorder());
     }
 
     public RenderingContext getRenderingContext() {
@@ -653,6 +726,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     public void incrementMetricCount(final String metricName) {
         final int metricId = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, metricName, ITelemetryProvider.Type.COUNTER);
         mTelemetryProvider.incrementCount(metricId);
+        ICounter counter = mMetricsRecorder.createCounter(APL_DOMAIN + "." + metricName);
+        counter.increment(1);
     }
 
 
@@ -662,6 +737,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void finishDocument() {
         Log.i(TAG, String.format("Document(%s) finishing.", mRootConfig.getSession().getLogId()));
+        mUserPerceivedFatalReporter.reportSuccess();
         synchronized (mLock) {
             checkUiThread();
             // mark the context as finished to block any per frame loop.
@@ -855,7 +931,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         component.mRootContext = this;
 
         mAplComponents.put(componentId, component);
-        mTelemetryProvider.incrementCount(cComponent);
+        cComponentBatchedIncrementCount += 1;
         if (BuildConfig.DEBUG) {
             // metrics per component, not for production, used for debug only
             Integer cIdx = cComponentType.get(type);
@@ -1081,6 +1157,21 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         event.execute();
     }
 
+    private Queue<Pair<Pointer, Long>> mPointerQueue = new ConcurrentLinkedQueue<>();
+
+    /**
+     * Adds pointers to the queue to be driven into the frame loop
+     * Pass a null pointers list for clearing any pending pointers
+     */
+    public void addPointersToQueue(@Nullable List<Pair<Pointer, Long>> pointers) {
+        mPointerQueue.clear();
+        if (pointers != null) {
+            for (int i = 0; i < pointers.size(); i++) {
+                mPointerQueue.add(pointers.get(i));
+            }
+        }
+    }
+
     /**
      * Adds a BoundObject that is pending execution. This is used to ensure that Events and Actions are not GC'd before Core
      * needs to terminate them.
@@ -1163,6 +1254,10 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     @UiThread
     native long nCreate(long contentHandle, long rootConfigHandle, long textMeasureHandle,
                         int width, int minWidth, int maxWidth, int height, int minHeight, int maxHeight, int dpi, int shape, String theme, int mode);
+
+    @UiThread
+    native long nCreateSG(long contentHandle, long rootConfigHandle, long textMeasureHandle,
+                        int width, int height, int dpi, int shape, String theme, int mode);
 
     /**
      * @return The component at the root of the APL Component Hierarchy.
@@ -1251,11 +1346,9 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param screenLocked Core screen lock state.
      */
     private void processScreenLock(boolean screenLocked) {
-        final boolean hasPlayingMedia = mRenderingContext.getMediaPlayerProvider().hasPlayingMediaPlayer();
-        final boolean screenLockStatus = screenLocked || hasPlayingMedia;
-        if (lastScreenLockStatus != screenLockStatus) {
-            lastScreenLockStatus = screenLockStatus;
-            mOptions.getScreenLockListener().onScreenLockChange(screenLockStatus);
+        if (lastScreenLockStatus != screenLocked) {
+            lastScreenLockStatus = screenLocked;
+            mOptions.getScreenLockListener().onScreenLockChange(screenLocked);
         }
     }
 
@@ -1298,9 +1391,13 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
         mAplTrace.endTrace();
 
-        mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_DIRTY_PROPERTIES);
-        nHandleDirtyProperties(nativeHandle);
-        mAplTrace.endTrace();
+        if (mOptions.isScenegraphEnabled()) {
+            mViewPresenter.inflateScenegraph();
+        } else {
+            mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_DIRTY_PROPERTIES);
+            nHandleDirtyProperties(nativeHandle);
+            mAplTrace.endTrace();
+        }
 
         mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_EVENTS);
         nHandleEvents(nativeHandle);
@@ -1357,7 +1454,6 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         return result;
     }
 
-
     /**
      * Called when a new display frame is being rendered.
      * See {@link IClock.IClockCallback#onTick(long)}
@@ -1383,6 +1479,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                 r.run();
             }
 
+            // Send one pending pointer after specified delay
+            Pair<Pointer, Long> pointer = mPointerQueue.peek();
+            if (pointer != null && SystemClock.uptimeMillis() >= pointer.second) {
+                mPointerQueue.poll();
+                if (!handlePointer(pointer.first)) {
+                    mRootConfig.getSession().write(Session.LogEntryLevel.WARN, Session.LogEntrySource.VIEW, "Could not process pointer " + pointer.first.toString());
+                }
+            }
+
             // convert to ms
             long time = (frameTimeNanos - mStartLoopTime) / 1000000;
 
@@ -1394,16 +1499,19 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             if (doFrameTime > TARGET_DO_FRAME_TIME && mTelemetryProvider != null) {
                 if (!mIsFinished.get()) {
                     mTelemetryProvider.incrementCount(cDropFrame);
+                    mDropFrameCounter.increment(1);
                 }
             }
             if (mShouldRecordFrameMetrics) {
                 FrameStat pair = new FrameStat(frameTimeNanos, end);
                 mFrameStats.add(pair);
             }
+            mFluidityIncidentCounter.addFrameStat(new FrameStat(frameTimeNanos, end));
         } catch (Exception e) {
             // mTelemetryProvider may be null if the document has been finished.
             if (mTelemetryProvider != null) {
                 mTelemetryProvider.incrementCount(cDoFrameFail);
+                mDoFrameFailCounter.increment(1);
             }
 
             throw e;
@@ -1722,7 +1830,10 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         if (component != null) {
             return component;
         }
+        cComponentBatchedIncrementCount = 0;
         nInflateComponentWithUniqueId(getNativeHandle(), componentId);
+        mTelemetryProvider.incrementCount(cComponent, (int) cComponentBatchedIncrementCount);
+        mComponentCounter.increment(cComponentBatchedIncrementCount);
         return mAplComponents.get(componentId);
     }
 
@@ -1741,7 +1852,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     /**
      * @return the visual context
      */
-    private String serializeVisualContext() {
+    public String serializeVisualContext() {
         return JNIUtils.safeStringValues(nSerializeVisualContext(getNativeHandle()));
     }
 

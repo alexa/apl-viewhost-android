@@ -8,6 +8,7 @@ import static com.amazon.apl.android.ExtensionMediator.IExtensionGrantRequestCal
 
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.google.auto.value.AutoValue;
 
@@ -37,6 +38,9 @@ public abstract class DocumentOptions {
     public abstract ITelemetryProvider getTelemetryProvider();
 
     @Nullable
+    public abstract MetricsOptions getMetricsOptions();
+
+    @Nullable
     public abstract EmbeddedDocumentFactory getEmbeddedDocumentFactory();
 
     @Nullable
@@ -53,6 +57,7 @@ public abstract class DocumentOptions {
         public abstract Builder extensionFlags(Map<String, Object> flags);
 
         public abstract Builder telemetryProvider(ITelemetryProvider telemetryProvider);
+        public abstract Builder metricsOptions(MetricsOptions metricsOptions);
 
         public abstract Builder embeddedDocumentFactory(EmbeddedDocumentFactory embeddedDocumentFactory);
 

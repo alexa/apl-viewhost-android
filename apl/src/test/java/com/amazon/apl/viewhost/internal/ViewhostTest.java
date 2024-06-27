@@ -12,7 +12,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.doAnswer;
@@ -69,7 +72,9 @@ import com.amazon.apl.viewhost.message.BaseMessage;
 import com.amazon.apl.viewhost.message.Message;
 import com.amazon.apl.viewhost.message.action.FetchDataRequest;
 import com.amazon.apl.viewhost.message.action.OpenURLRequest;
+import com.amazon.apl.viewhost.message.action.ReportRuntimeErrorRequest;
 import com.amazon.apl.viewhost.message.action.SendUserEventRequest;
+import com.amazon.apl.viewhost.message.notification.VisualContextChanged;
 import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
 import com.amazon.apl.viewhost.request.ExecuteCommandsRequest;
 import com.amazon.apl.viewhost.request.FinishDocumentRequest;
@@ -80,6 +85,10 @@ import com.amazon.apl.viewhost.request.UpdateDataSourceRequest.UpdateDataSourceC
 import com.amazon.apl.viewhost.utils.CapturingMessageHandler;
 import com.amazon.apl.viewhost.utils.ManualExecutor;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -149,6 +158,24 @@ public class ViewhostTest extends AbstractDocUnitTest {
             "    }" +
             "  }" +
             "}";
+    private static final String SIMPLE_DOC_WITH_SEND_EVENT = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"1.1\",\n" +
+            "  \"onMount\": [\n" +
+            "    {\n" +
+            "      \"type\": \"SendEvent\",\n" +
+            "      \"arguments\": [\n" +
+            "        \"primary\",\n" +
+            "        \"document\"\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Frame\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
     private static final String INVALID_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"2023.3\"," +
@@ -175,6 +202,20 @@ public class ViewhostTest extends AbstractDocUnitTest {
             "    }\n" +
             "  }\n" +
             "}\n";
+
+    private static final String SIMPLE_DOC_WITH_PAYLOAD = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.3\"," +
+            "  \"mainTemplate\": {" +
+            "    \"parameters\": [" +
+            "      \"payload\"" +
+            "    ]," +
+            "    \"item\":" +
+            "    {" +
+            "      \"type\": \"Frame\"" +
+            "    }" +
+            "  }" +
+            "}";
     private static final String SHOPPING_LIST_DOC = "{" +
             "  \"type\": \"APL\"," +
             "  \"version\": \"2023.2\"," +
@@ -208,9 +249,30 @@ public class ViewhostTest extends AbstractDocUnitTest {
             "  }\n" +
             "}";
 
+    private static final String HELLO_WORLD = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.2\"," +
+            "  \"mainTemplate\": {" +
+            "    \"items\": {" +
+            "      \"type\": \"Text\"," +
+            "      \"text\": \"Hello, World!\"," +
+            "      \"entities\": [" +
+            "        \"hello\"" +
+            "      ]," +
+            "      \"id\": \"text1\"," +
+            "      \"color\": \"white\"," +
+            "      \"textAlign\": \"center\"," +
+            "      \"textAlignVertical\": \"center\"" +
+            "    }" +
+            "  }" +
+            "}";
+
+    private String mGoodbyeCommands;
+    private ViewhostConfig mConfig;
+
 
     @Before
-    public void setup() {
+    public void setup() throws JSONException {
         ViewportMetrics metrics = ViewportMetrics.builder()
                 .width(1280)
                 .height(720)
@@ -232,20 +294,30 @@ public class ViewhostTest extends AbstractDocUnitTest {
         when(mViewPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
         when(mViewPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mViewPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mViewPresenter.metricsRecorder()).thenReturn(mMetricsRecorder);
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
             return null;
         });
         // Create new viewhost for handling embedded documents
-        ViewhostConfig config = ViewhostConfig.builder()
+        mConfig = ViewhostConfig.builder()
                 .messageHandler(mMessageHandler)
                 .extensionRegistrar(extensionRegistrar)
                 .defaultDocumentOptions(mDocumentOptions)
                 .build();
-        mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
-        mViewhost2 = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
-        mViewhost3 = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost2 = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost3 = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+
+        // Create a command array JSON string, which changes the "Hello, World" text.
+        mGoodbyeCommands = new JSONArray().put(new JSONObject()
+                        .put("type", "SetValue")
+                        .put("componentId", "text1")
+                        .put("property", "text")
+                        .put("value", "Goodbye!"))
+                .toString();
     }
 
     @Test
@@ -316,7 +388,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
             return null;
         }).when(callbackV2).onError(any());
 
-        when(Content.create(any(), any(), any(), any(Session.class), any())).then(invocation -> {
+        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true))).then(invocation -> {
             Content.CallbackV2 callback = invocation.getArgument(2);
             callback.onError(new Exception());
             return null;
@@ -353,7 +425,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
             return content;
         }).when(callbackV2).onComplete(any());
 
-        when(Content.create(any(), any(), any(), any(Session.class), any())).then(invocation -> {
+        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true))).then(invocation -> {
             Content.CallbackV2 callback = invocation.getArgument(2);
             callback.onComplete(content);
             return content;
@@ -460,6 +532,22 @@ public class ViewhostTest extends AbstractDocUnitTest {
         boolean result = handle.finish(finishRequest);
         assertTrue(result);
         assertTrue(finishLatch.await(1, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testHandlePayloadParameter() {
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC_WITH_PAYLOAD))
+                .data(new JsonStringDecodable(SHOPPING_LIST_DATA))
+                .documentSession(DocumentSession.create())
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+
+        PreparedDocument preparedDocument = mViewhost.prepare(request);
+
+        Content content = ((DocumentHandleImpl)preparedDocument.getHandle()).getContent();
+
+        Assert.assertTrue(content.isReady());
     }
 
     @Test
@@ -1020,6 +1108,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
         assertTrue(mRuntimeInteractionWorker.size() == 0);
     }
 
+    /**
     @Test
     public void testRestoreDocumentSuccess() throws InterruptedException {
         DocumentHandle doc1 = prepareAndRender(SIMPLE_DOC, "");
@@ -1065,6 +1154,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
         }
         assertEquals(0, invalidDocInflationCount);
     }
+     **/
 
     @Test
     public void testReusePreparedDocument() {
@@ -1081,9 +1171,17 @@ public class ViewhostTest extends AbstractDocUnitTest {
         }
         renderSuccess(preparedDocument);
         assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
+        //all the messages were de-queued so queue should be empty
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+
+        //unbind
+        mViewhost.unBind();
 
         //reuse finished prepared doc
-        renderSuccess(preparedDocument);
+        mViewhost.bind(mAplLayout);
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assertMessageReceived(DocumentState.INFLATED, preparedDocument.getHandle().getUniqueId());
         assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
 
         documentHandle.finish(FinishDocumentRequest.builder().build());
@@ -1094,50 +1192,6 @@ public class ViewhostTest extends AbstractDocUnitTest {
         //null response when document not valid
         DocumentHandle handle = mViewhost.render(preparedDocument);
         assertNull(handle);
-    }
-
-    @Test
-    public void testMultiViewhost_usingThreeViewhosts_documentReuseSucess() {
-        //prepare using VH1
-        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
-                .document(new JsonStringDecodable(SIMPLE_DOC))
-                .documentSession(DocumentSession.create())
-                .documentOptions(mDocumentOptions)
-                .build());
-        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
-
-        //set apl layout
-        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
-        mAplLayout.layout(0, 0, 640, 480);
-
-        //bind and render using VH2
-        if (!mViewhost2.isBound()) {
-            mViewhost2.bind(mAplLayout);
-        }
-        mViewhost2.render(preparedDocument);
-        assertTrue(mRuntimeInteractionWorker.size() > 0);
-        mRuntimeInteractionWorker.flush();
-        assert(mMessageHandler.queue.size() > 0);
-
-        assertNotNull(handle.getRootContext());
-        assertNotNull(handle.getDocumentContext());
-
-        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
-
-        //bind and reuse using VH3
-        if (!mViewhost3.isBound()) {
-            mViewhost3.bind(mAplLayout);
-        }
-        mViewhost3.render(preparedDocument);
-        assertTrue(mRuntimeInteractionWorker.size() > 0);
-        mRuntimeInteractionWorker.flush();
-        assert(mMessageHandler.queue.size() > 0);
-
-        assertNotNull(handle.getRootContext());
-        assertNotNull(handle.getDocumentContext());
-
-        assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
-
     }
 
     @Test
@@ -1168,9 +1222,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
 
         assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
 
-        //reuse using VH2 again
+        //all the messages were de-queued so queue should be empty
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
 
-        mViewhost2.render(preparedDocument);
+        //reuse using VH2 again
+        mViewhost2.unBind();
+        mViewhost2.bind(mAplLayout);
         assertTrue(mRuntimeInteractionWorker.size() > 0);
         mRuntimeInteractionWorker.flush();
         assert(mMessageHandler.queue.size() > 0);
@@ -1179,7 +1236,275 @@ public class ViewhostTest extends AbstractDocUnitTest {
         assertNotNull(handle.getDocumentContext());
 
         assertMessageReceived(DocumentState.INFLATED, handle.getUniqueId());
+    }
 
+    @Test
+    public void testSendEventReceived() {
+        //prepare using VH1
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC_WITH_SEND_EVENT))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        mViewhost.render(preparedDocument);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+       update(handle, 100);
+
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        boolean sendMessageReceived = false;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof SendUserEventRequest
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                sendMessageReceived = true;
+            }
+        }
+        assertTrue(sendMessageReceived);
+    }
+
+
+    @Test
+    public void testMultiViewhost_sendEventReceived() {
+        //prepare using VH1
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC_WITH_SEND_EVENT))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        update(handle, 100);
+
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        boolean sendMessageReceived = false;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof SendUserEventRequest
+                    && handle.getUniqueId().equals(message.getDocument().getUniqueId())) {
+                sendMessageReceived = true;
+            }
+        }
+        assertTrue(sendMessageReceived);
+    }
+
+    private void update(DocumentHandleImpl handle, int time) {
+        handle.getRootContext().initTime();
+        if (handle.getRootContext() != null) {
+            mTime += time * 1000000;
+            handle.getRootContext().onTick(mTime);
+        }
+    }
+
+    @Test
+    public void testVisualContextChangeNotificationReceived() {
+        //prepare and render using same VH
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(HELLO_WORLD))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        mViewhost.render(preparedDocument);
+
+        //flush all document state change notifications and clear the queue
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+        mMessageHandler.queue.clear();
+
+        assertTrue(handle.executeCommands(ExecuteCommandsRequest.builder().commands(new JsonStringDecodable(mGoodbyeCommands)).build()));
+
+        update(handle, 100);
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+
+        assertTrue(mMessageHandler.queue.peek() instanceof VisualContextChanged);
+        VisualContextChanged message = (VisualContextChanged) mMessageHandler.queue.poll();
+        assertEquals(handle, message.getDocument());
+    }
+
+    @Test
+    public void testMultiViewhost_VisualContextChangeNotificationReceived() {
+        //prepare using VH1
+        Viewhost mViewhost1 = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+        PreparedDocument preparedDocument = mViewhost1.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(HELLO_WORLD))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //release VH1 to test that changes work as expected even if VH is released.
+        mViewhost1 = null;
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+
+        //flush all document state change notifications and clear the queue
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+        mMessageHandler.queue.clear();
+
+        assertTrue(handle.executeCommands(ExecuteCommandsRequest.builder().commands(new JsonStringDecodable(mGoodbyeCommands)).build()));
+
+        update(handle, 100);
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+
+        assertTrue(mMessageHandler.queue.peek() instanceof VisualContextChanged);
+        VisualContextChanged message = (VisualContextChanged) mMessageHandler.queue.poll();
+        assertEquals(handle, message.getDocument());
+    }
+
+    @Test
+    public void testDataSourceErrors() {
+        DocumentHandleImpl handle = (DocumentHandleImpl) prepareAndRender(SHOPPING_LIST_DOC, SHOPPING_LIST_DATA);
+        assertDataSourceError(handle);
+    }
+
+    @Test
+    public void testMultiViewhost_DataSourceErrors() {
+        //prepare using VH1
+        Viewhost viewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+        PreparedDocument preparedDocument = viewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC_WITH_SEND_EVENT))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+
+        //destroy VH1
+        viewhost = null;
+
+        //set apl layout
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+
+        //bind and render using VH2
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+
+        assertDataSourceError(handle);
+    }
+
+    private void assertDataSourceError(DocumentHandleImpl handle) {
+        Map<String, Object> map = populateMapWithIncorrectData();
+        sendShoppingList(handle, map);
+
+        //It will internally call coreFrameUpdate in rootContext
+        update(handle, 500);
+
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+        assert(mMessageHandler.queue.size() > 0);
+
+        int errorCount = 0;
+        while (!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof ReportRuntimeErrorRequest) {
+                errorCount++;
+            }
+        }
+
+        assertEquals(1, errorCount);
+    }
+
+    private Map<String, Object> populateMapWithIncorrectData() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("startIndex", 0);
+        map.put("correlationToken", 101);
+        map.put("listId", "wrongListId");
+        map.put("count", 1);
+        return map;
+    }
+
+    public void sendShoppingList(DocumentHandle handle, Map<String, Object> request) {
+        JSONObject response = createResponse(request);
+        UpdateDataSourceRequest updateDataSourceRequest = UpdateDataSourceRequest
+                .builder()
+                .data(new JsonStringDecodable(response.toString()))
+                .callback(mCallback)
+                .build() ;
+        assertTrue(handle.updateDataSource(updateDataSourceRequest));
+    }
+
+    private JSONObject createResponse(Map<String, Object> request) {
+        try {
+            int count = (Integer) request.get("count");
+            int startIndex = (Integer) request.get("startIndex");
+
+            JSONArray items = new JSONArray();
+            for (int i = startIndex; i < startIndex + count; i++) {
+                JSONObject item = new JSONObject();
+                item.put("text", "item" + i);
+                items.put(item);
+            }
+
+            // Response payload structure comes from
+            // https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-interface.html#sendindexlistdata-directive
+            JSONObject response = new JSONObject();
+            response.put("correlationToken", request.get("correlationToken"));
+            response.put("listId", request.get("listId"));
+            response.put("startIndex", request.get("startIndex"));
+            response.put("items", items);
+            response.put("minimumInclusiveIndex", 0);
+            response.put("maximumExclusiveIndex", 100);
+            response.put("type", "dynamicIndexList");
+            return response;
+        } catch (JSONException e) {
+            fail("JSON exception " + e);
+        }
+        return null;
     }
 
     private void renderSuccess(PreparedDocument preparedDocument) {

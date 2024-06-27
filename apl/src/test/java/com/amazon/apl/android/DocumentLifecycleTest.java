@@ -7,6 +7,7 @@ package com.amazon.apl.android;
 
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.ShadowCache;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 
 import org.junit.Before;
@@ -31,10 +32,13 @@ public class DocumentLifecycleTest extends ViewhostRobolectricTest {
     private ShadowCache mShadowCache;
 
     private IAPLViewPresenter mPresenter;
+    @Mock
+    private IMetricsRecorder mMetricsRecorder;
 
     @Before
     public void setUp() {
         when(mRootContext.getOptions()).thenReturn(APLOptions.builder().build());
+        when(mRootContext.getMetricsRecorder()).thenReturn(mMetricsRecorder);
         when(mRootContext.getRenderingContext()).thenReturn(mRenderingContext);
         when(mRenderingContext.getBitmapCache()).thenReturn(mBitmapCache);
         when(mRenderingContext.getShadowCache()).thenReturn(mShadowCache);

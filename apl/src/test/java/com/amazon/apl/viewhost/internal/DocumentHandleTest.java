@@ -10,7 +10,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
 import android.os.Handler;
 
@@ -18,6 +20,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.apl.android.Action;
 import com.amazon.apl.android.Content;
+import com.amazon.apl.android.RootContext;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
@@ -42,6 +46,9 @@ public class DocumentHandleTest extends ViewhostRobolectricTest {
 
     @Mock
     private Handler mHandler;
+
+    @Mock
+    private MetricsOptions mMetricsOptions;
 
     @Mock
     private DocumentContext mDocumentContext;
@@ -75,7 +82,7 @@ public class DocumentHandleTest extends ViewhostRobolectricTest {
                 .commands(new JsonStringDecodable(COMMANDS))
                 .callback(executeCommandsCallback)
                 .build();
-        mDocumentHandle = new DocumentHandleImpl(mViewhost, mHandler);
+        mDocumentHandle = new DocumentHandleImpl(mViewhost, mHandler, mMetricsOptions);
     }
 
     @Test
@@ -163,4 +170,12 @@ public class DocumentHandleTest extends ViewhostRobolectricTest {
 
         assertEquals("fallback", propertyF);
     }
+
+    @Test
+    public void testCancelExecution() {
+        ((DocumentHandleImpl)mDocumentHandle).setPrimary(mock(RootContext.class), null);
+        mDocumentHandle.cancelExecution();
+        verify(((DocumentHandleImpl)mDocumentHandle).getRootContext()).cancelExecution();
+    }
+
 }

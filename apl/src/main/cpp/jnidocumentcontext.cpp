@@ -13,7 +13,6 @@ namespace apl {
 #ifdef __cplusplus
         extern "C" {
 #endif
-        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_viewhost_internal_DocumentContext_nExecuteCommands(JNIEnv *env, jclass clazz,

@@ -25,6 +25,8 @@ public abstract class RuntimeConfig {
     // Runtime Font Resolver
     public abstract IFontResolver getFontResolver();
 
+    public abstract boolean isSimulateMeasureAndLayoutEnabled();
+
     public abstract boolean isPreloadingFontsEnabled();
 
     public abstract boolean isEnableHardwareAccelerationForAVG();
@@ -55,6 +57,7 @@ public abstract class RuntimeConfig {
         IBitmapPool bitmapPool = new NoOpBitmapPool();
         return new AutoValue_RuntimeConfig.Builder()
                 .fontResolver(new CompatFontResolver())
+                .simulateMeasureAndLayoutEnabled(false)
                 .preloadingFontsEnabled(true)
                 .enableHardwareAccelerationForAVG(false)
                 .bitmapCache(bitmapCache)
@@ -96,6 +99,13 @@ public abstract class RuntimeConfig {
          * @return this builder
          */
         public abstract Builder enableHardwareAccelerationForAVG(boolean acceleratedAVGRendering);
+
+        /**
+         * Simulate measure and layout in case top-level view block request Layout
+         * @param simulateMeasureAndLayout specifies if viewhost should Simulate measure and layout.
+         * @return this builder
+         */
+        public abstract Builder simulateMeasureAndLayoutEnabled(boolean simulateMeasureAndLayout);
 
         /**
          * Bitmap pool to use for creating new Bitmap objects.

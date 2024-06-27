@@ -52,14 +52,14 @@ public class DocumentState extends BoundObject {
     /**
      * @return the {@link MetricsTransform} associated with this Document.
      */
-    MetricsTransform getMetricsTransform() {
+    public MetricsTransform getMetricsTransform() {
         return mMetricsTransform;
     }
 
     /**
      * @return the {@link RootConfig} associated with this Document.
      */
-    RootConfig getRootConfig() {
+    public RootConfig getRootConfig() {
         return mRootConfig;
     }
 

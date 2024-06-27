@@ -7,7 +7,6 @@
 
 #include "jniutil.h"
 #include "apl/apl.h"
-#include "codecvt"
 
 namespace apl {
     namespace jni {
@@ -19,7 +18,6 @@ namespace apl {
         const char* versionString = "APLJNI Library is " VERSION_NAME " version.";
 #endif
 
-        static std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
         /**
          * Convert a Java string into a std::string in UTF-8 encoding
          * @param env The Java environment

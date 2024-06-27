@@ -10,12 +10,14 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.os.Handler;
 import android.view.View;
 
@@ -30,7 +32,9 @@ import com.amazon.apl.android.Content;
 import com.amazon.apl.android.DocumentSession;
 import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.android.ExtensionMediator.IExtensionGrantRequestCallback;
+import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.Text;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IMediaPlayer;
@@ -39,6 +43,8 @@ import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
@@ -317,9 +323,12 @@ public class HostComponentTest extends AbstractDocUnitTest {
     private Viewhost mViewhost;
     private APLOptions mOptions;
     private ManualExecutor mRuntimeInteractionWorker;
+    @Mock
+    private ICounter mCounter;
 
     @Before
     public void setup() {
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         doAnswer(invocation -> {
             Content.ImportRequest request = invocation.getArgument(0);
             IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
@@ -375,6 +384,99 @@ public class HostComponentTest extends AbstractDocUnitTest {
                 .viewhost(mViewhost)
                 .packageLoader(mPackageLoader)
                 .build();
+    }
+
+    private static final String HOST_DOC_WITH_PARAMETERS_AND_DATA = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"2022.2\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Container\",\n" +
+            "      \"items\": [\n" +
+            "        {\n" +
+            "          \"type\": \"Host\",\n" +
+            "          \"source\": \"embeddedDocWithParameter\",\n" +
+            "          \"parameters\": {\n" +
+            "            \"Location\": \"${data}\"\n" +
+            "          }\n" +
+            "        }],\n" +
+            "      \"data\": [\n" +
+            "        \"world\"\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+    private static final String EMBEDDED_DOC_WITH_EXPLICIT_PARAMETER = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"2022.3\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"parameters\": [\"Location\",\"myDocumentData\"],\n" +
+            "    \"items\": [\n" +
+            "      {\n" +
+            "        \"type\": \"Container\",\n" +
+            "        \"items\": [\n" +
+            "          {\n" +
+            "            \"text\": \"Hello, ${Location} and ${myDocumentData.name}!\",\n" +
+            "            \"type\": \"Text\",\n" +
+            "            \"id\": \"id\"\n" +
+            "          }\n" +
+            "        ]\n" +
+            "      }\n" +
+            "    ]\n" +
+            "  }\n" +
+            "}";
+    private static final String EMBEDDED_DOC_DATA = "{\n" +
+            "  \"myDocumentData\": {\n" +
+            "    \"name\": \"Alexa\"\n" +
+            "  }\n" +
+            "}";
+    @Test
+    public void testExplicitParameterLoadSuccessful() {
+        loadDocument(HOST_DOC_WITH_PARAMETERS_AND_DATA, mOptions);
+        DocumentHandleImpl handle = (DocumentHandleImpl) mEmbeddedDocuments.get("embeddedDocWithParameter");
+        assertNotNull(handle);
+        assertTrue(handle.getContent().isReady());
+        Text component = (Text) mRootContext.findComponentById("id");
+        assertEquals(component.getText(), "Hello, world and Alexa!");
+    }
+
+    private static final String HOST_DOC_WITH_BACKGROUND = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"1.1\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Container\",\n" +
+            "      \"items\": [\n" +
+            "        {\n" +
+            "          \"type\": \"Host\",\n" +
+            "          \"source\": \"embeddedDocWithBackground\",\n" +
+            "          \"id\" : \"hostId\"\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n";
+    private static final String EMBEDDED_DOC_WITH_BACKGROUND = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"1.1\",\n" +
+            "  \"background\": \"blue\",\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\":\n" +
+            "    {\n" +
+            "      \"type\": \"Text\",\n" +
+            "      \"text\": \"Hello\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}\n";
+
+    @Test
+    public void testHostDocumentBackgroundLoadedSuccess() {
+        loadDocument(HOST_DOC_WITH_BACKGROUND, mOptions);
+        DocumentHandleImpl handle = (DocumentHandleImpl) mEmbeddedDocuments.get("embeddedDocWithBackground");
+        assertNotNull(handle);
+        assertTrue(handle.getContent().isReady());
+        MultiChildComponent component = (MultiChildComponent) mRootContext.findComponentById("hostId");
+        assertEquals(component.getBackgroundColor(), Color.BLUE);
     }
 
     @Test
@@ -643,19 +745,25 @@ public class HostComponentTest extends AbstractDocUnitTest {
         @Override
         public void onDocumentRequested(EmbeddedDocumentRequest request) {
             JsonStringDecodable document = null;
+            PrepareDocumentRequest.Builder builder = PrepareDocumentRequest.builder();
             if ("embeddedWithVideo".equals(request.getSource())) {
                 document = new JsonStringDecodable(EMBEDDED_WITH_VIDEO);
             } else if ("embeddedWithExtension".equals(request.getSource())){
                 document = new JsonStringDecodable(EMBEDDED_DOC_WITH_EXTENSION);
             } else if ("embeddedWithConditionalImport".equals(request.getSource())){
                 document = new JsonStringDecodable(EMBEDDED_DOC_WITH_CONDITIONAL_IMPORTS);
+            } else if ("embeddedDocWithParameter".equals(request.getSource())) {
+                document = new JsonStringDecodable(EMBEDDED_DOC_WITH_EXPLICIT_PARAMETER);
+                builder.data(new JsonStringDecodable(EMBEDDED_DOC_DATA));
+            } else if ("embeddedDocWithBackground".equals(request.getSource())){
+                document = new JsonStringDecodable(EMBEDDED_DOC_WITH_BACKGROUND);
             }
 
             ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
             when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(mExtensionGrantRequestCallback);
             when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
 
-            PrepareDocumentRequest prepareDocumentRequest = PrepareDocumentRequest.builder()
+            PrepareDocumentRequest prepareDocumentRequest = builder
                     .document(document)
                     .documentSession(DocumentSession.create())
                     .documentOptions(mDocumentOptions)
@@ -689,6 +797,12 @@ public class HostComponentTest extends AbstractDocUnitTest {
                 @Nullable
                 @Override
                 public ITelemetryProvider getTelemetryProvider() {
+                    return null;
+                }
+
+                @Nullable
+                @Override
+                public MetricsOptions getMetricsOptions() {
                     return null;
                 }
 

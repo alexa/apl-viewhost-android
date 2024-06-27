@@ -19,6 +19,7 @@ import com.amazon.apl.android.APLGradientDrawable;
 import com.amazon.apl.android.EditText;
 import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.font.TypefaceResolver;
+import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.views.APLEditText;
 import com.amazon.apl.enums.FontStyle;
@@ -113,6 +114,7 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
         when(proxy().getColor()).thenReturn(Color.WHITE);
         when(proxy().getFontFamily()).thenReturn(DEFAULT_FONT_FAMILY);
         when(proxy().getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
+        when(proxy().getFontSize()).thenReturn(40.0f);
         when(proxy().getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
         when(proxy().getHintFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
         when(proxy().getHintFontWeight()).thenReturn(0);

@@ -75,13 +75,12 @@ namespace apl {
                 }
 
                 auto mediaPlayer_ = std::make_shared<AndroidMediaPlayer>(std::move(mediaPlayerCallback));
-                auto playerHandler = createHandle<MediaPlayer>(mediaPlayer_);
+                auto playerHandler = reinterpret_cast<jlong>(mediaPlayer_.get());
                 if (playerHandler == 0) return nullptr;
                 auto instance = env->CallObjectMethod(localRef, MEDIAPLAYERFACTORY_CREATE_PLAYER,
                                                       playerHandler);
                 mediaPlayer_->setInstance(instance);
-                auto player = get<MediaPlayer>(playerHandler);
-                return player;
+                return mediaPlayer_;
             }
 
             explicit AndroidMediaPlayerFactory(jweak weakInstance) : mWeakInstance(weakInstance) {}

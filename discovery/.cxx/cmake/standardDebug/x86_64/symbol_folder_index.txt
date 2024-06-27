@@ -1,1 +1,0 @@
-/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/build/intermediates/cmake/standardDebug/obj/x86_64

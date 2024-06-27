@@ -1,9 +1,11 @@
+
 /*
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved
  * SPDX-License-Identifier: Apache-2.0
  */
 
 package com.amazon.apl.devtools.controllers;
+
 
 /**
  * This class is to track the necessary data of the DTServer that we don't want to expose to any runtimes,

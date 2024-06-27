@@ -76,7 +76,7 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
         assertEquals(0, proxy.getBorderWidth());
         assertEquals(Color.argb(255, 250, 250, 250), proxy.getColor()); // #fafafaff (dark theme)
         assertEquals("sans-serif", proxy.getFontFamily());
-        assertEquals(40, proxy.getFontSize());
+        assertEquals(40, proxy.getFontSize(), 0.0);
         assertEquals(FontStyle.kFontStyleNormal, proxy.getFontStyle());
         assertEquals(400, proxy.getFontWeight());
         assertEquals(Color.argb(77, 0, 202, 255), proxy.getHighlightColor()); // #00caff4d (dark theme)
@@ -108,7 +108,7 @@ public class EditTextTest extends AbstractComponentUnitTest<APLEditText, EditTex
         assertEquals(20, proxy.getDrawnBorderWidth()); // Minimum of border width and border stroke width
         assertEquals(Color.RED, proxy.getColor());
         assertEquals("times new roman, times, georgia, serif", proxy.getFontFamily());
-        assertEquals(18, proxy.getFontSize());
+        assertEquals(18, proxy.getFontSize(), 0.0);
         assertEquals(FontStyle.kFontStyleItalic, proxy.getFontStyle());
         assertEquals(500, proxy.getFontWeight());
         assertEquals(Color.YELLOW, proxy.getHighlightColor());

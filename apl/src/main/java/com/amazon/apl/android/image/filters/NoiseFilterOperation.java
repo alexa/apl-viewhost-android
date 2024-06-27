@@ -11,6 +11,7 @@ import androidx.annotation.VisibleForTesting;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.image.filters.bitmap.BitmapFilterResult;
 import com.amazon.apl.android.image.filters.bitmap.FilterResult;
+import com.amazon.apl.android.image.filters.bitmap.Size;
 import com.amazon.apl.android.primitive.Filters;
 import com.amazon.apl.enums.NoiseFilterKind;
 
@@ -23,9 +24,15 @@ import java.util.concurrent.Future;
 public class NoiseFilterOperation extends FilterOperation {
     private static final String TAG = "NoiseFilterOperation";
     private static final int DEFAULT_NOISE_SEED = 42;
+    private final Size mTarget;
 
-    NoiseFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory) {
+    public NoiseFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory) {
+        this(sourceBitmaps, filter, bitmapFactory, null);
+    }
+
+    public NoiseFilterOperation(List<Future<FilterResult>> sourceBitmaps, Filters.Filter filter, IBitmapFactory bitmapFactory, Size target) {
         super(sourceBitmaps, filter, bitmapFactory);
+        mTarget = target;
     }
 
     @Override
@@ -35,7 +42,7 @@ public class NoiseFilterOperation extends FilterOperation {
             throw new IllegalArgumentException(TAG + ": Source must be a bitmap.");
         }
 
-        Bitmap sourceBitmap = source.getBitmap();
+        Bitmap sourceBitmap = mTarget == null ? source.getBitmap() : source.getBitmap(mTarget);
 
         // TODO this modifies the source bitmap which means that if another filter uses the same bitmap
         //  as this one there is unexpected behavior. Unfortunately, it is expensive to have this use a

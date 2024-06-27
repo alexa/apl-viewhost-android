@@ -12,6 +12,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.metrics.ICounter;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
@@ -136,6 +138,8 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
     private String mGoodbyeCommands;
     @Mock
     private ITelemetryProvider mTelemetryProvider;
+    @Mock
+    private ICounter mCounter;
 
     @Before
     public void setup() throws JSONException {
@@ -143,6 +147,7 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
         mMessageHandler = new CapturingMessageHandler();
         mRuntimeInteractionWorker = new ManualExecutor();
         mEmbeddedDocuments = new HashMap<>();
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
 
         // Fake "core worker" executes everything immediately
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
@@ -390,7 +395,7 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
 
     @Test
     public void testRequestingVisualContextAfterViewhostIsGone() {
-        DocumentHandle handle = new DocumentHandleImpl(null, mCoreWorker);
+        DocumentHandle handle = new DocumentHandleImpl(null, mCoreWorker, null);
 
         final int[] successFailCount = {0, 0};
         assertFalse(handle.requestVisualContext(new DocumentHandle.VisualContextCallback() {
@@ -434,7 +439,7 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
 
     @Test
     public void testRequestingVisualContextBeforeDocumentContextIsAvailable() {
-        DocumentHandle handle = new DocumentHandleImpl((ViewhostImpl) mViewhost, mCoreWorker);
+        DocumentHandle handle = new DocumentHandleImpl((ViewhostImpl) mViewhost, mCoreWorker, null);
 
         final int[] successFailCount = {0, 0};
         assertTrue(handle.requestVisualContext(new DocumentHandle.VisualContextCallback() {
@@ -458,7 +463,7 @@ public class EmbeddedVisualContextTest extends AbstractDocUnitTest {
     @Test
     public void testRequestingVisualContextWithSerializationProblem() {
         ViewhostImpl viewhostImpl = (ViewhostImpl) mViewhost;
-        DocumentHandleImpl handle = new DocumentHandleImpl(viewhostImpl, mCoreWorker);
+        DocumentHandleImpl handle = new DocumentHandleImpl(viewhostImpl, mCoreWorker, null);
         DocumentContext context = mock(DocumentContext.class);
         when(context.getId()).thenReturn((long)123);
         when(context.serializeVisualContext()).thenReturn("Invalid JSON");

@@ -25,7 +25,11 @@ add_library( # Sets the name of the library.
         src/main/cpp/jniextensionexecutor.cpp
         src/main/cpp/jniextensionproxy.cpp
         src/main/cpp/jniextensionregistrar.cpp
-        src/main/cpp/jniextensionresource.cpp)
+        src/main/cpp/jniextensionresource.cpp
+        src/main/cpp/jnimetricsextensionv2.cpp
+        src/main/cpp/jnidestinationfactory.cpp
+        src/main/cpp/jnidestination.cpp
+        )
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by

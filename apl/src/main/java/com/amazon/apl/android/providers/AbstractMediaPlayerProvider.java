@@ -48,7 +48,7 @@ public abstract class AbstractMediaPlayerProvider<T extends View> implements IMe
 
     /**
      * Checks if any media player is playing.
-     * @return true if mPlayngSet is not empty, false otherwise.
+     * @return true if mPlayingSet is not empty, false otherwise.
      */
     public boolean hasPlayingMediaPlayer() {
         return !mPlayingSet.isEmpty();

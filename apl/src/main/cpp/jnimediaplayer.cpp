@@ -121,21 +121,23 @@ namespace apl {
                                                                         jint jTrackIndex, jint jTrackCount, jint jCurrentTime, jint jDuration,
                                                                         jboolean jPaused, jboolean jEnded, jboolean jMuted, jint trackState,
                                                                         jint errorCode, jint eventType) {
-            auto mediaplayer = get<AndroidMediaPlayer>(handle);
-            int trackIndex = static_cast<int>(jTrackIndex);
-            int trackCount = static_cast<int>(jTrackCount);
-            int currentTime = static_cast<int>(jCurrentTime);
-            int duration = static_cast<int>(jDuration);
-            bool paused = static_cast<bool>(jPaused);
-            bool ended = static_cast<bool>(jEnded);
-            bool muted = static_cast<bool>(jMuted);
-            MediaState state = MediaState(trackIndex, trackCount, currentTime,
-                                          duration, paused, ended, muted)
-                    .withTrackState(static_cast<TrackState>(trackState));
-            if(state.isError()) {
-                state.withErrorCode(errorCode);
+            auto mediaplayer = reinterpret_cast<AndroidMediaPlayer *>(handle);
+            if (mediaplayer) {
+                int trackIndex = static_cast<int>(jTrackIndex);
+                int trackCount = static_cast<int>(jTrackCount);
+                int currentTime = static_cast<int>(jCurrentTime);
+                int duration = static_cast<int>(jDuration);
+                bool paused = static_cast<bool>(jPaused);
+                bool ended = static_cast<bool>(jEnded);
+                bool muted = static_cast<bool>(jMuted);
+                MediaState state = MediaState(trackIndex, trackCount, currentTime,
+                                              duration, paused, ended, muted)
+                        .withTrackState(static_cast<TrackState>(trackState));
+                if (state.isError()) {
+                    state.withErrorCode(errorCode);
+                }
+                mediaplayer->updateMediaState(static_cast<MediaPlayerEventType>(eventType), state);
             }
-            mediaplayer->updateMediaState(static_cast<MediaPlayerEventType>(eventType), state);
         }
 
         AndroidMediaPlayer::AndroidMediaPlayer(MediaPlayerCallback playerCallback) :

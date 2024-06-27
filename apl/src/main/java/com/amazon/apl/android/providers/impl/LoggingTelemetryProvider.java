@@ -254,7 +254,7 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     public synchronized List<MetricInfo> getPerformanceMetrics() {
         List<MetricInfo> copyOfMetrics = Collections.synchronizedList(new ArrayList<>());
         for (Metric metric: mMetrics){
-            MetricInfo metricInfo = new MetricInfo(metric.metricName, TimeUnit.MILLISECONDS.convert(metric.totalTime, TimeUnit.NANOSECONDS));
+            MetricInfo metricInfo = new MetricInfo(metric.metricName, (double) TimeUnit.MILLISECONDS.convert(metric.totalTime, TimeUnit.NANOSECONDS));
             copyOfMetrics.add(metricInfo);
         }
         return copyOfMetrics;

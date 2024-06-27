@@ -1,1 +1,0 @@
-cmd='/Users/pranavsu/Library/Android/sdk/cmake/3.18.1/bin/cmake;-DCMAKE_INSTALL_PREFIX=/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/discovery/.cxx/cmake/serviceV2Debug/armeabi-v7a/tools;-GNinja;<SOURCE_DIR><SOURCE_SUBDIR>'

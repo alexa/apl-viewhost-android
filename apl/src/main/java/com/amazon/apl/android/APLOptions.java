@@ -35,6 +35,8 @@ import com.amazon.apl.android.dependencies.impl.DefaultUriSchemeValidator;
 import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
 import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.metrics.IMetricsSink;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetrieverProvider;
@@ -54,6 +56,7 @@ import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 
 /**
@@ -78,6 +81,9 @@ public abstract class APLOptions {
 
     // Providers
     public abstract ITelemetryProvider getTelemetryProvider();
+
+    //Options containing metrics sinks and related information.
+    public abstract MetricsOptions getMetricsOptions();
     public abstract IImageLoaderProvider getImageProvider();
 
     @Nullable
@@ -152,16 +158,23 @@ public abstract class APLOptions {
 
     public abstract IUserPerceivedFatalCallback getUserPerceivedFatalCallback();
 
+    public abstract boolean isScenegraphEnabled();
+
     /**
      * @return options that are {@link IDocumentLifecycleListener}s.
      */
     @Memoized
-    Collection<IDocumentLifecycleListener> getDocumentLifecycleListeners() {
+    public Collection<IDocumentLifecycleListener> getDocumentLifecycleListeners() {
         Collection<IDocumentLifecycleListener> listeners = new LinkedList<>();
         listeners.add(getTelemetryProvider());
         listeners.add(getImageProvider());
         listeners.add(getMediaPlayerProvider());
         listeners.add(getTtsPlayerProvider());
+        if (getMetricsOptions() != null) {
+            for (IMetricsSink metricsSink: getMetricsOptions().getMetricsSinkList()) {
+                listeners.add(metricsSink);
+            }
+        }
         return listeners;
     }
 
@@ -196,9 +209,11 @@ public abstract class APLOptions {
                 .packageLoader((importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented."))
                 .contentDataRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "Content datasources not implemented."))
                 .avgRetriever((request, successCallback, failureCallback) -> failureCallback.onFailure(request, "AVG source not implemented."))
+                .scenegraphEnabled(BuildConfig.BUILD_TYPE.equals("releaseWithSceneGraph"))
                 .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory())
                 .viewportSizeUpdateCallback((width, height) ->{})
-                .userPerceivedFatalCallback(new NoOpUserPerceivedFatalCallback());
+                .userPerceivedFatalCallback(new NoOpUserPerceivedFatalCallback())
+                .metricsOptions(MetricsOptions.builder().metricsSinkList(Collections.emptyList()).build());
     }
 
     @AutoValue.Builder
@@ -209,6 +224,13 @@ public abstract class APLOptions {
          * @return this builder
          */
         public abstract Builder telemetryProvider(ITelemetryProvider provider);
+
+        /**
+         * Metrics Options to be used by metrics recorder.
+         * @param metricsOptions
+         * @return this builder
+         */
+        public abstract Builder metricsOptions(MetricsOptions metricsOptions);
 
         /**
          * Defaults to {@link GlideImageLoaderProvider}
@@ -411,6 +433,8 @@ public abstract class APLOptions {
         public abstract Builder extensionRegistration(IExtensionRegistration registration);
 
         public abstract Builder aplClockProvider(@NonNull  IClockProvider clockProvider);
+
+        public abstract Builder scenegraphEnabled(boolean enableScenegraph);
 
         /**
          * Allow runtime to fulfill embedded document requests

@@ -5,9 +5,9 @@
 
 package com.amazon.apl.android.primitive;
 
-abstract class SimpleArrayGetter<K extends IterableProperty<T>, T> {
+public abstract class SimpleArrayGetter<K extends IterableProperty<T>, T> {
     /**
      * @return an iterable property.
      */
-    abstract K builder();
+    public abstract K builder();
 }

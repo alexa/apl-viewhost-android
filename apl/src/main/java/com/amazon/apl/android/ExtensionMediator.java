@@ -28,7 +28,7 @@ import java.util.Map;
 public class ExtensionMediator extends BoundObject implements IExtensionEventCallback,
         IExtensionImageFilterCallback, IDocumentLifecycleListener {
 
-    ExtensionResourceProvider extensionResourceProvider;
+    public ExtensionResourceProvider extensionResourceProvider;
     ExtensionRegistrar extensionRegistrar;
     APLExtensionExecutor mExecutor;
     private static final String TAG = "ExtensionMediator";
@@ -114,7 +114,7 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
 
     // Register image filters in the Root config.
     // TODO Deprecate, this is clumsy legacy integration.
-    void registerImageFilters(ExtensionRegistrar provider, Content content, RootConfig config) {
+    public void registerImageFilters(ExtensionRegistrar provider, Content content, RootConfig config) {
         for (String extensionRequest : content.getExtensionRequests()) {
             ExtensionProxy extensionProxy = provider.getExtension(extensionRequest);
             if (extensionProxy != null) {

@@ -10,9 +10,9 @@
   */
  public class MetricInfo {
      private final String mName;
-     private final long mValue;
+     private final double mValue;
 
-     public MetricInfo(String  name, long value) {
+     public MetricInfo(String  name, double value) {
          mName = name;
          mValue = value;
      }
@@ -21,7 +21,7 @@
          return mName;
      }
 
-     public long getValue() {
+     public double getValue() {
          return mValue;
      }
  }

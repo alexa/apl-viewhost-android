@@ -16,6 +16,7 @@ import com.amazon.apl.android.Text;
 import com.amazon.apl.android.TextLayoutFactory;
 import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLTextView;
@@ -92,14 +93,18 @@ public class TextViewAdapter extends ComponentViewAdapter<Text, APLTextView> {
         TextLayoutFactory factory = ctx.getTextLayoutFactory();
         int versionCode = ctx.getDocVersion();
         final Rect bounds = component.getProxy().getInnerBounds();
+        // bounds dimensions are in pixels, convert to dp before layout creation
+        IMetricsTransform metricsTransform = ctx.getMetricsTransform();
         Layout textLayout = factory.getOrCreateTextLayout(
                 versionCode,
                 component.getProxy(),
-                bounds.intWidth(),
+                metricsTransform.toCore(bounds.getWidth()),
                 TextMeasure.MeasureMode.Exactly,
-                bounds.intHeight(),
-                component.getKaraokeLineSpan()
-        );
+                metricsTransform.toCore(bounds.getHeight()),
+                TextMeasure.MeasureMode.Exactly,
+                component.getKaraokeLineSpan(),
+                ctx.getMetricsTransform()
+        ).getLayout();
         view.setLayout(textLayout);
         trace.endTrace();
     }

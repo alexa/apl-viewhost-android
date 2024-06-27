@@ -115,6 +115,9 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
     /**
      * Test the view after properties have been assigned. This uses the OPTIONAL_PROPERTIES.
      *
+     * This test fails on simulator, even though renders fine. Likely due to the way how TypeFace
+     * resolved.
+     *
      * @param view The Component view for testing.
      */
     @Override

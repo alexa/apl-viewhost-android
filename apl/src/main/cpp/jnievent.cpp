@@ -45,14 +45,15 @@ namespace apl {
                 return JNI_FALSE;
             }
 
-            Event::setUserDataReleaseCallback([](void* userData){
+            // Clean up the JNI references
+            Event::setUserDataReleaseCallback([](void* userData) {
                 JNIEnv* jniEnv;
                 JAVA_VM->GetEnv(reinterpret_cast<void **>(&jniEnv), JNI_VERSION_1_6);
                 if (!jniEnv) {
                     return;
                 }
                 if (userData) {
-                    jniEnv->DeleteWeakGlobalRef((jobject) userData);
+                    jniEnv->DeleteWeakGlobalRef((jweak) userData);
                 }
             });
 
@@ -80,22 +81,31 @@ namespace apl {
                 return;
             }
 
-            jobject weak = env->NewWeakGlobalRef(instance);
-            event->setUserData(weak);
-            event->getActionRef().addTerminateCallback([weak](const std::shared_ptr<Timers>&) {
-                // May be called from a different thread than nInit necessitating a call to get this thread's JNIEnv
-                JNIEnv* jniEnv;
-                JAVA_VM->GetEnv(reinterpret_cast<void **>(&jniEnv), JNI_VERSION_1_6);
-                if (!jniEnv) {
-                    return;
-                }
+            jweak weakRef = env->NewWeakGlobalRef(instance);
+            // Pass in the weakRef as UserData for clean-up later
+            event->setUserData(weakRef);
 
-                auto local = jniEnv->NewLocalRef(weak);
-                if (!local) {
-                    return;
+            // ActionRef might outlive the Event, so sent a weak_ref in the callback
+            auto weakEvent = std::weak_ptr<Event>(event);
+            event->getActionRef().addTerminateCallback([weakEvent](const std::shared_ptr<Timers>&) {
+                // Call the terminate callback only if the Event is still in memory
+                if (auto event = weakEvent.lock()) {
+                    // May be called from a different thread than nInit necessitating a call to get this thread's JNIEnv
+                    JNIEnv* jniEnv;
+                    JAVA_VM->GetEnv(reinterpret_cast<void **>(&jniEnv), JNI_VERSION_1_6);
+                    if (!jniEnv) {
+                        return;
+                    }
+
+                    auto weakRef = (jweak) event->getUserData();
+
+                    auto local = jniEnv->NewLocalRef(weakRef);
+                    if (!local) {
+                        return;
+                    }
+                    jniEnv->CallVoidMethod(local, ACTION_ON_TERMINATE);
+                    jniEnv->DeleteLocalRef(local);
                 }
-                jniEnv->CallVoidMethod(local, ACTION_ON_TERMINATE);
-                jniEnv->DeleteLocalRef(local);
             });
         }
 

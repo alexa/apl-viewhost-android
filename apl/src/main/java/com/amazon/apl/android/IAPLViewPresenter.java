@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.functional.Consumer;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.Scaling;
@@ -49,21 +50,21 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * @param component The Component that has changed.
      * @param dirtyProperties The list of properties that have changed (marked as dirty by Core)
      */
-    void onComponentChange(Component component, List<PropertyKey> dirtyProperties);
+    default void onComponentChange(Component component, List<PropertyKey> dirtyProperties) {}
 
     /**
      * Binds all properties of a given Component to it's associated view.
      *
      * @param component The Component to bind
      */
-    void applyAllProperties(Component component, View view);
+    default void applyAllProperties(Component component, View view) {}
 
     /**
      * Request the view to be laid out.
      *
      * @param component the component
      */
-    void requestLayout(Component component);
+    default void requestLayout(Component component) {}
 
     /**
      * Find the View for a Component.
@@ -72,7 +73,9 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * @return the View associated with the component, can be null;
      */
     @Nullable
-    View findView(Component component);
+    default View findView(Component component) {
+        return null;
+    }
 
     /**
      * Finds the Component represented by the View.
@@ -81,7 +84,9 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * @return The Component.
      */
     @Nullable
-    Component findComponent(View view);
+    default Component findComponent(View view) {
+        return null;
+    }
 
     /**
      * Associates a given Component and given View, meaning that the View will rendered to represent
@@ -164,7 +169,7 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * @param component The Component associated with the given View.
      * @param view The View whose layout will be updated
      */
-    void updateViewInLayout(Component component, View view);
+    default void updateViewInLayout(Component component, View view) {}
 
     void loadBackground(Content.DocumentBackground bg);
 
@@ -172,6 +177,10 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * The metrics provider;
      */
     ITelemetryProvider telemetry();
+
+    IMetricsRecorder metricsRecorder();
+
+    void setMetricsRecorder(IMetricsRecorder metricsRecorder);
 
     /**
      * Handle a motion event.
@@ -262,4 +271,22 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
     APLTrace getAPLTrace();
 
     boolean isHardwareAccelerationForVectorGraphicsEnabled();
+
+    /**
+     * Inflates a hierarchy of Components from given root Component in their corresponding Android
+     * Views by calling
+     * {@link com.amazon.apl.android.layer.LayerViewAdapter}
+     * for each Layer.
+     */
+    default void inflateScenegraph() {}
+
+    /** Enqueue motion events to simulate user interactions such as Touch
+     * @param {@link List} of {@link MotionEvent}
+     */
+    boolean enqueueMotionEvents(List<MotionEvent> motionEvents);
+
+    /**
+     * Clear any enqueued motion events
+     */
+    void clearMotionEvents();
 }

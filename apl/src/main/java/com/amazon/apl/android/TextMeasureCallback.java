@@ -5,12 +5,13 @@
 package com.amazon.apl.android;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.primitive.StyledText;
 import com.amazon.apl.android.scaling.IMetricsTransform;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
+import com.amazon.apl.android.scenegraph.text.APLTextProperties;
 import com.amazon.apl.android.utils.JNIUtils;
-import com.amazon.apl.enums.ComponentType;
 import com.amazon.common.BoundObject;
 
 /**
@@ -31,7 +32,6 @@ import com.amazon.common.BoundObject;
  * should not be used across document.
  */
 public class TextMeasureCallback extends BoundObject {
-
     private static final String TAG = "TextMeasureCB";
 
     // delegate for measurement processing
@@ -142,47 +142,38 @@ public class TextMeasureCallback extends BoundObject {
      */
     @SuppressWarnings("unused")
     @VisibleForTesting
-    public float[] callbackMeasure(String textHash, int componentType,
+    public APLTextLayout callbackMeasure(long chunk, long textProperties,
+                                         float widthDp, int widthMode,
+                                         float heightDp, int heightMode) {
+        APLTextProperties aplTextProperties = new APLTextProperties(textProperties, mMetricsTransform);
+        StyledText styledText = new StyledText(chunk);
+        APLTextLayout layout = mDelegate.measure(aplTextProperties,
+                widthDp, TextMeasure.MEASURE_MODES[widthMode],
+                heightDp, TextMeasure.MEASURE_MODES[heightMode],
+                styledText);
+        layout.attachTextProperties(aplTextProperties);
+        return layout;
+    }
+
+    /**
+     * Called by the JNI layer when an edittext component needs to be measured.
+     */
+    @SuppressWarnings("unused")
+    @VisibleForTesting
+    public float[] measureEditText(int size, long textProperties,
                                    float widthDp, int widthMode,
                                    float heightDp, int heightMode) {
-        return mDelegate.measure(textHash, ComponentType.valueOf(componentType),
+        APLTextProperties aplTextProperties = new APLTextProperties(textProperties, mMetricsTransform);
+        return mDelegate.measureEditText(aplTextProperties,
                 widthDp, TextMeasure.MEASURE_MODES[widthMode],
-                heightDp, TextMeasure.MEASURE_MODES[heightMode]);
+                heightDp, TextMeasure.MEASURE_MODES[heightMode],
+                size);
     }
 
     @VisibleForTesting
     public void delegate(TextMeasure textMeasure) {
         // allows for injection of spy/mock test object
         mDelegate = textMeasure;
-
-        final TextProxy<TextMeasureCallback> textProxy = new TextProxy<TextMeasureCallback>() {
-            @NonNull
-            @Override
-            public TextMeasureCallback getMapOwner() {
-                return TextMeasureCallback.this;
-            }
-
-            @Nullable
-            @Override
-            protected IMetricsTransform getMetricsTransform() {
-                return TextMeasureCallback.this.mMetricsTransform;
-            }
-        };
-
-        final EditTextProxy<TextMeasureCallback> editTextProxy = new EditTextProxy<TextMeasureCallback>() {
-            @NonNull
-            @Override
-            public TextMeasureCallback getMapOwner() {
-                return TextMeasureCallback.this;
-            }
-
-            @Nullable
-            @Override
-            protected IMetricsTransform getMetricsTransform() {
-                return TextMeasureCallback.this.mMetricsTransform;
-            }
-        };
-        mDelegate.prepare(textProxy, editTextProxy);
     }
 
     @VisibleForTesting

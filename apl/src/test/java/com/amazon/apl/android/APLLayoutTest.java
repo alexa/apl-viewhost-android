@@ -24,6 +24,7 @@ import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.helper.LinearGradientWrapper;
 import com.amazon.apl.android.helper.RadialGradientWrapper;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
@@ -99,6 +100,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
         when(mockConfigurationChangeBuilder.disallowVideo(anyBoolean())).thenReturn(mockConfigurationChangeBuilder);
         when(mockConfigurationChangeBuilder.environmentValue(anyString(), any())).thenReturn(mockConfigurationChangeBuilder);
         when(mPresenter.telemetry()).thenReturn(NoOpTelemetryProvider.getInstance());
+        when(mPresenter.metricsRecorder()).thenReturn(new MetricsRecorder());
         when(mockViewportMetrics.theme()).thenReturn("dark");
         when(mockViewportMetrics.mode()).thenReturn(ViewportMode.kViewportModeHub);
         when(mockRootConfig.getScreenModeEnumerated()).thenReturn(ScreenMode.kScreenModeNormal);
@@ -261,6 +263,15 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
     public void testFinishWithNullContext() {
         APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
         view.getPresenter().onDocumentFinish(); // calls onFinish
+    }
+
+    @Test
+    public void testonLayoutWithNullRootContext() {
+        APLLayout view = new APLLayout(RuntimeEnvironment.systemContext, false);
+        View child = new View(RuntimeEnvironment.systemContext);
+        child.setLayoutParams(new APLLayoutParams(100, 100, 0, 0));
+        view.addView(child);
+        view.onLayout(true, 0, 0, 1280, 800);
     }
 
     @Test

@@ -162,7 +162,7 @@ public abstract class PropertyMap<B extends BoundObject, K extends APLEnum> {
     }
 
     public final StyledText getStyledText(K property) {
-        return new StyledText(getMapOwner(), property, getMetricsTransform());
+        return new StyledText(getMapOwner(), property);
     }
 
     public final Gradient getGradient(K property) {

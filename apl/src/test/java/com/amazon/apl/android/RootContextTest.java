@@ -11,25 +11,29 @@ import static com.amazon.apl.enums.ComponentType.kComponentTypeText;
 
 import com.amazon.apl.android.dependencies.IVisualContextListener;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
 import org.json.JSONObject;
+import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.InOrder;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -50,6 +54,50 @@ public class RootContextTest extends AbstractDocUnitTest {
             "    }\n" +
             "}";
 
+
+    private static final String SIMPLE_DOC_WITH_PARAMETER = "{" +
+            "  \"type\": \"APL\"," +
+            "  \"version\": \"2023.3\"," +
+            "  \"mainTemplate\": {" +
+            "    \"parameters\": [" +
+            "      \"data1\"" +
+            "    ]," +
+            "    \"item\":" +
+            "    {" +
+            "      \"type\": \"Frame\"" +
+            "    }" +
+            "  }" +
+            "}";
+
+    @Test
+    public void test_OptionalParameters() {
+        Content content = Content.create(SIMPLE_DOC_WITH_PARAMETER,
+                null,
+                null,
+                new Session(),
+                null,
+                true);
+
+        Assert.assertFalse(content.isWaiting());
+        Assert.assertFalse(content.isReady());
+
+        ViewportMetrics metrics = ViewportMetrics.builder()
+                .width(1280)
+                .height(720)
+                .dpi(160)
+                .shape(ScreenShape.RECTANGLE)
+                .theme("dark")
+                .mode(ViewportMode.kViewportModeHub)
+                .build();
+
+        mAPLPresenter = mock(IAPLViewPresenter.class);
+        when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+
+        RootContext.create(metrics, content, buildRootConfig(), APLOptions.builder().build(), mAPLPresenter, mMetricsRecorder);
+    }
+
     @Test
     public void test_InflateDoesNotUpdateContext() {
         IVisualContextListener contextListener = mock(IVisualContextListener.class);
@@ -65,6 +113,7 @@ public class RootContextTest extends AbstractDocUnitTest {
     @Test
     public void test_timersInitializedDuringRestore() {
         ITelemetryProvider telemetryMock = Mockito.mock(ITelemetryProvider.class);
+        IMetricsRecorder metricsRecorderMock = Mockito.mock(IMetricsRecorder.class);
         APLOptions aplOptions = APLOptions.builder().telemetryProvider(telemetryMock).build();
         ViewportMetrics metrics = ViewportMetrics.builder()
                 .width(1280)
@@ -116,6 +165,29 @@ public class RootContextTest extends AbstractDocUnitTest {
         // Repeating the resume has no effect
         mRootContext.resumeDocument();
         inOrder.verify(mAPLPresenter, never()).onDocumentResumed();
+    }
+
+    @Test
+    public void test_reportSuccess() {
+        ViewportMetrics metrics = ViewportMetrics.builder()
+                .width(1280)
+                .height(720)
+                .dpi(160)
+                .shape(ScreenShape.RECTANGLE)
+                .theme("dark")
+                .mode(ViewportMode.kViewportModeMobile)
+                .build();
+        UserPerceivedFatalReporter userPerceivedFatalReporter = Mockito.mock(UserPerceivedFatalReporter.class);
+
+        APLOptions aplOptions = APLOptions.builder().build();
+
+        loadDocument(DOC, aplOptions, metrics, userPerceivedFatalReporter);
+
+        InOrder inOrder = Mockito.inOrder(mRootContext, mAPLPresenter);
+
+        // Document is running, so it can be finished now
+        mRootContext.finishDocument();
+        verify(userPerceivedFatalReporter).reportSuccess();
     }
 
     private final String TIME_DOC = "{\n" +

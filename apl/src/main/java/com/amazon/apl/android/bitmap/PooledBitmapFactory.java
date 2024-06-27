@@ -54,7 +54,11 @@ public class PooledBitmapFactory implements IBitmapFactory {
     public synchronized Bitmap createBitmap(int width, int height) throws BitmapCreationException {
         try {
             Bitmap result = pool.get(width,height, Bitmap.Config.ARGB_8888);
-            mTelemetryProvider.incrementCount(cBitmapMetricSuccess);
+            try {
+                mTelemetryProvider.incrementCount(cBitmapMetricSuccess);
+            } catch (Exception ex) {
+                android.util.Log.e(TAG, "Failed to increment metric success count for Bitmap creation");
+            }
             return result;
         } catch (OutOfMemoryError e) {
             mTelemetryProvider.incrementCount(cBitmapMetricFail);

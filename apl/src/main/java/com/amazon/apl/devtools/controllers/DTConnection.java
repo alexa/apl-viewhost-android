@@ -15,28 +15,42 @@ import com.amazon.apl.devtools.models.common.Response;
 import com.amazon.apl.devtools.models.error.DTException;
 import com.amazon.apl.devtools.models.error.ErrorResponse;
 import com.amazon.apl.devtools.util.CommandRequestFactory;
-import com.amazon.apl.devtools.util.RequestStatus;
 
+import com.amazon.apl.devtools.util.RequestStatus;
+import org.java_websocket.WebSocket;
+import org.java_websocket.drafts.Draft;
+import org.java_websocket.enums.Opcode;
+import org.java_websocket.enums.ReadyState;
+import org.java_websocket.framing.Framedata;
+import org.java_websocket.protocols.IProtocol;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.NotYetConnectedException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.net.ssl.SSLSession;
 
 /**
  * DTConnection is a wrapper for a WebSocket.
  * DTConnection stores the Sessions created by a single web socket client.
  * A DTConnection can have many Sessions.
  */
-public class DTConnection {
+public final class DTConnection implements WebSocket {
     private static final String TAG = DTConnection.class.getSimpleName();
     private final CommandRequestFactory mCommandRequestFactory;
+    private final WebSocket mWebSocket;
     private final Map<String, Session> mRegisteredSessionsMap = new HashMap<>();
 
-    public DTConnection(CommandRequestFactory commandRequestFactory) {
+    public DTConnection(CommandRequestFactory commandRequestFactory,
+                        WebSocket webSocket) {
         Log.i(TAG, "Wrapping web socket in a connection");
         mCommandRequestFactory = commandRequestFactory;
+        mWebSocket = webSocket;
     }
 
     public void registerSession(Session session) {
@@ -59,7 +73,7 @@ public class DTConnection {
         return mRegisteredSessionsMap.get(sessionId);
     }
 
-    protected void destroyRegisteredSessions() {
+    private void destroyRegisteredSessions() {
         Collection<Session> sessions = mRegisteredSessionsMap.values();
         for (Session session : sessions) {
             session.destroy();
@@ -98,11 +112,159 @@ public class DTConnection {
         sendResponse(response);
     }
 
-    protected <TResponse extends Response> void sendResponse(TResponse response) {
-        //no op
+    private <TResponse extends Response> void sendResponse(TResponse response) {
+        try {
+            String responseStr = response.toJSONString();
+            Log.i(TAG, "Sending web socket message: " + responseStr);
+            send(responseStr);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error serializing response", e);
+        }
     }
 
     public <TEvent extends Event> void sendEvent(TEvent event) {
-        //no op
+        try {
+            String eventStr = event.toJSONString();
+            Log.i(TAG, "Sending web socket message: " + eventStr);
+            send(eventStr);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error serializing event", e);
+        }
+    }
+
+    @Override
+    public void close(int code, String message) {
+        Log.i(TAG, "Closing connection");
+        mWebSocket.close(code, message);
+        destroyRegisteredSessions();
+    }
+
+    @Override
+    public void close(int code) {
+        mWebSocket.close(code);
+    }
+
+    @Override
+    public void close() {
+        mWebSocket.close();
+    }
+
+    @Override
+    public void closeConnection(int code, String message) {
+        mWebSocket.closeConnection(code, message);
+    }
+
+    @Override
+    public void send(String text) throws NotYetConnectedException {
+        if (isOpen()) {
+            mWebSocket.send(text);
+        } else {
+            Log.w(TAG, "Connection closed, ignoring request to send message.");
+        }
+    }
+
+    @Override
+    public void send(ByteBuffer bytes) throws IllegalArgumentException, NotYetConnectedException {
+        mWebSocket.send(bytes);
+    }
+
+    @Override
+    public void send(byte[] bytes) throws IllegalArgumentException, NotYetConnectedException {
+        mWebSocket.send(bytes);
+    }
+
+    @Override
+    public void sendFrame(Framedata framedata) {
+        mWebSocket.sendFrame(framedata);
+    }
+
+    @Override
+    public void sendFrame(Collection<Framedata> frames) {
+        mWebSocket.sendFrame(frames);
+    }
+
+    @Override
+    public void sendPing() throws NotYetConnectedException {
+        mWebSocket.sendPing();
+    }
+
+    @Override
+    public void sendFragmentedFrame(Opcode op, ByteBuffer buffer, boolean fin) {
+        mWebSocket.sendFragmentedFrame(op, buffer, fin);
+    }
+
+    @Override
+    public boolean hasBufferedData() {
+        return mWebSocket.hasBufferedData();
+    }
+
+    @Override
+    public InetSocketAddress getRemoteSocketAddress() {
+        return mWebSocket.getRemoteSocketAddress();
+    }
+
+    @Override
+    public InetSocketAddress getLocalSocketAddress() {
+        return mWebSocket.getLocalSocketAddress();
+    }
+
+    @Override
+    public boolean isOpen() {
+        return mWebSocket.isOpen();
+    }
+
+    @Override
+    public boolean isClosing() {
+        return mWebSocket.isClosing();
+    }
+
+    @Override
+    public boolean isFlushAndClose() {
+        return mWebSocket.isFlushAndClose();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return mWebSocket.isClosed();
+    }
+
+    @Override
+    public Draft getDraft() {
+        return mWebSocket.getDraft();
+    }
+
+    @Override
+    public ReadyState getReadyState() {
+        return mWebSocket.getReadyState();
+    }
+
+    @Override
+    public String getResourceDescriptor() {
+        return mWebSocket.getResourceDescriptor();
+    }
+
+    @Override
+    public <T> void setAttachment(T attachment) {
+        mWebSocket.setAttachment(attachment);
+    }
+
+    @Override
+    public <T> T getAttachment() {
+        return mWebSocket.getAttachment();
+    }
+
+    @Override
+    public boolean hasSSLSupport() {
+        return mWebSocket.hasSSLSupport();
+    }
+
+    @Override
+    public SSLSession getSSLSession() throws IllegalArgumentException {
+        return mWebSocket.getSSLSession();
+    }
+
+    @Override
+    public IProtocol getProtocol() {
+        return mWebSocket.getProtocol();
     }
 }

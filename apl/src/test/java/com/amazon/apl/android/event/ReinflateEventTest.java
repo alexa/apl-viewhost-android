@@ -43,6 +43,7 @@ import org.mockito.Mockito;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -187,8 +188,9 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
                 mAPLPresenter = mock(IAPLViewPresenter.class);
                 when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
                 when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(mMetrics);
-
-                mRootContext = spy(RootContext.create(mMetrics, spyContent, mRootConfig, mAplOptions, mAPLPresenter));
+                when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+                when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+                mRootContext = spy(RootContext.create(mMetrics, spyContent, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder));
 
                 assertNotNull(mRootContext);
 

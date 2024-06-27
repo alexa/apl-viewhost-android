@@ -50,7 +50,7 @@ public abstract class MediaSources implements IterableProperty<MediaSources.Medi
 
     private static class MediaSourceGetter extends SimpleArrayGetter<MediaSources, MediaSource> {
         @Override
-        MediaSources builder() {
+        public MediaSources builder() {
             return new AutoValue_MediaSources(new ArrayList<>());
         }
     }

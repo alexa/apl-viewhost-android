@@ -11,6 +11,7 @@ import android.os.Looper;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.extension.IExtensionRegistration;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 
 import static com.amazon.apl.android.APLController.initializeAPL;
@@ -20,6 +21,7 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.bitmap.IBitmapPool;
 import com.amazon.apl.android.dependencies.IContentCompleteCallback;
+import com.amazon.apl.devtools.DevToolsProvider;
 import com.amazon.apl.devtools.models.ViewTypeTarget;
 import com.amazon.apl.android.font.CompatFontResolver;
 import com.amazon.apl.android.font.TypefaceResolver;
@@ -101,6 +103,8 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     @Mock
     private ViewTypeTarget mViewTypeTarget;
     @Mock
+    private DevToolsProvider mDevToolsProvider;
+    @Mock
     private Session mAPLSession;
     private Context mContext;
     @Mock
@@ -109,12 +113,15 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private IExtensionRegistration mExtensionRegistration;
     @Mock
     private ExtensionRegistrar mExtensionRegistrar;
+    @Mock
+    private IMetricsRecorder mMetricsRecorder;
 
     private APLController mController;
 
     @Before
     public void setup() {
         mController = new APLController(mRootContext, mContent);
+        when(mContent.getMetricsRecorder()).thenReturn(mMetricsRecorder);
         when(mOptions.getTelemetryProvider()).thenReturn(mTelemetryProvider);
         when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
         when(mRootContext.executeCommands(any())).thenReturn(mAction);
@@ -122,7 +129,8 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
         when(mRootConfig.getSession()).thenReturn(mAPLSession);
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
-        when(mAplLayout.getDTView()).thenReturn(mViewTypeTarget);
+        when(mAplLayout.getDevToolsProvider()).thenReturn(mDevToolsProvider);
+        when(mDevToolsProvider.getDTView()).thenReturn(mViewTypeTarget);
         when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
         try {
             when(mLibraryFuture.get(
@@ -151,6 +159,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
         InOrder inOrder = inOrder(mRootContext);
         inOrder.verify(mRootContext).getOptions();
+        inOrder.verify(mRootContext).getMetricsRecorder();
         inOrder.verify(mRootContext).executeCommands(eq("commands"));
         inOrder.verify(mRootContext).updateDataSource(eq("type"), eq("data"));
         inOrder.verify(mRootContext).invokeExtensionEventHandler(eq("uri"), eq("name"), any(), eq(false));

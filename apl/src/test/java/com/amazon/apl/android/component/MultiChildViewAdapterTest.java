@@ -7,7 +7,11 @@ package com.amazon.apl.android.component;
 
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 
+import android.graphics.Color;
 import android.graphics.RectF;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
 import android.view.View;
 
 import com.amazon.apl.android.APLAccessibilityDelegate;
@@ -16,11 +20,13 @@ import com.amazon.apl.android.Component;
 import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.PropertyMap;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.shadow.ShadowBitmapKey;
 import com.amazon.apl.android.utils.AccessibilitySettingsUtil;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.enums.ComponentType;
+import com.amazon.apl.enums.GradientType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.ScrollDirection;
 import com.amazon.apl.enums.UpdateType;
@@ -39,6 +45,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -438,6 +445,46 @@ public class MultiChildViewAdapterTest extends AbstractComponentViewAdapterTest<
         verify(mockView, never()).attachView(any());
         verify(mockView, never()).requestLayout();
         verify(mockView, never()).invalidate();
+    }
+
+    @Test
+    public void testHostComponentBackground() {
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeHost);
+        when(component().getBackgroundColor()).thenReturn(Color.BLUE);
+
+        mockMultiChildViewAdapter.applyHostComponentBackground(component(), getView());
+
+        assertEquals(Color.BLUE, getBackground().getPaint().getColor());
+    }
+
+    @Test
+    public void testHostComponentNoBackground() {
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeHost);
+
+        mockMultiChildViewAdapter.applyHostComponentBackground(component(), getView());
+
+        assertEquals(null, getView().getBackground());
+    }
+
+    @Test
+    public void test_HostComponentBackgroundGradient() {
+        when(component().getComponentType()).thenReturn(ComponentType.kComponentTypeHost);
+        when(component().isGradientBackground()).thenReturn(true);
+        Gradient linearGradient = Gradient.builder().type(GradientType.LINEAR).angle(20).inputRange(new float[] {1, 2}).colorRange(new int[] {1, 2}).build();
+        when(component().getBackgroundGradient()).thenReturn(linearGradient);
+        when(component().getDrawnBorderWidth()).thenReturn(Dimension.create(0));
+
+        mockMultiChildViewAdapter.applyHostComponentBackground(component(), getView());
+
+        verify(component(), atLeast(1)).isGradientBackground();
+        verify(component()).getBackgroundGradient();
+        assertTrue(getView().getBackground() instanceof LayerDrawable);
+    }
+
+    private ShapeDrawable getBackground() {
+        LayerDrawable parentLayout = (LayerDrawable)getView().getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        return (ShapeDrawable)borderInset.getDrawable();
     }
 
     private void setupChildWithBounds(Rect bounds) {

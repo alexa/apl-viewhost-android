@@ -19,6 +19,11 @@ import com.amazon.apl.android.primitive.MediaSources;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpMediaPlayerProvider;
+import com.amazon.apl.android.scenegraph.APLLayer;
+import com.amazon.apl.android.scenegraph.APLScenegraph;
+import com.amazon.apl.android.scenegraph.media.APLVideoLayer;
+import com.amazon.apl.android.sgcontent.Node;
+import com.amazon.apl.android.sgcontent.VideoNode;
 import com.amazon.apl.enums.AudioTrack;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.RootProperty;
@@ -35,6 +40,7 @@ import static com.amazon.apl.enums.AudioTrack.kAudioTrackForeground;
 import static com.amazon.apl.enums.ComponentType.kComponentTypeContainer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -251,5 +257,24 @@ public class VideoTest extends AbstractComponentUnitTest<View, Video> {
         inflateDocument(MEDIA_SOURCE, MEDIA_SOURCE_DATA);
         AbstractMediaPlayerProvider mediaPlayerProvider = getTestComponent().getMediaPlayerProvider();
         assertTrue(mediaPlayerProvider instanceof MediaPlayerProvider);
+    }
+
+    @Test
+    public void testAPLVideoLayer() {
+        String doc = buildDocument(REQUIRED_PROPERTIES, OPTIONAL_PROPERTIES, OPTIONAL_TEMPLATE_PROPERTIES);
+        inflateDocument(doc);
+        if (!mAplOptions.isScenegraphEnabled()) {
+            return;
+        }
+        APLScenegraph aplScenegraph = new APLScenegraph(mRootContext);
+        APLLayer aplLayer = APLLayer.ensure(aplScenegraph.getTop(), mRenderingContext);
+        assertTrue(aplLayer instanceof APLVideoLayer);
+        assertEquals(1, aplLayer.getContent().length);
+        assertEquals("Video", aplLayer.getContent()[0].getType());
+        Node node = aplLayer.getContent()[0];
+        assertTrue(node instanceof VideoNode);
+        VideoNode videoNode = (VideoNode) node;
+        assertEquals(VideoScale.kVideoScaleBestFill, videoNode.getVideoScale());
+        assertNotNull(videoNode.getMediaPlayer());
     }
 }

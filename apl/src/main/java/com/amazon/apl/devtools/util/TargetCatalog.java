@@ -5,6 +5,7 @@
 
 package com.amazon.apl.devtools.util;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 
@@ -22,6 +23,8 @@ public final class TargetCatalog {
     private final SortedMap<String, Target> mTargets = new TreeMap<>();
     private final Handler mHandler;
     private final HandlerThread mHandlerThread;
+
+    private Context context;
 
     public TargetCatalog() {
         // Create a background thread and associate a Handler with it
@@ -59,6 +62,14 @@ public final class TargetCatalog {
      */
     public Collection<Target> getAll() {
         return mTargets.values();
+    }
+
+    public Context getAppContext() {
+        return context;
+    }
+
+    public void setAppContext(Context context) {
+        this.context = context;
     }
 
     /**

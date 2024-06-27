@@ -17,6 +17,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
+import com.amazon.apl.android.metrics.IMetricsSink;
+import com.amazon.apl.android.metrics.MetricsMilestoneConstants;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
+import com.amazon.apl.android.media.MediaManager;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.alexaext.ExtensionRegistrar;
@@ -32,11 +38,15 @@ import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
+import com.amazon.apl.devtools.DevToolsProvider;
 import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
+import com.amazon.apl.devtools.util.DependencyContainer;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.common.NativeBinding;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -93,9 +103,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             // Since we have two valid variant combinations for our customers viz
             // (apl-release, discovery-standard-release) and (aplMinSized-release, discovery-standard-releaseMinSized);
             // we can use build type of apl library to decide to load discovery JNI or not.
-            if(!BuildConfig.BUILD_TYPE.equals("releaseMinSized")) {
-                System.loadLibrary("discovery-jni");
-            }
+            // if(!BuildConfig.BUILD_TYPE.equals("releaseMinSized")) {
+            //     System.loadLibrary("discovery-jni");
+            // }
 
             System.loadLibrary("apl-jni");
             nativeLibraryLoadingEndTime = SystemClock.elapsedRealtime();
@@ -126,6 +136,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     private final AtomicBoolean mIsFinished = new AtomicBoolean(false);
     private final AtomicBoolean mIsDisplayed = new AtomicBoolean(false);
     private Integer mRenderDocumentTimer;
+    
 
     /**
      * Start the initialization of the APL system resources. To check whether APL initialization has completed/was successful,
@@ -150,6 +161,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if (bitmapCache instanceof ComponentCallbacks2) {
             context.registerComponentCallbacks((ComponentCallbacks2) bitmapCache);
         }
+        DependencyContainer.getInstance().getTargetCatalog().setAppContext(context);
     }
 
     /**
@@ -233,8 +245,14 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @NonNull final InflationErrorCallback errorCallback,
             final boolean disableAsyncInflate,
             @NonNull final DocumentSession documentSession) {
+
+        final DevToolsProvider devToolsProvider = aplLayout.getDevToolsProvider();
+
         Session aplSession = rootConfig.getSession();
-        aplSession.setAPLListener(aplLayout.getDTView());
+        if (options.getMetricsOptions() != null) {
+            devToolsProvider.registerSink(options.getMetricsOptions().getMetricsSinkList());
+        }
+        aplSession.setAPLListener(devToolsProvider.getAPLSessionListener());
         aplLayout.setAPLSession(aplSession);
         aplSession.write(Session.LogEntryLevel.INFO, Session.LogEntrySource.VIEW, "----- Rendering Document -----");
 
@@ -253,12 +271,16 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if(options.getEmbeddedDocumentFactory() != null) {
             aplController.initializeDocumentManager(rootConfig, options.getEmbeddedDocumentFactory(), telemetryProvider);
         }
-
-        if (!isInitialized(telemetryProvider)) {
+         if (!isInitialized(telemetryProvider)) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
             aplController.onDocumentFinish();
             errorCallback.onError(new APLException("The APLController must be initialized.", new IllegalStateException()));
             upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.APL_INITIALIZATION_FAILURE);
+        }
+
+        if (options.isScenegraphEnabled()) {
+            MediaManager mediaManager = new MediaManager(aplController, options.getImageProvider().get(aplLayout.getContext()));
+            rootConfig.mediaManager(mediaManager);
         }
 
         aplController.mRenderDocumentTimer = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, TAG + "." + ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
@@ -296,7 +318,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                         final Runnable runnable = () -> {
                             try {
-                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter);
+                                content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
+                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder());
 
                                 if (aplController.mIsFinished.get()) {
                                     Log.i(TAG, "Finished while creating RootContext. Aborting");
@@ -306,7 +329,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                             } catch (Exception e) {
                                 upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.ROOT_CONTEXT_CREATION_FAILURE);
-                                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
+                                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession, content.getMetricsRecorder());
                             }
                         };
 
@@ -319,6 +342,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                 } else {
                     // Start extension registration timer
                     final int extensionRegistrationMetric = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, ITelemetryProvider.METRIC_TIMER_EXTENSION_REGISTRATION, ITelemetryProvider.Type.TIMER);
+
+                    content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.EXTENSION_REGISTRATION_START_MILESTONE);
                     telemetryProvider.startTimer(extensionRegistrationMetric);
 
                     // Give runtime chance to perform any extension related settings.
@@ -337,6 +362,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                     return () -> {
                                         mediator.registerImageFilters(registrar, content, rootConfig);
                                         telemetryProvider.stopTimer(extensionRegistrationMetric);
+                                        content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.EXTENSION_REGISTRATION_END_MILESTONE);
                                         aplLayout.addMetricsReadyListener(viewportMetrics -> {
                                             if (aplController.mIsFinished.get()) {
                                                 Log.i(TAG, "Finished while APLLayout is being measured. Aborting");
@@ -345,7 +371,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                                             final Runnable runnable = () -> {
                                                 try {
-                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter);
+                                                    content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
+                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder());
 
                                                     if (aplController.mIsFinished.get()) {
                                                         Log.i(TAG, "Finished while creating RootContext. Aborting");
@@ -355,7 +382,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
                                                 } catch (Exception e) {
                                                     upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.ROOT_CONTEXT_CREATION_FAILURE);
-                                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
+                                                    handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession, content.getMetricsRecorder());
                                                 }
                                             };
 
@@ -372,13 +399,15 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                 public Runnable onFailure() {
                                     return () -> {
                                         telemetryProvider.fail(extensionRegistrationMetric);
+                                        content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.EXTENSION_REGISTRATION_FAILED_MILESTONE);
                                         upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE);
                                         handleRenderingError(
                                                 new APLException("Required extensions failed to load.", new IllegalStateException()),
                                                 aplController,
                                                 telemetryProvider,
                                                 errorCallback,
-                                                aplSession
+                                                aplSession,
+                                                content.getMetricsRecorder()
                                         );
                                     };
                                 }
@@ -390,7 +419,17 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @Override
             public void onError(Exception e) {
                 upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE);
-                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession);
+                //this is the case where content is not initialised hence we will create a metrics recorder to propagate the error
+                MetricsRecorder metricsRecorder = new MetricsRecorder();
+                if (options.getMetricsOptions() != null) {
+                    List<IMetricsSink> metricsSinkList = options.getMetricsOptions().getMetricsSinkList() == null ?
+                            Collections.emptyList() : options.getMetricsOptions().getMetricsSinkList();
+                    for (IMetricsSink sink: metricsSinkList) {
+                        metricsRecorder.addSink(sink);
+                    }
+                    metricsRecorder.mergeMetadata(options.getMetricsOptions().getMetaData());
+                }
+                handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession, metricsRecorder);
             }
 
             @Override
@@ -406,7 +445,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     mediator.registerImageFilters(registrar, content, rootConfig);
                 }
             }
-        }, rootConfig, aplLayout.getDTView().getDTNetworkRequestHandler());
+        }, rootConfig, devToolsProvider.getNetworkRequestHandler());
         if (content != null) {
             aplController.mContent = content;
             aplLayout.addMetricsReadyListener(viewportMetrics -> {
@@ -438,8 +477,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     }
 
     private static void handleRenderingError(Exception e, APLController aplController, ITelemetryProvider telemetryProvider,
-                                             InflationErrorCallback errorCallback, Session aplSession) {
+                                             InflationErrorCallback errorCallback, Session aplSession, IMetricsRecorder metricsRecorder) {
         telemetryProvider.fail(aplController.mRenderDocumentTimer);
+        metricsRecorder.recordMilestone(MetricsMilestoneConstants.RENDER_FAILED_MILESTONE);
         aplController.onDocumentFinish();
         errorCallback.onError(e);
         aplSession.write(Session.LogEntryLevel.ERROR, Session.LogEntrySource.VIEW, "Document Failed: " + e.getMessage());
@@ -464,18 +504,22 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @NonNull final APLOptions options,
             @NonNull final RootConfig rootConfig,
             @NonNull final IAPLViewPresenter presenter) throws APLException {
+        IMetricsRecorder metricsRecorder = content.getMetricsRecorder();
         if (!isInitialized(options.getTelemetryProvider())) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
+            metricsRecorder.recordMilestone(MetricsMilestoneConstants.RENDER_FAILED_MILESTONE);
             throw new APLException("The APLController must be initialized.", new IllegalStateException());
         }
         if (!content.isReady()) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
+            metricsRecorder.recordMilestone(MetricsMilestoneConstants.RENDER_FAILED_MILESTONE);
             throw new APLException("Content must be in a ready state..", new IllegalStateException());
         }
 
         try (APLTrace.AutoTrace autoTrace = presenter.getAPLTrace().startAutoTrace(TracePoint.APL_CONTROLLER_RENDER_DOCUMENT)) {
             final ViewportMetrics metrics = presenter.getOrCreateViewportMetrics();
-            final RootContext rootContext = RootContext.create(metrics, content, rootConfig, options, presenter);
+            content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
+            final RootContext rootContext = RootContext.create(metrics, content, rootConfig, options, presenter, metricsRecorder);
             for (IDocumentLifecycleListener documentLifecycleListener : options.getDocumentLifecycleListeners()) {
                 presenter.addDocumentLifecycleListener(documentLifecycleListener);
             }
@@ -486,6 +530,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             return aplController;
         } catch (Exception e) {
             fail(options.getTelemetryProvider(), ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
+            metricsRecorder.recordMilestone(MetricsMilestoneConstants.RENDER_FAILED_MILESTONE);
             throw new APLException("Cannot render APL document", e);
         }
     }
@@ -837,7 +882,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         ITelemetryProvider telemetryProvider = getTelemetryProvider();
         if (telemetryProvider != null && mRenderDocumentTimer != null) {
             telemetryProvider.stopTimer(mRenderDocumentTimer, TimeUnit.MILLISECONDS, documentDisplayedTime);
-            mRenderDocumentTimer = null;
+        }
+        if (getMetricsRecorder() != null) {
+            getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_END_MILESTONE);
         }
 
         mMainHandler.post(this::processQueuedRunnables);
@@ -865,6 +912,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static synchronized boolean isInitialized(final ITelemetryProvider telemetryProvider) {
+        final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
+                ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);
         try {
             if (sLibraryFuture != null) {
                 return sLibraryFuture.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -872,13 +921,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                 Log.e(TAG, "Checking whether APL isInitialized before calling initializeAPL");
             }
         } catch (final TimeoutException ex) {
-            final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
-                    ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);
             telemetryProvider.incrementCount(metricId);
             Log.wtf(TAG, String.format("Library failed to load with a %d timeout", ConcurrencyUtils.SMALL_TIMEOUT_SECONDS), ex);
         } catch (final ExecutionException | InterruptedException ex) {
-            final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
-                    ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);
             telemetryProvider.incrementCount(metricId);
             Log.e(TAG, "The shared libraries failed to initialize", ex);
         }
@@ -888,6 +933,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     private ITelemetryProvider getTelemetryProvider() {
         if (mRootContext != null) {
             return mRootContext.getOptions().getTelemetryProvider();
+        }
+        return null;
+    }
+
+    private IMetricsRecorder getMetricsRecorder() {
+        if (mRootContext != null) {
+            return mRootContext.getMetricsRecorder();
         }
         return null;
     }

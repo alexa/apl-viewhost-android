@@ -110,6 +110,11 @@ public abstract class DocumentHandle extends UserDataHolder {
     public abstract <K> K getDocumentSetting(String propertyName, K defaultValue);
 
     /**
+     * Cancels the main sequencer. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-commands.html#command_sequencing
+     */
+    public abstract void cancelExecution();
+
+    /**
      * Interface for returning the document's serialized visual context
      */
     public interface VisualContextCallback {

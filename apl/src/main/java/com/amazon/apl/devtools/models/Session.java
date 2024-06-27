@@ -20,16 +20,16 @@ import com.amazon.apl.devtools.util.IdGenerator;
  * Each DTConnection can only have 1 Session attached to a specific Target.
  * For example, if there are 5 Targets, then a DTConnection can only have 5 Sessions, 1 per Target.
  */
-public final class Session extends SessionModel {
+public final class Session<T extends Target> extends SessionModel {
     private static final String TAG = Session.class.getSimpleName();
     private static final IdGenerator sessionIdGenerator = new IdGenerator();
     private final DTConnection mConnection;
-    private final Target mTarget;
+    private final T mTarget;
     private boolean isPerformanceEnabled;
     private boolean isLogEnabled;
     private boolean isNetworkEnabled;
 
-    public Session(DTConnection connection, Target target) {
+    public Session(DTConnection connection, T target) {
         super(sessionIdGenerator.generateId("session"));
         Log.i(TAG, "Creating session");
         mConnection = connection;
@@ -42,7 +42,7 @@ public final class Session extends SessionModel {
         return mConnection;
     }
 
-    public Target getTarget() {
+    public T getTarget() {
         return mTarget;
     }
 

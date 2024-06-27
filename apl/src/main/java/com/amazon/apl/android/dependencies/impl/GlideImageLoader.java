@@ -20,7 +20,9 @@ import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.dependencies.IImageLoader;
 import com.amazon.apl.android.providers.ITelemetryProvider;
+import com.amazon.apl.android.sgcontent.Node;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.Priority;
 import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.RequestManager;
 import com.bumptech.glide.load.DataSource;
@@ -36,6 +38,7 @@ import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 import com.bumptech.glide.signature.ObjectKey;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
@@ -69,6 +72,7 @@ public class GlideImageLoader implements IImageLoader {
     static final String METRIC_IMAGE_FAIL = TAG + ".loadImage.fail";
 
     private final Map<ImageView, List<Target<?>>> mTargets = new HashMap<>();
+    private final Map<Node, List<Target<?>>> mNodeTargets = new HashMap<>();
     private ITelemetryProvider mTelemetryProvider;
 
     private int cImageSuccess = ITelemetryProvider.UNKNOWN_METRIC_ID;
@@ -135,6 +139,41 @@ public class GlideImageLoader implements IImageLoader {
         }
 
         return requestOptions;
+    }
+
+    private RequestOptions buildDownloadOnlyRequestOptions(Map<String, String> headers) {
+        RequestOptions requestOptions = new RequestOptions();
+
+        if (headers.size() > 0) {
+            requestOptions = requestOptions.signature(new ObjectKey(headers));
+        }
+
+        return requestOptions;
+    }
+
+    @Override
+    public void downloadImage(DownloadImageParams downloadImageParams) {
+            Glide.with(mContext)
+                .setDefaultRequestOptions(buildLoadImageRequestOptions(downloadImageParams.headers(), false))
+                .downloadOnly()
+                // override default downloadOnly priority of low since this required to resolve
+                // the image dimensions of images we are trying to display now
+                .priority(Priority.NORMAL)
+                .addListener(new RequestListener<File>() {
+                    @Override
+                    public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<File> target, boolean isFirstResource) {
+                        downloadImageParams.callback().onError(e, parseErrorCodeFromException(e), downloadImageParams.path());
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(File resource, Object model, Target<File> target, DataSource dataSource, boolean isFirstResource) {
+                        downloadImageParams.callback().onSuccess(resource, downloadImageParams.path());
+                        return false;
+                    }
+                })
+                .load(downloadImageParams.path())
+                .submit();
     }
 
     @VisibleForTesting

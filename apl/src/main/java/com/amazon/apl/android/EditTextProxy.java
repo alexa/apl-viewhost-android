@@ -4,18 +4,14 @@
  */
 package com.amazon.apl.android;
 
-import android.graphics.Paint;
-import android.graphics.Typeface;
-import android.text.TextPaint;
-
 import androidx.annotation.NonNull;
 
 import com.amazon.apl.android.font.TypefaceResolver;
-import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.FontStyle;
 import com.amazon.apl.enums.KeyboardType;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.SubmitKeyType;
+import com.amazon.common.BoundObject;
 
 import static com.amazon.apl.enums.PropertyKey.kPropertyBorderColor;
 import static com.amazon.apl.enums.PropertyKey.kPropertyBorderWidth;
@@ -35,7 +31,7 @@ import static com.amazon.apl.enums.PropertyKey.kPropertyText;
 import static com.amazon.apl.enums.PropertyKey.kPropertyValidCharacters;
 
 public abstract class EditTextProxy<B extends BoundObject>
-        extends PropertyMap<B, PropertyKey> {
+        extends PropertyMap<B, PropertyKey> implements ITextProxy {
 
 
     /**
@@ -66,41 +62,29 @@ public abstract class EditTextProxy<B extends BoundObject>
         return getColor(kPropertyColor);
     }
 
-    /**
-     * @return The name of the font family. Defaults to sans-serif.
-     */
+    @Override
     @NonNull
     public String getFontFamily() {
         return getString(kPropertyFontFamily);
     }
 
-    /**
-     * @return The name of the font language. Defaults to "".
-     * For example to select the japanese characters of the "Noto Sans CJK" font family set lang to "ja-JP"
-     */
+    @Override
     @NonNull
     public String getFontLanguage() {
         return getString(kPropertyLang);
     }
 
-    /**
-     * @return The size of the text. Defaults to 40dp.
-     */
-    public int getFontSize() {
-        // TODO normalize with Text component
-        return getDimension(kPropertyFontSize).intValue();
+    @Override
+    public float getFontSize() {
+        return getDimension(kPropertyFontSize).value();
     }
 
-    /**
-     * @return The style of the font. Defaults to normal.
-     */
+    @Override
     public FontStyle getFontStyle() {
         return FontStyle.valueOf(getEnum(PropertyKey.kPropertyFontStyle));
     }
 
-    /**
-     * @return Weight of the font. Defaults to normal.
-     */
+    @Override
     public int getFontWeight() {
         return getInt(PropertyKey.kPropertyFontWeight);
     }
@@ -202,38 +186,4 @@ public abstract class EditTextProxy<B extends BoundObject>
     public String getValidCharacters() {
         return getString(kPropertyValidCharacters);
     }
-
-
-    /**
-     * @return creates and returns {@link TextPaint}.
-     */
-    @NonNull
-    public TextPaint getTextPaint(final float density) {
-        TypefaceResolver typefaceResolver = TypefaceResolver.getInstance();
-        final Typeface tf = typefaceResolver.getTypeface(getFontFamily(),
-                getFontWeight(), FontStyle.kFontStyleItalic == getFontStyle(), getFontLanguage(), false);
-
-        // Create the text paint
-        final TextPaint textPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        textPaint.setColor(getColor());
-        textPaint.setTextSize(getFontSize());
-        textPaint.setTypeface(tf);
-        // letterSpacing needs to be calculated as EM
-        textPaint.density = density;
-        textPaint.setTextScaleX(1.0f);
-
-        return textPaint;
-    }
-
-
-    public String getMeasureText() {
-        // Use size property to find the approximate width of the EditText component as per the spec:
-        // https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-edittext.html#size
-        StringBuilder dummyText = new StringBuilder(getSize());
-        for (int i = 0; i < getSize(); i++) {
-            dummyText.append("M");
-        }
-        return dummyText.toString();
-    }
-
 }

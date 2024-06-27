@@ -1,14 +1,16 @@
-/*
+/**
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  */
 
 #ifndef ANDROID_JNITEXTMEASURECALLBACK_H
 #define ANDROID_JNITEXTMEASURECALLBACK_H
 
-#include <jni.h>
-#include <jnimetricstransform.h>
-#include "apl/apl.h"
 #include <utility>
+#include <jni.h>
+
+#include "apl/apl.h"
+
+#include "jnimetricstransform.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,17 +20,16 @@ extern "C" {
 *  Initialize and cache java class and method handles for callback to the rendering layer.
 */
 jboolean
-textmeasurecallback_OnLoad(JavaVM *vm, void * reserved __attribute__((__unused__))) ;
+textmeasurecallback_OnLoad(JavaVM *vm, void * reserved ) ;
 
 /**
 * Release the class and method cache.
 */
 void
-textmeasurecallback_OnUnload(JavaVM *vm, void * reserved __attribute__((__unused__))) ;
-
+textmeasurecallback_OnUnload(JavaVM *vm, void * reserved ) ;
 
 namespace apl {
-    namespace jni {
+namespace jni {
 
     /**
      * Text Measurement Callback.  This object calls back to the view host via JNI.
@@ -44,46 +45,36 @@ namespace apl {
      * during the measurement effort. To maintain proper binding with the native peer, this callback
      * should not be used across document.
      */
-    class JniTextMeasurement : public TextMeasurement, public PropertyLookup {
+    class APLTextMeasurement : public apl::sg::TextMeasurement {
     public:
-        JniTextMeasurement() {}
+        APLTextMeasurement() {}
 
-        virtual ~JniTextMeasurement();
+        virtual ~APLTextMeasurement();
 
-        LayoutSize measure(Component *textPtr,
-                           float width,
-                           MeasureMode widthMode,
-                           float height,
-                           MeasureMode heightMode) override;
+        sg::TextLayoutPtr layout( const apl::sg::TextChunkPtr& chunk,
+                                  const apl::sg::TextPropertiesPtr& textProperties,
+                                  float width,
+                                  MeasureMode widthMode,
+                                  float height,
+                                  MeasureMode heightMode ) override;
 
-        float baseline(Component *component,
-                               float width,
-                               float height) override;
-
-        apl::Object getObject(int propertyId, jlong handle) override;
-
-        std::shared_ptr<Context> getContext(jlong handle) override {
-            // the bound object handle references "this",
-            // the bound target is the current component
-            // only way for this method to be called is in response to @c measure "CallObjectMessage"
-            return mCurrentComponent->getContext();
-        }
+        sg::EditTextBoxPtr box( int size,
+                                const apl::sg::TextPropertiesPtr& textProperties,
+                                float width,
+                                MeasureMode widthMode,
+                                float height,
+                                MeasureMode heightMode ) override;
 
         virtual void setInstance(jobject instance);
 
-
     private:
         jweak mInstance = nullptr;
-        Component * mCurrentComponent;
     };
 
-    } // namespace jni
+} // namespace jni
 } // namespace apl
-
 
 #ifdef __cplusplus
 }
 #endif
-
-
 #endif //ANDROID_JNITEXTMEASURECALLBACK_H

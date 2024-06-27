@@ -24,7 +24,7 @@ android {
     namespace 'com.amazon.apl.coreengine'
     compileSdk 33
     ndkVersion "23.0.7599858"
-    buildToolsVersion = "33.0.0"
+    buildToolsVersion = "34.0.0"
 
     sourceSets {
         // Encapsulates configurations for the main source set.

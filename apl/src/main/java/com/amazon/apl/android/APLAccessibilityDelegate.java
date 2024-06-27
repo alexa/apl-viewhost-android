@@ -70,6 +70,7 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
     @Override
     public void onInitializeAccessibilityNodeInfo(View host, AccessibilityNodeInfoCompat info) {
         super.onInitializeAccessibilityNodeInfo(host, info);
+        // TODO: Currently APL does not support Accessibility Scroll
         setRole(info);
         setActions(info);
         setResourceId(info);
@@ -248,8 +249,8 @@ public class APLAccessibilityDelegate<C extends Component> extends Accessibility
     }
 
     private void setText(AccessibilityNodeInfoCompat nodeInfo) {
-        if (mComponent.hasProperty(PropertyKey.kPropertyText)) {
-            nodeInfo.setText(mComponent.getProperties().getString(PropertyKey.kPropertyText));
+        if (mComponent.hasTextProperty()) {
+            nodeInfo.setText(mComponent.getAccessibilityNodeText());
         }
     }
 

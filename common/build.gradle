@@ -9,7 +9,7 @@ apply plugin: 'maven-publish'
 android {
     namespace 'com.amazon.common'
     compileSdk 34
-    buildToolsVersion = "33.0.0"
+    buildToolsVersion = "34.0.0"
     ndkVersion "23.0.7599858"
 
     defaultConfig {

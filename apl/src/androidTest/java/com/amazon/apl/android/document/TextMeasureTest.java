@@ -13,7 +13,6 @@ import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLViewhostTest;
 import com.amazon.apl.android.Content;
-import com.amazon.apl.android.EditTextProxy;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.RootConfig;
@@ -24,9 +23,14 @@ import com.amazon.apl.android.TextLayoutFactory;
 import com.amazon.apl.android.TextMeasure;
 import com.amazon.apl.android.TextProxy;
 import com.amazon.apl.android.font.CompatFontResolver;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.ITimer;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.StyledText;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.Display;
 import com.amazon.apl.enums.FontStyle;
@@ -37,6 +41,7 @@ import com.amazon.apl.enums.ViewportMode;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -46,13 +51,14 @@ import org.mockito.invocation.InvocationOnMock;
 import static com.amazon.apl.android.TextMeasure.MeasureMode.AtMost;
 import static com.amazon.apl.android.TextMeasure.MeasureMode.Exactly;
 import static com.amazon.apl.android.TextMeasure.MeasureMode.Undefined;
-import static com.amazon.apl.enums.ComponentType.kComponentTypeEditText;
-import static com.amazon.apl.enums.ComponentType.kComponentTypeText;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyFloat;
+
+import static org.mockito.ArgumentMatchers.anyString;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -66,7 +72,7 @@ public class TextMeasureTest extends APLViewhostTest {
     }
 
     @Mock
-    EditTextProxy mockEditProxy;
+    StyledText mockStyledText;
     @Mock
     TextProxy mockTextProxy;
 
@@ -91,13 +97,15 @@ public class TextMeasureTest extends APLViewhostTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
+        when(mockStyledText.getText(any(), any())).thenReturn("");
+
         // Text Proxy Modk
         when(mockTextProxy.getVisualHash()).thenReturn(TEXT_HASH);
         when(mockTextProxy.getTextAlignment()).then(InvocationOnMock::callRealMethod);
         when(mockTextProxy.getDirectionHeuristic()).then(InvocationOnMock::callRealMethod);
         when(mockTextProxy.getColor()).thenReturn(0xFFFAFAFA);
         when(mockTextProxy.getDisplay()).thenReturn(Display.kDisplayNormal);
-        when(mockTextProxy.getFontSize()).thenReturn(Dimension.create(40));
+        when(mockTextProxy.getFontSize()).thenReturn(40.0f);
         when(mockTextProxy.getFontFamily()).thenReturn("sans-serif");
         when(mockTextProxy.getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
         when(mockTextProxy.getFontWeight()).thenReturn(400);
@@ -105,26 +113,15 @@ public class TextMeasureTest extends APLViewhostTest {
         when(mockTextProxy.getLetterSpacing()).thenReturn(Dimension.create(0f));
         when(mockTextProxy.getLineHeight()).thenReturn(24.0f);
         when(mockTextProxy.getMaxLines()).thenReturn(0);
-        when(mockTextProxy.getText(any(), any())).thenReturn("");
         when(mockTextProxy.getTextAlign()).thenReturn(TextAlign.kTextAlignAuto);
         when(mockTextProxy.getTextAlign()).thenReturn(TextAlign.kTextAlignAuto);
         when(mockTextProxy.getTextAlignVertical()).thenReturn(TextAlignVertical.kTextAlignVerticalAuto);
         when(mockTextProxy.getScalingFactor()).thenReturn(1.f);
-
-        // Edit Text Proxy Mock
-        when(mockEditProxy.getMeasureText()).then(InvocationOnMock::callRealMethod);
-        when(mockEditProxy.getTextPaint(anyFloat())).then(InvocationOnMock::callRealMethod);
-        when(mockEditProxy.getColor()).thenReturn(0xFFFAFAFA);
-        when(mockEditProxy.getFontSize()).thenReturn(40);
-        when(mockEditProxy.getFontFamily()).thenReturn("sans-serif");
-        when(mockEditProxy.getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
-        when(mockEditProxy.getFontWeight()).thenReturn(400);
-        when(mockEditProxy.getFontLanguage()).thenReturn("en-US");
-        when(mockEditProxy.getText()).thenReturn("");
-        when(mockEditProxy.getSize()).thenReturn(8);
+        when(mockTextProxy.getSize()).thenReturn(8);
+        when(mockTextProxy.getTextPaint(anyFloat())).then(InvocationOnMock::callRealMethod);
+        when(mockTextProxy.getStyledText()).thenReturn(mockStyledText);
 
         TextMeasure measure = new TextMeasure(mRenderingContext);
-        measure.prepare(mockTextProxy, mockEditProxy);
         mMeasureSpy = spy(measure);
     }
 
@@ -138,6 +135,9 @@ public class TextMeasureTest extends APLViewhostTest {
         APLOptions mOptions = APLOptions.builder().build();
         RootConfig rootConfig = RootConfig.create("Unit Test", "1.0");
         IAPLViewPresenter mPresenter = mock(IAPLViewPresenter.class);
+        MetricsRecorder metricsRecorder = mock(MetricsRecorder.class);
+        ICounter counter = mock(ICounter.class);
+        ITimer timer = mock(ITimer.class);
         when(mPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
 
         Content content = null;
@@ -149,8 +149,10 @@ public class TextMeasureTest extends APLViewhostTest {
         if (content == null || !content.isReady()) {
             fail("Content failed to inflate");
         }
+        when(metricsRecorder.createCounter(anyString())).thenReturn(counter);
+        when(metricsRecorder.startTimer(anyString(), any())).thenReturn(timer);
         RootContext ctx = RootContext.create(mMetrics, content, rootConfig,
-                mOptions, mPresenter);
+                mOptions, mPresenter, metricsRecorder);
         if (ctx == null || ctx.getNativeHandle() == 0) {
             fail("The document failed to load.");
         }
@@ -159,10 +161,12 @@ public class TextMeasureTest extends APLViewhostTest {
 
     @Test
     @SmallTest
+    @Ignore("Does not make sense, call should not even happen from core side.")
     public void testMeasureContent_DisplayNone() {
         // when not displayed, return the proposed measurements
         when(mockTextProxy.getDisplay()).thenReturn(Display.kDisplayNone);
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 160, Undefined, 150, Undefined);
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 160, Undefined, 150, Undefined, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(160, measure[0], 0);
         assertEquals(150, measure[1], 0);
     }
@@ -171,7 +175,8 @@ public class TextMeasureTest extends APLViewhostTest {
     @SmallTest
     public void testMeasure_ModeUndefined() {
         // undefined returns a single line height, and no width
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 64, Undefined, 200, Undefined);
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 64, Undefined, 200, Undefined, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(0, measure[0], 0);
         assertEquals(51, measure[1], 0);
     }
@@ -181,7 +186,8 @@ public class TextMeasureTest extends APLViewhostTest {
     public void testMeasure_ModeExactly() {
         // MeasureMode.Exactly happens when the text has a width/height explicitly set,
         // in this case measureTextContent isn't called until the view is created
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 1011, Exactly, 641, Exactly);
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 1011, Exactly, 641, Exactly, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(1011, measure[0], 0);
         assertEquals(641, measure[1], 0);
     }
@@ -190,8 +196,8 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_AtMostBoring() {
-        when(mockTextProxy.getText(any(), any())).thenReturn("");
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 1011, AtMost, 641, AtMost);
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 1011, AtMost, 641, AtMost, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(0, measure[0], 0);
         assertEquals(51, measure[1], 0);
     }
@@ -199,8 +205,9 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_ModeAtMostExciting() {
-        when(mockTextProxy.getText(any(), any())).thenReturn("77°F");
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 1011, AtMost, 641, AtMost);
+        when(mockStyledText.getText(any(), any())).thenReturn("77°F");
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 1011, AtMost, 641, AtMost, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(100, measure[0], 25); // rough width of a string shorter than alloted width
         assertEquals(51, measure[1], 0);
     }
@@ -208,8 +215,9 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_ModeAtMostTruncate() {
-        when(mockTextProxy.getText(any(), any())).thenReturn("And here's to you, Mrs. Robinson Jesus loves you more than you will know");
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeText, 160, AtMost, 150, AtMost);
+        when(mockStyledText.getText(any(), any())).thenReturn("And here's to you, Mrs. Robinson Jesus loves you more than you will know");
+        APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 160, AtMost, 150, AtMost, mockStyledText);
+        float[] measure = layout.getSize();
         assertEquals(160, measure[0], 0);
         assertEquals(150, measure[1], 0);
     }
@@ -233,8 +241,8 @@ public class TextMeasureTest extends APLViewhostTest {
         RootContext ctx = inflateDoc(doc); // span is a pain to mock, so grab a real component
         Text text = (Text)ctx.getTopComponent();
         TextMeasure textMeasure = new TextMeasure(ctx.getRenderingContext());
-        textMeasure.prepare(text.getProxy(), null);
-        float[] measure = textMeasure.measure(TEXT_HASH, kComponentTypeText, mMetrics.width(), AtMost, mMetrics.height(), AtMost);
+        APLTextLayout layout = textMeasure.measure(text.getProxy(), mMetrics.width(), AtMost, mMetrics.height(), AtMost, text.getProxy().getStyledText());
+        float[] measure = layout.getSize();
         assertTrue(measure[1] > 100 && measure[1] < 150);
     }
 
@@ -257,8 +265,8 @@ public class TextMeasureTest extends APLViewhostTest {
         RootContext ctx = inflateDoc(doc); // span is a pain to mock, so grab a real component
         Text text = (Text) ctx.getTopComponent();
         TextMeasure textMeasure = new TextMeasure(ctx.getRenderingContext());
-        textMeasure.prepare(text.getProxy(), null);
-        float[] measure = textMeasure.measure(TEXT_HASH, kComponentTypeText, mMetrics.width(), AtMost, mMetrics.height(), AtMost);
+        APLTextLayout layout = textMeasure.measure(text.getProxy(), mMetrics.width(), AtMost, mMetrics.height(), AtMost, text.getProxy().getStyledText());
+        float[] measure = layout.getSize();
         assertTrue(measure[1] > 150 && measure[1] < 200);
     }
 
@@ -269,15 +277,15 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_EditSize() {
-        when(mockEditProxy.getSize()).thenReturn(8);
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeEditText, mMetrics.width(), AtMost, mMetrics.height(), AtMost);
+        when(mockTextProxy.getSize()).thenReturn(8);
+        float[] measure = mMeasureSpy.measureEditText(mockTextProxy, mMetrics.width(), AtMost, mMetrics.height(), AtMost, 8);
         assertEquals(51, measure[1], 0); //single height
 
         int halfSize = 8 / 2;
         float halfWidth = measure[0] / 2f;
 
-        when(mockEditProxy.getSize()).thenReturn(halfSize);
-        measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeEditText, mMetrics.width(), AtMost, 960, AtMost);
+        when(mockTextProxy.getSize()).thenReturn(halfSize);
+        measure = mMeasureSpy.measureEditText(mockTextProxy, mMetrics.width(), AtMost, 960, AtMost, halfSize);
         assertEquals(halfWidth, measure[0], 0);
         assertEquals(51, measure[1], 0); //single height
     }
@@ -288,18 +296,17 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_EditFontSize() {
-        when(mockEditProxy.getText()).thenReturn("Hello APL!");
-        when(mockEditProxy.getSize()).thenReturn(1); // Use a single character to eliminate letter spacing
+        when(mockTextProxy.getSize()).thenReturn(1); // Use a single character to eliminate letter spacing
 
-        float[] measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeEditText, mMetrics.width(), AtMost, mMetrics.height(), AtMost);
+        float[] measure = mMeasureSpy.measureEditText(mockTextProxy, mMetrics.width(), AtMost, mMetrics.height(), AtMost, 1);
         assertEquals(51, measure[1], 0); //single height
 
-        int doubleFont = mockEditProxy.getFontSize() *2 ;
+        float doubleFont = mockTextProxy.getFontSize() * 2;
         float doubleWidth = measure[0] * 2f;
         float doubleHeight = measure[1] * 2f;
 
-        when(mockEditProxy.getFontSize()).thenReturn(doubleFont);
-        measure = mMeasureSpy.measure(TEXT_HASH, kComponentTypeEditText, mMetrics.width(), AtMost, mMetrics.height(), AtMost);
+        when(mockTextProxy.getFontSize()).thenReturn(doubleFont);
+        measure = mMeasureSpy.measureEditText(mockTextProxy, mMetrics.width(), AtMost, mMetrics.height(), AtMost, 1);
         assertEquals(doubleWidth, measure[0], 2); //double width, allow for rounding
         assertEquals(doubleHeight, measure[1], 2); //double height, allow for rounding
     }

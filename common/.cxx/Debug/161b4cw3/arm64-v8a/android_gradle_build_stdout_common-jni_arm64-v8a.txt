@@ -1,2 +1,0 @@
-ninja: Entering directory `/Volumes/workplace/APLViewhostAndroid/src/APLViewhostAndroid/common/.cxx/Debug/161b4cw3/arm64-v8a'
-ninja: no work to do.

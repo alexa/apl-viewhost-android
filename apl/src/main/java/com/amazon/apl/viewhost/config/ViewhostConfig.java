@@ -7,12 +7,14 @@ package com.amazon.apl.viewhost.config;
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.audio.IAudioPlayerFactory;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.viewhost.message.MessageHandler;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.google.auto.value.AutoValue;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +25,7 @@ import javax.annotation.Nullable;
  */
 @AutoValue
 public abstract class ViewhostConfig {
+    private static String TAG = "ViewhostConfig";
     /**
      * Default document options for prepare/render document requests that do not supply their own.
      */
@@ -78,12 +81,16 @@ public abstract class ViewhostConfig {
     @Nullable
     public abstract RuntimeMediaPlayerFactory getMediaPlayerFactory();
 
+    public Map<String, Object> getProperties() { return builder().mProperties; };
+
     public static Builder builder() {
         return new AutoValue_ViewhostConfig.Builder();
     }
 
     @AutoValue.Builder
     public abstract static class Builder {
+        private Map<String, Object> mProperties = new HashMap<>();
+
         public abstract Builder defaultDocumentOptions(DocumentOptions options);
         public abstract Builder messageHandler(MessageHandler handler);
         public abstract Builder messageHandlers(List<MessageHandler> handler);
@@ -98,6 +105,19 @@ public abstract class ViewhostConfig {
         public abstract Builder rootProperties(Map<RootProperty, Object> map);
 
         public abstract Builder environmentProperties(Map<String, Object> map);
+
+        /**
+         * Set a configuration property.
+         *
+         * @param property The name of the property to set
+         * @param value The value for this property
+         * @return the builder
+         */
+        public Builder set(String property, Object value) {
+            mProperties.put(property, value);
+            return this;
+        }
+
         public abstract ViewhostConfig build();
     }
 }

@@ -14,6 +14,9 @@ import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.dependencies.IVisualContextListener;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.ITimer;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TestClock;
@@ -21,7 +24,6 @@ import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 import com.amazon.common.test.LeakRulesBaseClass;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -33,6 +35,8 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -76,6 +80,12 @@ public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
 
     @Mock
     protected IAPLViewPresenter mAPLPresenter;
+    @Mock
+    private MetricsRecorder mMetricsRecorder;
+    @Mock
+    private ICounter mCounter;
+    @Mock
+    private ITimer mTimer;
 
     @Mock
     protected IVisualContextListener mMockVisualContextListener;
@@ -126,8 +136,10 @@ public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
         mAPLPresenter = mock(IAPLViewPresenter.class);
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
-        mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter));
+        mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter, mMetricsRecorder));
 
         assertNotNull(mRootContext);
 

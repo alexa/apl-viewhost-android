@@ -37,8 +37,7 @@ public final class Pointer {
         this.y = y;
     }
 
-    @VisibleForTesting
-    Pointer(Pointer other) {
+    public Pointer(Pointer other) {
         this(other.id, other.pointerType, other.eventType, other.x, other.y);
     }
 

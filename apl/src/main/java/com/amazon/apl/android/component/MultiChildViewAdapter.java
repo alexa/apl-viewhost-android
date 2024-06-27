@@ -6,7 +6,11 @@
 package com.amazon.apl.android.component;
 
 import android.content.Context;
-import android.util.Log;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.view.View;
 
 import com.amazon.apl.android.APLVersionCodes;
@@ -14,6 +18,9 @@ import com.amazon.apl.android.Component;
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.bitmap.ShadowCache;
+import com.amazon.apl.android.primitive.Dimension;
+import com.amazon.apl.android.primitive.Gradient;
+import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
@@ -52,6 +59,18 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
         return new APLAbsoluteLayout(context, presenter);
     }
 
+    private Drawable createDrawables() {
+        InsetDrawable borderInsetDrawable = new InsetDrawable(
+                new ShapeDrawable(new RectShape()),
+                0, 0, 0, 0);
+        LayerDrawable parentDrawable = new LayerDrawable(new Drawable[]{
+                new ShapeDrawable(),
+                borderInsetDrawable
+        });
+        parentDrawable.setId(1, 1);
+        return parentDrawable;
+    }
+
     @Override
     public void applyAllProperties(C component, APLAbsoluteLayout layout) {
         super.applyAllProperties(component, layout);
@@ -60,6 +79,40 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
             ScrollDirection scrollDirection = ScrollDirection.valueOf(component.getProperties().getEnum(PropertyKey.kPropertyScrollDirection));
             layout.updateScrollPosition(scrollPosition, scrollDirection);
         }
+    }
+
+    void applyHostComponentBackground(MultiChildComponent component, APLAbsoluteLayout view) {
+        if (component.getComponentType() != ComponentType.kComponentTypeHost) {
+            return;
+        }
+        //if the component is set to default color or there is no gradient background.
+        if (component.getBackgroundColor() == 0 && !component.isGradientBackground()) {
+            return;
+        }
+
+        if (view.getBackground() == null) {
+            view.setBackground(createDrawables());
+        }
+        ShapeDrawable backgroundDrawable = getBackgroundDrawable(view);
+        Dimension drawnBorderWidth = component.getDrawnBorderWidth();
+        backgroundDrawable.getPaint().setShader(null);
+
+        if (component.isGradientBackground()) {
+            Rect shaderSize = component.getBounds().inset(drawnBorderWidth.value());
+            Gradient gradient = component.getBackgroundGradient();
+            backgroundDrawable.getPaint().setShader(gradient.getShader(
+                    shaderSize.intWidth(), shaderSize.intHeight()));
+        } else {
+            backgroundDrawable.getPaint().setColor(component.getBackgroundColor());
+        }
+
+        backgroundDrawable.invalidateSelf();
+    }
+
+    private ShapeDrawable getBackgroundDrawable(APLAbsoluteLayout view) {
+        LayerDrawable parentLayout = (LayerDrawable)view.getBackground();
+        InsetDrawable borderInset = (InsetDrawable)parentLayout.getDrawable(1);
+        return (ShapeDrawable)borderInset.getDrawable();
     }
 
     @Override
@@ -167,6 +220,10 @@ public class MultiChildViewAdapter<C extends MultiChildComponent> extends Compon
                     layout.removeDetachedView(childView);
                 }
             }
+        }
+
+        if (component.getComponentType() == ComponentType.kComponentTypeHost) {
+            applyHostComponentBackground(component, layout);
         }
 
         for (Component child : children) {

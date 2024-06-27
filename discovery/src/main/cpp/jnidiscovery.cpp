@@ -9,6 +9,9 @@
 #include "jniextensionproxy.h"
 #include "jniextensionregistrar.h"
 #include "jniextensionresource.h"
+#include "jnimetricsextensionv2.h"
+#include "jnidestinationfactory.h"
+#include "jnidestination.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,9 +35,13 @@ JNI_OnLoad(JavaVM *vm, void *reserved) {
     jboolean extensionProxyLoaded = extensionproxy_OnLoad(vm, reserved);
     jboolean extensionProviderLoaded = extensionprovider_OnLoad(vm, reserved);
     jboolean extensionResourceProviderLoaded = extensionresource_OnLoad(vm, reserved);
+    jboolean metricsextensionV2Loaded = metricsextensionV2_OnLoad(vm, reserved);
+    jboolean destinationfactoryLoaded = destinationfactory_OnLoad(vm, reserved);
+    jboolean destinationLoaded = destination_OnLoad(vm, reserved);
 
     if (!extensionProxyLoaded || !extensionProviderLoaded || !extensionResourceProviderLoaded
-        || !extensionExecutorLoaded) {
+        || !extensionExecutorLoaded || !metricsextensionV2Loaded
+        || !destinationfactoryLoaded || !destinationLoaded) {
         return JNI_ERR;
     }
 
@@ -51,10 +58,13 @@ JNI_OnUnload(JavaVM *vm, void *reserved) {
     extensionproxy_OnUnload(vm, reserved);
     extensionprovider_OnUnload(vm, reserved);
     extensionresource_OnUnload(vm, reserved);
+    metricsextensionV2_OnUnload(vm, reserved);
+    destinationfactory_OnUnload(vm, reserved);
+    destination_OnUnload(vm, reserved);
 }
 
 } //namespace jni
-} //namespace apl
+} //namespace alexaext
 
 #ifdef __cplusplus
 }

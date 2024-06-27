@@ -17,8 +17,19 @@ import java.util.ArrayList;
  */
 @AutoValue
 public abstract class AccessibilityActions implements IterableProperty<AccessibilityActions.AccessibilityAction> {
+    public static AccessibilityActions create() {
+        return IterableProperty.create(new AccessibilityActionGetterV2());
+    }
+
     public static AccessibilityActions create(BoundObject boundObject, APLEnum propertyKey) {
         return IterableProperty.create(new AccessibilityActionGetter(boundObject, propertyKey));
+    }
+
+    private static class AccessibilityActionGetterV2 extends SimpleArrayGetter<AccessibilityActions, AccessibilityActions.AccessibilityAction> {
+        @Override
+        public AccessibilityActions builder() {
+            return new AutoValue_AccessibilityActions(new ArrayList<>());
+        }
     }
 
     private static class AccessibilityActionGetter extends ArrayGetter<AccessibilityActions, AccessibilityAction> {

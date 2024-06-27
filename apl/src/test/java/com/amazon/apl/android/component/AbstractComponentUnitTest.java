@@ -13,6 +13,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,6 +36,9 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.RuntimeConfig;
 import com.amazon.apl.android.font.CompatFontResolver;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.ITimer;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
@@ -176,6 +181,12 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
 
     @Mock
     IAPLViewPresenter mAPLPresenter;
+    @Mock
+    MetricsRecorder mMetricsRecorder;
+    @Mock
+    protected ICounter mCounter;
+    @Mock
+    protected ITimer mTimer;
 
     @Before
     public void setup() {
@@ -256,8 +267,10 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
                 .mode(ViewportMode.kViewportModeHub)
                 .build();
 
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
-        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter);
+        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder);
         mRenderingContext = mRootContext.getRenderingContext();
 
         if (mRootContext.getNativeHandle() == 0) {

@@ -6,6 +6,7 @@
 package com.amazon.apl.android;
 
 import com.amazon.apl.android.font.TypefaceResolver;
+import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.views.APLEditText;
 import com.amazon.apl.enums.KeyboardType;
 
@@ -36,6 +37,7 @@ public class EditTextActionableViewAdapterTest extends AbstractActionableCompone
         when(component().getViewPresenter()).thenReturn(mMockPresenter);
         when(component().getProxy()).thenReturn(proxy());
 
+        when(proxy().getFontSize()).thenReturn(40.0f);
         when(proxy().getTypefaceResolver()).thenReturn(mockTypefaceResolver);
         when(proxy().getSubmitKeyType()).thenReturn(kSubmitKeyTypeDone);
         when(proxy().getKeyboardType()).thenReturn(KeyboardType.kKeyboardTypeNormal);

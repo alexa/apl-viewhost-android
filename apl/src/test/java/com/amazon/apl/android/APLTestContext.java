@@ -6,6 +6,8 @@
 package com.amazon.apl.android;
 
 import static junit.framework.TestCase.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -17,6 +19,9 @@ import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.amazon.apl.android.dependencies.IMediaPlayer;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.ITimer;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
@@ -65,6 +70,10 @@ public class APLTestContext {
     private IAPLViewPresenter mPresenter = mock(IAPLViewPresenter.class);
 
     private IMediaPlayer mMockMediaPlayer = mock(IMediaPlayer.class);
+
+    private MetricsRecorder mMetricsRecorder = mock(MetricsRecorder.class);
+    private ICounter mCounter = mock(ICounter.class);
+    private ITimer mTimer = mock(ITimer.class);
 
     public Content buildContent() {
         if (mContent == null) {
@@ -152,6 +161,11 @@ public class APLTestContext {
         return mPresenter;
     }
 
+    public void buildMetricsRecorder() {
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+    }
+
 
     public APLTestContext buildRootContextDependencies() {
         buildContent();
@@ -159,6 +173,7 @@ public class APLTestContext {
         buildMetrics();
         buildRootConfig();
         buildPresenter();
+        buildMetricsRecorder();
         return this;
     }
 
@@ -168,7 +183,7 @@ public class APLTestContext {
         buildRootContextDependencies();
 
         if (mRootContext == null)
-            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter);
+            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter, mMetricsRecorder);
 
         return mRootContext;
     }

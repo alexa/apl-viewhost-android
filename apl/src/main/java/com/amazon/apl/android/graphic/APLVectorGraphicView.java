@@ -85,10 +85,10 @@ public class APLVectorGraphicView extends ImageView {
 
         if (mVectorGraphicScale == VectorGraphicScale.kVectorGraphicScaleFill ||
                 (vwidth == dwidth && vheight == dheight)) {
-            setBounds(0, 0, vwidth, vheight, d);
+            d.setBounds(0, 0, vwidth, vheight);
             setImageMatrix(null);
         } else {
-            setBounds(0, 0, dwidth, dheight, d);
+            d.setBounds(0, 0, dwidth, dheight);
             float scale = calculateScale(vwidth, vheight, dwidth, dheight);
             int deltaX = deltaLeft(vwidth, dwidth * scale);
             int deltaY = deltaTop(vheight, dheight * scale);
@@ -99,33 +99,6 @@ public class APLVectorGraphicView extends ImageView {
         }
     }
 
-    /**
-     * Sets the bounds on the drawable. For some reason {@Drawable#setBounds} does
-     * not work on {@link android.graphics.drawable.VectorDrawable}
-     *
-     * @param left
-     * @param top
-     * @param width
-     * @param height
-     * @param drawable
-     */
-    private void setBounds(int left, int top, int width, int height, Drawable drawable) {
-        if (width <= 0 || height <= 0) {
-            return;
-        }
-        Bitmap bitmap;
-        try {
-            bitmap = mBitmapFactory.createBitmap(width, height);
-        } catch (BitmapCreationException e) {
-            if (BuildConfig.DEBUG) {
-                Log.e(TAG, "Error creating bitmap for scaling.", e);
-            }
-            return;
-        }
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-    }
 
     /**
      * Calculates how much the center of the drawable should translate

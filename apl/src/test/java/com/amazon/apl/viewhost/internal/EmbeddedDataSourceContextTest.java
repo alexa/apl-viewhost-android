@@ -35,6 +35,7 @@ import com.amazon.apl.android.dependencies.IDataSourceContextListener;
 import com.amazon.apl.android.dependencies.IDataSourceErrorCallback;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
+import com.amazon.apl.android.metrics.ICounter;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
@@ -100,7 +101,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
         "  }" +
         "}";
 
-    private static final String SHOPPING_LIST_DATA_A = "{" +
+    private static final String SHOPPING_LIST_DATA_A_INNER = "{" +
             "  \"type\": \"dynamicIndexList\"," +
             "  \"listId\": \"shoppingListA\"," +
             "  \"startIndex\": 0," +
@@ -109,14 +110,16 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
             "  \"items\": []" +
             "}";
 
-    private static final String SHOPPING_LIST_DATA_B = "{" +
+    private static final String SHOPPING_LIST_DATA_A = "{ \"shoppingListData\": " + SHOPPING_LIST_DATA_A_INNER + "}";
+
+    private static final String SHOPPING_LIST_DATA_B = "{ \"shoppingListData\": {" +
             "  \"type\": \"dynamicIndexList\"," +
             "  \"listId\": \"shoppingListB\"," +
             "  \"startIndex\": 0," +
             "  \"minimumInclusiveIndex\": 0," +
             "  \"maximumExclusiveIndex\": 100," +
             "  \"items\": []" +
-            "}";
+            "}}";
 
     private static final String HOST_DOCUMENT = "{" +
         "  \"type\": \"APL\"," +
@@ -164,6 +167,8 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
     private IDataSourceErrorCallback mDataSourceErrorCallback;
     @Mock
     private ITelemetryProvider mTelemetryProvider;
+    @Mock
+    private ICounter mCounter;
 
     @Before
     public void setup() throws JSONException {
@@ -171,6 +176,8 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
         mMessageHandler = new CapturingMessageHandler();
         mRuntimeInteractionWorker = new ManualExecutor();
         mEmbeddedDocuments = new HashMap<>();
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
         // Fake "core worker" executes everything immediately
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
@@ -213,7 +220,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
             Assert.fail(e.getMessage());
         }
         assertNotNull(content);
-        content.addData("shoppingListData", SHOPPING_LIST_DATA_A);
+        content.addData("shoppingListData", SHOPPING_LIST_DATA_A_INNER);
         assertTrue(content.isReady());
 
         ViewportMetrics metrics = ViewportMetrics.builder()
@@ -229,7 +236,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
         when(presenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(presenter.getOrCreateViewportMetrics()).thenReturn(metrics);
 
-        mRootContext = RootContext.create(metrics, content, mRootConfig, mAplOptions, presenter);
+        mRootContext = RootContext.create(metrics, content, mRootConfig, mAplOptions, presenter, mMetricsRecorder);
         mRootContext.initTime();
         update(100);
 
@@ -408,7 +415,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
 
     @Test
     public void testRequestingDataSourceContextAfterViewhostIsGone() {
-        DocumentHandle handle = new DocumentHandleImpl(null, mCoreWorker);
+        DocumentHandle handle = new DocumentHandleImpl(null, mCoreWorker, null);
 
         final int[] successFailCount = {0, 0};
         assertFalse(handle.requestDataSourceContext(new DocumentHandle.DataSourceContextCallback() {
@@ -510,7 +517,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
 
     @Test
     public void testRequestingDataSourceContextBeforeDocumentContextIsAvailable() {
-        DocumentHandle handle = new DocumentHandleImpl((ViewhostImpl) mViewhost, mCoreWorker);
+        DocumentHandle handle = new DocumentHandleImpl((ViewhostImpl) mViewhost, mCoreWorker, null);
 
         final int[] successFailCount = {0, 0};
         assertTrue(handle.requestDataSourceContext(new DocumentHandle.DataSourceContextCallback() {
@@ -534,7 +541,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
     @Test
     public void testRequestingDataSourceContextWithSerializationProblem() {
         ViewhostImpl viewhostImpl = (ViewhostImpl) mViewhost;
-        DocumentHandleImpl handle = new DocumentHandleImpl(viewhostImpl, mCoreWorker);
+        DocumentHandleImpl handle = new DocumentHandleImpl(viewhostImpl, mCoreWorker, null);
         DocumentContext context = mock(DocumentContext.class);
         when(context.getId()).thenReturn((long)123);
         when(context.serializeDataSourceContext()).thenReturn("Invalid JSON");

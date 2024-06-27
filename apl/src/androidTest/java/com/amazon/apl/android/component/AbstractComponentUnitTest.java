@@ -23,6 +23,7 @@ import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.RuntimeConfig;
 import com.amazon.apl.android.font.CompatFontResolver;
+import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
@@ -181,6 +182,8 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
 
     @Mock
     IAPLViewPresenter mAPLPresenter;
+    @Mock
+    MetricsRecorder mMetricsRecorder;
 
     @Before
     public void setup() {
@@ -262,7 +265,7 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
                 .build();
 
 
-        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter);
+        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder);
         mRenderingContext = mRootContext.getRenderingContext();
 
         if (mRootContext.getNativeHandle() == 0) {

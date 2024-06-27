@@ -20,11 +20,11 @@ import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.Session;
 import com.amazon.apl.android.UserPerceivedFatalReporter;
 import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
+import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.config.DocumentOptions;
-import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.primitives.Decodable;
 import com.amazon.apl.viewhost.primitives.JsonDecodable;
 import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
@@ -39,7 +39,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -85,7 +84,7 @@ public class DocumentHandleImpl extends DocumentHandle {
      * Retain only a weak reference to the viewhost, since that is the parent object that creates
      * document handles. We want avoid circular references.
      */
-    private final WeakReference<ViewhostImpl> mViewhost;
+    private WeakReference<ViewhostImpl> mViewhost;
     private final long mDocumentCreationTime;
 
     private static final String RENDER_DOCUMENT_TAG = "Viewhost." + ITelemetryProvider.RENDER_DOCUMENT;
@@ -94,8 +93,12 @@ public class DocumentHandleImpl extends DocumentHandle {
 
     private final Session mSession;
 
-    DocumentHandleImpl(ViewhostImpl viewhost, Handler coreWorker) {
-        mViewhost = new WeakReference<ViewhostImpl>(viewhost);
+    private final MetricsOptions mMetricsOptions;
+
+    DocumentHandleImpl(final ViewhostImpl viewhost,
+                       final Handler coreWorker,
+                       final MetricsOptions metricsOptions) {
+        mViewhost = new WeakReference<>(viewhost);
         mCoreWorker = coreWorker;
         mDocumentState = DocumentState.PENDING;
         mDocumentStateChangeListeners = new HashSet<>();
@@ -106,6 +109,7 @@ public class DocumentHandleImpl extends DocumentHandle {
         mUniqueID = UUID.randomUUID().toString();
         mUserPerceivedFatalReporter = new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback());
         mSession = new Session();
+        mMetricsOptions = metricsOptions;
         Log.d(TAG, "Document UniqueID is: " + mUniqueID);
     }
 
@@ -124,6 +128,13 @@ public class DocumentHandleImpl extends DocumentHandle {
      */
     public long getPrepareDocumentStartTime() {
         return mDocumentCreationTime;
+    }
+
+    /**
+     * @return {@link MetricsOptions} specific for this {@link DocumentHandleImpl}
+     */
+    public MetricsOptions getMetricsOptions() {
+        return mMetricsOptions;
     }
 
     @Override
@@ -205,6 +216,15 @@ public class DocumentHandleImpl extends DocumentHandle {
             }
         });
         return true;
+    }
+    @Override
+    public void cancelExecution() {
+        Log.d(TAG, "Received cancelExecution for handle: " + this);
+        if(mRootContext == null) {
+            Log.w(TAG,"RootContext is null, skipping cancelExecution.");
+            return;
+        }
+        mRootContext.cancelExecution();
     }
 
     @Nullable
@@ -408,14 +428,25 @@ public class DocumentHandleImpl extends DocumentHandle {
     }
 
     /**
-     * Will be used to set rootContext if a render document request is fulfilled via unified APIs.
+     * Designate this as a primary (top-level) document, associating it with a
+     * RootContext as well as the viewhost in which it was rendered.
      *
-     * @param rootContext
+     * This is done in order to:
+     *
+     * 1. Wire in DocumentHandle actions that that operate specifically on the
+     *    primary document such as cancelExecution() and finishDocument().
+     * 2. Start publishing all notifications concerning this document to the
+     *    specified view host. This is to allow a document to be prepared on one
+     *    viewhost and then rendered on another.
+     *
+     * @param rootContext  The RootContext associated with this document.
+     * @param viewhost     The viewhost to which notifications should be published
      */
-    public void setRootContext(RootContext rootContext) {
+    public void setPrimary(RootContext rootContext, ViewhostImpl viewhost) {
         mRootContext = rootContext;
         mRootContext.setDocumentHandle(this);
         DocumentContext documentContext = rootContext.getDocumentContext();
+        mViewhost = new WeakReference<>(viewhost);
         setDocumentContext(documentContext);
     }
 

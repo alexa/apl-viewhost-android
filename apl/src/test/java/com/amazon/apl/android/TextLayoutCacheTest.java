@@ -8,15 +8,14 @@ package com.amazon.apl.android;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.text.Layout;
 
 import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.bitmap.IBitmapPool;
 import com.amazon.apl.android.font.FontConstant;
 import com.amazon.apl.android.font.IFontResolver;
 import com.amazon.apl.android.font.TypefaceResolver;
-import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
+import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 import com.amazon.apl.enums.FontStyle;
 
 import org.junit.Before;
@@ -42,7 +41,7 @@ public class TextLayoutCacheTest extends ViewhostRobolectricTest {
     @Mock
     private TextProxy mTextProxy;
     @Mock
-    private Layout mLayout;
+    private APLTextLayout mLayout;
     @Mock
     private IBitmapPool mBitmapPool;
     @Mock
@@ -64,7 +63,7 @@ public class TextLayoutCacheTest extends ViewhostRobolectricTest {
         when(mTextProxy.getColor()).thenReturn(Color.WHITE);
         when(mTextProxy.getFontFamily()).thenReturn(DEFAULT_FONT_FAMILY);
         when(mTextProxy.getFontLanguage()).thenReturn(TEXT_FONT_LANGUAGE);
-        when(mTextProxy.getFontSize()).thenReturn(Dimension.create(24f));
+        when(mTextProxy.getFontSize()).thenReturn(24f);
         when(mTextProxy.getFontWeight()).thenReturn(1);
         when(mTextProxy.getFontStyle()).thenReturn(FontStyle.kFontStyleNormal);
     }
@@ -72,14 +71,14 @@ public class TextLayoutCacheTest extends ViewhostRobolectricTest {
     @Test
     public void testCacheHit() {
         textLayoutCache.putLayout("hashKey1", mLayout);
-        Layout result = textLayoutCache.getLayout("hashKey1");
+        APLTextLayout result = textLayoutCache.getLayout("hashKey1");
         assertEquals(mLayout, result);
     }
 
     @Test
     public void testCacheMiss() {
         textLayoutCache.putLayout("hashKey1", mLayout);
-        Layout result = textLayoutCache.getLayout("nope");
+        APLTextLayout result = textLayoutCache.getLayout("nope");
         assertNull(result);
     }
 
@@ -87,7 +86,7 @@ public class TextLayoutCacheTest extends ViewhostRobolectricTest {
     public void testCacheClear() {
         textLayoutCache.putLayout("hashKey1", mLayout);
         textLayoutCache.clear();
-        Layout result = textLayoutCache.getLayout("hashKey1");
+        APLTextLayout result = textLayoutCache.getLayout("hashKey1");
         assertNull(result);
     }
 

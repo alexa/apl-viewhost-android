@@ -8,7 +8,7 @@ package com.amazon.apl.android.font;
 import android.graphics.Typeface;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
+import androidx.collection.ArrayMap;
 import android.util.Log;
 import android.util.Xml;
 
@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Helper class to get the current font families on an Android device.</p>
@@ -35,6 +36,31 @@ final class FontListParser {
     private static final File SYSTEM_FONTS_XML = new File("/system/etc/system_fonts.xml");
 
     private static List<Family> deviceFonts;
+
+    private static String[][] defaultSystemFonts = {
+            {"Amazon Ember", "400", "normal", "Amazon-Ember-Regular.ttf"},
+            {"Amazon Ember", "400", "italic", "Amazon-Ember-RegularItalic.ttf"},
+            {"Amazon Ember", "700", "normal", "Amazon-Ember-Bold.ttf"},
+            {"Amazon Ember", "700", "italic", "Amazon-Ember-BoldItalic.ttf"},
+            {"Amazon Ember", "300", "normal", "Amazon-Ember-Light.ttf"},
+            {"Amazon Ember", "300", "italic", "Amazon-Ember-LightItalic.ttf"},
+            {"Amazon Ember", "100", "normal", "Amazon-Ember-Thin.ttf"},
+            {"Amazon Ember", "100", "italic", "Amazon-Ember-ThinItalic.ttf"},
+            {"Amazon Ember", "550", "normal", "Amazon-Ember-Medium.ttf"},
+            {"Amazon Ember", "550", "italic", "Amazon-Ember-MediumItalic.ttf"}
+    };
+
+    /**
+     * Map of incorrect file names across various fireos devices
+     * to the correct file names.
+     */
+    @NonNull
+    private static final Map<String, String> sInCorrectMap = new ArrayMap<>();
+
+    static {
+        sInCorrectMap.put("/system/fonts/Amazon-Ember-Italic.ttf", "/system/fonts/Amazon-Ember-RegularItalic.ttf");
+        sInCorrectMap.put("/system/fonts/AmazonEmberDipslay_Bd.ttf", "/system/fonts/AmazonEmberDisplay_Bd.ttf");
+    }
 
     /**
      * Loads the device system fonts. Once loaded, no additional attempts are made on subsequent calls.
@@ -53,9 +79,27 @@ final class FontListParser {
         return false;
     }
 
+    @NonNull
+    private static Map<String, String> sAliasMap = new ArrayMap<>();
+
+    static {
+        sAliasMap.put("amazon-ember", "Amazon Ember");
+    }
+
     @Nullable
     static synchronized Typeface getMatchingTypeface(final FontKey key) {
         String fontFile = safelyGetMatchingFont(key);
+
+        if (fontFile != null) {
+            if (sInCorrectMap.containsKey(fontFile)) {
+                Log.e(TAG, "incorrect font file " + fontFile);
+                fontFile = sInCorrectMap.get(fontFile);
+
+                if (fontFile == null) {
+                    return null;
+                }
+            }
+        }
 
         try {
             final Typeface font = Typeface.createFromFile(fontFile);
@@ -83,7 +127,7 @@ final class FontListParser {
         }
 
         for (Family family : deviceFonts) {
-            if (key.getFamily().equalsIgnoreCase(family.name)) {
+            if (key.getFamily().equalsIgnoreCase(family.name) || key.getFamily().equalsIgnoreCase(sAliasMap.get(family.name))) {
                 return filter(family.fonts, key.getWeight(), key.isItalic());
             }
             if (family.lang != null) {
@@ -158,14 +202,22 @@ final class FontListParser {
      *
      * @param key The font family, weight and italicisation.
      * @return the location of ttf file representing the closest font or loads the closest
+     * Amazon Ember font given the font weight &  style.
      */
     @Nullable
     private static String safelyGetMatchingFont(final FontKey key) {
         try {
             return getMatchingFont(key);
         } catch (final RuntimeException e) {
-            Log.e(TAG, "Could not load /system/etc/fonts.xml file");
-            return "";
+            Log.e(TAG, "Could not load /system/etc/fonts.xml file - defaulting to standard file");
+            List<FileFontKey> fonts = new ArrayList<>();
+            for (String[] names : defaultSystemFonts) {
+                File file = new File("/system/fonts/", names[3]);
+                if (file.exists()) {
+                    fonts.add(new FileFontKey(Integer.parseInt(names[1]), names[2].equalsIgnoreCase("italic"), names[3]));
+                }
+            }
+            return filter(fonts, key.getWeight(), key.isItalic());
         }
     }
 

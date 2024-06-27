@@ -22,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 import androidx.core.graphics.drawable.DrawableCompat;
 import androidx.core.view.ViewCompat;
+import com.amazon.apl.android.BuildConfig;
 
 import android.util.Log;
 
@@ -181,11 +182,11 @@ public class AlexaVectorDrawable extends Drawable {
         mTmpBounds.offsetTo(0, 0);
 
         if (mIsHardwareAccelerationEnabled) {
-            Log.d(TAG, "Using hardware acceleration for AVG rendering");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Using hardware acceleration for AVG rendering");
             canvas.clipRect(mTmpBounds);
             mVectorState.drawAVGToCanvas(canvas, (int) scaledWidth, (int) scaledHeight,true);
         } else {
-            Log.d(TAG, "Using software acceleration for AVG rendering");
+            if (BuildConfig.DEBUG) Log.d(TAG, "Using software acceleration for AVG rendering");
             mVectorState.createOrEraseCachedBitmap((int) scaledWidth, (int) scaledHeight);
             mVectorState.drawCachedBitmapWithRootAlpha(canvas, colorFilter, mTmpBounds);
         }
