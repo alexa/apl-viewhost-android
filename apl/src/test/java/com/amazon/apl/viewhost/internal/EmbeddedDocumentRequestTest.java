@@ -12,6 +12,7 @@ import android.os.Handler;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.apl.android.Content;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory.EmbeddedDocumentRequest;
@@ -37,9 +38,12 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
     @Mock
     ITelemetryProvider mProvider;
 
+    @Mock
+    RootConfig config;
+
     @Before
     public void setUp() {
-        embeddedDocumentRequest = new EmbeddedDocumentRequestImpl(mEmbeddedDocumentRequestProxy, mHandler, mProvider);
+        embeddedDocumentRequest = new EmbeddedDocumentRequestImpl(mEmbeddedDocumentRequestProxy, mHandler, mProvider, config);
         when(mHandler.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
@@ -70,6 +74,7 @@ public class EmbeddedDocumentRequestTest extends ViewhostRobolectricTest {
     public void testOnDocumentStateChangedToPrepared() {
         ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).setDocumentHandle(mDocumentHandle);
         when(mDocumentHandle.getContent()).thenReturn(mContent);
+        when(mContent.isReady()).thenReturn(true);
         ((EmbeddedDocumentRequestImpl)embeddedDocumentRequest).onDocumentStateChanged(DocumentState.PREPARED, mDocumentHandle);
         verify(mEmbeddedDocumentRequestProxy).success(anyLong(), anyBoolean(), anyLong());
     }

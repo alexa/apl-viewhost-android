@@ -9,7 +9,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Collection of frame begin and end timestamps
+ * A frame stat object with begin and end timestamps
  */
 public class FrameStat {
     // Timestamp in nanoseconds since a platform dependent arbitrary time base, marking the beginning of the frame loop.

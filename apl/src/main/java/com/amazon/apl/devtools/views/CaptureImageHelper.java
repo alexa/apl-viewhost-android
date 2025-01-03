@@ -70,13 +70,7 @@ public class CaptureImageHelper {
         }
         try {
             return completableFuture.get(1000, TimeUnit.MILLISECONDS);
-        } catch (ExecutionException e) {
-            Log.e(TAG, "Failed to capture screenshot because: ", e);
-            return mUnitBitmap;
-        } catch (InterruptedException e) {
-            Log.e(TAG, "Failed to capture screenshot because: ", e);
-            return mUnitBitmap;
-        } catch (TimeoutException e) {
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
             Log.e(TAG, "Failed to capture screenshot because: ", e);
             return mUnitBitmap;
         }
@@ -84,9 +78,17 @@ public class CaptureImageHelper {
 
     @NonNull
     private Bitmap captureImageLegacy(@NonNull View view) {
+        CompletableFuture<Bitmap> completableFuture = new CompletableFuture<>();
         Bitmap screenshot = Bitmap.createBitmap(view.getMeasuredWidth(), view.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(screenshot);
-        view.draw(canvas);
-        return screenshot;
+        view.post(() -> {
+            view.draw(canvas);
+            completableFuture.complete(screenshot);
+        });
+        try {
+            return completableFuture.get(1000, TimeUnit.MILLISECONDS);
+        } catch (ExecutionException | InterruptedException | TimeoutException e) {
+            return mUnitBitmap;
+        }
     }
 }

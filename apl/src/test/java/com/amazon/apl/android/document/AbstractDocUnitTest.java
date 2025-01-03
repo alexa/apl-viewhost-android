@@ -34,6 +34,7 @@ import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TestClock;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 
@@ -68,6 +69,7 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
     }
 
     protected long mTime = 0L;
+    protected boolean mFrameMetricsState = true;
     protected RootContext mRootContext = null;
     protected Content mContent = null;
     protected APLOptions mOptions = null;
@@ -83,6 +85,8 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
     protected IAPLViewPresenter mAPLPresenter;
     @Mock
     protected MetricsRecorder mMetricsRecorder;
+    @Mock
+    protected FluidityIncidentReporter mFluidityIncidentReporter;
     @Mock
     protected ICounter mCounter;
     @Mock
@@ -146,14 +150,14 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
         when(mAPLPresenter.metricsRecorder()).thenReturn(mMetricsRecorder);
+        when(mAPLPresenter.isFrameMetricsEventsEnabled()).thenReturn(mFrameMetricsState);
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
         mRootContext = spy(RootContext.create(metrics, mContent, mRootConfig, mOptions,
-                mAPLPresenter, userPerceivedFatalReporter, mMetricsRecorder));
+                mAPLPresenter, userPerceivedFatalReporter, mMetricsRecorder, mFluidityIncidentReporter));
 
         assertNotNull(mRootContext);
-
 
         mRootContext.initTime();
         mTime = 100;
@@ -185,5 +189,9 @@ public abstract class AbstractDocUnitTest extends ViewhostRobolectricTest {
                     .aplClockProvider(callback -> new TestClock(callback))
                     .build();
         return mOptions;
+    }
+
+    protected void setFrameMetricsEnabledState(final boolean state) {
+        mFrameMetricsState = state;
     }
 }

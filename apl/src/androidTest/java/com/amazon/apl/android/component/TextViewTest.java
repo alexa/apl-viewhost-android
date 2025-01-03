@@ -16,6 +16,7 @@ import android.text.ParcelableSpan;
 import android.text.Spannable;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.text.style.AbsoluteSizeSpan;
 import android.text.style.StyleSpan;
 import android.view.View;
 
@@ -478,5 +479,119 @@ public class TextViewTest extends AbstractComponentViewTest<APLTextView, Text> {
         Layout newLayout = getTestView().getLayout();
         assertTrue( 400 <= Integer.parseInt(newLayout.getText().toString()));
         assertTrue(Integer.parseInt(newLayout.getText().toString()) <= 600);
+    }
+
+    @Test
+    public void testView_whenSpanLineBreakSpan_lineBreak_getsSpanStylingFromSecondSpan() {
+        final String span1String = "Text with fontSize 10";
+        final String span2String = "Longer text with fontSize 12";
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"<span fontSize='10'>" + span1String + "</span><br><span fontSize='12'>" + span2String +  "</span>\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        final Spannable spannable = (Spannable) getTestView().getLayout().getText();
+        final ParcelableSpan obj[] = spannable.getSpans(0, spannable.length(), ParcelableSpan.class);
+
+        // Should have 2 spans applied
+        assertEquals(2, obj.length);
+        final AbsoluteSizeSpan span1 = (AbsoluteSizeSpan) obj[0];
+        final AbsoluteSizeSpan span2 = (AbsoluteSizeSpan) obj[1];
+
+        // Assert for span properties
+        assertEquals(10, span1.getSize());
+        assertEquals(12, span2.getSize());
+
+        // Verify that the newline character is a part of the second span's styling
+        // "Text with fontSize 10"
+        assertEquals(0, spannable.getSpanStart(span1));
+        assertEquals(span1String.length(), spannable.getSpanEnd(span1));
+        // "\nText with fontSize 12"
+        assertEquals(span1String.length(), spannable.getSpanStart(span2));
+        assertEquals(span1String.length() + span2String.length() + 1, spannable.getSpanEnd(span2));
+    }
+
+    @Test
+    public void testView_whenConsecutiveLineBreaksBetweenSpans_lineBreaks_getsSpanStylingFromSecondSpan() {
+        final String span1String = "Text with fontSize 10";
+        final String span2String = "Longer text with fontSize 12";
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"<span fontSize='10'>" + span1String + "</span><br><br><br><span fontSize='12'>" + span2String +  "</span>\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        final Spannable spannable = (Spannable) getTestView().getLayout().getText();
+        final ParcelableSpan obj[] = spannable.getSpans(0, spannable.length(), ParcelableSpan.class);
+
+        // Should have 2 spans applied
+        assertEquals(2, obj.length);
+        final AbsoluteSizeSpan span1 = (AbsoluteSizeSpan) obj[0];
+        final AbsoluteSizeSpan span2 = (AbsoluteSizeSpan) obj[1];
+
+        // Assert for span properties
+        assertEquals(10, span1.getSize());
+        assertEquals(12, span2.getSize());
+
+        // Verify that the newline characters are a part of the second span's styling
+        // "Text with fontSize 10"
+        assertEquals(0, spannable.getSpanStart(span1));
+        assertEquals(span1String.length(), spannable.getSpanEnd(span1));
+        // "\n\n\nText with fontSize 12"
+        assertEquals(span1String.length(), spannable.getSpanStart(span2));
+        assertEquals(span1String.length() + span2String.length() + 3, spannable.getSpanEnd(span2));
+    }
+
+    @Test
+    public void testView_lineBreakSpanSpan_onlyImmediateSpanAdjusted() {
+        final String span1String = "Text";
+        final String span2String = "Another text";
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"<br><span fontSize='10'>" + span1String + "</span><span fontSize='12'>" + span2String +  "</span>\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        final Spannable spannable = (Spannable) getTestView().getLayout().getText();
+        final ParcelableSpan obj[] = spannable.getSpans(0, spannable.length(), ParcelableSpan.class);
+
+        // Should have 2 spans applied
+        assertEquals(2, obj.length);
+        final AbsoluteSizeSpan span1 = (AbsoluteSizeSpan) obj[0];
+        final AbsoluteSizeSpan span2 = (AbsoluteSizeSpan) obj[1];
+
+        // Assert for span properties
+        assertEquals(10, span1.getSize());
+        assertEquals(12, span2.getSize());
+
+        // Verify that the newline character is a part of the first span's styling only
+        // "\nText"
+        assertEquals(0, spannable.getSpanStart(span1));
+        assertEquals(span1String.length() + 1, spannable.getSpanEnd(span1));
+        // "Another text"
+        assertEquals(span1String.length() + 1, spannable.getSpanStart(span2));
+        assertEquals(span1String.length() + span2String.length() + 1, spannable.getSpanEnd(span2));
+    }
+
+    @Test
+    public void testView_lineBreakStringSpan_immediateStringNotAffected() {
+        final String string1 = "Text";
+        final String spanString = "Another text";
+
+        onView(withId(com.amazon.apl.android.test.R.id.apl))
+                .perform(inflate("\"text\": \"<br>" + string1 + "<span fontSize='55'>" + spanString + "</span>\"", CHILD_LAYOUT_PROPERTIES))
+                .check(hasRootContext());
+
+        final Spannable spannable = (Spannable) getTestView().getLayout().getText();
+        final ParcelableSpan obj[] = spannable.getSpans(0, spannable.length(), ParcelableSpan.class);
+
+        // Should have 1 span applied
+        assertEquals(1, obj.length);
+        final AbsoluteSizeSpan span1 = (AbsoluteSizeSpan) obj[0];
+
+        // Assert for span properties
+        assertEquals(55, span1.getSize());
+
+        // "Text2"
+        assertEquals(string1.length() + 1, spannable.getSpanStart(span1));
+        assertEquals(string1.length() + spanString.length() + 1, spannable.getSpanEnd(span1));
     }
 }

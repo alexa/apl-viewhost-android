@@ -190,7 +190,7 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
                 when(mAPLPresenter.getOrCreateViewportMetrics()).thenReturn(mMetrics);
                 when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
                 when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
-                mRootContext = spy(RootContext.create(mMetrics, spyContent, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder));
+                mRootContext = spy(RootContext.create(mMetrics, spyContent, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder, mFluidityIncidentReporter));
 
                 assertNotNull(mRootContext);
 
@@ -216,7 +216,7 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
 
                 verify(mRootContext).reinflate();
 
-                verify(spyContent, never()).resolve(any(Content.CallbackV2.class));
+                verify(spyContent, never()).resolve(any(Content.CallbackV2.class), any(RootConfig.class));
                 verify(mRootContext.getViewPresenter()).reinflate();
 
                 // Dummy config
@@ -228,7 +228,7 @@ public class ReinflateEventTest extends AbstractDocUnitTest {
                 update(100);
 
                 verify(mRootContext, times(2)).reinflate();
-                verify(spyContent).resolve(any(Content.CallbackV2.class));
+                verify(spyContent).resolve(any(Content.CallbackV2.class), any(RootConfig.class));
                 verify(mRootContext.getViewPresenter(), times(2)).reinflate();
 
                 contentComplete.countDown();

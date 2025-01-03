@@ -7,7 +7,7 @@ package com.amazon.apl.devtools.executers;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.enums.DTError;
 import com.amazon.apl.devtools.models.Session;
@@ -21,28 +21,20 @@ import com.amazon.apl.devtools.util.RequestStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class DocumentCommandRequest extends DocumentCommandRequestModel implements ICommandValidator {
+public class DocumentCommandRequest extends DocumentCommandRequestModel {
     private static final String TAG = DocumentCommandRequest.class.getSimpleName();
-    private final CommandRequestValidator mCommandRequestValidator;
-    private final DTConnection mConnection;
-    private final CommandMethod mCommandMethod;
-    private ViewTypeTarget mViewTypeTarget;
 
     public DocumentCommandRequest(CommandMethod commandMethod,
                                                 CommandRequestValidator commandRequestValidator,
                                                 JSONObject obj,
                                                 DTConnection connection) throws JSONException, DTException {
-        super(commandMethod, obj);
-        mCommandMethod = commandMethod;
-        mCommandRequestValidator = commandRequestValidator;
-        mConnection = connection;
-        validate();
+        super(commandMethod, obj, commandRequestValidator, connection);
     }
 
     @Override
     public void execute(IDTCallback<DocumentDomainResponse> callback) {
-        Log.i(TAG, "Executing " + mCommandMethod + " command");
-        mViewTypeTarget.documentCommandRequest(getId(), getStringMethod(), getParams(), (result, status) -> {
+        Log.i(TAG, "Executing " + getStringMethod() + " command");
+        getViewTypeTarget().documentCommandRequest(getId(), getStringMethod(), getParams(), (result, status) -> {
             if (status.getExecutionStatus() == RequestStatus.ExecutionStatus.SUCCESSFUL) {
                 try {
                     if (result == null) {
@@ -51,18 +43,10 @@ public class DocumentCommandRequest extends DocumentCommandRequestModel implemen
                         callback.execute(new DocumentDomainResponse(getId(), getSessionId(), new JSONObject(result)), status);
                     }
                 } catch (JSONException e) {
-                    Log.e(TAG, "Error creating json object for " + mCommandMethod + " for result: " + result);
+                    Log.e(TAG, "Error creating json object for " + getStringMethod() + " for result: " + result);
                     callback.execute(RequestStatus.failed(getId(), DTError.METHOD_FAILURE));
                 }
             }
         });
-    }
-
-    @Override
-    public void validate() throws DTException {
-        Log.i(TAG, "Validating " + mCommandMethod + " command");
-        mCommandRequestValidator.validateBeforeGettingSession(getId(), getSessionId(), mConnection);
-        Session mSession = mConnection.getSession(getSessionId());
-        mViewTypeTarget = (ViewTypeTarget) mSession.getTarget();
     }
 }

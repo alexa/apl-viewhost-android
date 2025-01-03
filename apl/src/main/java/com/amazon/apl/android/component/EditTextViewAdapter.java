@@ -217,8 +217,7 @@ public class EditTextViewAdapter extends ComponentViewAdapter<EditText, APLEditT
         EditTextProxy proxy = component.getProxy();
         // The text size is expected to be in scaled pixel (sp) units and the current implementation is off.
         // https://developer.android.com/guide/topics/resources/more-resources.html#Dimension
-        //view.setTextSize(component.getRenderingContext().getMetricsTransform().toCore(proxy.getFontSize()));
-        view.setTextSize(proxy.getFontSize());
+        view.setTextSize(component.getRenderingContext().getMetricsTransform().toCore(proxy.getFontSize()));
         view.setHighlightColor(proxy.getHighlightColor());
         view.setTextColor(proxy.getColor());
         if(proxy.getText().length() == 0) {

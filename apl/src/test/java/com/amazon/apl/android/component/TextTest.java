@@ -7,6 +7,7 @@ package com.amazon.apl.android.component;
 
 
 import android.graphics.Color;
+import android.text.TextPaint;
 
 import com.amazon.apl.android.Text;
 import com.amazon.apl.android.TextProxy;
@@ -80,8 +81,8 @@ public class TextTest extends AbstractComponentUnitTest<APLTextView, Text> {
         assertEquals(0.0f, proxy.getLetterSpacing().value(), 0);
         assertEquals(1.25f, proxy.getLineHeight(), 0);
         assertEquals(0, proxy.getMaxLines());
-        assertEquals("", proxy.getStyledText(kPropertyText).getText(null, mRenderingContext.getMetricsTransform()).toString());
-        assertEquals(TextAlign.kTextAlignAuto, proxy.getTextAlign());
+        assertEquals("", proxy.getStyledText(kPropertyText).getText(null, mRenderingContext.getMetricsTransform(), new TextPaint()).toString());
+        assertEquals(TextAlign.kTextAlignLeft, proxy.getTextAlign());
         assertEquals(TextAlignVertical.kTextAlignVerticalAuto, proxy.getTextAlignVertical());
         assertEquals("", proxy.getFontLanguage());
         assertEquals(LayoutDirection.kLayoutDirectionLTR, proxy.getLayoutDirection());
@@ -105,40 +106,10 @@ public class TextTest extends AbstractComponentUnitTest<APLTextView, Text> {
         assertEquals(.25f, proxy.getLetterSpacing().value(), 0);
         assertEquals(1.5f, proxy.getLineHeight(), 0);
         assertEquals(2, proxy.getMaxLines());
-        assertEquals("Hello APL!", proxy.getStyledText(kPropertyText).getText(null, mRenderingContext.getMetricsTransform()).toString());
+        assertEquals("Hello APL!", proxy.getStyledText(kPropertyText).getText(null, mRenderingContext.getMetricsTransform(), new TextPaint()).toString());
         assertEquals(TextAlign.kTextAlignCenter, proxy.getTextAlign());
         assertEquals(TextAlignVertical.kTextAlignVerticalCenter, proxy.getTextAlignVertical());
         assertEquals("en-US", proxy.getFontLanguage());
         assertEquals(LayoutDirection.kLayoutDirectionRTL, proxy.getLayoutDirection());
-    }
-
-    @Test
-    public void test_GetCharacterOffsetByRange() {
-        String doc = buildDocument("\"text\": \"Abcdef役場産業課および\"");
-        inflateDocument(doc, null);
-
-        Text component = getTestComponent();
-
-        // Existing behaviour for ASCII
-        assertForCalculateCharacterOffsetByRange(component, 0, 0, 0, 0);
-        assertForCalculateCharacterOffsetByRange(component, 1, 1, 1, 1);
-        assertForCalculateCharacterOffsetByRange(component, 0, 5, 0, 5);
-        assertForCalculateCharacterOffsetByRange(component, 1, 5, 1, 5);
-
-        // 3 byte characters.
-        assertForCalculateCharacterOffsetByRange(component,6, 6, 6, 8);
-        assertForCalculateCharacterOffsetByRange(component,7, 7,9, 11);
-        assertForCalculateCharacterOffsetByRange(component,0, 9, 0, 17);
-
-        //Invalid Range
-        assertEquals(-1, component.calculateCharacterOffsetByRange(16, 16));
-    }
-
-    // Existing behaviour is (start + end) / 2 but this assumes all characters are a single byte.
-    // So we want to keep the same behaviour but adjust it to work with multibyte characters.
-    private void assertForCalculateCharacterOffsetByRange(Text component,
-                                                          int characterRangeStart, int characterRangeEnd,
-                                                          int rangeStart, int rangeEnd) {
-        assertEquals((characterRangeStart + characterRangeEnd) / 2, component.calculateCharacterOffsetByRange(rangeStart, rangeEnd));
     }
 }

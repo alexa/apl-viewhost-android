@@ -8,10 +8,7 @@ import android.annotation.SuppressLint;
 import android.graphics.Rect;
 import android.text.Layout;
 
-import com.amazon.apl.android.primitive.StyledText;
-import com.amazon.apl.android.scaling.IMetricsTransform;
-
-import java.nio.charset.StandardCharsets;
+import com.amazon.apl.android.utils.APLTextUtil;
 
 /**
  * Wrapper class to hold the text layout created during measurement
@@ -19,18 +16,17 @@ import java.nio.charset.StandardCharsets;
  */
 public class APLTextLayout {
     private final Layout mLayout;
-    private final StyledText mStyledText;
+
+    private final CharSequence mText;
     private APLTextProperties mTextProperties;
     private final float mWidthDp;
     private final float mHeightDp;
     private final boolean mLinesClipped;
 
-    private IMetricsTransform mMetricsTransform;
-
     @SuppressLint("WrongConstant")
-    public APLTextLayout(final Layout layout, final StyledText styledText, boolean linesClipped, float widthDp, float heightDp) {
+    public APLTextLayout(final Layout layout, final CharSequence text, boolean linesClipped, float widthDp, float heightDp) {
         mLayout = layout;
-        mStyledText = styledText;
+        mText = text;
         mWidthDp = widthDp;
         mHeightDp = heightDp;
         mLinesClipped = linesClipped;
@@ -38,10 +34,6 @@ public class APLTextLayout {
 
     public void attachTextProperties(final APLTextProperties aplTextProperties) {
         mTextProperties = aplTextProperties;
-    }
-
-    public void applyMetricsTransform(IMetricsTransform metricsTransform) {
-        mMetricsTransform = metricsTransform;
     }
 
     // Following are overrides of apl::TextLayout to be accessed by JNI layer.
@@ -61,7 +53,7 @@ public class APLTextLayout {
      */
     @SuppressWarnings("unused")
     private int getByteLength() {
-        return mStyledText.getText(null, mMetricsTransform).toString().getBytes(StandardCharsets.UTF_8).length;
+        return mText.length();
     }
 
     /**
@@ -89,8 +81,9 @@ public class APLTextLayout {
      */
     @SuppressWarnings("unused")
     private int[] getLineRangeFromByteRange(int rangeStart, int rangeEnd) {
-        int lineStart = mLayout.getLineForOffset(rangeStart);
-        int lineEnd = mLayout.getLineForOffset(rangeEnd);
+        int[] characterRange = APLTextUtil.calculateCharacterOffsetByRange(mText.toString(), rangeStart, rangeEnd);
+        int lineStart = mLayout.getLineForOffset(characterRange[0]);
+        int lineEnd = mLayout.getLineForOffset(characterRange[1]);
         return new int[]{lineStart, lineEnd};
     }
 

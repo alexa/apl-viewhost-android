@@ -46,6 +46,7 @@ import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.LayoutDirection;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -184,6 +185,8 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
     @Mock
     MetricsRecorder mMetricsRecorder;
     @Mock
+    FluidityIncidentReporter mFluidityIncidentReporter;
+    @Mock
     protected ICounter mCounter;
     @Mock
     protected ITimer mTimer;
@@ -270,7 +273,7 @@ public abstract class AbstractComponentUnitTest<V extends View, C extends Compon
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
-        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder);
+        mRootContext = RootContext.create(mMetrics, content, mRootConfig, mAplOptions, mAPLPresenter, mMetricsRecorder, mFluidityIncidentReporter);
         mRenderingContext = mRootContext.getRenderingContext();
 
         if (mRootContext.getNativeHandle() == 0) {

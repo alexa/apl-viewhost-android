@@ -84,6 +84,11 @@ public class RootConfig extends BoundObject {
     private MediaManager mMediaManager;
 
     /**
+     * PackageManager handles import package requests from core.
+     */
+    private PackageManager mPackageManager;
+
+    /**
      * Creates a default RootConfig.
      */
     private RootConfig() {
@@ -604,6 +609,8 @@ public class RootConfig extends BoundObject {
         return mDocumentManager;
     }
 
+    public PackageManager getPackageManager() { return mPackageManager; }
+
     public Collection<IDocumentLifecycleListener> getDocumentLifecycleListeners() {
         Collection<IDocumentLifecycleListener> listeners = new LinkedList<>();
         listeners.add(getExtensionMediator());
@@ -652,6 +659,16 @@ public class RootConfig extends BoundObject {
     }
 
     /**
+     * Sets the package manager.
+     * @return This object for chaining
+     */
+    public RootConfig packageManager(@NonNull PackageManager packageManager) {
+        mPackageManager = packageManager;
+        nPackageManager(getNativeHandle(), packageManager.getNativeHandle());
+        return this;
+    }
+
+    /**
      * Set audio player factory.
      * @return This object for chaining
      */
@@ -673,7 +690,7 @@ public class RootConfig extends BoundObject {
 
     public RootConfig setDocumentManager(@NonNull EmbeddedDocumentFactory embeddedDocumentFactory,
                                          @NonNull Handler handler, @NonNull ITelemetryProvider telemetryProvider) {
-        mDocumentManager = new DocumentManager(embeddedDocumentFactory, handler, telemetryProvider);
+        mDocumentManager = new DocumentManager(embeddedDocumentFactory, handler, telemetryProvider, this);
         nSetDocumentManager(getNativeHandle(), mDocumentManager.getNativeHandle());
         return this;
     }
@@ -968,4 +985,7 @@ public class RootConfig extends BoundObject {
     private static native void nMediaManager(long nativehandle, long mediaManagerHandle);
 
     private static native void nSetDocumentManager(long nativehandle, long documentManagerHandle);
+
+    private static native void nPackageManager(long nativehandle, long packageManagerHandle);
+
 }

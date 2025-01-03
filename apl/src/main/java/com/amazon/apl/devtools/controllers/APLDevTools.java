@@ -6,6 +6,7 @@
 package com.amazon.apl.devtools.controllers;
 
 import com.amazon.apl.android.BuildConfig;
+import com.amazon.apl.devtools.controllers.impl.DTServer;
 import com.amazon.apl.devtools.controllers.impl.NoOpDTServer;
 
 /**

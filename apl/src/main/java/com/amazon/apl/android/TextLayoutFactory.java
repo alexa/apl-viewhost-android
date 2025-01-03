@@ -142,7 +142,7 @@ public class TextLayoutFactory {
             if (isLeftAligned)  {
                 // Calculate desired width
                 styledText = textProxy.getStyledText();
-                text = styledText.getText(karaokeLine, textProxy.getMetricsTransform());
+                text = styledText.getText(karaokeLine, textProxy.getMetricsTransform(), textPaint);
                 desiredTextWidth = getOrCalculateDesiredWidth(scaledVisualHash, text, textPaint);
 
                 // If both the bounds and the built static layout can contain the text then we can reuse
@@ -158,7 +158,7 @@ public class TextLayoutFactory {
         if (styledText == null || text == null) {
             // Calculate desired width
             styledText = textProxy.getStyledText();
-            text = styledText.getText(karaokeLine, textProxy.getMetricsTransform());
+            text = styledText.getText(karaokeLine, textProxy.getMetricsTransform(), textPaint);
             desiredTextWidth = getOrCalculateDesiredWidth(key, text, textPaint);
         }
         final APLTextLayout newTextLayout = createTextLayout(versionCode, textProxy, textPaint,
@@ -197,7 +197,7 @@ public class TextLayoutFactory {
             return cachedLayout;
         }
         final TextPaint textPaint = mTextLayoutCache.getOrCreateTextPaint(versionCode, combinedTextPropertyHash, aplTextProperties, mDensity);
-        CharSequence t = text.getText(null, metricsTransform);
+        CharSequence t = text.getText(null, metricsTransform, textPaint);
         final int desiredTextWidth = getOrCalculateDesiredWidth(combinedTextPropertyHash, t, textPaint);
         APLTextLayout newLayout = createTextLayout(versionCode, aplTextProperties, textPaint, innerWidthDp, widthMode,
                 innerHeightDp, heightMode, text, t, desiredTextWidth, metricsTransform);
@@ -326,8 +326,7 @@ public class TextLayoutFactory {
         float layoutWidthDp = (float)Math.min(Math.ceil(metricsTransform.toCore((float)textLayout.getWidth())), innerWidthDp);
         float layoutHeightDp = (float)Math.min(Math.ceil(metricsTransform.toCore((float)measureHeightPx)), innerHeightDp);
 
-        APLTextLayout result = new APLTextLayout(textLayout, styledText, lineCount > linesFullyVisible, layoutWidthDp, layoutHeightDp);
-        return result;
+        return new APLTextLayout(textLayout, text, lineCount > linesFullyVisible, layoutWidthDp, layoutHeightDp);
     }
 
     private int getOrCalculateDesiredWidth(String key, CharSequence text, TextPaint paint) {

@@ -16,24 +16,24 @@ import java.util.List;
 public class SystemCommandRunner {
     private static final String TAG = SystemCommandRunner.class.getSimpleName();
 
-    public static List<String> executeTopCommand() throws IOException {
+    public static List<String> executeCommand(String... commandline) throws IOException {
         List<String> allLines = new ArrayList<>();
 
-        String appId = "-p" + android.os.Process.myPid();
-        ProcessBuilder builder = new ProcessBuilder("top", appId, "-oPID,%CPU", "-b", "-n1");
+        ProcessBuilder builder = new ProcessBuilder(commandline).redirectErrorStream(true);
         Process process = builder.start();
-
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+
             String line;
             while ((line = reader.readLine()) != null) {
                 allLines.add(line);
             }
-            return allLines;
         } catch (IOException e) {
             Log.e(TAG, "Unable to read line from stream.", e);
             throw(e);
-        } finally {
+        }
+        finally {
             process.destroy();
         }
+        return allLines;
     }
 }

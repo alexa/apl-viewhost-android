@@ -7,7 +7,6 @@
 #include <codecvt>
 #include "apl/apl.h"
 #include "jniutil.h"
-#include "jnicontent.h"
 #include "jniembeddeddocumentrequest.h"
 
 namespace apl {
@@ -31,10 +30,17 @@ namespace apl {
         static jmethodID REQUEST_DATA;
         static jmethodID ON_READY;
         static jmethodID ON_ERROR;
+        static jmethodID IS_USE_PACKAGE_MANAGER;
+        static jmethodID NOTIFY_CALLBACKS;
 
         static jclass HASHSET_CLASS;
         static jmethodID HASHSET_CONSTRUCTOR;
         static jmethodID HASHSET_ADD;
+        static JavaVM * VM_REFERENCE;
+
+        // Forward prototype to allow use before the declaration of function
+        void update(JNIEnv *env, jobject instance, const ContentPtr &content,
+                    bool updatePackages, bool updateData);
 
         /**
          * Create a class and method cache for calls to View Host.
@@ -44,6 +50,8 @@ namespace apl {
 
             LOG(apl::LogLevel::kDebug) << "Loading View Host Content JNI environment.";
 
+            VM_REFERENCE = vm;
+
             JNIEnv *env;
             if (vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                 return JNI_FALSE;
@@ -52,29 +60,36 @@ namespace apl {
             // method signatures can be obtained with 'javap -s'
             CONTENT_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("com/amazon/apl/android/Content")));
-            REQUEST_PACKAGE = env->GetMethodID(CONTENT_CLASS, "coreRequestPackage",
-                                               "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
             REQUEST_DATA = env->GetMethodID(CONTENT_CLASS, "coreRequestData",
                                             "(Ljava/lang/String;)V");
             ON_READY = env->GetMethodID(CONTENT_CLASS, "coreComplete", "()V");
             ON_ERROR = env->GetMethodID(CONTENT_CLASS, "coreFailure", "()V");
+            IS_USE_PACKAGE_MANAGER = env->GetMethodID(CONTENT_CLASS, "shouldUsePackageManager", "()Z");
+            NOTIFY_CALLBACKS = env->GetMethodID(CONTENT_CLASS, "notifyCallback", "(ZZ)V");
 
             HASHSET_CLASS = reinterpret_cast<jclass>(env->NewGlobalRef(
                     env->FindClass("java/util/HashSet")));
             HASHSET_CONSTRUCTOR = env->GetMethodID(HASHSET_CLASS, "<init>", "()V");
             HASHSET_ADD = env->GetMethodID(HASHSET_CLASS, "add", "(Ljava/lang/Object;)Z");
+            REQUEST_PACKAGE = env->GetMethodID(CONTENT_CLASS, "coreRequestPackage",
+                                               "(JLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
 
             if (nullptr == CONTENT_CLASS
                 || nullptr == REQUEST_PACKAGE
                 || nullptr == REQUEST_DATA
                 || nullptr == HASHSET_CLASS
                 || nullptr == HASHSET_CONSTRUCTOR
-                || nullptr == HASHSET_ADD) {
+                || nullptr == HASHSET_ADD
+                || nullptr == IS_USE_PACKAGE_MANAGER
+                || nullptr == NOTIFY_CALLBACKS) {
 
                 LOG(apl::LogLevel::kError)
                         << "Could not load methods for class com.amazon.apl.android.content.Content";
                 return JNI_FALSE;
             }
+
+            LOG(apl::LogLevel::kDebug)
+                    << "content_OnLoad successful";
 
             return JNI_TRUE;
         }
@@ -98,39 +113,93 @@ namespace apl {
             env->DeleteGlobalRef(HASHSET_CLASS);
         }
 
+        JNIEnv * jenv() {
+            JNIEnv *env;
+            if (VM_REFERENCE->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+                // environment failure, can't proceed.
+                return nullptr;
+            }
+            return env;
+        }
+
+        bool shouldUsePackageManager(JNIEnv * env, jobject instance) {
+             jboolean usePackageManager  = env->CallBooleanMethod(instance, IS_USE_PACKAGE_MANAGER);
+             return usePackageManager;
+        }
+
+        void handleLoadingResults(bool updateData, const ContentPtr &contentPtr, jweak iweak) {
+            JNIEnv * env = jenv();
+            auto instance = env->NewLocalRef(iweak);
+
+            if(instance != nullptr) {
+                update(env, instance, contentPtr, false, updateData);
+
+                // notify callbacks, since there is no "addPackage()" call in the java object
+                // in "addPackage()" flow we have addPackage() method to call notify_callback().
+                // in content->load(), pathway, we have to compensate for that from jni layer.
+                env->CallVoidMethod(instance, NOTIFY_CALLBACKS, true, true);
+            }
+
+            env->DeleteLocalRef(instance);
+            env->DeleteWeakGlobalRef(iweak);
+        } 
+
+        void loadPackagesWithPackageManager(const ContentPtr &contentPtr, jobject instance) {
+            jweak iweak = jenv()->NewWeakGlobalRef(instance);
+
+            contentPtr->load([iweak, contentPtr]() {
+                              // only updateData params to be fetched and status  because
+                              // all packages would be imported by this time
+                              // by core via package manager. Unlike addPackage pathway
+                              // load() gets all of the packages in one shot.
+                                 handleLoadingResults(true, contentPtr, iweak);
+                             },
+                          [iweak, contentPtr]() { // failure
+                             // No need to update data because import of packages have failed
+                             // just update status
+                              handleLoadingResults(false, contentPtr, iweak);
+                          });
+        }
 
         /**
          * Request packages from the view host.
          */
         void requestPackages(JNIEnv *env, jobject instance, const apl::ContentPtr &contentPtr) {
 
-            auto request = contentPtr->getRequestedPackages();
+            if(shouldUsePackageManager(env, instance)) {
+                loadPackagesWithPackageManager(contentPtr, instance);
+            } else {
 
-            for (const auto &req : request) {
+                // In case of no package manager, eg rootConfig is null, we go the old fashioned way
+                auto request = contentPtr->getRequestedPackages();
+                for (const auto &req: request) {
 
-                // use handle instead of id as a ref to the native peer
-                auto reqPtr = std::make_shared<apl::ImportRequest>(req);
-                auto handle = createHandle<ImportRequest>(reqPtr);
+                    // use handle instead of id as a ref to the native peer
+                    auto reqPtr = std::make_shared<apl::ImportRequest>(req);
+                    auto handle = createHandle<ImportRequest>(reqPtr);
 
-                auto source = env->NewStringUTF(req.source().c_str());
-                auto name = env->NewStringUTF(req.reference().name().c_str());
-                auto version = env->NewStringUTF(req.reference().version().c_str());
+                    auto source = env->NewStringUTF(req.source().c_str());
+                    auto name = env->NewStringUTF(req.reference().name().c_str());
+                    auto version = env->NewStringUTF(req.reference().version().c_str());
+                    auto domain = env->NewStringUTF(req.reference().domain().c_str());
 
-                env->CallVoidMethod(instance, REQUEST_PACKAGE, handle, source, name,
-                                    version);
+                    env->CallVoidMethod(instance, REQUEST_PACKAGE, handle, source, name,
+                                        version, domain);
 
-                env->DeleteLocalRef(source);
-                env->DeleteLocalRef(name);
-                env->DeleteLocalRef(version);
+                    env->DeleteLocalRef(source);
+                    env->DeleteLocalRef(name);
+                    env->DeleteLocalRef(version);
+                    env->DeleteLocalRef(domain);
+
+                }
             }
 
         }
 
-
         /**
          * Request data from the view host.
          */
-        void requestData(JNIEnv *env, jobject instance, const apl::ContentPtr &contentPtr) {
+        void requestData(JNIEnv *env, jobject instance, const ContentPtr &contentPtr) {
 
             auto paramCount = contentPtr->getParameterCount();
 
@@ -148,15 +217,15 @@ namespace apl {
         /**
          * Update the View Host with outstanding data or package requests.
          */
-        void update(JNIEnv *env, jobject instance, const apl::ContentPtr &content,
+        void update(JNIEnv *env, jobject instance, const ContentPtr &content,
                     bool updatePackages, bool updateData) {
-
             // update any outstanding requests for packages or data;
             if (!content->isError()) {
                 // request packages
                 if (updatePackages) {
                     requestPackages(env, instance, content);
                 }
+
                 // request all data - set is fixed, and only updated if updateData = true
                 if (updateData && !content->isWaiting()) {
                     // prevent requesting package and data in parallel
@@ -239,13 +308,14 @@ namespace apl {
                                                         jlong contentHandle,
                                                         jlong requestHandle,
                                                         jlong jsonDataHandle) {
-            auto jsonData = get<JsonData>(jsonDataHandle);
+            auto sharedJsonData = get<SharedJsonData>(jsonDataHandle);
+            auto  jsonData = JsonData(*sharedJsonData);
             // Get the content from the handle
-            auto c = get<Content>(contentHandle);
+            auto jContent = get<Content>(contentHandle);
             // add the package
             auto it = get<ImportRequest>(requestHandle);
-            c->addPackage(*it, jsonData->get());
-            update(env, instance, c, true, true); // update packages, data, and status
+            jContent->addPackage(*it, jsonData.get());
+            update(env, instance, jContent, true, true); // update packages, data, and status
         }
 
         /**
@@ -270,13 +340,13 @@ namespace apl {
             const char *dataName = env->GetStringUTFChars(dataName_, nullptr);
 
             // Get the content from the handle
-            auto c = get<Content>(contentHandle);
+            auto jContent = get<Content>(contentHandle);
 
-            c->addData(dataName, converter.to_bytes(std::u16string(docContents, docContents+docContentsLen)));
+            jContent->addData(dataName, converter.to_bytes(std::u16string(docContents, docContents+docContentsLen)));
 
             env->ReleaseStringChars(docContents_, docContents);
             env->ReleaseStringUTFChars(dataName_, dataName);
-            update(env, instance, c, false, false); // only update status, no packages or data
+            update(env, instance, jContent, false, false); // only update status, no packages or data
         }
 
 
@@ -336,6 +406,20 @@ namespace apl {
             env->ReleaseStringUTFChars(propertyName_, propertyName);
 
             return getJObject(env, value);
+        }
+
+        JNIEXPORT jstring JNICALL
+        Java_com_amazon_apl_android_Content_nGetSerializedDocumentSettings(JNIEnv *env, jclass clazz, jlong contentHandle, jlong rootConfigHandle) {
+            auto content = get<Content>(contentHandle);
+            auto settings = content->getDocumentSettings();
+            auto rootConfig = get<RootConfig>(rootConfigHandle);
+            rapidjson::Document document(rapidjson::kObjectType);
+            auto serializedSettings = settings->serialize(document.GetAllocator(), *rootConfig);
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            serializedSettings.Accept(writer);
+            std::u16string u16 = converter.from_bytes(buffer.GetString());
+            return env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
         }
 
 

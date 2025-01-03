@@ -23,6 +23,7 @@ import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
 import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
+import com.amazon.apl.devtools.util.IdGenerator;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.config.DocumentOptions;
 import com.amazon.apl.viewhost.primitives.Decodable;
@@ -44,6 +45,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,15 +53,21 @@ import java.util.concurrent.TimeUnit;
  */
 public class DocumentHandleImpl extends DocumentHandle {
     private static final String TAG = "DocumentHandleImpl";
+    private static final IdGenerator mSerializeDocIdGenerator = new IdGenerator();
+    private final int mSerializedDocId;
     private Queue<ExecuteCommandsRequest> mExecuteCommandsRequestQueue = new LinkedList<>();
     private Handler mCoreWorker;
     private Set<DocumentStateChangeListener> mDocumentStateChangeListeners;
     private Content mContent;
+
+    private final ConcurrentLinkedQueue<DocumentSettingsCallback> mDocumentSettingsCallbackQueue;
     private DocumentState mDocumentState;
     private ExtensionMediator mExtensionMediator;
     private DocumentOptions mDocumentOptions;
     private ITelemetryProvider mTelemetryProvider = NoOpTelemetryProvider.getInstance();
     private String mToken;
+    // Pending tasks that should execute post-inflation on the core worker
+    private final ConcurrentLinkedQueue<Runnable> mPendingTasks = new ConcurrentLinkedQueue<>();
 
     /**
      * Retain a link to core's DocumentContext. It can be null while the document is being prepared
@@ -110,7 +118,10 @@ public class DocumentHandleImpl extends DocumentHandle {
         mUserPerceivedFatalReporter = new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback());
         mSession = new Session();
         mMetricsOptions = metricsOptions;
-        Log.d(TAG, "Document UniqueID is: " + mUniqueID);
+        mSerializedDocId = mSerializeDocIdGenerator.generateId();
+        Log.i(TAG, "Document UniqueID is: " + mUniqueID);
+        mDocumentSettingsCallbackQueue = new ConcurrentLinkedQueue<>();
+        registerStateChangeListener(new DocumentStateChangedWrapper());
     }
 
     public Handler getCoreWorker() {
@@ -154,6 +165,13 @@ public class DocumentHandleImpl extends DocumentHandle {
     @Override
     public String getUniqueId() {
         return mUniqueID;
+    }
+
+    /**
+     * @return the serialized unique id corresponding to this Document.
+     */
+    public int getSerializedId() {
+        return mSerializedDocId;
     }
 
     @Override
@@ -263,7 +281,7 @@ public class DocumentHandleImpl extends DocumentHandle {
             return false;
         }
         String commands = ((JsonStringDecodable) request.getCommands()).getString();
-        Log.d(TAG, String.format("Running commands %s for host component", commands));
+        Log.i(TAG, String.format("Request received to execute commands for document:%s and the commands are:%s", this, commands));
 
         if (mViewhost.get() == null) {
             Log.e(TAG, "viewhost not initialised");
@@ -302,6 +320,31 @@ public class DocumentHandleImpl extends DocumentHandle {
         return true;
     }
 
+    /**
+     * Convenience wrapper that gracefully handles a null callback and also logs on failure.
+     */
+    static class UpdateDataSourceCallbackWrapper implements UpdateDataSourceCallback {
+        private UpdateDataSourceCallback mCallback;
+        UpdateDataSourceCallbackWrapper(UpdateDataSourceCallback callback) {
+            mCallback = callback;
+        }
+
+        @Override
+        public void onSuccess() {
+            if (mCallback != null) {
+                mCallback.onSuccess();
+            }
+        }
+
+        @Override
+        public void onFailure(String reason) {
+            Log.w(TAG, "Data source update failed: " + reason);
+            if (mCallback != null) {
+                mCallback.onFailure(reason);
+            }
+        }
+    }
+
     @Override
     public boolean updateDataSource(UpdateDataSourceRequest request) {
         if (!isValid()) {
@@ -309,48 +352,52 @@ public class DocumentHandleImpl extends DocumentHandle {
             return false;
         }
 
-        if ((mRootContext == null ) && (getDocumentConfig() == null || getDocumentConfig().getNativeHandle() == 0)) {
-            Log.e(TAG, "RootContext null or DocumentConfig handle 0 which means provider not defined in document options, hence ignoring the update data source request");
-            return false;
-        }
+        Log.i(TAG, String.format("Request received to updateDataSource for document:%s", this));
 
-        ViewhostImpl viewhost = mViewhost.get();
-        UpdateDataSourceCallback callback = request.getCallback();
-        mCoreWorker.post(() -> {
+        executeWithDocumentContext(() -> {
+            UpdateDataSourceCallback callback = new UpdateDataSourceCallbackWrapper(request.getCallback());
+            ViewhostImpl viewhost = mViewhost.get();
+            if (viewhost == null) {
+                Log.w(TAG, "View host is gone, dropping request to update data source");
+                return;
+            }
+
+            if (!isValid()) {
+                viewhost.publish(() -> callback.onFailure("Document became invalid"));
+                return;
+            }
+
+            String payload = ((JsonStringDecodable) request.getData()).getString();
+            String type;
             try {
-                String payload = ((JsonStringDecodable) request.getData()).getString();
                 JSONObject jsonObject = new JSONObject(payload);
-                String type = jsonObject.has("type") ? jsonObject.getString("type") : request.getType();
-                if (TextUtils.isEmpty(type)) {
-                    Log.e(TAG, "Data Source type not defined, hence update failed");
-                    if (callback != null) {
-                        viewhost.publish(() -> {
-                            callback.onFailure("Data Source type not defined, hence update failed");
-                        });
-                    }
-                } else {
-                    boolean updated = mRootContext != null ? mRootContext.updateDataSource(type, payload) : nUpdateDataSource(type, payload, getDocumentConfig().getNativeHandle());
-                    if (callback != null) {
-                        if (updated) {
-                            viewhost.publish(() -> {
-                                callback.onSuccess();
-                            });
-                        } else {
-                            viewhost.publish(() -> {
-                                callback.onFailure("Encountered runtime error in processing data update");
-                            });
-                        }
-                    }
-                }
+                type = jsonObject.has("type") ? jsonObject.getString("type") : request.getType();
             } catch (JSONException ex) {
-                Log.e(TAG, String.format("JSON exception occurred with message %s, hence ignoring the update request", ex.getMessage()));
-                if (callback != null) {
-                    viewhost.publish(() -> {
-                        callback.onFailure("JSON parsing error occurred, hence ignoring the update request");
-                    });
-                }
+                viewhost.publish(() -> callback.onFailure("JSON parsing error occurred, " + ex.getMessage()));
+                return;
+            }
+            if (TextUtils.isEmpty(type)) {
+                viewhost.publish(() -> callback.onFailure("Data Source type not defined"));
+                return;
+            }
+
+            // At this point we either have a mRootContext (primary document) or we have a document
+            // config (embedded document). We need one or the other in order to call into core.
+            if (mRootContext == null && (mDocumentConfig == null || mDocumentConfig.getNativeHandle() == 0)) {
+                Log.e(TAG, "RootContext null or DocumentConfig handle 0 which means provider not defined in document options, hence ignoring the update data source request");
+                viewhost.publish(() -> callback.onFailure("Internal failure"));
+                return;
+            }
+
+            boolean updated = mRootContext != null ?
+                mRootContext.updateDataSource(type, payload) : nUpdateDataSource(type, payload, mDocumentConfig.getNativeHandle());
+            if (updated) {
+                viewhost.publish(() -> callback.onSuccess());
+            } else {
+                viewhost.publish(() -> callback.onFailure("Encountered runtime error in processing data update"));
             }
         });
+
         return true;
     }
 
@@ -364,6 +411,8 @@ public class DocumentHandleImpl extends DocumentHandle {
 
     public void setDocumentState(DocumentState state) {
         Log.d(TAG, String.format("setDocumentState for handle: %s and new state: %s", this, state.toString()));
+
+        final boolean wasValid = isValid();
         mDocumentState = state;
         // update all the listeners with the new state
         for (DocumentStateChangeListener listener : mDocumentStateChangeListeners) {
@@ -372,6 +421,11 @@ public class DocumentHandleImpl extends DocumentHandle {
         final ViewhostImpl viewhost = mViewhost.get();
         if (viewhost != null) {
             viewhost.notifyDocumentStateChanged(this, state);
+        }
+        if (wasValid && !isValid()) {
+            // Document became invalid, so execute pending tasks so that
+            // anything waiting for a document context can fail gracefully
+            executePendingTasks();
         }
     }
 
@@ -425,6 +479,7 @@ public class DocumentHandleImpl extends DocumentHandle {
         }
 
         pollRequests();
+        executePendingTasks();
     }
 
     /**
@@ -445,9 +500,7 @@ public class DocumentHandleImpl extends DocumentHandle {
     public void setPrimary(RootContext rootContext, ViewhostImpl viewhost) {
         mRootContext = rootContext;
         mRootContext.setDocumentHandle(this);
-        DocumentContext documentContext = rootContext.getDocumentContext();
         mViewhost = new WeakReference<>(viewhost);
-        setDocumentContext(documentContext);
     }
 
     /**
@@ -496,6 +549,7 @@ public class DocumentHandleImpl extends DocumentHandle {
             Log.w(TAG, "Ignoring finish request due to mismatched tokens.");
             return false;
         }
+        Log.i(TAG, String.format("Request received to finish document:%s", this));
         mExecuteCommandsRequestQueue.clear();
         mCoreWorker.post(() -> {
             if (mRootContext != null) {
@@ -509,9 +563,12 @@ public class DocumentHandleImpl extends DocumentHandle {
                 //when the DocumentState is pending or prepared, but not yet rendered
                 setDocumentState(DocumentState.FINISHED);
             }
+
             if (mExtensionMediator != null) {
                 mExtensionMediator.enable(false);
+                mExtensionMediator.finish();
             }
+            mRootContext = null;
         });
         return true;
     }
@@ -547,13 +604,22 @@ public class DocumentHandleImpl extends DocumentHandle {
     }
 
     @Override
-    public <K> K getDocumentSetting(String propertyName, K defaultValue) {
-        if (mContent != null) {
-            return mContent.optSetting(propertyName, defaultValue);
-        } else {
-            Log.w(TAG, "Content is null, returning defaultValue");
-            return defaultValue;
+    public boolean requestDocumentSettings(DocumentSettingsCallback callback) {
+        ViewhostImpl viewhost = mViewhost.get();
+        if (null == viewhost) {
+            Log.w(TAG, "Could not respond to requestDocumentSettings, view host instance is gone.");
+            return false;
         }
+        if (!isValid()) {
+            viewhost.publish(() -> callback.onFailure("Document is no longer valid"));
+            return false;
+        }
+        if (areSettingsAvailable(this.getDocumentState())) {
+            publishSettings(callback, viewhost);
+        } else {
+            mDocumentSettingsCallbackQueue.add(callback);
+        }
+        return true;
     }
 
     @Override
@@ -587,4 +653,67 @@ public class DocumentHandleImpl extends DocumentHandle {
     }
 
     private static native boolean nUpdateDataSource(String type, String payload, long documentConfigNativeHandle);
+
+    /**
+     * Internal class to handle state change events and route messages to document settings callback.
+     */
+    private class DocumentStateChangedWrapper implements DocumentStateChangeListener {
+        @Override
+        public void onDocumentStateChanged(DocumentState state, DocumentHandle handle) {
+            if (DocumentState.PENDING.equals(state)) {
+                return;
+            }
+
+            ViewhostImpl viewhost = mViewhost.get();
+            if (null == viewhost) {
+                Log.w(TAG, "Could not respond to state change events, view host instance is gone.");
+                return;
+            }
+
+            for (DocumentSettingsCallback callback = mDocumentSettingsCallbackQueue.poll(); callback != null; callback = mDocumentSettingsCallbackQueue.poll()) {
+                if (areSettingsAvailable(state)) {
+                    publishSettings(callback, viewhost);
+                } else if (!isValid()) {
+                    final DocumentSettingsCallback documentSettingsCallback = callback;
+                    viewhost.publish(() -> documentSettingsCallback.onFailure("Document not valid anymore"));
+
+                }
+            }
+        }
+    }
+
+    private void publishSettings(final DocumentSettingsCallback callback, final ViewhostImpl viewhost) {
+        viewhost.publish(() -> {
+            try {
+                callback.onSuccess(mContent.getSerializedDocumentSettings(mRootConfig));
+            } catch (JSONException e) {
+                viewhost.publish(() -> callback.onFailure("unexpected serialization failure"));
+                Log.wtf(TAG, "Error serializing document settings object.", e);
+            }
+        });
+    }
+
+    boolean areSettingsAvailable(DocumentState state) {
+        return DocumentState.PREPARED.equals(state) || DocumentState.INFLATED.equals(state)
+                || DocumentState.DISPLAYED.equals(state);
+    }
+
+    private void executeWithDocumentContext(Runnable task) {
+        mCoreWorker.post(() -> {
+            if (null == mDocumentContext) {
+                Log.i(TAG, String.format("Adding post-inflation updateDataSource request for document:%s", this));
+                mPendingTasks.add(task);
+                return;
+            }
+
+            // Just run it now
+            task.run();
+        });
+    }
+
+    private void executePendingTasks() {
+        while (!mPendingTasks.isEmpty()) {
+            mCoreWorker.post(mPendingTasks.poll());
+        }
+    }
 }

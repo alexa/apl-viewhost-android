@@ -14,7 +14,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
@@ -29,8 +28,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.amazon.alexaext.ExtensionRegistrar;
@@ -40,10 +42,11 @@ import com.amazon.apl.android.Action;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.DocumentSession;
 import com.amazon.apl.android.ExtensionMediator;
-import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.Session;
 import com.amazon.apl.android.UserPerceivedFatalReporter;
+import com.amazon.apl.android.dependencies.IAPLSessionListener;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.dependencies.IOpenUrlCallback;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
@@ -51,16 +54,19 @@ import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
 import com.amazon.apl.android.document.AbstractDocUnitTest;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
-import com.amazon.apl.android.events.PlayMediaEvent;
 import com.amazon.apl.android.events.SendEvent;
+import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.devtools.DevToolsProvider;
+import com.amazon.apl.devtools.models.ViewTypeTarget;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
+import com.amazon.apl.viewhost.TimeProvider;
 import com.amazon.apl.viewhost.Viewhost;
 import com.amazon.apl.viewhost.config.DocumentOptions;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
@@ -68,6 +74,7 @@ import com.amazon.apl.viewhost.config.EmbeddedDocumentResponse;
 import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.example.ExampleDocumentFactory;
 import com.amazon.apl.viewhost.internal.message.notification.DocumentStateChangedImpl;
+import com.amazon.apl.viewhost.internal.message.notification.ScreenLockStatusChangedImpl;
 import com.amazon.apl.viewhost.message.BaseMessage;
 import com.amazon.apl.viewhost.message.Message;
 import com.amazon.apl.viewhost.message.action.FetchDataRequest;
@@ -94,9 +101,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.robolectric.RuntimeEnvironment;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -111,7 +121,16 @@ public class ViewhostTest extends AbstractDocUnitTest {
     private DocumentContext mDocumentContext;
 
     @Mock
-    private IAPLViewPresenter mViewPresenter;
+    private APLLayout.APLViewPresenterImpl mViewPresenter;
+
+    @Mock
+    private DevToolsProvider mDevToolsProvider;
+
+    @Mock
+    private IAPLSessionListener mAPLSessionListener;
+
+    @Mock
+    private ViewTypeTarget mDTView;
 
     private Viewhost mViewhost;
 
@@ -123,9 +142,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
     @Mock
     private IExtensionProvider mExtensionProvider;
     @Mock
-    DocumentOptions mDocumentOptions;
+    private TimeProvider mTimeProvider;
+    private DocumentOptions mDocumentOptions;
     @Mock
     ExtensionMediator.IExtensionGrantRequestCallback mExtensionGrantRequestCallback;
+    @Mock
+    ExtensionMediator mMediator;
     @Mock
     protected ShadowBitmapRenderer mockShadowRenderer;
     @Mock
@@ -146,7 +168,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
     @Mock
     private IUserPerceivedFatalCallback mUserPerceivedFatalCallback;
 
+    @Mock
+    private IExtensionRegistration mLegacyExtensionRegistration;
+
     private APLLayout mAplLayout;
+
+    private ExtensionRegistrar mExtensionRegistrar;
 
     private static final String SIMPLE_DOC = "{" +
             "  \"type\": \"APL\"," +
@@ -281,21 +308,26 @@ public class ViewhostTest extends AbstractDocUnitTest {
                 .theme("dark")
                 .mode(ViewportMode.kViewportModeHub)
                 .build();
-
+        
         mMessageHandler = new CapturingMessageHandler();
         mRuntimeInteractionWorker = new ManualExecutor();
         mAplLayout = spy(new APLLayout(RuntimeEnvironment.getApplication().getBaseContext(), null));
         mAplLayout.setAplViewPresenterForTesting(mViewPresenter);
-        ExtensionRegistrar extensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
-        when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(mExtensionGrantRequestCallback);
-        when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
-        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
+        mExtensionRegistrar = new ExtensionRegistrar().addProvider(mExtensionProvider);
+
+        mDocumentOptions = DocumentOptions.builder().extensionGrantRequestCallback(mExtensionGrantRequestCallback)
+                .extensionRegistrar(mExtensionRegistrar)
+                .userPerceivedFatalCallback(mUserPerceivedFatalCallback).build();
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
         when(mViewPresenter.getShadowRenderer()).thenReturn(mockShadowRenderer);
         when(mViewPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mViewPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mViewPresenter.metricsRecorder()).thenReturn(mMetricsRecorder);
+        when(mViewPresenter.getDevToolsProvider()).thenReturn(mDevToolsProvider);
+        when(mDevToolsProvider.getAPLSessionListener()).thenReturn(mAPLSessionListener);
+        when(mDevToolsProvider.getDTView()).thenReturn(mDTView);
+        when(mCoreWorker.getLooper()).thenReturn(Looper.getMainLooper());
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
@@ -304,8 +336,9 @@ public class ViewhostTest extends AbstractDocUnitTest {
         // Create new viewhost for handling embedded documents
         mConfig = ViewhostConfig.builder()
                 .messageHandler(mMessageHandler)
-                .extensionRegistrar(extensionRegistrar)
+                .extensionRegistrar(mExtensionRegistrar)
                 .defaultDocumentOptions(mDocumentOptions)
+                .timeProvider(mTimeProvider)
                 .build();
         mViewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
         mViewhost2 = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
@@ -337,6 +370,28 @@ public class ViewhostTest extends AbstractDocUnitTest {
         factory.onDocumentRequested(requestB);
         factory.onProvideDocument("uriB", "documentB");
         verify(requestB, times(1)).resolve(any(PreparedDocument.class));
+    }
+
+    @Test
+    public void testConstructor_background_coreWorker() {
+        DocumentSession mockDocumentSession = spy(DocumentSession.create());
+        PrepareDocumentRequest request = PrepareDocumentRequest.builder()
+                .token("mytoken")
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .data(new JsonStringDecodable("data"))
+                .documentSession(mockDocumentSession)
+                .documentOptions(DocumentOptions.builder().build())
+                .build();
+        Viewhost viewhost = new ViewhostImpl(mConfig);
+        PreparedDocument preparedDocument = viewhost.prepare(request);
+        DocumentHandle handle = preparedDocument.getHandle();
+        assertNotNull(handle);
+        ArgumentCaptor<Handler> handlerArgumentCaptor = ArgumentCaptor.forClass(Handler.class);
+        verify(mockDocumentSession).setCoreWorker(handlerArgumentCaptor.capture());
+        Thread thread = handlerArgumentCaptor.getValue().getLooper().getThread();
+        assertEquals("BackgroundHandler", thread.getName());
+        assertEquals(Thread.MAX_PRIORITY, thread.getPriority());
+        assertNotNull(viewhost.render(preparedDocument));
     }
 
     @Test
@@ -377,7 +432,6 @@ public class ViewhostTest extends AbstractDocUnitTest {
                 .documentSession(DocumentSession.create())
                 .documentOptions(mDocumentOptions)
                 .build();
-        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
 
         mockStatic(Content.class);
         Content.CallbackV2 callbackV2 = mock(Content.CallbackV2.class);
@@ -388,7 +442,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
             return null;
         }).when(callbackV2).onError(any());
 
-        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true))).then(invocation -> {
+        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true), any())).then(invocation -> {
             Content.CallbackV2 callback = invocation.getArgument(2);
             callback.onError(new Exception());
             return null;
@@ -396,6 +450,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
         PreparedDocument preparedDocument = mViewhost.prepare(request);
         verify(mUserPerceivedFatalCallback, times(1)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE.toString()));
         verify(mUserPerceivedFatalCallback, times(0)).onFatalError(eq(UserPerceivedFatalReporter.UpfReason.REQUIRED_EXTENSION_LOADING_FAILURE.toString()));
+    }
+
+    @Test
+    public void testRenderDocumentWithTimeProviderConfig() {
+        prepareAndRender(SIMPLE_DOC, "");
+        verify(mConfig.getTimeProvider()).getLocalTimeOffset();
     }
 
     @Test
@@ -413,9 +473,6 @@ public class ViewhostTest extends AbstractDocUnitTest {
                 .documentSession(DocumentSession.create())
                 .documentOptions(mDocumentOptions)
                 .build();
-        when(mDocumentOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
-        when(mDocumentOptions.getExtensionRegistrar()).thenReturn(extensionRegistrar);
-        when(mDocumentOptions.getExtensionGrantRequestCallback()).thenReturn(extensionGrantRequestCallback);
 
         mockStatic(Content.class);
         Content.CallbackV2 callbackV2 = mock(Content.CallbackV2.class);
@@ -425,7 +482,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
             return content;
         }).when(callbackV2).onComplete(any());
 
-        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true))).then(invocation -> {
+        when(Content.create(any(), any(), any(), any(Session.class), any(), eq(true), any())).then(invocation -> {
             Content.CallbackV2 callback = invocation.getArgument(2);
             callback.onComplete(content);
             return content;
@@ -458,12 +515,14 @@ public class ViewhostTest extends AbstractDocUnitTest {
         assertNotNull(handle);
         assertNull(((DocumentHandleImpl) handle).getRootContext());
         assertNull(((DocumentHandleImpl) handle).getDocumentContext());
+        ((DocumentHandleImpl)handle).setExtensionMediator(mMediator);
 
         //finish request
         FinishDocumentRequest finishRequest = FinishDocumentRequest.builder()
                 .build();
         boolean result = handle.finish(finishRequest);
         assertTrue(result);
+        verify(mMediator).finish();
     }
 
     @Test
@@ -631,7 +690,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
     public void testRenderPreparedDocumentWithEmbeddedDocsInflated() throws InterruptedException {
         Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
         EmbeddedDocumentFactory factory = new EmbeddedDocumentFactoryTest(mViewhost, documentHandleMap);
-        when(mDocumentOptions.getEmbeddedDocumentFactory()).thenReturn(factory);
+
+        mDocumentOptions = DocumentOptions.builder().extensionGrantRequestCallback(mExtensionGrantRequestCallback)
+                .extensionRegistrar(mExtensionRegistrar)
+                .embeddedDocumentFactory(factory)
+                .userPerceivedFatalCallback(mUserPerceivedFatalCallback).build();
+
         testRenderPreparedDocumentInflated(SIMPLE_DOC_WITH_HOST_COMPONENT, documentHandleMap);
         assertEquals(2, documentHandleMap.size());
     }
@@ -730,26 +794,6 @@ public class ViewhostTest extends AbstractDocUnitTest {
     }
 
     @Test
-    public void testRenderDocument_viewhostNotBound_ignoresRendering() throws InterruptedException {
-        CountDownLatch preparedLatch = new CountDownLatch(1);
-        CountDownLatch errorLatch = new CountDownLatch(1);
-
-        RenderDocumentRequest request = RenderDocumentRequest.builder()
-                .document(new JsonStringDecodable(SIMPLE_DOC))
-                .documentSession(DocumentSession.create())
-                .documentOptions(DocumentOptions.builder().build())
-                .build();
-
-        // No Viewhost bound to layout, request should fail
-        mViewhost.bind(null);
-
-        DocumentHandle handle = mViewhost.render(request);
-        assertNotNull(handle);
-        assertFalse(mViewhost.isBound());
-        assertPrepared(handle);
-    }
-
-    @Test
     public void testRenderDocument_viewhostBound_inflatesAndFinishes() throws InterruptedException {
         CountDownLatch inflatedLatch = new CountDownLatch(1);
         CountDownLatch finishLatch = new CountDownLatch(1);
@@ -783,7 +827,12 @@ public class ViewhostTest extends AbstractDocUnitTest {
     public void testRenderDocument_embeddedDoc_inflated() throws InterruptedException {
         Map<String, DocumentHandle> documentHandleMap = new HashMap<>();
         EmbeddedDocumentFactory factory = new EmbeddedDocumentFactoryTest(mViewhost, documentHandleMap);
-        when(mDocumentOptions.getEmbeddedDocumentFactory()).thenReturn(factory);
+
+        mDocumentOptions = DocumentOptions.builder().extensionGrantRequestCallback(mExtensionGrantRequestCallback)
+                .extensionRegistrar(mExtensionRegistrar)
+                .embeddedDocumentFactory(factory)
+                .userPerceivedFatalCallback(mUserPerceivedFatalCallback).build();
+
         testRenderPreparedDocumentInflated(SIMPLE_DOC_WITH_HOST_COMPONENT, documentHandleMap);
         assertEquals(2, documentHandleMap.size());
     }
@@ -832,10 +881,10 @@ public class ViewhostTest extends AbstractDocUnitTest {
 
     @Test
     public void testUnrecognizedEventsPertainingToKnownDocuments() {
-        PlayMediaEvent event = mock(PlayMediaEvent.class);
+        SendEvent event = mock(SendEvent.class);
         updateDocumentMap(456, mDocumentHandleImpl, mDocumentContext);
         when(event.getDocumentContextId()).thenReturn((long) 456);
-        assertFalse(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
+        assertTrue(((ViewhostImpl) mViewhost).interceptEventIfNeeded(event));
     }
 
     @Test
@@ -1014,7 +1063,10 @@ public class ViewhostTest extends AbstractDocUnitTest {
 
     @Test
     public void testEventsDroppedWithoutMessageHandler() {
-        ViewhostConfig config = ViewhostConfig.builder().build();
+        DocumentOptions documentOptions = DocumentOptions.builder().properties(new HashMap<String, Object>() {{
+            put("inflateOnMainThread", true);
+        }}).build();
+        ViewhostConfig config = ViewhostConfig.builder().defaultDocumentOptions(documentOptions).build();
         ViewhostImpl viewhost = new ViewhostImpl(config);
 
         when(mDocumentHandleImpl.getDocumentContext()).thenReturn(mDocumentContext);
@@ -1108,7 +1160,7 @@ public class ViewhostTest extends AbstractDocUnitTest {
         assertTrue(mRuntimeInteractionWorker.size() == 0);
     }
 
-    /**
+
     @Test
     public void testRestoreDocumentSuccess() throws InterruptedException {
         DocumentHandle doc1 = prepareAndRender(SIMPLE_DOC, "");
@@ -1154,7 +1206,60 @@ public class ViewhostTest extends AbstractDocUnitTest {
         }
         assertEquals(0, invalidDocInflationCount);
     }
-     **/
+
+    @Test
+    public void testReuseFinishDocumentRequestDropped() {
+        Handler coreWorker = Mockito.mock(Handler.class);
+        when(coreWorker.getLooper()).thenReturn(Looper.getMainLooper());
+        List<Runnable> list = new ArrayList<>();
+        when(coreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
+            Runnable task = invocation.getArgument(0);
+            list.add(task);
+            return null;
+        });
+        Viewhost viewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, coreWorker);
+        PreparedDocument preparedDocument = viewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentSession(DocumentSession.create())
+                .documentOptions(mDocumentOptions)
+                .build());
+        DocumentHandleImpl documentHandle = (DocumentHandleImpl) preparedDocument.getHandle();
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!viewhost.isBound()) {
+            viewhost.bind(mAplLayout);
+        }
+        //render
+        viewhost.render(preparedDocument);
+        list.remove(0).run();
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assertMessageReceived(DocumentState.INFLATED, preparedDocument.getHandle().getUniqueId());
+
+        //unbind
+        viewhost.unBind();
+
+        //finish the document, however core runnable not run.
+        documentHandle.finish(FinishDocumentRequest.builder().build());
+
+        //reuse finished prepared doc
+        viewhost.bind(mAplLayout);
+
+        //At this point we should have 2 items in the runnable queue for core
+        assertEquals(2, list.size());
+        list.remove(0).run();
+        assertTrue(mRuntimeInteractionWorker.size() > 0);
+        mRuntimeInteractionWorker.flush();
+        assertMessageReceived(DocumentState.FINISHED, preparedDocument.getHandle().getUniqueId());
+        assertEquals(DocumentState.FINISHED, documentHandle.getDocumentState());
+
+        //run the second task
+        list.remove(0).run();
+
+        assertTrue(mRuntimeInteractionWorker.size() == 0);
+        assertEquals(DocumentState.FINISHED, documentHandle.getDocumentState());
+
+    }
 
     @Test
     public void testReusePreparedDocument() {
@@ -1170,6 +1275,8 @@ public class ViewhostTest extends AbstractDocUnitTest {
             mViewhost.bind(mAplLayout);
         }
         renderSuccess(preparedDocument);
+        //RC after first render
+        RootContext firstRootContext = documentHandle.getRootContext();
         assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
         //all the messages were de-queued so queue should be empty
         assertTrue(mRuntimeInteractionWorker.size() == 0);
@@ -1183,6 +1290,8 @@ public class ViewhostTest extends AbstractDocUnitTest {
         mRuntimeInteractionWorker.flush();
         assertMessageReceived(DocumentState.INFLATED, preparedDocument.getHandle().getUniqueId());
         assertEquals(DocumentState.INFLATED, documentHandle.getDocumentState());
+        //asserting that the RC remains the same after document re-use
+        assertEquals(firstRootContext, documentHandle.getRootContext());
 
         documentHandle.finish(FinishDocumentRequest.builder().build());
         finishSuccess(preparedDocument.getHandle());
@@ -1192,6 +1301,82 @@ public class ViewhostTest extends AbstractDocUnitTest {
         //null response when document not valid
         DocumentHandle handle = mViewhost.render(preparedDocument);
         assertNull(handle);
+    }
+
+    @Test
+    public void test_singleViewhost_legacyExtensionRegistration() {
+        mConfig = ViewhostConfig.builder()
+                .messageHandler(mMessageHandler)
+                .extensionRegistrar(mExtensionRegistrar)
+                .defaultDocumentOptions(mDocumentOptions)
+                .legacyExtensionRegistration(mLegacyExtensionRegistration)
+                .build();
+
+        mViewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentOptions(mDocumentOptions)
+                .documentSession(DocumentSession.create())
+                .build());
+
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+        assertNotNull(handle);
+        assertTrue(preparedDocument.isValid());
+        assertTrue(preparedDocument.isReady());
+        assertEquals(handle.getUniqueId(), preparedDocument.getUniqueID());
+
+        verify(mLegacyExtensionRegistration).registerExtensions(any(Content.class), any(RootConfig.class));
+
+        // Bind and render
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost.isBound()) {
+            mViewhost.bind(mAplLayout);
+        }
+        assertNotNull(mViewhost.render(preparedDocument));
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
+    }
+
+    @Test
+    public void test_multiViewhost_legacyExtensionRegistration() {
+        mConfig = ViewhostConfig.builder()
+                .messageHandler(mMessageHandler)
+                .extensionRegistrar(mExtensionRegistrar)
+                .defaultDocumentOptions(mDocumentOptions)
+                .legacyExtensionRegistration(mLegacyExtensionRegistration)
+                .build();
+
+        mViewhost = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+        mViewhost2 = new ViewhostImpl(mConfig, mRuntimeInteractionWorker, mCoreWorker);
+
+        // Prepare using VH1
+        PreparedDocument preparedDocument = mViewhost.prepare(PrepareDocumentRequest.builder()
+                .document(new JsonStringDecodable(SIMPLE_DOC))
+                .documentOptions(mDocumentOptions)
+                .documentSession(DocumentSession.create())
+                .build());
+        DocumentHandleImpl handle = (DocumentHandleImpl) preparedDocument.getHandle();
+        assertNotNull(handle);
+        assertTrue(preparedDocument.isValid());
+        assertTrue(preparedDocument.isReady());
+        assertEquals(handle.getUniqueId(), preparedDocument.getUniqueID());
+
+        // Check for the callback
+        verify(mLegacyExtensionRegistration).registerExtensions(any(Content.class), any(RootConfig.class));
+
+        // Bind and render using VH2
+        mAplLayout.measure(View.MeasureSpec.makeMeasureSpec(640, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY));
+        mAplLayout.layout(0, 0, 640, 480);
+        if (!mViewhost2.isBound()) {
+            mViewhost2.bind(mAplLayout);
+        }
+        mViewhost2.render(preparedDocument);
+
+        assertNotNull(handle.getRootContext());
+        assertNotNull(handle.getDocumentContext());
     }
 
     @Test
@@ -1359,6 +1544,72 @@ public class ViewhostTest extends AbstractDocUnitTest {
         assertTrue(mMessageHandler.queue.peek() instanceof VisualContextChanged);
         VisualContextChanged message = (VisualContextChanged) mMessageHandler.queue.poll();
         assertEquals(handle, message.getDocument());
+    }
+
+    private final String DOC_WITH_SCREEN_LOCK = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"2024.3\",\n" +
+            "  \"onMount\": [\n" +
+            "    {\n" +
+            "    \"type\": \"Idle\",\n" +
+            "    \"delay\": 3000,\n" +
+            "    \"screenLock\": true\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Text\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
+    private final String DOC_WITH_SCREEN_LOCK_FALSE = "{\n" +
+            "  \"type\": \"APL\",\n" +
+            "  \"version\": \"2024.3\",\n" +
+            "  \"onMount\": [\n" +
+            "    {\n" +
+            "      \"type\": \"Idle\",\n" +
+            "      \"delay\": 3000,\n" +
+            "      \"screenLock\": false\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"mainTemplate\": {\n" +
+            "    \"item\": {\n" +
+            "      \"type\": \"Text\"\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+
+    @Test
+    public void testScreenLockNotificationNotSent_whenScreenLockFalse() {
+        DocumentHandleImpl handle = (DocumentHandleImpl) prepareAndRender(DOC_WITH_SCREEN_LOCK_FALSE, "");
+        assertNotNull(handle);
+        update(handle, 100);
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+        boolean statusChanged = false;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            assertFalse(message instanceof ScreenLockStatusChangedImpl);
+        }
+    }
+
+    @Test
+    public void testScreenLockNotificationSent() {
+        DocumentHandleImpl handle = (DocumentHandleImpl) prepareAndRender(DOC_WITH_SCREEN_LOCK, "");
+        assertNotNull(handle);
+        update(handle, 100);
+        assertFalse(mRuntimeInteractionWorker.isEmpty());
+        mRuntimeInteractionWorker.flush();
+        boolean statusChanged = false;
+        while(!mMessageHandler.queue.isEmpty()) {
+            BaseMessage message = mMessageHandler.queue.poll();
+            if (message instanceof ScreenLockStatusChangedImpl) {
+                statusChanged = true;
+                assertTrue(((ScreenLockStatusChangedImpl) message).hasScreenLockStatusChanged());
+            }
+        }
+        assertTrue(statusChanged);
     }
 
     @Test

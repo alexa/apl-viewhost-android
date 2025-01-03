@@ -5,20 +5,22 @@
 
 package com.amazon.apl.devtools.models.view;
 
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.enums.DTError;
-import com.amazon.apl.devtools.models.common.ViewDomainCommandRequest;
+import com.amazon.apl.devtools.models.common.SessionCommandRequest;
 import com.amazon.apl.devtools.models.error.DTException;
+import com.amazon.apl.devtools.util.CommandRequestValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class ViewExecuteCommandsCommandRequestModel
-        extends ViewDomainCommandRequest<ViewExecuteCommandsCommandResponse> {
+        extends SessionCommandRequest<ViewExecuteCommandsCommandResponse> {
     private final Params mParams;
 
-    protected ViewExecuteCommandsCommandRequestModel(JSONObject obj) throws JSONException, DTException {
-        super(CommandMethod.VIEW_EXECUTE_COMMANDS, obj);
+    protected ViewExecuteCommandsCommandRequestModel(JSONObject obj, CommandRequestValidator commandRequestValidator, DTConnection connection) throws JSONException, DTException {
+        super(CommandMethod.VIEW_EXECUTE_COMMANDS, obj, commandRequestValidator, connection);
         try {
             mParams = new Params(obj.getJSONObject("params").getJSONArray("commands")
                     .toString());

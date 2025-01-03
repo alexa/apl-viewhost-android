@@ -4,12 +4,17 @@
  */
 package com.amazon.apl.android;
 
+import static com.amazon.apl.android.providers.ITelemetryProvider.APL_DOMAIN;
+import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
+
 import android.content.ComponentCallbacks2;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import androidx.annotation.MainThread;
 import androidx.annotation.NonNull;
@@ -17,12 +22,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.VisibleForTesting;
 
-import com.amazon.apl.android.metrics.ICounter;
 import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.metrics.IMetricsSink;
 import com.amazon.apl.android.metrics.MetricsMilestoneConstants;
 import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.media.MediaManager;
+import com.amazon.apl.android.metrics.impl.NoOpMetricsRecorder;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.utils.ConcurrencyUtils;
 import com.amazon.alexaext.ExtensionRegistrar;
@@ -30,19 +35,23 @@ import com.amazon.apl.android.bitmap.IBitmapCache;
 import com.amazon.apl.android.dependencies.IPackageCache;
 import com.amazon.apl.android.ExtensionMediator.ILoadExtensionCallback;
 import com.amazon.apl.android.font.TypefaceResolver;
-import com.amazon.apl.android.functional.Consumer;
+import com.amazon.common.Consumer;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider.Type;
 import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.android.utils.TracePoint;
 import com.amazon.apl.devtools.DevToolsProvider;
 import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.devtools.util.DependencyContainer;
+import com.amazon.apl.devtools.util.IdGenerator;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
+import com.amazon.apl.viewhost.internal.APLProperties;
+import com.amazon.apl.viewhost.internal.APLProperty;
 import com.amazon.common.NativeBinding;
 
 import java.util.Collections;
@@ -81,7 +90,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
      */
     private static void fail(ITelemetryProvider telemetryProvider,
                              final String failMetric, Type metricType) {
-        final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
+        final int metricId = telemetryProvider.createMetricId(APL_DOMAIN,
                 failMetric, metricType);
         telemetryProvider.fail(metricId);
     }
@@ -136,7 +145,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     private final AtomicBoolean mIsFinished = new AtomicBoolean(false);
     private final AtomicBoolean mIsDisplayed = new AtomicBoolean(false);
     private Integer mRenderDocumentTimer;
-    
+    private static IdGenerator mSerializedIdGenerator = new IdGenerator();
+    private final int mSerializedDocId;
+    private DocumentState mDocumentState;
 
     /**
      * Start the initialization of the APL system resources. To check whether APL initialization has completed/was successful,
@@ -200,13 +211,14 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
     /**
      * Private constructor.
      */
-    private APLController(IContentCreator contentCreator) {
+    private APLController(IContentCreator contentCreator, int serializedDocId) {
         mContentCreator = contentCreator;
+        mSerializedDocId = serializedDocId;
     }
 
     @VisibleForTesting
-    public APLController(RootContext rootContext, Content content) {
-        this(Content::create);
+    public APLController(RootContext rootContext, Content content, int serializedDocId) {
+        this(Content::create, serializedDocId);
         mRootContext = rootContext;
         mContent = content;
     }
@@ -245,8 +257,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             @NonNull final InflationErrorCallback errorCallback,
             final boolean disableAsyncInflate,
             @NonNull final DocumentSession documentSession) {
-
-        final DevToolsProvider devToolsProvider = aplLayout.getDevToolsProvider();
+        final int serializedDocId = mSerializedIdGenerator.generateId();
+        final DevToolsProvider devToolsProvider = ((APLLayout.APLViewPresenterImpl)aplLayout.getPresenter()).getDevToolsProvider();
+        devToolsProvider.getDTView().setCurrentDocumentId(serializedDocId);
 
         Session aplSession = rootConfig.getSession();
         if (options.getMetricsOptions() != null) {
@@ -265,9 +278,10 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         }
 
         aplLayout.setAgentName(rootConfig);
-        final APLController aplController = new APLController(contentCreator);
+        final APLController aplController = new APLController(contentCreator, serializedDocId);
 
         final ITelemetryProvider telemetryProvider = options.getTelemetryProvider();
+        final FluidityIncidentReporter fluidityIncidentCounter = createFluidityIncidentCounter(options, aplLayout.getContext());
         if(options.getEmbeddedDocumentFactory() != null) {
             aplController.initializeDocumentManager(rootConfig, options.getEmbeddedDocumentFactory(), telemetryProvider);
         }
@@ -281,6 +295,11 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if (options.isScenegraphEnabled()) {
             MediaManager mediaManager = new MediaManager(aplController, options.getImageProvider().get(aplLayout.getContext()));
             rootConfig.mediaManager(mediaManager);
+        }
+        
+        if(rootConfig.getPackageManager() == null) {
+            PackageManager packageManager = new PackageManager(options.getPackageLoader(), options.getTelemetryProvider(), devToolsProvider.getNetworkRequestHandler());
+            rootConfig.packageManager(packageManager);
         }
 
         aplController.mRenderDocumentTimer = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, TAG + "." + ITelemetryProvider.RENDER_DOCUMENT, Type.TIMER);
@@ -319,7 +338,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                         final Runnable runnable = () -> {
                             try {
                                 content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
-                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder());
+                                final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder(), fluidityIncidentCounter);
 
                                 if (aplController.mIsFinished.get()) {
                                     Log.i(TAG, "Finished while creating RootContext. Aborting");
@@ -341,7 +360,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     }));
                 } else {
                     // Start extension registration timer
-                    final int extensionRegistrationMetric = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, ITelemetryProvider.METRIC_TIMER_EXTENSION_REGISTRATION, ITelemetryProvider.Type.TIMER);
+                    final int extensionRegistrationMetric = telemetryProvider.createMetricId(APL_DOMAIN, ITelemetryProvider.METRIC_TIMER_EXTENSION_REGISTRATION, ITelemetryProvider.Type.TIMER);
 
                     content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.EXTENSION_REGISTRATION_START_MILESTONE);
                     telemetryProvider.startTimer(extensionRegistrationMetric);
@@ -372,14 +391,13 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                             final Runnable runnable = () -> {
                                                 try {
                                                     content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
-                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder());
+                                                    final RootContext rootContext = RootContext.create(viewportMetrics, content, rootConfig, options, presenter, upfReporter, content.getMetricsRecorder(), fluidityIncidentCounter);
 
                                                     if (aplController.mIsFinished.get()) {
                                                         Log.i(TAG, "Finished while creating RootContext. Aborting");
                                                         return;
                                                     }
                                                     presenter.onDocumentRender(rootContext);
-
                                                 } catch (Exception e) {
                                                     upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.ROOT_CONTEXT_CREATION_FAILURE);
                                                     handleRenderingError(e, aplController, telemetryProvider, errorCallback, aplSession, content.getMetricsRecorder());
@@ -389,7 +407,14 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                                             if (disableAsyncInflate) {
                                                 runnable.run();
                                             } else {
-                                                Threading.THREAD_POOL_EXECUTOR.submit(runnable);
+                                                // Temporarily stop processing extension events to
+                                                // prevent conflicting with async inflation.
+                                                mediator.pauseForInflation();
+                                                // Queue async inflation from the main thread to
+                                                // ensure that any already-posted extension messages
+                                                // are processed first.
+                                                new Handler(Looper.getMainLooper()).post(() ->
+                                                        Threading.THREAD_POOL_EXECUTOR.submit(runnable));
                                             }
                                         });
                                     };
@@ -420,7 +445,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             public void onError(Exception e) {
                 upfReporter.reportFatal(UserPerceivedFatalReporter.UpfReason.CONTENT_CREATION_FAILURE);
                 //this is the case where content is not initialised hence we will create a metrics recorder to propagate the error
-                MetricsRecorder metricsRecorder = new MetricsRecorder();
+                // TODO: Remove the NoOpMetricsRecorder when completely moving to the MetricsRecorder
+                IMetricsRecorder metricsRecorder = BuildConfig.DEBUG ? new MetricsRecorder() : new NoOpMetricsRecorder();
                 if (options.getMetricsOptions() != null) {
                     List<IMetricsSink> metricsSinkList = options.getMetricsOptions().getMetricsSinkList() == null ?
                             Collections.emptyList() : options.getMetricsOptions().getMetricsSinkList();
@@ -468,7 +494,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
 
         long libraryInitializationTime = nativeLibraryLoadingEndTime - nativeLibraryLoadingStartTime;
         if (libraryInitializationTime > 0) {
-            int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, LIBRARY_INITIALIZATION_TIME, Type.TIMER);
+            int metricId = telemetryProvider.createMetricId(APL_DOMAIN, LIBRARY_INITIALIZATION_TIME, Type.TIMER);
             telemetryProvider.reportTimer(metricId, TimeUnit.MILLISECONDS, libraryInitializationTime);
         } else {
             Log.e(TAG, "Library initialization time will not be recorded due to failure");
@@ -519,11 +545,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         try (APLTrace.AutoTrace autoTrace = presenter.getAPLTrace().startAutoTrace(TracePoint.APL_CONTROLLER_RENDER_DOCUMENT)) {
             final ViewportMetrics metrics = presenter.getOrCreateViewportMetrics();
             content.getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_START_MILESTONE);
-            final RootContext rootContext = RootContext.create(metrics, content, rootConfig, options, presenter, metricsRecorder);
+            final FluidityIncidentReporter fluidityIncidentCounter = createFluidityIncidentCounter(options, presenter.getContext());
+            final RootContext rootContext = RootContext.create(metrics, content, rootConfig, options, presenter, metricsRecorder, fluidityIncidentCounter);
             for (IDocumentLifecycleListener documentLifecycleListener : options.getDocumentLifecycleListeners()) {
                 presenter.addDocumentLifecycleListener(documentLifecycleListener);
             }
-            APLController aplController = new APLController(rootContext, content);
+            APLController aplController = new APLController(rootContext, content, mSerializedIdGenerator.generateId());
             presenter.addDocumentLifecycleListener(aplController);
             presenter.onDocumentRender(rootContext);
 
@@ -569,11 +596,16 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         final APLOptions options = documentState.getOptions();
         final RootConfig rootConfig = documentState.getRootConfig();
         Scaling scaling = documentState.getMetricsTransform().getScaledMetrics().scaling();
+        if (presenter instanceof APLLayout.APLViewPresenterImpl) {
+            final DevToolsProvider provider = ((APLLayout.APLViewPresenterImpl) presenter).getDevToolsProvider();
+            provider.getDTView().setCurrentDocumentId(documentState.getSerializedDocId());
+        }
         // Render document
         try {
             presenter.setScaling(scaling);
             presenter.getOrCreateViewportMetrics();
-            final RootContext rootContext = RootContext.createFromCachedDocumentState(documentState, presenter);
+            final FluidityIncidentReporter fluidityIncidentCounter = createFluidityIncidentCounter(options, presenter.getContext());
+            final RootContext rootContext = RootContext.createFromCachedDocumentState(documentState, presenter, fluidityIncidentCounter);
             if (presenter.getConfigurationChange() != null) {
                 rootContext.handleConfigurationChange(presenter.getConfigurationChange());
             }
@@ -585,7 +617,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
                     presenter.addDocumentLifecycleListener(documentLifecycleListener);
                 }
             }
-            APLController aplController = new APLController(rootContext, documentState.getContent());
+            APLController aplController = new APLController(rootContext, documentState.getContent(), documentState.getSerializedDocId());
             presenter.addDocumentLifecycleListener(aplController);
             presenter.onDocumentRender(rootContext);
             ExtensionMediator mediator = rootContext.getRootConfig().getExtensionMediator();
@@ -647,7 +679,12 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if (mRootContext == null) {
             throw new IllegalStateException("Attempting to get document state of finished document.");
         }
-        return new DocumentState(mRootContext, mContent);
+
+        if (mDocumentState == null) {
+            mDocumentState = new DocumentState(mRootContext, mContent, mSerializedDocId);
+        }
+
+        return mDocumentState;
     }
 
     /**
@@ -824,10 +861,23 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         }
 
         ExtensionMediator mediator = rootContext.getRootConfig().getExtensionMediator();
+
+        // Cache it, it gets nullified in the rootContext.finishDocument call.
+        DocumentState documentState = mDocumentState;
+
         rootContext.finishDocument();
 
         if (mediator != null) {
             mediator.enable(false);
+
+            // We reuse the mediator when/if the document is popped off the backstack
+            // So we need to ensure we don't finish it.
+            if (documentState == null || !documentState.isOnBackStack()) {
+                Log.i(TAG, "ExtensionMediator finished.");
+                mediator.finish();
+            } else {
+                Log.i(TAG, "Skipping ExtensionMediator finished due to backstack.");
+            }
         }
         ExtensionRegistrar registrar = rootContext.getRootConfig().getExtensionProvider();
         if (registrar != null) {
@@ -874,6 +924,7 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         mIsFinished.set(true);
         mRunnableQueue.clear();
         mRootContext = null;
+        mDocumentState = null;
     }
 
     @Override
@@ -883,8 +934,9 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
         if (telemetryProvider != null && mRenderDocumentTimer != null) {
             telemetryProvider.stopTimer(mRenderDocumentTimer, TimeUnit.MILLISECONDS, documentDisplayedTime);
         }
-        if (getMetricsRecorder() != null) {
-            getMetricsRecorder().recordMilestone(MetricsMilestoneConstants.RENDER_END_MILESTONE);
+        IMetricsRecorder metricsRecorder = getMetricsRecorder();
+        if (metricsRecorder != null) {
+            metricsRecorder.recordMilestone(MetricsMilestoneConstants.RENDER_END_MILESTONE);
         }
 
         mMainHandler.post(this::processQueuedRunnables);
@@ -912,8 +964,8 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
      */
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     static synchronized boolean isInitialized(final ITelemetryProvider telemetryProvider) {
-        final int metricId = telemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN,
-                ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, Type.COUNTER);
+        final int metricId = telemetryProvider.createMetricId(APL_DOMAIN,
+                ITelemetryProvider.LIBRARY_INITIALIZATION_FAILED, COUNTER);
         try {
             if (sLibraryFuture != null) {
                 return sLibraryFuture.get(ConcurrencyUtils.SMALL_TIMEOUT_SECONDS, TimeUnit.SECONDS);
@@ -942,6 +994,22 @@ public class APLController implements IDocumentLifecycleListener, IAPLController
             return mRootContext.getMetricsRecorder();
         }
         return null;
+    }
+
+    private static FluidityIncidentReporter createFluidityIncidentCounter(final APLOptions aplOptions, final Context context) {
+        ITelemetryProvider telemetryProvider = aplOptions.getTelemetryProvider();
+        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        double frameTimeMs = 1000.0f / display.getRefreshRate();
+        APLProperties aplProperties = new APLProperties();
+        for (Map.Entry<String, Object> entry : aplOptions.getConfigurationMap().entrySet()) {
+            aplProperties.set(entry.getKey(), entry.getValue());
+        }
+        return new FluidityIncidentReporter((int) aplProperties.get(APLProperty.kFluidityIncidentUpsWindowSize),
+                telemetryProvider,
+                aplProperties.getDouble(APLProperty.kFluidityIncidentUpsThreshold),
+                frameTimeMs,
+                aplProperties.getDouble(APLProperty.kFluidityIncidentMinimumDurationMs),
+                telemetryProvider.createMetricId(APL_DOMAIN, RootContext.METRIC_FLUIDITY_INCIDENT_COUNT, COUNTER));
     }
 
     /**

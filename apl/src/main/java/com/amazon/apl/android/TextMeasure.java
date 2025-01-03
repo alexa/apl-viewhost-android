@@ -94,9 +94,6 @@ public class TextMeasure {
         APLTextLayout layout = measureTextContent(textProxy, widthDp, widthMode,
                 heightDp, heightMode, text, mMetricsTransform);
 
-        // Allow layout to return DP.
-        layout.applyMetricsTransform(mMetricsTransform);
-
         if (mIsInitialRenderPass) {
             long duration = System.currentTimeMillis() - start;
             mTelemetry.incrementCount(cMeasureTextTotalTime, (int) duration);

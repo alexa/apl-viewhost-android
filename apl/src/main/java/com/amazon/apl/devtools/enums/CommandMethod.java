@@ -22,6 +22,8 @@ public enum CommandMethod {
     MEMORY_GET_MEMORY(CommandMethod.MEMORY_GET_MEMORY_TEXT),
     FRAMEMETRICS_RECORD(CommandMethod.FRAMEMETRICS_RECORD_TEXT),
     FRAMEMETRICS_STOP(CommandMethod.FRAMEMETRICS_STOP_TEXT),
+    FRAMEMETRICS_ENABLE(CommandMethod.FRAMEMETRICS_ENABLE_TEXT),
+    FRAMEMETRICS_DISABLE(CommandMethod.FRAMEMETRICS_DISABLE_TEXT),
     LOG_ENABLE(CommandMethod.LOG_ENABLE_TEXT),
     LOG_DISABLE(CommandMethod.LOG_DISABLE_TEXT),
     LOG_CLEAR(CommandMethod.LOG_CLEAR_TEXT),
@@ -56,6 +58,8 @@ public enum CommandMethod {
     private static final String MEMORY_GET_MEMORY_TEXT = "Memory.getMemory";
     private static final String FRAMEMETRICS_RECORD_TEXT = "FrameMetrics.record";
     private static final String FRAMEMETRICS_STOP_TEXT = "FrameMetrics.stop";
+    private static final String FRAMEMETRICS_DISABLE_TEXT = "FrameMetrics.disable";
+    private static final String FRAMEMETRICS_ENABLE_TEXT = "FrameMetrics.enable";
     private static final String LOG_ENABLE_TEXT = "Log.enable";
     private static final String LOG_DISABLE_TEXT = "Log.disable";
     private static final String LOG_CLEAR_TEXT = "Log.clear";

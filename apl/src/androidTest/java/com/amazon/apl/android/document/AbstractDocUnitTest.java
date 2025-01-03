@@ -22,6 +22,7 @@ import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.android.utils.TestClock;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.common.test.LeakRulesBaseClass;
 
 import org.junit.Assert;
@@ -83,6 +84,8 @@ public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
     @Mock
     private MetricsRecorder mMetricsRecorder;
     @Mock
+    private FluidityIncidentReporter mFluidityIncidentReporter;
+    @Mock
     private ICounter mCounter;
     @Mock
     private ITimer mTimer;
@@ -139,7 +142,7 @@ public abstract class AbstractDocUnitTest extends LeakRulesBaseClass {
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
-        mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter, mMetricsRecorder));
+        mRootContext = spy(RootContext.create(metrics, content, mRootConfig, mOptions, mAPLPresenter, mMetricsRecorder, mFluidityIncidentReporter));
 
         assertNotNull(mRootContext);
 

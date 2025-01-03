@@ -79,8 +79,12 @@ public abstract class DocumentHandle extends UserDataHolder {
     public abstract boolean executeCommands(ExecuteCommandsRequest request);
 
     /**
-     * Method to handle any data source updates.This method will be executed if the document is valid,
-     * in case it is not, this call will return false.
+     * Submits a dynamic data source update for this document, if valid. If the document is valid and
+     * not currently displayed, the update will be stored until either the document becomes
+     * displayed, or it becomes invalid. Updating data sources is typically performed
+     * asynchronously, after this call returns. If this call returns @c true, the
+     * UpdateDataSourceRequest callback will be called when update has been processed (successfully
+     * or not). If this call returns @c false, the callback will not be called.
      *
      * @return @c true if the request was accepted for execution, @c false otherwise
      */
@@ -102,12 +106,11 @@ public abstract class DocumentHandle extends UserDataHolder {
     public abstract boolean finish(FinishDocumentRequest request);
 
     /**
-     * Return a setting from the main template. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-document.html#document_settings_property
-     * @param propertyName  the property name
-     * @param defaultValue  the fallback if not present
-     * @return              the value if present otherwise the fallback.
+     * Request the document setting from the main template. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-document.html#document_settings_property
+     * @return  @c true if the document settings could be requested or false if the document handle
+     *          is no longer valid and the callback will not be called.
      */
-    public abstract <K> K getDocumentSetting(String propertyName, K defaultValue);
+    public abstract boolean requestDocumentSettings(DocumentSettingsCallback callback);
 
     /**
      * Cancels the main sequencer. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-commands.html#command_sequencing
@@ -131,6 +134,24 @@ public abstract class DocumentHandle extends UserDataHolder {
          */
         void onFailure(String reason);
     }
+
+    /**
+     * Class for returning APL Document settings.
+     */
+     public interface DocumentSettingsCallback {
+
+        /**
+         * Called when Document is in valid and content is ready.
+         * @param settings Document Settings object.
+         */
+         void onSuccess(Decodable settings);
+
+        /**
+         * Called in cases of failure when the document is invalid or finished.
+         * @param reason a human-readable reason suitable for logging
+         */
+        void onFailure(String reason);
+     }
 
     /**
      * Interface for returning the document's serialized data source context

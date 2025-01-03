@@ -82,7 +82,7 @@ public class ShadowBitmapRenderer {
         // if width or height of bitmap is zero, then return
         final int shadowBitmapWidth = Math.round(shadowRect.width() + 2 * shadowBlurRadius);
         final int shadowBitmapHeight = Math.round(shadowRect.height() + 2 * shadowBlurRadius);
-        if (shadowBitmapWidth == 0 || shadowBitmapHeight == 0) {
+        if (shadowBitmapWidth <= 0 || shadowBitmapHeight <= 0) {
             return;
         }
 

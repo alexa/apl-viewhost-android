@@ -7,11 +7,13 @@ package com.amazon.apl.devtools.models.common;
 
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.executers.ICommandExecutor;
+import com.amazon.apl.devtools.executers.ICommandValidator;
+import com.amazon.apl.devtools.models.error.DTException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class Request<TResponse extends Response> implements ICommandExecutor<TResponse> {
+public abstract class Request<TResponse extends Response> implements ICommandExecutor<TResponse>, ICommandValidator {
     private final CommandMethod mMethod;
     private final int mId;
 
@@ -27,4 +29,7 @@ public abstract class Request<TResponse extends Response> implements ICommandExe
     public int getId() {
         return mId;
     }
+
+    @Override
+    public void validate() throws DTException {}
 }

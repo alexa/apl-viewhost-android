@@ -113,7 +113,7 @@ namespace apl {
             // APLJSONData is a custom class for wrapping raw JSON data objects
             if (env->IsInstanceOf(object, APL_JSON_DATA) == JNI_TRUE) {
                 auto handle = env->CallLongMethod(object, BOUND_OBJECT_GET_NATIVE_HANDLE);
-                auto jsonData = get<JsonData>(handle);
+                auto jsonData = get<SharedJsonData>(handle);
                 return jsonData->get();
             }
 
@@ -428,8 +428,11 @@ namespace apl {
                                                               jint propertyId) {
             auto lookup = getLookup<PropertyLookup>(handle);
             auto value = lookup->getObject(static_cast<int>(propertyId), handle);
-            auto transform = value.get<Transform2D>();
-            return static_cast<jboolean>(!transform.isIdentity());
+            if (value.is<Transform2D>()) {
+                auto transform = value.get<Transform2D>();
+                return static_cast<jboolean>(!transform.isIdentity());
+            }
+            return false;
         }
 
         JNIEXPORT jfloat JNICALL
@@ -500,9 +503,9 @@ namespace apl {
         JNIEXPORT jlong JNICALL
         Java_com_amazon_apl_android_APLJSONData_nCreate(JNIEnv *env, jclass clazz, jstring data_) {
             const char* data = env->GetStringUTFChars(data_, nullptr);
-            auto jsonData = JsonData(data);
+            auto jsonData = SharedJsonData(data);
             env->ReleaseStringUTFChars(data_, data);
-            return createHandle(std::make_shared<JsonData>(std::move(jsonData)));
+            return createHandle(std::make_shared<SharedJsonData>(std::move(jsonData)));
         }
 
         JNIEXPORT jlong JNICALL
@@ -519,8 +522,8 @@ namespace apl {
                     LOG(apl::LogLevel::kError)
                             << "Parsing error: " << rapidjson::GetParseError_En(ok.Code());
                 }
-                auto jsonData = JsonData(std::move(doc));
-                return createHandle(std::make_shared<JsonData>(std::move(jsonData)));
+                auto jsonData = SharedJsonData(std::move(doc));
+                return createHandle(std::make_shared<SharedJsonData>(std::move(jsonData)));
         }
 
 

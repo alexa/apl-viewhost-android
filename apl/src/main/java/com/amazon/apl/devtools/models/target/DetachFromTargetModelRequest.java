@@ -7,13 +7,15 @@ package com.amazon.apl.devtools.models.target;
 
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.models.common.TargetDomainCommandRequest;
+import com.amazon.apl.devtools.models.error.DTException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class DetachFromTargetModelRequest extends TargetDomainCommandRequest<DetachFromTargetCommandResponse> {
     private final Params mParams;
 
-    protected DetachFromTargetModelRequest(JSONObject obj) throws JSONException {
+    protected DetachFromTargetModelRequest(JSONObject obj) throws JSONException, DTException {
         super(CommandMethod.TARGET_DETACH_FROM_TARGET, obj);
         mParams = new Params(obj.getJSONObject("params").getString("sessionId"));
     }
@@ -32,6 +34,12 @@ public class DetachFromTargetModelRequest extends TargetDomainCommandRequest<Det
         public String getSessionId() {
             return mSessionId;
         }
+    }
+
+
+    @Override
+    public void validate() throws DTException {
+
     }
 }
 

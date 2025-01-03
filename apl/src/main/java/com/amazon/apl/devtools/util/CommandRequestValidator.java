@@ -7,7 +7,7 @@ package com.amazon.apl.devtools.util;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.DTError;
 import com.amazon.apl.devtools.models.Target;
 import com.amazon.apl.devtools.models.error.DTException;

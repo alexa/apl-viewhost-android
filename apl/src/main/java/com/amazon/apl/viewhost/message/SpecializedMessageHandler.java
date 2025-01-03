@@ -12,6 +12,7 @@ import com.amazon.apl.viewhost.message.action.SendUserEventRequest;
 import com.amazon.apl.viewhost.message.notification.DataSourceContextChanged;
 import com.amazon.apl.viewhost.message.notification.DocumentStateChanged;
 import com.amazon.apl.viewhost.message.notification.NotificationMessage;
+import com.amazon.apl.viewhost.message.notification.ScreenLockStatusChanged;
 import com.amazon.apl.viewhost.message.notification.VisualContextChanged;
 
 /**
@@ -26,6 +27,8 @@ public class SpecializedMessageHandler implements MessageHandler {
                 return handleDataSourceContextChanged(DataSourceContextChanged.create(message));
             case "DocumentStateChanged":
                 return handleDocumentStateChanged(DocumentStateChanged.create(message));
+            case "ScreenLockStatusChanged":
+                return handleScreenLockStatusChanged(ScreenLockStatusChanged.create(message));
             case "VisualContextChanged":
                 return handleVisualContextChanged(VisualContextChanged.create(message));
         }
@@ -40,6 +43,17 @@ public class SpecializedMessageHandler implements MessageHandler {
      * message to be offered to the next message handler (if available)
      */
     public boolean handleDataSourceContextChanged(final DataSourceContextChanged message) {
+        return false;
+    }
+
+    /**
+     * Handles any ScreenLockStatusChanged related notifications.
+     *
+     *  @param message The specialized message
+      * @return the runtime should return true if has handled this message, or false to allow the
+     *  message to be offered to the next message handler (if available)
+     */
+    public boolean handleScreenLockStatusChanged(final ScreenLockStatusChanged message) {
         return false;
     }
 

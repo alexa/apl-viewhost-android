@@ -11,7 +11,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.models.Target;
 import com.amazon.apl.devtools.models.error.DTException;
 

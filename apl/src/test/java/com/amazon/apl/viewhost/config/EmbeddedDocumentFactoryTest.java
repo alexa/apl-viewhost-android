@@ -4,12 +4,14 @@ import static com.amazon.apl.viewhost.config.EmbeddedDocumentFactory.EmbeddedDoc
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.providers.IDataRetriever;
 import com.amazon.apl.android.providers.IDataRetriever.Callback;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
@@ -79,6 +81,7 @@ public class EmbeddedDocumentFactoryTest  extends ViewhostRobolectricTest {
             callback.success(RENDER_DOCUMENT_PAYLOAD);
             return null;
         }).when(mDataRetriever).fetch(anyString(), any(Callback.class));
+        when(mEmbeddedDocumentRequest.getRootConfig()).thenReturn(mock(RootConfig.class));
 
         mDefaultEmbeddedDocumentFactory.onDocumentRequested(mEmbeddedDocumentRequest);
         verify(mEmbeddedDocumentRequest).resolve(mPreparedDocument);
@@ -87,12 +90,14 @@ public class EmbeddedDocumentFactoryTest  extends ViewhostRobolectricTest {
     @Test
     public void testOnDocumentRequestedSuccessRenderDocumentDirectiveWithoutPayload() {
         when(mEmbeddedDocumentRequest.getSource()).thenReturn(VALID_URL);
-        when(mViewhost.prepare(any(PrepareDocumentRequest.class))).thenReturn(mPreparedDocument);
+        when(mViewhost.prepare(any(PrepareDocumentRequest.class))).
+                thenReturn(mPreparedDocument);
         doAnswer(invocation -> {
             Callback callback = invocation.getArgument(1);
             callback.success(RENDER_DOCUMENT_WITHOUT_PAYLOAD);
             return null;
         }).when(mDataRetriever).fetch(anyString(), any(Callback.class));
+        when(mEmbeddedDocumentRequest.getRootConfig()).thenReturn(mock(RootConfig.class));
 
         mDefaultEmbeddedDocumentFactory.onDocumentRequested(mEmbeddedDocumentRequest);
         verify(mEmbeddedDocumentRequest).resolve(mPreparedDocument);
@@ -107,6 +112,7 @@ public class EmbeddedDocumentFactoryTest  extends ViewhostRobolectricTest {
             callback.success(PAYLOAD);
             return null;
         }).when(mDataRetriever).fetch(anyString(), any(Callback.class));
+        when(mEmbeddedDocumentRequest.getRootConfig()).thenReturn(mock(RootConfig.class));
 
         mDefaultEmbeddedDocumentFactory.onDocumentRequested(mEmbeddedDocumentRequest);
         verify(mEmbeddedDocumentRequest).resolve(mPreparedDocument);

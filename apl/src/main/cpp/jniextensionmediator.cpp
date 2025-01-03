@@ -81,7 +81,6 @@ namespace apl {
                 if (MEDIATOR_VM_REFERENCE->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
                     return;
                 }
-                finish();
                 env->DeleteWeakGlobalRef(mWeakInstance);
             }
 
@@ -222,6 +221,12 @@ namespace apl {
         Java_com_amazon_apl_android_ExtensionMediator_nEnable(JNIEnv *env, jclass clazz, jlong mediatorHandler_, jboolean enabled) {
             auto mediator = get<AndroidExtensionMediator>(mediatorHandler_);
             mediator->enable(enabled);
+        }
+
+        JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_ExtensionMediator_nFinish(JNIEnv *env, jclass clazz, jlong mediatorHandler_) {
+            auto mediator = get<AndroidExtensionMediator>(mediatorHandler_);
+            mediator->finish();
         }
 
         JNIEXPORT void JNICALL

@@ -9,7 +9,7 @@ import static com.amazon.apl.android.Session.setSensitiveLoggingEnabled;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.models.common.Event;
 import com.amazon.apl.devtools.models.common.SessionModel;
 import com.amazon.apl.devtools.util.IdGenerator;
@@ -28,6 +28,7 @@ public final class Session<T extends Target> extends SessionModel {
     private boolean isPerformanceEnabled;
     private boolean isLogEnabled;
     private boolean isNetworkEnabled;
+    private boolean isFrameMetricsEventsEnabled;
 
     public Session(DTConnection connection, T target) {
         super(sessionIdGenerator.generateId("session"));
@@ -62,6 +63,14 @@ public final class Session<T extends Target> extends SessionModel {
 
     public boolean isLogEnabled() {
         return isLogEnabled;
+    }
+
+    public void setFrameMetricsEventsEnabled(boolean frameMetricsEventsEnabled) {
+        isFrameMetricsEventsEnabled = frameMetricsEventsEnabled;
+    }
+
+    public boolean isFrameMetricsEventsEnabled() {
+        return isFrameMetricsEventsEnabled;
     }
 
     public void setLogEnabled(boolean isLogEnabled) {

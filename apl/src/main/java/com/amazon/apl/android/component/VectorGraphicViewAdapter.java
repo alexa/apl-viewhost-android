@@ -9,6 +9,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.amazon.apl.android.IAPLViewPresenter;
@@ -55,6 +56,22 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
         applySource(component, view);
     }
 
+    @Override
+    public void applyAlpha(VectorGraphic component, APLVectorGraphicView view) {
+        if (component.hasProperty(PropertyKey.kPropertyOpacity)) {
+            final float opacity = component.getOpacity();
+            // https://developer.android.com/topic/performance/hardware-accel#layers-anims
+            if (component.getRenderingContext().isRuntimeHardwareAccelerationEnabled()) {
+                if (opacity < 1.0 && view.getLayerType() != View.LAYER_TYPE_HARDWARE) { // set to HARDWARE if not already
+                    view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+                } else if (opacity == 1.0 && view.getLayerType() != View.LAYER_TYPE_NONE) { // set to default NONE if not already
+                    view.setLayerType(View.LAYER_TYPE_NONE, null);
+                }
+            }
+            view.setAlpha(opacity);
+        }
+    }
+
     private void applySource(VectorGraphic component, APLVectorGraphicView view) {
 
         if (component.hasGraphic()) {
@@ -86,7 +103,6 @@ public class VectorGraphicViewAdapter extends ComponentViewAdapter<VectorGraphic
 
     void createVectorDrawable(VectorGraphic component, APLVectorGraphicView view) {
         AlexaVectorDrawable vectorDrawable = AlexaVectorDrawable.create(component.getOrCreateGraphicContainerElement());
-        vectorDrawable.setScale(component.getScale());
         view.setImageDrawable(vectorDrawable);
     }
 

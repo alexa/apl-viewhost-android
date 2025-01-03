@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.amazon.apl.android.APLLayout;
-import com.amazon.apl.android.Action;
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.viewhost.config.ViewhostConfig;
 import com.amazon.apl.viewhost.internal.DocumentStateChangeListener;
@@ -16,11 +15,11 @@ import com.amazon.apl.viewhost.internal.SavedDocument;
 import com.amazon.apl.viewhost.internal.ViewhostImpl;
 import com.amazon.apl.viewhost.request.PrepareDocumentRequest;
 import com.amazon.apl.viewhost.request.RenderDocumentRequest;
+import com.amazon.apl.viewhost.request.UpdateViewStateRequest;
 
 import java.util.Map;
 
 public abstract class Viewhost {
-
     /**
      * Create an instance of Viewhost with a given configuration
      */
@@ -87,13 +86,48 @@ public abstract class Viewhost {
      * @return true/false
      */
     public abstract boolean isBound();
+
     /**
      * Updates the display state for this document. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-data-binding-evaluation.html#displaystate
      * We will update the frame loop frequency according to the displayState.
      *
      * @param displayState the display state.
+     *
+     * @deprecated Use {@link Viewhost#updateViewState()} instead.
      */
+    @Deprecated
     public abstract void updateDisplayState(DisplayState displayState);
+
+    /**
+     * Inform the view host about changes to the view state.
+     *
+     * @param request The request to update the view state
+     */
+    public abstract void updateViewState(UpdateViewStateRequest request);
+
+    /**
+     * Returns the view host's current display state.
+     *
+     *  - HIDDEN:     The view is not visible on the screen.
+     *  - BACKGROUND: The view may be visible on the screen or it may be largely obscured by other
+     *                content on the screen. The view is not the primary focus of the system.
+     *  - FOREGROUND: The view is visible on the screen and at the front.
+     */
+    public abstract com.amazon.apl.viewhost.primitives.DisplayState getDisplayState();
+
+    /**
+     * Returns the view host's current processing rate, measured in cycles per second (Hz).
+     *
+     * - A negative value indicates the default frame rate for the device (unthrottled).
+     * - A value of 0 means that the frame loop is stopped. Any incoming execute commands, dynamic
+     *   data updates, extension messages will queued. This has the additional behavior of stopping
+     *   elapsed time until a non-zero frame rate is specified. This usage is not normally
+     *   recommended as it may produce an additional jank when processing is resumed.
+     * - A positive value indicates an intention to operate at throttled (reduced) processing rate.
+     *   This only has an impact if the value specified is less than the actual frame rate of the
+     *   device. It cannot be used to increase the rate beyond the device's normal rate.
+     */
+    public abstract double getProcessingRate();
 
     /**
      * Cancels the main sequencer. See https://developer.amazon.com/en-US/docs/alexa/alexa-presentation-language/apl-commands.html#command_sequencing

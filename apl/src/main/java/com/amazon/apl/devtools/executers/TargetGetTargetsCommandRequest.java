@@ -8,6 +8,7 @@ package com.amazon.apl.devtools.executers;
 import android.util.Log;
 
 import com.amazon.apl.devtools.enums.CommandMethod;
+import com.amazon.apl.devtools.models.error.DTException;
 import com.amazon.apl.devtools.models.target.TargetGetTargetsCommandRequestModel;
 import com.amazon.apl.devtools.models.target.TargetGetTargetsCommandResponse;
 import com.amazon.apl.devtools.util.TargetCatalog;

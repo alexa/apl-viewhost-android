@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * This manager class is to correctly route the NetworkEvents to the DTNetworkRequestHandler
  * because {@link ViewhostImpl#prepare(PrepareDocumentRequest)} does not guarantee that the APLLayout
- * will be bind at that point before making the Network calls to import the packages.
+ * will be bound at that point before making the Network calls to import the packages.
  */
 class DTNetworkRequestManager implements IDTNetworkRequestHandler {
     private final List<NetworkRequestInfo> mNetworkRequests;
@@ -28,7 +28,6 @@ class DTNetworkRequestManager implements IDTNetworkRequestHandler {
     DTNetworkRequestManager() {
         mNetworkRequests = new ArrayList<>();
     }
-
 
     @Override
     public void requestWillBeSent(int requestId, double timestamp, String url, DTNetworkRequestType type) {
@@ -64,14 +63,14 @@ class DTNetworkRequestManager implements IDTNetworkRequestHandler {
 
     public void bindDTNetworkRequest(IDTNetworkRequestHandler dtNetworkRequestHandler) {
         mDTNetworkRequestHandler = dtNetworkRequestHandler;
-        reportAllNetworkEvents();
+        reportAndClearCachedNetworkEvents();
     }
 
     public void unbindDTNetworkRequest() {
         mDTNetworkRequestHandler = null;
     }
 
-    private void reportAllNetworkEvents() {
+    private void reportAndClearCachedNetworkEvents() {
         for (NetworkRequestInfo networkRequestInfo : mNetworkRequests) {
             int requestId = networkRequestInfo.getRequestId();
             double timestamp = networkRequestInfo.getTimestamp();
@@ -121,7 +120,6 @@ class DTNetworkRequestManager implements IDTNetworkRequestHandler {
         public int getEncodedDataLength() {
             return mEncodedDataLength;
         }
-
 
         public NetworkRequestInfo setUrl(String url) {
             mUrl = url;

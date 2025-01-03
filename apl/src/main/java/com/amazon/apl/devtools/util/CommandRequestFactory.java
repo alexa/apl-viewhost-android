@@ -20,10 +20,12 @@ import static com.amazon.apl.devtools.enums.CommandMethod.INPUT_TOUCH;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.DTError;
 import com.amazon.apl.devtools.executers.DetachFromTargetCommandRequest;
 import com.amazon.apl.devtools.executers.DocumentCommandRequest;
+import com.amazon.apl.devtools.executers.FrameMetricsDisableCommandRequest;
+import com.amazon.apl.devtools.executers.FrameMetricsEnableCommandRequest;
 import com.amazon.apl.devtools.executers.FrameMetricsRecordCommandRequest;
 import com.amazon.apl.devtools.executers.FrameMetricsStopCommandRequest;
 import com.amazon.apl.devtools.executers.InputCancelCommandRequest;
@@ -35,9 +37,8 @@ import com.amazon.apl.devtools.executers.NetworkEnableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceDisableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceEnableCommandRequest;
 import com.amazon.apl.devtools.executers.PerformanceGetMetricsCommandRequest;
-import com.amazon.apl.devtools.executers.SystemInfoGetApplicationProcessorUsageCommandRequest;
 import com.amazon.apl.devtools.executers.SystemInfoGetEnvironmentMemoryCommandRequest;
-import com.amazon.apl.devtools.executers.SystemInfoGetEnvironmentProcessorUsageCommandRequest;
+import com.amazon.apl.devtools.executers.SystemInfoProcessorUsageCommandRequestFactory;
 import com.amazon.apl.devtools.executers.TargetAttachToTargetCommandRequest;
 import com.amazon.apl.devtools.executers.TargetGetTargetsCommandRequest;
 import com.amazon.apl.devtools.executers.ViewCaptureImageCommandRequest;
@@ -102,11 +103,15 @@ public final class CommandRequestFactory {
                 return new PerformanceGetMetricsCommandRequest(mCommandRequestValidator, obj,
                         connection);
             case MEMORY_GET_MEMORY:
-                return new MemoryGetMemoryCommandRequest(obj);
+                return new MemoryGetMemoryCommandRequest(mCommandRequestValidator, obj, connection);
             case FRAMEMETRICS_RECORD:
                 return new FrameMetricsRecordCommandRequest(mCommandRequestValidator, obj, connection);
             case FRAMEMETRICS_STOP:
                 return new FrameMetricsStopCommandRequest(mCommandRequestValidator, obj, connection);
+            case FRAMEMETRICS_ENABLE:
+                return new FrameMetricsEnableCommandRequest(mCommandRequestValidator, obj, connection);
+            case FRAMEMETRICS_DISABLE:
+                return new FrameMetricsDisableCommandRequest(mCommandRequestValidator, obj, connection);
             case LOG_ENABLE:
                 return new LogEnableCommandRequest(mCommandRequestValidator, obj, connection);
             case LOG_DISABLE:
@@ -142,9 +147,9 @@ public final class CommandRequestFactory {
             case NETWORK_DISABLE:
                 return new NetworkDisableCommandRequest(mCommandRequestValidator, obj, connection);
             case SYSTEM_INFO_GET_APPLICATION_PROCESSOR_USAGE:
-                return new SystemInfoGetApplicationProcessorUsageCommandRequest(obj);
+                return SystemInfoProcessorUsageCommandRequestFactory.getApplicationProcessorUsageCommandRequest(obj);
             case SYSTEM_INFO_GET_ENVIRONMENT_PROCESSOR_USAGE:
-                return new SystemInfoGetEnvironmentProcessorUsageCommandRequest(obj);
+                return SystemInfoProcessorUsageCommandRequestFactory.getEnvironmentProcessorUsageCommandRequest(obj);
             case SYSTEM_INFO_GET_ENVIRONMENT_MEMORY:
                 return new SystemInfoGetEnvironmentMemoryCommandRequest(mTargetCatalog, obj);
             default:

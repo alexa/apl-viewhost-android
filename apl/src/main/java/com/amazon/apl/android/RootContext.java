@@ -10,6 +10,7 @@ import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
 import static com.amazon.apl.enums.EventType.valueOf;
 
+import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.renderscript.RenderScript;
@@ -29,7 +30,6 @@ import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IExtensionEventCallback;
 import com.amazon.apl.android.dependencies.IExtensionImageFilterCallback;
 import com.amazon.apl.android.dependencies.impl.NoOpUserPerceivedFatalCallback;
-import com.amazon.apl.android.events.ControlMediaEvent;
 import com.amazon.apl.android.events.DataSourceFetchEvent;
 import com.amazon.apl.android.events.ExtensionEvent;
 import com.amazon.apl.android.events.FinishEvent;
@@ -38,14 +38,9 @@ import com.amazon.apl.android.events.LineHighlightEvent;
 import com.amazon.apl.android.events.LoadMediaRequestEvent;
 import com.amazon.apl.android.events.OpenKeyboardEvent;
 import com.amazon.apl.android.events.OpenURLEvent;
-import com.amazon.apl.android.events.PlayMediaEvent;
-import com.amazon.apl.android.events.PrerollEvent;
 import com.amazon.apl.android.events.RefreshEvent;
 import com.amazon.apl.android.events.ReinflateEvent;
-import com.amazon.apl.android.events.RequestFirstLineBounds;
-import com.amazon.apl.android.events.RequestLineBoundsEvent;
 import com.amazon.apl.android.events.SendEvent;
-import com.amazon.apl.android.events.SpeakEvent;
 import com.amazon.apl.android.image.filters.RenderScriptProvider;
 import com.amazon.apl.android.image.filters.RenderScriptWrapper;
 import com.amazon.apl.android.media.ImageFilterProcessor;
@@ -54,7 +49,6 @@ import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.metrics.MetricsMilestoneConstants;
 import com.amazon.apl.android.primitive.Rect;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
-import com.amazon.apl.android.providers.ILocalTimeOffsetProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.Scaling;
@@ -63,7 +57,7 @@ import com.amazon.apl.android.scenegraph.edittext.EditTextFactory;
 import com.amazon.apl.android.thread.Threading;
 import com.amazon.apl.android.touch.Pointer;
 import com.amazon.apl.android.utils.APLTrace;
-import com.amazon.apl.android.utils.FluidityIncidentCounter;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.android.utils.JNIUtils;
 import com.amazon.apl.android.utils.TracePoint;
@@ -74,7 +68,10 @@ import com.amazon.apl.enums.EventType;
 import com.amazon.apl.enums.FocusDirection;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.RootProperty;
+import com.amazon.apl.viewhost.TimeProvider;
 import com.amazon.apl.viewhost.Viewhost;
+import com.amazon.apl.viewhost.internal.APLProperties;
+import com.amazon.apl.viewhost.internal.APLProperty;
 import com.amazon.apl.viewhost.internal.DocumentContext;
 import com.amazon.apl.viewhost.internal.DocumentHandleImpl;
 import com.amazon.apl.viewhost.internal.ViewhostImpl;
@@ -104,7 +101,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * APL RootContext is responsible for communication via JNI with APL core.  It marshals the tasks of
  * layout, an component construction.
  */
-public class RootContext extends BoundObject implements IClock.IClockCallback, ILocalTimeOffsetProvider.LocalTimeOffsetChangedListener {
+public class RootContext extends BoundObject implements IClock.IClockCallback, TimeProvider.LocalTimeOffsetListener {
 
     private static final String TAG = "RootContext";
     private static final boolean DEBUG = false;
@@ -129,10 +126,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private ICounter mDropFrameCounter;
 
     // Frame metrics
-    private static final String METRIC_FLUIDITY_INCIDENT_COUNT = "fluidityIncidentCount";
-    private static final double FLUIDITY_THRESHOLD_UPS = 1.1d;
-    private static final int FLUIDITY_WINDOW_SIZE = 60;
-    private static final double DISPLAY_REFRESH_RATE_MS = 16.8d;
+    public static final String METRIC_FLUIDITY_INCIDENT_COUNT = "fluidityIncidentCount";
 
     // Inflate metrics
     private static final String METRIC_INFLATE = TAG + ".inflate";
@@ -174,7 +168,16 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
     // Used internally to communicate views back out to the APLLayout
     @NonNull
-    private final IAPLViewPresenter mViewPresenter;
+    private IAPLViewPresenter mViewPresenter;
+
+    /**
+     * The usecase for setting it outside the rootContext constructor is to enable document reuse in unified APIs.
+     * This allows a document to be inflated on a different view while maintaining the same rootContext.
+     * @param viewPresenter view
+     */
+    public void setViewPresenter(@NonNull IAPLViewPresenter viewPresenter) {
+        mViewPresenter = viewPresenter;
+    }
 
     // This callback is used by native code, maintain this instance
     @NonNull
@@ -195,6 +198,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private final APLTrace mAplTrace;
 
     private final IClock mAplClock;
+
+    private final Handler mMainHandler = new Handler(Looper.getMainLooper());
 
     private DocumentHandleImpl mDocumentHandle;
 
@@ -224,7 +229,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private int mAutoSizedWidth;
 
     private boolean mShouldRecordFrameMetrics;
-    private FluidityIncidentCounter mFluidityIncidentCounter;
+    private final FluidityIncidentReporter mFluidityIncidentReporter;
 
     @NonNull
     private final IMetricsRecorder mMetricsRecorder;
@@ -236,6 +241,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
     /**
      * Construct a new RootContext object.
+     * Viewport metrics included version of the Legacy APIs
      *
      * @param metrics                       the viewport metrics
      * @param content                       the apl document
@@ -244,6 +250,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param viewPresenter                 the view presenter
      * @param userPerceivedFatalReporter    the user perceived fatal reporter
      * @param metricsRecorder               the metrics Recorder
+     * @param fluidityIncidentCounter       the {@link FluidityIncidentReporter}
      */
     private RootContext(@NonNull ViewportMetrics metrics,
                         @NonNull Content content,
@@ -251,7 +258,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                         @NonNull APLOptions options,
                         @NonNull IAPLViewPresenter viewPresenter,
                         @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter,
-                        @NonNull IMetricsRecorder metricsRecorder) {
+                        @NonNull IMetricsRecorder metricsRecorder,
+                        @NonNull FluidityIncidentReporter fluidityIncidentCounter) {
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
@@ -264,13 +272,14 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             mRootConfig = rootConfig;
             mMetricsTransform = MetricsTransform.create(metrics);
             mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(content.getAPLVersion()),
-                    options, rootConfig, mMetricsTransform, content);
+                    options, rootConfig, mMetricsTransform, content, null);
             if (options.isScenegraphEnabled()) {
                 mRootConfig.editTextFactory(new EditTextFactory());
             }
             mTextMeasureCallback = TextMeasureCallback.factory().create(mMetricsTransform, new TextMeasure(mRenderingContext));
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
+            mFluidityIncidentReporter = fluidityIncidentCounter;
             long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
             mTextMeasureCallback.onRootContextCreated();
             bind(nativeHandle);
@@ -284,11 +293,14 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
     /**
      * Construct a RootContext object from a previously inflated core RootContext.
+     * Default version of Legacy APIs
      *
      * @param options         the apl options
      * @param viewPresenter   the view presenter
      * @param nativeHandle    a pointer to the core RootContext
+     * @param userPerceivedFatalReporter a reporter for user perceived fatals
      * @param metricsRecorder metrics recorder
+     * @param fluidityIncidentCounter       the {@link FluidityIncidentReporter}
      */
     private RootContext(@NonNull APLOptions options,
                         @NonNull IAPLViewPresenter viewPresenter,
@@ -297,7 +309,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                         @NonNull Content content,
                         long nativeHandle,
                         @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter,
-                        @NonNull IMetricsRecorder metricsRecorder) {
+                        @NonNull IMetricsRecorder metricsRecorder,
+                        @NonNull FluidityIncidentReporter fluidityIncidentCounter) {
         mAplTrace = viewPresenter.getAPLTrace();
         try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
             mOptions = options;
@@ -311,12 +324,77 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             mContent = content;
             bind(nativeHandle);
             mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(nGetVersionCode(nativeHandle)),
-                    options, rootConfig, metricsTransform, content);
+                    options, rootConfig, metricsTransform, content, null);
             // rebind to the previously configured text measure.
             mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
             preBindInit();
+
+            mFluidityIncidentReporter = fluidityIncidentCounter;
+
             mTextMeasureCallback = TextMeasureCallback.factory().create(mRootConfig, mMetricsTransform, new TextMeasure(mRenderingContext));
             mTextMeasureCallback.onRootContextCreated();
+            if (!options.isScenegraphEnabled()) {
+                inflate();
+            }
+            checkIfAutoSizeNeeded(mMetricsTransform.getScaledViewhostWidth(), mMetricsTransform.getScaledViewhostHeight());
+            mDocumentContext = new DocumentContext(nGetDocumentContext(getNativeHandle()));
+        }
+    }
+
+
+    /**
+     * Construct a new RootContext object.
+     * Viewport metrics included version of the Unified APIS
+     *
+     * @param metrics                       the viewport metrics
+     * @param content                       the apl document
+     * @param rootConfig                    the environment configuration
+     * @param options                       the apl options
+     * @param viewPresenter                 the view presenter
+     * @param userPerceivedFatalReporter    the user perceived fatal reporter
+     * @param metricsRecorder               the metrics Recorder
+     * @param properties                    the APLproperties
+     */
+    private RootContext(@NonNull ViewportMetrics metrics,
+                        @NonNull Content content,
+                        @NonNull RootConfig rootConfig,
+                        @NonNull APLOptions options,
+                        @NonNull IAPLViewPresenter viewPresenter,
+                        @NonNull UserPerceivedFatalReporter userPerceivedFatalReporter,
+                        @NonNull IMetricsRecorder metricsRecorder,
+                        @NonNull APLProperties properties) {
+        mAplTrace = viewPresenter.getAPLTrace();
+        try (APLTrace.AutoTrace autoTrace = mAplTrace.startAutoTrace(TracePoint.ROOT_CONTEXT_CREATE)) {
+            mOptions = options;
+            mUserPerceivedFatalReporter = userPerceivedFatalReporter;
+            mAplClock = options.getAplClockProvider().create(this);
+            mContent = content;
+            mTelemetryProvider = mOptions.getTelemetryProvider();
+            mMetricsRecorder = metricsRecorder;
+            mViewPresenter = viewPresenter;
+            mRootConfig = rootConfig;
+            mMetricsTransform = MetricsTransform.create(metrics);
+            mRenderingContext = buildRenderingContext(APLVersionCodes.getVersionCode(content.getAPLVersion()),
+                    options, rootConfig, mMetricsTransform, content, properties);
+            if (options.isScenegraphEnabled()) {
+                mRootConfig.editTextFactory(new EditTextFactory());
+            }
+            mTextMeasureCallback = TextMeasureCallback.factory().create(mMetricsTransform, new TextMeasure(mRenderingContext));
+            mAgentName = (String) rootConfig.getProperty(RootProperty.kAgentName);
+            preBindInit();
+
+            mFluidityIncidentReporter = new FluidityIncidentReporter(
+                    (int) properties.get(APLProperty.kFluidityIncidentUpsWindowSize),
+                    mTelemetryProvider,
+                    (double) properties.get(APLProperty.kFluidityIncidentUpsThreshold),
+                    (double) properties.get(APLProperty.kFluidityRefreshRate),
+                    (double) properties.get(APLProperty.kFluidityIncidentMinimumDurationMs),
+                    mTelemetryProvider.createMetricId(APL_DOMAIN, RootContext.METRIC_FLUIDITY_INCIDENT_COUNT, COUNTER));
+
+
+            long nativeHandle = createHandle(metrics, content, rootConfig, mTextMeasureCallback);
+            mTextMeasureCallback.onRootContextCreated();
+            bind(nativeHandle);
             if (!options.isScenegraphEnabled()) {
                 inflate();
             }
@@ -341,7 +419,11 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         }
     }
 
-    private RenderingContext buildRenderingContext(int docVersion, APLOptions options, RootConfig config, MetricsTransform metricsTransform, Content content) {
+    /**
+     * Create the RenderingContext
+     *
+     */
+    private RenderingContext buildRenderingContext(int docVersion, APLOptions options, RootConfig config, MetricsTransform metricsTransform, Content content, APLProperties properties) {
 
         // TODO this is adapting legacy framework to new, deprecate the old
         ExtensionMediator extensionMediator = config.getExtensionMediator();
@@ -351,6 +433,21 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         IExtensionEventCallback eeCB = (extensionMediator == null)
                 ? options.getExtensionEventCallback()
                 : extensionMediator;
+
+        APLProperties aplProperties = new APLProperties();
+        for (Map.Entry<String, Object> entry : options.getConfigurationMap().entrySet()) {
+            aplProperties.set(entry.getKey(), entry.getValue());
+        }
+
+        boolean isRuntimeHardwareAccelerationEnabled;
+
+        // there are two places that the HA flag can come from the APLOptions or passed in via APLProperties
+        // These default to true so just and them if both present
+        if (properties != null) {
+            isRuntimeHardwareAccelerationEnabled = (boolean) properties.get(APLProperty.kIsRuntimeHardwareAccelerationEnabled) && (boolean) aplProperties.get(APLProperty.kIsRuntimeHardwareAccelerationEnabled);
+        } else {
+            isRuntimeHardwareAccelerationEnabled = (boolean) aplProperties.get(APLProperty.kIsRuntimeHardwareAccelerationEnabled);
+        }
 
         RenderingContext.Builder ctxBuilder = RenderingContext.builder()
                 .metricsTransform(metricsTransform)
@@ -369,7 +466,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                 .extensionEventCallback(eeCB)
                 .aplTrace(mAplTrace)
                 .isMediaPlayerV2Enabled(config.isMediaPlayerV2Enabled())
-                .isHardwareAccelerationForVectorGraphicsEnabled(content.optSetting("-experimentalHardwareAccelerationForAndroid", false));
+                .isRuntimeHardwareAccelerationEnabled(isRuntimeHardwareAccelerationEnabled);
 
         if (extensionMediator != null) {
             ctxBuilder.extensionResourceProvider(extensionMediator.extensionResourceProvider);
@@ -488,9 +585,6 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         tReinflate = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_REINFLATE, TIMER);
         cComponent = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_COMPONENT_COUNT, COUNTER);
         mComponentCounter = mMetricsRecorder.createCounter(APL_DOMAIN + "." + METRIC_COMPONENT_COUNT);
-
-        final int cFluidityIncident = mTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_FLUIDITY_INCIDENT_COUNT, COUNTER);
-        mFluidityIncidentCounter = new FluidityIncidentCounter(FLUIDITY_WINDOW_SIZE, mTelemetryProvider, FLUIDITY_THRESHOLD_UPS, DISPLAY_REFRESH_RATE_MS, cFluidityIncident);
     }
 
     /**
@@ -498,15 +592,21 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      *
      * @param metrics         APL display metrics.
      * @param content         APL document content.
+     * @param rootConfig
+     * @param options         APL Options
+     * @param presenter       APL View Presenter
      * @param metricsRecorder
+     * @param fluidityIncidentCounter
      * @return a RootContext.
      */
     public static RootContext create(
             @NonNull final ViewportMetrics metrics, @NonNull final Content content, @NonNull final RootConfig rootConfig,
-            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, IMetricsRecorder metricsRecorder)
+            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, IMetricsRecorder metricsRecorder,
+            @NonNull final FluidityIncidentReporter fluidityIncidentCounter)
             throws IllegalArgumentException, IllegalStateException {
         return create(metrics, content, rootConfig, options, presenter,
-                new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback()), metricsRecorder);
+                new UserPerceivedFatalReporter(new NoOpUserPerceivedFatalCallback()), metricsRecorder,
+                fluidityIncidentCounter);
     }
 
     /**
@@ -519,11 +619,13 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param presenter                  APL presenter.
      * @param userPerceivedFatalReporter APL UPF Reporter.
      * @param metricsRecorder
+     * @param fluidityIncidentCounter
      * @return a RootContext.
      */
     public static RootContext create(
             @NonNull final ViewportMetrics metrics, @NonNull final Content content, @NonNull final RootConfig rootConfig,
-            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, UserPerceivedFatalReporter userPerceivedFatalReporter, @NonNull IMetricsRecorder metricsRecorder)
+            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, UserPerceivedFatalReporter userPerceivedFatalReporter,
+            @NonNull IMetricsRecorder metricsRecorder, @NonNull FluidityIncidentReporter fluidityIncidentCounter)
             throws IllegalArgumentException, IllegalStateException {
         if (metrics == null) {
             throw new IllegalArgumentException("Metrics must not be null");
@@ -542,12 +644,12 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         }
         presenter.setMetricsRecorder(metricsRecorder);
         presenter.preDocumentRender();
-        RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter, userPerceivedFatalReporter, metricsRecorder);
+        RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter, userPerceivedFatalReporter, metricsRecorder, fluidityIncidentCounter);
         if (!rootContext.isBound()) {
             throw new IllegalStateException("Could not create RootContext");
         }
 
-        ILocalTimeOffsetProvider timeProvider = options.getLocalTimeOffsetProvider();
+        TimeProvider timeProvider = options.getTimeProvider() != null ? options.getTimeProvider()  : options.getLocalTimeOffsetProvider();
         if (timeProvider == null) { // Backwards compatible if no provider is set.
             Log.i(TAG, "Updating local time adjustment from system");
             Calendar now = Calendar.getInstance();
@@ -555,7 +657,52 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             rootContext.setLocalTimeAdjustment(offset);
         } else {
             Log.i(TAG, "Updating local time adjustment from provider.");
-            long offset = timeProvider.getCurrentOffset();
+            long offset = timeProvider.getLocalTimeOffset();
+            rootContext.setLocalTimeAdjustment(offset);
+            timeProvider.addListener(new WeakReference<>(rootContext));
+        }
+
+        return rootContext;
+    }
+
+
+    public static RootContext create(
+            @NonNull final ViewportMetrics metrics, @NonNull final Content content, @NonNull final RootConfig rootConfig,
+            @NonNull final APLOptions options, @NonNull IAPLViewPresenter presenter, UserPerceivedFatalReporter userPerceivedFatalReporter,
+            @NonNull IMetricsRecorder metricsRecorder,
+            @NonNull APLProperties properties)
+            throws IllegalArgumentException, IllegalStateException {
+        if (metrics == null) {
+            throw new IllegalArgumentException("Metrics must not be null");
+        } else if (content == null) {
+            throw new IllegalArgumentException("Content must not be null");
+        } else if (rootConfig == null) {
+            throw new IllegalArgumentException("RootConfig must not be null.");
+        } else if (content.isWaiting()) {
+            throw new IllegalArgumentException("Content cannot be in the 'waiting' state.");
+        } else if (content.isError()) {
+            throw new IllegalArgumentException("Content cannot be in an 'error' state.");
+        } else if (options == null) {
+            throw new IllegalArgumentException("APLOptions must not be null");
+        } else if (presenter == null) {
+            throw new IllegalArgumentException("APLPresenter must not be null");
+        }
+        presenter.setMetricsRecorder(metricsRecorder);
+        presenter.preDocumentRender();
+        RootContext rootContext = new RootContext(metrics, content, rootConfig, options, presenter, userPerceivedFatalReporter, metricsRecorder, properties);
+        if (!rootContext.isBound()) {
+            throw new IllegalStateException("Could not create RootContext");
+        }
+
+        TimeProvider timeProvider = options.getTimeProvider() != null ? options.getTimeProvider()  : options.getLocalTimeOffsetProvider();
+        if (timeProvider == null) { // Backwards compatible if no provider is set.
+            Log.i(TAG, "Updating local time adjustment from system");
+            Calendar now = Calendar.getInstance();
+            long offset = now.get(Calendar.ZONE_OFFSET) + now.get(Calendar.DST_OFFSET);
+            rootContext.setLocalTimeAdjustment(offset);
+        } else {
+            Log.i(TAG, "Updating local time adjustment from provider.");
+            long offset = timeProvider.getLocalTimeOffset();
             rootContext.setLocalTimeAdjustment(offset);
             timeProvider.addListener(new WeakReference<>(rootContext));
         }
@@ -640,7 +787,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                                 UserPerceivedFatalReporter.UpfReason.CONTENT_RESOLUTION_FAILURE);
                         Log.e(TAG, "Error occured during content resolution: " + e.getMessage());
                     }
-                });
+                }, mRootConfig);
             } else {
                 reinflateAndNotify();
             }
@@ -683,27 +830,14 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      * @param viewPresenter target ViewPresenter
      * @return a new {@link RootContext} from {@link DocumentState} and {@link IAPLViewPresenter}
      */
-    public static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState, @NonNull IAPLViewPresenter viewPresenter) {
+    public static RootContext createFromCachedDocumentState(@NonNull final DocumentState documentState,
+                                                            @NonNull IAPLViewPresenter viewPresenter,
+                                                            @NonNull final FluidityIncidentReporter fluidityIncidentCounter) {
         // Recording the mRenderStartTime when we are trying to restore the document from cache.
         viewPresenter.preDocumentRender();
-        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(), documentState.getRootConfig(), documentState.getContent(), documentState.getNativeHandle(), new UserPerceivedFatalReporter(), viewPresenter.metricsRecorder());
-    }
-
-    /**
-     * Creates a document from Cached state.
-     * @param viewPresenter
-     * @param metricsTransform
-     * @param options
-     * @param rootConfig
-     * @param content
-     * @param rootContextNativeHandle
-     * @return RootContext
-     */
-    public static RootContext createFromCache(@NonNull IAPLViewPresenter viewPresenter, @NonNull MetricsTransform metricsTransform, @NonNull APLOptions options, @NonNull RootConfig rootConfig, @NonNull Content content, long rootContextNativeHandle) {
-
-        // Recording the mRenderStartTime when we are trying to restore the document from cache.
-        viewPresenter.preDocumentRender();
-        return new RootContext(options, viewPresenter, metricsTransform, rootConfig, content, rootContextNativeHandle, new UserPerceivedFatalReporter(), viewPresenter.metricsRecorder());
+        return new RootContext(documentState.getOptions(), viewPresenter, documentState.getMetricsTransform(),
+                documentState.getRootConfig(), documentState.getContent(), documentState.getNativeHandle(),
+                new UserPerceivedFatalReporter(), viewPresenter.metricsRecorder(), fluidityIncidentCounter);
     }
 
     public RenderingContext getRenderingContext() {
@@ -736,20 +870,23 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
      */
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void finishDocument() {
-        Log.i(TAG, String.format("Document(%s) finishing.", mRootConfig.getSession().getLogId()));
+        Log.i(TAG, String.format("Document(%s) with handle(%s) finishing.", mRootConfig.getSession().getLogId(), mDocumentHandle));
         mUserPerceivedFatalReporter.reportSuccess();
+        mFluidityIncidentReporter.emitFluidityMetrics();
         synchronized (mLock) {
-            checkUiThread();
             // mark the context as finished to block any per frame loop.
             mIsFinished.set(true);
             mAplClock.stop();
 
-            // End all active events
-            cancelExecution();
-
-            // notify providers that rendering is finished
-            mViewPresenter.onDocumentFinish();
-
+            // Any RootContext operations need to be synchronized with the coreFrameUpdate, which
+            // currently is on Main thread.
+            // All view manipulations need to be on Main thread.
+            invokeOnMainThread(() -> {
+                // End all active events
+                cancelExecution();
+                // notify providers that rendering is finished
+                mViewPresenter.onDocumentFinish();
+            });
             // clear all work
             mWorkQueue.clear();
 
@@ -777,6 +914,14 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         }
     }
 
+    private void invokeOnMainThread(Runnable r) {
+        if (Looper.myLooper() == mMainHandler.getLooper()) {
+            r.run();
+        } else {
+            mMainHandler.post(r);
+        }
+    }
+
     public void setDocumentHandle(DocumentHandleImpl handle) {
         mDocumentHandle = handle;
     }
@@ -788,26 +933,26 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void pauseDocument() {
         if (!mIsFinished.get() && mIsResumed.get()) {
-            Log.i(TAG, String.format("Document(%s) pausing.", mRootConfig.getSession().getLogId()));
+            Log.i(TAG, String.format("Document(%s) pausing with handle(%s).", mRootConfig.getSession().getLogId(), mDocumentHandle));
             mIsResumed.set(false);
             mAplClock.stop();
             cancelExecution();
             mStartLoopTime = 0;
             mViewPresenter.onDocumentPaused();
         } else {
-            Log.i(TAG, String.format("Document(%s) already resumed.", mRootConfig.getSession().getLogId()));
+            Log.i(TAG, String.format("Document(%s) with handle(%s) already paused.", mRootConfig.getSession().getLogId(), mDocumentHandle));
         }
     }
 
     @VisibleForTesting(otherwise = VisibleForTesting.PACKAGE_PRIVATE)
     public void resumeDocument() {
         if (!mIsFinished.get() && !mIsResumed.get()) {
-            Log.i(TAG, String.format("Document(%s) resuming.", mRootConfig.getSession().getLogId()));
+            Log.i(TAG, String.format("Document(%s) resuming with handle(%s).", mRootConfig.getSession().getLogId(), mDocumentHandle));
             mIsResumed.set(true);
             mAplClock.start();
             mViewPresenter.onDocumentResumed();
         } else {
-            Log.i(TAG, String.format("Document(%s) already paused.", mRootConfig.getSession().getLogId()));
+            Log.i(TAG, String.format("Document(%s) with handle(%s) already resumed.", mRootConfig.getSession().getLogId(), mDocumentHandle));
         }
     }
 
@@ -944,7 +1089,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     }
 
     @Override
-    public void localTimeOffsetChanged(long newOffset) {
+    public void onLocalTimeOffsetUpdated(long newOffset) {
         // Post to the frameloop.
         post(() -> setLocalTimeAdjustment(newOffset));
     }
@@ -1085,9 +1230,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
 
         EventType type = valueOf(typeId);
         switch (type) {
-            case kEventTypeControlMedia:
-                return ControlMediaEvent.create(nativeHandle, this);
-                //Content refresh is used for MRE
+            //Content refresh is used for MRE
             case kEventTypeContentRefresh:
                 return RefreshEvent.create(nativeHandle, this);
             case kEventTypeReinflate:
@@ -1097,21 +1240,12 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
             case kEventTypeOpenURL:
                 return OpenURLEvent.create(nativeHandle, this,
                         mOptions.getOpenUrlCallback());
-            case kEventTypePlayMedia:
-                return PlayMediaEvent.create(nativeHandle, this);
-            case kEventTypePreroll:
-                return PrerollEvent.create(nativeHandle, this, mOptions.getTtsPlayerProvider());
             case kEventTypeSendEvent:
                 return SendEvent.create(nativeHandle, this,
                         mOptions.getSendEventCallbackV2());
             case kEventTypeExtension:
                 return ExtensionEvent.create(nativeHandle, this,
                         mOptions.getExtensionEventCallback());
-            case kEventTypeSpeak:
-                return SpeakEvent.create(nativeHandle, this,
-                        mOptions.getTtsPlayerProvider());
-            case kEventTypeRequestFirstLineBounds:
-                return RequestFirstLineBounds.create(nativeHandle, this);
             case kEventTypeFinish:
                 return FinishEvent.create(nativeHandle, this, mOptions.getOnAplFinishCallback());
             case kEventTypeDataSourceFetchRequest:
@@ -1123,8 +1257,6 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                 return OpenKeyboardEvent.create(nativeHandle, this);
             case kEventTypeMediaRequest:
                 return LoadMediaRequestEvent.create(nativeHandle, this, mOptions.getImageProvider());
-            case kEventTypeRequestLineBounds:
-                return RequestLineBoundsEvent.create(nativeHandle, this);
             case kEventTypeLineHighlight:
                 return LineHighlightEvent.create(nativeHandle, this);
         }
@@ -1349,6 +1481,12 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         if (lastScreenLockStatus != screenLocked) {
             lastScreenLockStatus = screenLocked;
             mOptions.getScreenLockListener().onScreenLockChange(screenLocked);
+            //For unified APIs send it in the form of notification
+            Viewhost viewhost = mOptions.getViewhost();
+            if (viewhost instanceof ViewhostImpl && mDocumentHandle != null) {
+                ViewhostImpl viewhostImpl = (ViewhostImpl)viewhost;
+                viewhostImpl.notifyScreenLockedChanged(mDocumentHandle, screenLocked);
+            }
         }
     }
 
@@ -1396,6 +1534,15 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         } else {
             mAplTrace.startTrace(TracePoint.ROOT_CONTEXT_HANDLE_DIRTY_PROPERTIES);
             nHandleDirtyProperties(nativeHandle);
+            if (mViewPresenter.isFrameMetricsEventsEnabled()
+                    && mFluidityIncidentReporter.getAndResetShouldReportEvent()) {
+                // Report event using mViewPresenter
+                mViewPresenter.emitFluidityIncident(
+                        mFluidityIncidentReporter.getCurrentIncidentId(),
+                        mFluidityIncidentReporter.getAndResetFrameIncidentReportedFrameStats(),
+                        mFluidityIncidentReporter.getAndResetFrameIncidentReportedUpsValue(),
+                        mFluidityIncidentReporter.getFluidityIncidentDetails(this));
+            }
             mAplTrace.endTrace();
         }
 
@@ -1506,7 +1653,7 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
                 FrameStat pair = new FrameStat(frameTimeNanos, end);
                 mFrameStats.add(pair);
             }
-            mFluidityIncidentCounter.addFrameStat(new FrameStat(frameTimeNanos, end));
+            mFluidityIncidentReporter.addFrameStat(new FrameStat(frameTimeNanos, end));
         } catch (Exception e) {
             // mTelemetryProvider may be null if the document has been finished.
             if (mTelemetryProvider != null) {
@@ -1838,22 +1985,14 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     }
 
     /**
-     * Checks if this method is currently being called by the Ui Thread. Logs an error message if
-     * being called from other than the Ui Thread. We should switch to throwing an exception or
-     * pushing calls to the Ui Thread in the future.
-     */
-    private void checkUiThread() {
-        if (Looper.getMainLooper() != Looper.myLooper()) {
-            if (BuildConfig.DEBUG) throw new NotOnUiThreadError("Not on the main thread");
-            Log.wtf(TAG, "Not on the main thread");
-        }
-    }
-
-    /**
      * @return the visual context
      */
     public String serializeVisualContext() {
         return JNIUtils.safeStringValues(nSerializeVisualContext(getNativeHandle()));
+    }
+
+    public String serializeDocumentState() {
+        return JNIUtils.safeStringValues(nSerializeDocumentState(getNativeHandle()));
     }
 
     /**
@@ -1904,7 +2043,33 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
         return nDocumentCommandRequest(getNativeHandle(), method, params);
     }
 
-    // Native methods
+    /**
+     * Sets the maximum frame rate, measured in cycles per second (Hz). Can be
+     * used to reduce the rate of processing.
+     * - A negative value will use the default frame rate for the device
+     * - A value of 0 means that the frame loop is stopped.
+     * - A positive value will set the maximum frame rate to the specified value.
+     *
+     * @param rate the desired maximum frame rate
+     */
+    public void setProcessingRate(double rate) {
+        if (rate == 0.0) { 
+            // Stop ticking
+            mAplClock.stop();
+            // Ensure that elapsed time does not proceed when paused
+            mStartLoopTime = 0;
+        } else {
+            // Start ticking
+            mAplClock.start();
+        }
+
+        // TODO: Support positive non-zero throttling (with disabled fluidity incident)
+        if (rate > 0) {
+            Log.w(TAG, "Non-zero throttling not supported yet");
+        }
+    }
+
+    // Native methods should be static by default unless access to instance is needed.
 
     private static native boolean nIsDirty(long nativeHandle);
 
@@ -1972,6 +2137,8 @@ public class RootContext extends BoundObject implements IClock.IClockCallback, I
     private static native String nSerializeVisualContext(long nativeHandle);
 
     private static native String nSerializeDataSourceContext(long nativeHandle);
+
+    private static native String nSerializeDocumentState(long nativeHandle);
 
     private static native boolean nNextFocus(long nativeHandle, int focusDirection);
 

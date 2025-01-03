@@ -7,6 +7,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply plugin: com.amazon.apl.android.APLPlugin
 
 ext {
     cmakeProjectPath = projectDir.absolutePath
@@ -182,7 +183,7 @@ dependencies {
     standardImplementation project(":common")
     standardMinSizedImplementation project(":common")
 
-    compileOnly project(':coreengine')
+    compileOnly 'com.amazon.apl.android:coreengine:latest.integration'
     compileOnly project(':alexaextjni')
 
     implementation 'androidx.appcompat:appcompat:1.2.0'
@@ -218,12 +219,6 @@ publishing {
 }
 
 tasks.build.dependsOn(assembleAndroidTest)
-
-task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
-    cmakeArgs aplAndroidCmakeArgs
-    makeTargets "discovery-jni"
-    dependsOn ':alexaextjni:buildHostJNI'
-}
 
 task release(dependsOn: ['build', 'publish']) {
     doLast {

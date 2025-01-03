@@ -20,17 +20,20 @@ public class DocumentState extends BoundObject {
     private final MetricsTransform mMetricsTransform;
     private final RootConfig mRootConfig;
     private final Content mContent;
+    private final int mSerializedDocId;
+    private boolean mOnBackstack;
 
     /**
      * Creates a document state to cache.
      * @param rootContext the inflated RootContext for the document.
      */
-    public DocumentState(@NonNull RootContext rootContext, @NonNull Content content) {
+    public DocumentState(@NonNull RootContext rootContext, @NonNull Content content, int serializedDocId) {
         bind(rootContext.getNativeHandle());
         mOptions = rootContext.getOptions();
         mMetricsTransform = rootContext.getMetricsTransform();
         mRootConfig = rootContext.getRootConfig();
         mContent = content;
+        mSerializedDocId = serializedDocId;
     }
 
     /**
@@ -39,6 +42,28 @@ public class DocumentState extends BoundObject {
      */
     public void setOptions(@NonNull APLOptions options) {
         mOptions = options;
+    }
+
+    /**
+     * Flags this document state as being on a backstack or not.
+     * @param isOnBackStack true if on backstack, false if not.
+     */
+    public void setOnBackstack(boolean isOnBackStack) {
+        mOnBackstack = isOnBackStack;
+    }
+
+    /**
+     * @return true if document state is on the backstack.
+     */
+    public boolean isOnBackStack() {
+        return mOnBackstack;
+    }
+
+    /**
+     * @return the serialized unique id corresponding to this Document.
+     */
+    public int getSerializedDocId() {
+        return mSerializedDocId;
     }
 
     /**
@@ -68,5 +93,10 @@ public class DocumentState extends BoundObject {
      */
     public Content getContent() {
         return mContent;
+    }
+
+    public void finish() {
+        ExtensionMediator mediator = mRootConfig.getExtensionMediator();
+        mediator.finish();
     }
 }

@@ -89,33 +89,6 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
     }
 
     @Test
-    public void test_applySource_replacesMediaPlayer() {
-        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
-        adapter.refreshProperties(component(), getView(), Arrays.asList(PropertyKey.kPropertySource));
-
-        verify(mMediaPlayerProvider).getNewPlayer(any(Context.class), any(View.class));
-        verify(mComponent).setMediaPlayer(any(IMediaPlayer.class));
-    }
-
-    @Test
-    public void test_applyAllProperties_isMediaPlayerV2Disabled() {
-        when(component().getNativePlayer()).thenReturn(null);
-        when(component().shouldAutoPlay()).thenReturn(true);
-
-        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
-        adapter.applyAllProperties(component(), getView());
-
-        verify(mComponent).setMediaPlayer(any(IMediaPlayer.class));
-        verify(mMockMediaPlayer).setMediaSources(any(MediaSources.class));
-        verify(mMockMediaPlayer).setAudioTrack(eq(AudioTrack.kAudioTrackBackground));
-        verify(mMockMediaPlayer).setVideoScale(VideoScale.kVideoScaleBestFill);
-        verify(mMockMediaPlayer).setTrack(8);
-        verify(mMockMediaPlayer).seek(180);
-        verify(mMockMediaPlayer).play();
-        verify(mMockMediaPlayer).unmute();
-    }
-
-    @Test
     public void test_applyAllProperties_isMediaPlayerV2Enabled() {
         when(component().getRenderingContext()).thenReturn(mMockRenderingContextMediaPlayerV2Enabled);
         when(component().shouldAutoPlay()).thenReturn(true);
@@ -128,44 +101,6 @@ public class VideoViewAdapterTest extends AbstractComponentViewAdapterTest<Video
         verify(mMockMediaPlayer).setTrack(8);
         verify(mMockMediaPlayer).seek(180);
         verifyNoMoreInteractions(mMockMediaPlayer);
-    }
-
-    @Test
-    public void test_setVideo_mediaPlayerSetBeforeAddingListener() {
-        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
-        adapter.applyAllProperties(component(), getView());
-
-        InOrder inOrder = inOrder(mMockMediaPlayer, mComponent);
-        inOrder.verify(mComponent).setMediaPlayer(mMockMediaPlayer);
-        inOrder.verify(mMockMediaPlayer).addMediaStateListener(mComponent);
-    }
-
-    @Test
-    public void test_applyAllProperties_muted_is_true() {
-        when(component().shouldAutoPlay()).thenReturn(true);
-        when(component().shouldMute()).thenReturn(true);
-
-        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
-        adapter.applyAllProperties(component(), getView());
-        verify(mMockMediaPlayer).mute();
-    }
-
-    @Test
-    public void test_refreshProperties_muted() {
-        when(component().shouldAutoPlay()).thenReturn(true);
-        VideoViewAdapter adapter = VideoViewAdapter.getInstance();
-        adapter.applyAllProperties(component(), getView());
-        // By default the muted property is false.
-        verify(mMockMediaPlayer).unmute();
-        reset(mMockMediaPlayer);
-        // Mute the audio
-        when(component().shouldMute()).thenReturn(true);
-        refreshProperties(PropertyKey.kPropertyMuted);
-        verify(mMockMediaPlayer).mute();
-        // Unmute the audio
-        when(component().shouldMute()).thenReturn(false);
-        refreshProperties(PropertyKey.kPropertyMuted);
-        verify(mMockMediaPlayer).unmute();
     }
 
     /**

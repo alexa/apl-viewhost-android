@@ -17,9 +17,7 @@ import com.amazon.apl.devtools.util.SystemCommandRunner;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.List;
 
 public class SystemInfoGetApplicationProcessorUsageCommandRequest extends SystemInfoGetApplicationProcessorUsageCommandRequestModel {
@@ -29,31 +27,49 @@ public class SystemInfoGetApplicationProcessorUsageCommandRequest extends System
         super(obj);
     }
 
+    /**
+     * Executes the top command to get a list of running processes, and parses the response to get the
+     * usage percentage for the current process.
+     * Tasks: 174 total,   1 running, 173 sleeping,   0 stopped,   0 zombie
+     *   Mem:      1.9G total,      1.6G used,      291M free,       17M buffers
+     *  Swap:      1.4G total,      256K used,      1.4G free,      925M cached
+     * 400%cpu 126%user  44%nice 238%sys   9%idle   0%iow   0%irq   0%sirq   0%host
+     *   PID USER         PR  NI VIRT  RES  SHR S[%CPU] %MEM     TIME+ ARGS
+     *  1976 system       18  -2 2.0G 269M 216M D 58.3  13.4   0:10.52 system_server
+     * with this specific process listed.
+     * @param callback The DevTools callback to return the response.
+     */
     @Override
     public void execute(IDTCallback<SystemInfoGetApplicationProcessorUsageCommandResponse> callback) {
+        List<String> topCommandResults;
+
         try {
-            int maxCpuPercentage = -1;
-            float usagePercentage = -1.f;
-
-            List<String> topCommandResults = SystemCommandRunner.executeTopCommand();
-            for (String line : topCommandResults) {
-                String[] tokens = line.split("\\s+");
-                if (tokens[0].contains("cpu")) {
-                    String[] metric = tokens[0].split("%");
-                    maxCpuPercentage = Integer.parseInt(metric[0]);
-                } else if (tokens.length == 2 && Integer.parseInt(tokens[0]) == android.os.Process.myPid()) {
-                    usagePercentage = Float.parseFloat(tokens[1]) * 100 / maxCpuPercentage;
-                }
-            }
-
-            if (maxCpuPercentage >= 0 && usagePercentage >= 0) {
-                callback.execute(new SystemInfoGetApplicationProcessorUsageCommandResponse(getId(), usagePercentage), RequestStatus.successful());
-            } else {
-                callback.execute(RequestStatus.failed(getId(), DTError.METHOD_FAILURE));
-            }
+            String appId = "-p" + android.os.Process.myPid();
+            topCommandResults = SystemCommandRunner.executeCommand("top", appId, "-oPID,%CPU", "-b", "-n1");
         } catch (IOException e) {
-            Log.e(TAG, "Unable to get processor information", e);
+            callback.execute(RequestStatus.failed(getId(), DTError.METHOD_FAILURE));
+            return;
+        }
+
+        int maxCpuPercentage = 100;
+        float usagePercentage = -1.f;
+
+        for (String line : topCommandResults) {
+            String[] tokens = line.trim().split("\\s+");
+
+            if (tokens[0].contains("cpu")) {
+                String[] metric = tokens[0].split("%");
+                maxCpuPercentage = Integer.parseInt(metric[0]);
+            } else if (tokens.length == 2 && tokens[0].matches("[0-9]+") && Integer.parseInt(tokens[0]) == android.os.Process.myPid()) {
+                usagePercentage = Float.parseFloat(tokens[1]) * 100 / maxCpuPercentage;
+            }
+        }
+
+        if (usagePercentage >= 0) {
+            callback.execute(new SystemInfoGetApplicationProcessorUsageCommandResponse(getId(), usagePercentage), RequestStatus.successful());
+        } else {
             callback.execute(RequestStatus.failed(getId(), DTError.METHOD_FAILURE));
         }
     }
+
 }

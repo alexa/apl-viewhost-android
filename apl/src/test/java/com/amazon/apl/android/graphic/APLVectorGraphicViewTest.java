@@ -60,19 +60,6 @@ public class APLVectorGraphicViewTest extends ViewhostRobolectricTest {
         mAPLVectorGraphicView.setPadding(VIEW_PADDING, VIEW_PADDING, VIEW_PADDING, VIEW_PADDING);
     }
 
-    @Test
-    public void testHardwareAcceleration_disabled_withoutFlag() {
-        assertFalse(mMockPresenter.isHardwareAccelerationForVectorGraphicsEnabled());
-        assertEquals(LAYER_TYPE_NONE, mAPLVectorGraphicView.getLayerType());
-    }
-
-    @Test
-    public void testHardwareAcceleration_enabled_withFlag() {
-        when(mMockPresenter.isHardwareAccelerationForVectorGraphicsEnabled()).thenReturn(true);
-        mAPLVectorGraphicView = spy(new APLVectorGraphicView(ViewhostRobolectricTest.getApplication().getApplicationContext(), mMockPresenter));
-        assertTrue(mMockPresenter.isHardwareAccelerationForVectorGraphicsEnabled());
-        assertEquals(LAYER_TYPE_HARDWARE, mAPLVectorGraphicView.getLayerType());
-    }
 
     @Test
     public void testOnDraw_intrinsicDrawableFits(){

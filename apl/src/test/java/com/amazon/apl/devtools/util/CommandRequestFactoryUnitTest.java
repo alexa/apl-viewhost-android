@@ -5,15 +5,18 @@
 
 package com.amazon.apl.devtools.util;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.executers.DocumentCommandRequest;
+import com.amazon.apl.devtools.executers.FrameMetricsDisableCommandRequest;
+import com.amazon.apl.devtools.executers.FrameMetricsEnableCommandRequest;
 import com.amazon.apl.devtools.executers.MemoryGetMemoryCommandRequest;
 import com.amazon.apl.devtools.executers.NetworkDisableCommandRequest;
 import com.amazon.apl.devtools.executers.NetworkEnableCommandRequest;
@@ -39,7 +42,6 @@ import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-
 
 public class CommandRequestFactoryUnitTest {
     @Mock
@@ -278,6 +280,9 @@ public class CommandRequestFactoryUnitTest {
                     .put("method", CommandMethod.LOG_CLEAR.toString())
                     .put("id", 100)
                     .put("sessionId", "session100");
+            Session mockSession = mock(Session.class);
+            when(mockSession.isLogEnabled()).thenReturn(true);
+            when(mConnection.getSession("session100")).thenReturn(mockSession);
             when(mCommandMethodUtil.parseMethod(any())).thenReturn(
                     CommandMethod.LOG_CLEAR);
             Request<? extends Response> request = mCommandRequestFactory.createCommandRequest(obj,
@@ -318,7 +323,8 @@ public class CommandRequestFactoryUnitTest {
         try {
             JSONObject obj = new JSONObject()
                     .put("method", CommandMethod.MEMORY_GET_MEMORY.toString())
-                    .put("id", 100);
+                    .put("id", 100)
+                    .put("sessionId", "session100");
             when(mCommandMethodUtil.parseMethod(any())).thenReturn(
                     CommandMethod.MEMORY_GET_MEMORY);
             Request<? extends Response> request = mCommandRequestFactory.createCommandRequest(obj,
@@ -528,6 +534,40 @@ public class CommandRequestFactoryUnitTest {
             Request<? extends Response> request = mCommandRequestFactory.createCommandRequest(obj,
                     mConnection);
             assertTrue(request instanceof NetworkDisableCommandRequest);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void createCommandRequest_forFrameMetricsEnable_returnsCorrectRequestObject() {
+        try {
+            JSONObject obj = new JSONObject()
+                    .put("method", CommandMethod.FRAMEMETRICS_ENABLE.toString())
+                    .put("id", 100)
+                    .put("sessionId", "session100");
+            when(mCommandMethodUtil.parseMethod(any())).thenReturn(
+                    CommandMethod.FRAMEMETRICS_ENABLE);
+            Request<? extends Response> request = mCommandRequestFactory.createCommandRequest(obj,
+                    mConnection);
+            assertTrue(request instanceof FrameMetricsEnableCommandRequest);
+        } catch (Exception e) {
+            fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void createCommandRequest_forFrameMetricsDisable_returnsCorrectRequestObject() {
+        try {
+            JSONObject obj = new JSONObject()
+                    .put("method", CommandMethod.FRAMEMETRICS_DISABLE.toString())
+                    .put("id", 100)
+                    .put("sessionId", "session100");
+            when(mCommandMethodUtil.parseMethod(any())).thenReturn(
+                    CommandMethod.FRAMEMETRICS_DISABLE);
+            Request<? extends Response> request = mCommandRequestFactory.createCommandRequest(obj,
+                    mConnection);
+            assertTrue(request instanceof FrameMetricsDisableCommandRequest);
         } catch (Exception e) {
             fail(e.getMessage());
         }

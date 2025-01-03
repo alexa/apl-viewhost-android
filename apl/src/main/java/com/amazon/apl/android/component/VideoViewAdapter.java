@@ -55,21 +55,7 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     private void applySource(Video component, View view) {
         // Before MediaPlayerV2, source and mute property updates were handled through dynamic property updates.
         // Now they are handled by the MediaPlayer interface.
-        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
-            IMediaPlayer mediaPlayer = component.getMediaPlayer();
-            if (mediaPlayer != null) {
-                // In case media player was already initialized.
-                mediaPlayer.release();
-            }
-            mediaPlayer = component.getMediaPlayerProvider().getNewPlayer(
-                    view.getContext(), view);
-            final MediaSources mediaSources = component.getMediaSources();
-            if (mediaSources != null) {
-                mediaPlayer.setMediaSources(mediaSources);
-            }
-            component.setMediaPlayer(mediaPlayer);
-            mediaPlayer.addMediaStateListener(component);
-        }
+        assert component.getRenderingContext().isMediaPlayerV2Enabled();
     }
 
     /**
@@ -130,13 +116,7 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     private void applyMuted(Video component, View view) {
         // Before MediaPlayerV2, source and mute property updates were handled through dynamic property updates.
         // Now they are handled by the MediaPlayer interface.
-        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
-            if (component.shouldMute()) {
-                component.getMediaPlayer().mute();
-            } else {
-                component.getMediaPlayer().unmute();
-            }
-        }
+        assert (component.getRenderingContext().isMediaPlayerV2Enabled());
     }
 
     private void applyAudioTrack(Video component, IMediaPlayer mediaPlayer) {
@@ -180,20 +160,8 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     public void applyAllProperties(Video component, @NonNull View view) {
 
         super.applyAllProperties(component, view);
-        if (!component.getRenderingContext().isMediaPlayerV2Enabled()) {
-            // This releases the current media player and gets a new one
-            applySource(component, view);
-            // Assign all properties
-            applyMuted(component, view);
-            applyAudioTrack(component, component.getMediaPlayer());
-            applyVideoScale(component, component.getMediaPlayer());
-            applyCurrentTrackIndex(component, component.getMediaPlayer());
-            applyCurrentTrackTime(component, component.getMediaPlayer());
-            // Order matters here as we want to apply the autoPlay last.
-            applyAutoPlay(component, component.getMediaPlayer());
-        } else {
-            applyView(component, view);
-        }
+        assert component.getRenderingContext().isMediaPlayerV2Enabled();
+        applyView(component, view);
     }
 
     @Override
@@ -204,21 +172,5 @@ public class VideoViewAdapter extends ComponentViewAdapter<Video, View> {
     @Override
     void applyPadding(Video component, View view) {
         setPaddingFromBounds(component, view, false);
-    }
-
-    // Temporary fix to inflate the video if it doesn't exist for backwards compatibility
-    // TODO: remove this once long term fix added
-    public void inflateViewWithNonZeroDimensions(Video component, IAPLViewPresenter viewPresenter) {
-        View view = viewPresenter.inflateComponentHierarchy(component);
-        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
-        if (layoutParams.width == 0 && layoutParams.height == 0) {
-            if (layoutParams instanceof APLAbsoluteLayout.LayoutParams) {
-                view.setLayoutParams(new APLAbsoluteLayout.LayoutParams(1, 1, 0, 0));
-            } else if (layoutParams instanceof APLLayoutParams) {
-                view.setLayoutParams(new APLLayoutParams(1, 1, 0, 0));
-            } else {
-                view.setLayoutParams(new ViewGroup.MarginLayoutParams(1, 1));
-            }
-        }
     }
 }

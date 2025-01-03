@@ -19,6 +19,7 @@ import static org.mockito.Mockito.when;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -342,6 +343,7 @@ public class HostComponentTest extends AbstractDocUnitTest {
             callback.onSuccess().run();
             return null;
         }).when(mMediator).loadExtensions(any(Map.class), any(Content.class), any(ExtensionMediator.ILoadExtensionCallback.class));
+        when(mCoreWorker.getLooper()).thenReturn(Looper.getMainLooper());
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
@@ -619,7 +621,6 @@ public class HostComponentTest extends AbstractDocUnitTest {
     @Test
     public void testNullDocumentOptions() {
         ViewhostConfig config = ViewhostConfig.builder()
-                .defaultDocumentOptions(null)
                 .build();
         mViewhost = new ViewhostImpl(config, mRuntimeInteractionWorker, mCoreWorker);
         EmbeddedDocumentFactory factory = new NullDocumentOptionsTest(mViewhost);
@@ -774,50 +775,9 @@ public class HostComponentTest extends AbstractDocUnitTest {
 
             DocumentHandleImpl documentHandle = (DocumentHandleImpl) preparedDocument.getHandle();
             documentHandle.setExtensionMediator(mMediator);
+            DocumentOptions documentOptions = DocumentOptions.builder().extensionGrantRequestCallback(uri -> true).build();
 
-            documentHandle.setDocumentOptions(new DocumentOptions() {
-                @Nullable
-                @Override
-                public IExtensionGrantRequestCallback getExtensionGrantRequestCallback() {
-                    return uri -> true;
-                }
-
-                @Nullable
-                @Override
-                public ExtensionRegistrar getExtensionRegistrar() {
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public Map<String, Object> getExtensionFlags() {
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public ITelemetryProvider getTelemetryProvider() {
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public MetricsOptions getMetricsOptions() {
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public EmbeddedDocumentFactory getEmbeddedDocumentFactory() {
-                    return null;
-                }
-
-                @Nullable
-                @Override
-                public IUserPerceivedFatalCallback getUserPerceivedFatalCallback() {
-                    return null;
-                }
-            });
+            documentHandle.setDocumentOptions(documentOptions);
 
             mEmbeddedDocuments.put(request.getSource(), preparedDocument.getHandle());
             ((EmbeddedDocumentRequestImpl)request).setIsVisualContextConnected(true);

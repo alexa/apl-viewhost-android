@@ -355,9 +355,11 @@ public class ExtensionMultiplexClient {
                 // Note: "Callback" here is the death monitor, and implemented by ClientConnection
                 @Override
                 public void onDied(final ClientConnection connection, final String extensionURI) {
-                    if (BuildConfig.DEBUG_LOGGING) Log.d(TAG, "Service has died: " + extensionURI);
+                    Log.d(TAG, "Service has died: " + extensionURI);
 
                     if (connection != null) {
+                        Log.d(TAG, String.format("onDied service connection for uri:%s and connectionID:%d ", extensionURI, connection.mConnectionID));
+
                         // notify connection callback that the server died
                         connection.disconnectOnFailure(ConnectionCallback.FAIL_SERVER_DIED,
                                 "The service has died:" + extensionURI);
@@ -533,7 +535,7 @@ public class ExtensionMultiplexClient {
             // find the connection and remove the callback
             ClientConnection connection = mConnections.get(extensionURI);
             if (null != connection && connection.mServiceV1 != null) {
-                Log.i(TAG, "Closing connection for uri: " + extensionURI);
+                Log.i(TAG, String.format("Closing connection for uri:%s and connectionID:%d ", extensionURI, connection.mConnectionID));
                 result = connection.unregisterCallback(callback);
                 if (connection.mCallbacks.isEmpty()) {
                     clearConnection(connection);
@@ -560,6 +562,7 @@ public class ExtensionMultiplexClient {
             // find the connection and remove the callback
             ClientConnection connection = mConnections.get(extensionURI);
             if (null != connection) {
+                Log.d(TAG, String.format("Disconnecting connection for uri:%s and connectionID:%d ", extensionURI, connection.mConnectionID));
                 result = connection.unregisterCallback(callback);
                 if (connection.mCallbacks.isEmpty()) {
                     clearConnection(connection);
@@ -602,6 +605,7 @@ public class ExtensionMultiplexClient {
             for (int i = 0; i < N; i++) {
                 ClientConnection connection = mConnections.getBroadcastItem(i);
                 String extensionURI = String.valueOf(mConnections.getBroadcastCookie(i));
+                Log.i(TAG, String.format("Killing connection for uri:%s and connectionID:%d ", extensionURI, connection.mConnectionID));
                 connection.close();
                 mBinder.unbind(mContext.getContext(), extensionURI);
             }

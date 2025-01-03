@@ -121,4 +121,13 @@ public interface ITelemetryProvider extends IDocumentLifecycleListener {
      * @param by The counter counter increment.
      */
     void incrementCount(int metricId, int by);
+
+    /**
+     *
+     * Increment the metric counter by a given value.
+     *
+     * @param metricId The metric identifier.
+     * @param by       The counter increment.
+     */
+    default void incrementCount(int metricId, double by) {}
 }

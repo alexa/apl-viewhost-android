@@ -47,14 +47,14 @@ if (NOT ANDROID)
     set_target_properties(alexaext
             PROPERTIES
             IMPORTED_LOCATION
-            "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/.cxx/cmake/debug/host/_deps/aplcore-build/extensions/alexaext/libalexaext.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/alexaext/include"
+            "${APL_HOST_BINARIES}/libalexaext.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${ALEXAEXT_INCLUDE}"
             )
 
     add_library(rapidjson INTERFACE)
     target_include_directories(rapidjson INTERFACE
             # When we're building against RapidJSON, just use the include directory we discovered above
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/rapidjson/include>
+            $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE}>
             )
 
     target_link_libraries(alexaextjni rapidjson alexaext)

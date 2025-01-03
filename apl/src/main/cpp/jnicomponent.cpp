@@ -149,28 +149,6 @@ namespace apl {
             return nullptr;
         }
 
-        JNIEXPORT void JNICALL
-        Java_com_amazon_apl_android_Video_nUpdateMediaState(JNIEnv *env, jclass clazz, jlong handle,
-                jint jTrackIndex, jint jTrackCount, jint jCurrentTime, jint jDuration,
-                jboolean jPaused, jboolean jEnded, jboolean jMuted, jboolean fromEvent, jint trackState,
-               jint errorCode) {
-            auto c = get<Component>(handle);
-            int trackIndex = static_cast<int>(jTrackIndex);
-            int trackCount = static_cast<int>(jTrackCount);
-            int currentTime = static_cast<int>(jCurrentTime);
-            int duration = static_cast<int>(jDuration);
-            bool paused = static_cast<bool>(jPaused);
-            bool ended = static_cast<bool>(jEnded);
-            bool muted = static_cast<bool>(jMuted);
-            MediaState state = MediaState(trackIndex, trackCount, currentTime,
-                                          duration, paused, ended, muted)
-                                          .withTrackState(static_cast<TrackState>(trackState));
-            if(state.isError()) {
-                state.withErrorCode(errorCode);
-            }
-            c->updateMediaState(state, fromEvent);
-        }
-
         JNIEXPORT jboolean JNICALL
         Java_com_amazon_apl_android_Component_nCheckDirtyProperty(JNIEnv *env, jclass clazz,
                                                                   jlong handle,

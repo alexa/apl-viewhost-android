@@ -12,6 +12,7 @@ import com.amazon.apl.android.metrics.MetricsOptions;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.google.auto.value.AutoValue;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -46,10 +47,76 @@ public abstract class DocumentOptions {
     @Nullable
     public abstract IUserPerceivedFatalCallback getUserPerceivedFatalCallback();
 
+    @Nullable
+    public abstract Map<String, Object> getProperties();
     public static Builder builder() {
-        return new AutoValue_DocumentOptions.Builder();
+        return new AutoValue_DocumentOptions.Builder().properties(new HashMap<>());
     }
 
+
+    /**
+     * Merges the current DocumentOptions instance with another DocumentOptions instance.
+     * The fields of the other instance take precedence over the fields of the current instance.
+     *
+     * @param other the DocumentOptions instance to merge with
+     * @return a new DocumentOptions instance with merged fields
+     */
+    public DocumentOptions merge(DocumentOptions other) {
+        if (other == null) {
+            return this;
+        }
+
+        DocumentOptions.Builder builder = DocumentOptions.builder();
+
+        builder.extensionGrantRequestCallback(
+                chooseValue(other.getExtensionGrantRequestCallback(), getExtensionGrantRequestCallback())
+        );
+
+        builder.extensionRegistrar(
+                chooseValue(other.getExtensionRegistrar(), getExtensionRegistrar())
+        );
+
+        builder.extensionFlags(
+                mergeMaps(getExtensionFlags(), other.getExtensionFlags())
+        );
+
+        builder.telemetryProvider(
+                chooseValue(other.getTelemetryProvider(), getTelemetryProvider())
+        );
+
+        builder.metricsOptions(
+                chooseValue(other.getMetricsOptions(), getMetricsOptions())
+        );
+
+        builder.embeddedDocumentFactory(
+                chooseValue(other.getEmbeddedDocumentFactory(), getEmbeddedDocumentFactory())
+        );
+
+        builder.userPerceivedFatalCallback(
+                chooseValue(other.getUserPerceivedFatalCallback(), getUserPerceivedFatalCallback())
+        );
+
+        builder.properties(
+                mergeMaps(getProperties(), other.getProperties())
+        );
+
+        return builder.build();
+    }
+
+    private <T> T chooseValue(T provided, T defaultValue) {
+        return provided != null ? provided : defaultValue;
+    }
+
+    private Map<String, Object> mergeMaps(Map<String, Object> defaultMap, Map<String, Object> providedMap) {
+        Map<String, Object> mergedMap = new HashMap<>();
+        if (defaultMap != null) {
+            mergedMap.putAll(defaultMap);
+        }
+        if (providedMap != null) {
+            mergedMap.putAll(providedMap);
+        }
+        return mergedMap;
+    }
     @AutoValue.Builder
     public abstract static class Builder {
         public abstract Builder extensionGrantRequestCallback(IExtensionGrantRequestCallback callback);
@@ -62,6 +129,8 @@ public abstract class DocumentOptions {
         public abstract Builder embeddedDocumentFactory(EmbeddedDocumentFactory embeddedDocumentFactory);
 
         public abstract Builder userPerceivedFatalCallback(IUserPerceivedFatalCallback userPerceivedFatalCallback);
+
+        public abstract Builder properties(Map<String, Object> properties);
 
         public abstract DocumentOptions build();
     }

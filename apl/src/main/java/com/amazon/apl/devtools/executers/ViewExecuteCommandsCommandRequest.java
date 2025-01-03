@@ -7,7 +7,7 @@ package com.amazon.apl.devtools.executers;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.models.Session;
 import com.amazon.apl.devtools.models.ViewTypeTarget;
@@ -21,20 +21,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public final class ViewExecuteCommandsCommandRequest
-        extends ViewExecuteCommandsCommandRequestModel implements ICommandValidator {
+        extends ViewExecuteCommandsCommandRequestModel {
     private static final String TAG = ViewExecuteCommandsCommandRequest.class.getSimpleName();
-    private final CommandRequestValidator mCommandRequestValidator;
-    private final DTConnection mConnection;
-    private ViewTypeTarget mViewTypeTarget;
 
     public ViewExecuteCommandsCommandRequest(CommandRequestValidator commandRequestValidator,
                                              JSONObject obj,
                                              DTConnection connection)
             throws JSONException, DTException {
-        super(obj);
-        mCommandRequestValidator = commandRequestValidator;
-        mConnection = connection;
-        validate();
+        super(obj, commandRequestValidator, connection);
     }
 
     @Override
@@ -45,16 +39,7 @@ public final class ViewExecuteCommandsCommandRequest
          * Passing a callback to consume the execute commands status in order to create a response.
          * The response will be consumed by the caller of this execute method.
          */
-        mViewTypeTarget.executeCommands(getParams().getCommands(), (status, requestStatus) ->
+        getViewTypeTarget().executeCommands(getParams().getCommands(), (status, requestStatus) ->
             callback.execute(new ViewExecuteCommandsCommandResponse(getId(), getSessionId(), status), requestStatus));
-    }
-
-    @Override
-    public void validate() throws DTException {
-        Log.i(TAG, "Validating " + CommandMethod.VIEW_EXECUTE_COMMANDS + " command");
-        mCommandRequestValidator.validateBeforeGettingSession(getId(), getSessionId(), mConnection);
-        Session session = mConnection.getSession(getSessionId());
-        // TODO:: Validate target type before casting when more target types are added
-        mViewTypeTarget = (ViewTypeTarget) session.getTarget();
     }
 }

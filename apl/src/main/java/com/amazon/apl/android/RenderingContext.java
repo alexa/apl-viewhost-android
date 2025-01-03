@@ -56,7 +56,7 @@ public class RenderingContext {
     private final IExtensionEventCallback extensionEventCallback;
     private final APLTrace aplTrace;
     private final boolean mediaPlayerV2Enabled;
-    private final boolean isHardwareAccelerationForVectorGraphicsEnabled;
+    private final boolean isRuntimeHardwareAccelerationEnabled;
 
     private RenderingContext(
             int docVersion,
@@ -76,7 +76,7 @@ public class RenderingContext {
             IExtensionEventCallback extensionEventCallback,
             APLTrace aplTrace,
             boolean mediaPlayerV2Enabled,
-            boolean isHardwareAccelerationForVectorGraphicsEnabled) {
+            boolean isRuntimeHardwareAccelerationEnabled) {
         this.docVersion = docVersion;
         this.metricsTransform = metricsTransform;
         this.textLayoutFactory = textLayoutFactory;
@@ -94,7 +94,7 @@ public class RenderingContext {
         this.extensionEventCallback = extensionEventCallback;
         this.aplTrace = aplTrace;
         this.mediaPlayerV2Enabled = mediaPlayerV2Enabled;
-        this.isHardwareAccelerationForVectorGraphicsEnabled = isHardwareAccelerationForVectorGraphicsEnabled;
+        this.isRuntimeHardwareAccelerationEnabled = isRuntimeHardwareAccelerationEnabled;
         mShadowCache = new ShadowCache();
         this.mPathCache = new WeakCache<>();
     }
@@ -177,8 +177,8 @@ public class RenderingContext {
 
     public boolean isMediaPlayerV2Enabled() { return mediaPlayerV2Enabled; }
 
-    public boolean isHardwareAccelerationForVectorGraphicsEnabled() {
-        return isHardwareAccelerationForVectorGraphicsEnabled;
+    public boolean isRuntimeHardwareAccelerationEnabled(){
+        return isRuntimeHardwareAccelerationEnabled;
     }
 
     // Defaults are no-ops
@@ -216,7 +216,7 @@ public class RenderingContext {
         private IExtensionEventCallback extensionEventCallback;
         private APLTrace aplTrace;
         private boolean isMediaPlayerV2Enabled;
-        private boolean isHardwareAccelerationForVectorGraphicsEnabled;
+        private boolean isRuntimeHardwareAccelerationEnabled;
 
         Builder() {
         }
@@ -307,8 +307,8 @@ public class RenderingContext {
             return this;
         }
 
-        public RenderingContext.Builder isHardwareAccelerationForVectorGraphicsEnabled(boolean isHardwareAccelerationForVectorGraphicsEnabled) {
-            this.isHardwareAccelerationForVectorGraphicsEnabled = isHardwareAccelerationForVectorGraphicsEnabled;
+        public RenderingContext.Builder isRuntimeHardwareAccelerationEnabled(boolean isRuntimeHardwareAccelerationEnabled){
+            this.isRuntimeHardwareAccelerationEnabled = isRuntimeHardwareAccelerationEnabled;
             return this;
         }
 
@@ -331,7 +331,7 @@ public class RenderingContext {
                     this.extensionEventCallback,
                     this.aplTrace,
                     this.isMediaPlayerV2Enabled,
-                    this.isHardwareAccelerationForVectorGraphicsEnabled);
+                    this.isRuntimeHardwareAccelerationEnabled);
         }
     }
 }

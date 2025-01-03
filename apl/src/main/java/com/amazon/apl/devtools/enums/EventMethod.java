@@ -13,7 +13,8 @@ public enum EventMethod {
     NETWORK_REQUEST_WILL_BE_SENT(EventMethod.NETWORK_REQUEST_WILL_BE_SENT_TEXT),
     NETWORK_LOADING_FAILED(EventMethod.NETWORK_LOADING_FAILED_TEXT),
     NETWORK_LOADING_FINISHED(EventMethod.NETWORK_LOADING_FINISHED_TEXT),
-    PERFORMANCE_METRIC(EventMethod.PERFORMANCE_METRIC_TEXT);
+    PERFORMANCE_METRIC(EventMethod.PERFORMANCE_METRIC_TEXT),
+    FRAMEMETRICS_INCIDENT_REPORTED(EventMethod.FRAMEMETRICS_INCIDENT_REPORTED_TEXT);
 
     private static final String VIEW_STATE_CHANGE_TEXT = "View.stateChange";
     private static final String LOG_ENTRY_ADDED_TEXT = "Log.entryAdded";
@@ -21,6 +22,7 @@ public enum EventMethod {
     private static final String NETWORK_LOADING_FAILED_TEXT = "Network.loadingFailed";
     private static final String NETWORK_LOADING_FINISHED_TEXT = "Network.loadingFinished";
     private static final String PERFORMANCE_METRIC_TEXT = "Performance.metrics";
+    private static final String FRAMEMETRICS_INCIDENT_REPORTED_TEXT = "FrameMetrics.incidentReported";
     private final String mEventMethodText;
 
     EventMethod(String eventMethodText) {

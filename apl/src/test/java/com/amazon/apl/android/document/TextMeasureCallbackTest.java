@@ -31,6 +31,7 @@ import com.amazon.apl.android.scenegraph.text.APLTextProperties;
 import com.amazon.apl.android.utils.APLTrace;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +39,6 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 
-import static com.amazon.apl.enums.ComponentType.kComponentTypeText;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -65,6 +65,8 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
     IAPLViewPresenter mPresenter;
     @Mock
     MetricsRecorder mMetricsRecorder;
+    @Mock
+    FluidityIncidentReporter mFluidityIncidentReporter;
     @Mock
     ICounter mCounter;
     @Mock
@@ -123,7 +125,7 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
         RootContext ctx = RootContext.create(mMetrics, mContent, mRootConfig,
-                mOptions, mPresenter, mMetricsRecorder);
+                mOptions, mPresenter, mMetricsRecorder, mFluidityIncidentReporter);
         if (ctx == null || ctx.getNativeHandle() == 0) {
             fail("The document failed to load.");
         }
@@ -209,8 +211,8 @@ public class TextMeasureCallbackTest extends ViewhostRobolectricTest {
         long address = mCallback.getNativeAddress();
 
         // Recreate a root context from a previous context
-        DocumentState documentState = new DocumentState(ctx, mContent);
-        ctx = RootContext.createFromCachedDocumentState(documentState, mPresenter);
+        DocumentState documentState = new DocumentState(ctx, mContent, 0);
+        ctx = RootContext.createFromCachedDocumentState(documentState, mPresenter, mFluidityIncidentReporter);
 
         verify(mPresenter, times(2)).preDocumentRender();
 

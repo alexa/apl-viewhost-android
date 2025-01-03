@@ -29,8 +29,9 @@ import android.util.Log;
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.bitmap.BitmapCreationException;
 import com.amazon.apl.android.bitmap.IBitmapFactory;
-import com.amazon.apl.enums.VectorGraphicScale;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -61,18 +62,30 @@ public class AlexaVectorDrawable extends Drawable {
     private final Matrix mTmpMatrix = new Matrix();
     private final Rect mTmpBounds = new Rect();
 
-    private VectorGraphicScale mScale;
-
-    // Controls if hardware acceleration should be used
-    // Derived from the experimental flag "-experimentalHardwareAccelerationForAndroid"
-    private boolean mIsHardwareAccelerationEnabled = false;
+    private float mViewportWidth, mViewportHeight;
 
     private final float EPSILON = 0.001f;
+
+    private ITelemetryProvider mTelemetryProvider;
+
+    private final Set<Integer> parsedGraphicElementIds = new HashSet<>();
+    private static final String METRIC_HARDWARE_ACCELERATION_AVGS_RENDERED_WITH_HA = "AVGsRenderedWithHA";
+    private int mAVGSRenderedWithHA;
+    private static final String METRIC_HARDWARE_ACCELERATION_AVGS_RENDERED_WITHOUT_HA = "AVGsRenderedWithoutHA";
+    private int mAVGSRenderedWithoutHA;
+
+    private boolean misRuntimeHardwareAccelerationEnabled;
 
     private AlexaVectorDrawable(GraphicContainerElement element) {
         mVectorState = new VectorDrawableCompatState(element);
         RenderingContext rc = mVectorState.mPathRenderer.getRootGroup().getRenderingContext();
-        mIsHardwareAccelerationEnabled = rc.isHardwareAccelerationForVectorGraphicsEnabled();
+        mViewportWidth = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportWidthActual());
+        mViewportHeight = rc.getMetricsTransform().toViewhost(mVectorState.mPathRenderer.getRootGroup().getViewportHeightActual());
+        misRuntimeHardwareAccelerationEnabled = rc.isRuntimeHardwareAccelerationEnabled();
+
+        mTelemetryProvider = rc.getTelemetryProvider();
+        mAVGSRenderedWithHA = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_HARDWARE_ACCELERATION_AVGS_RENDERED_WITH_HA, ITelemetryProvider.Type.COUNTER);
+        mAVGSRenderedWithoutHA = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_HARDWARE_ACCELERATION_AVGS_RENDERED_WITHOUT_HA, ITelemetryProvider.Type.COUNTER);
     }
 
     @VisibleForTesting
@@ -81,9 +94,13 @@ public class AlexaVectorDrawable extends Drawable {
         updateTintFilter(state.mTint, state.mTintMode);
 
         GraphicContainerElement e = mVectorState.mPathRenderer.getRootGroup();
-        if(e != null) {
+        if (e != null) {
             RenderingContext rc = e.getRenderingContext();
-            mIsHardwareAccelerationEnabled = rc.isHardwareAccelerationForVectorGraphicsEnabled();
+            mViewportWidth = rc.getMetricsTransform().toViewhost(e.getViewportWidthActual());
+            mViewportHeight = rc.getMetricsTransform().toViewhost(e.getViewportHeightActual());
+            misRuntimeHardwareAccelerationEnabled = rc.isRuntimeHardwareAccelerationEnabled();
+
+            mTelemetryProvider = rc.getTelemetryProvider();
         }
     }
 
@@ -181,16 +198,43 @@ public class AlexaVectorDrawable extends Drawable {
         // we offset to (0, 0);
         mTmpBounds.offsetTo(0, 0);
 
-        if (mIsHardwareAccelerationEnabled) {
+        GraphicContainerElement element = mVectorState.mPathRenderer.getRootGroup();
+
+        // Draw directly into the canvas and enable hardware acceleration for better fluidity for the following cases:
+        // 1. For cases with proportional scaling and where scale_x = scale_y in scaling Matrix with no Skew and no drop Shadow Filter
+        // Draw into a bimap backed canvas for the following cases:
+        // 1. For cases with non-uniform scaling (scale_x and scale_y are non-equal) / (Scale Type: fill) / grow/shrink/stretch present OR
+        // 2. For cases where there is a drop Shadow Filter Present OR
+        // 3. For cases where there is skew present OR
+        boolean safeToUseHardwareAcceleration = !element.doesMapContainFilters()
+                && !element.doesMapContainsSkew()
+                && !element.doesMapContainNonUniformScaling()
+                && doesUniformScaling(scaledWidth, scaledHeight);
+
+        if (safeToUseHardwareAcceleration && misRuntimeHardwareAccelerationEnabled) {
             if (BuildConfig.DEBUG) Log.d(TAG, "Using hardware acceleration for AVG rendering");
+            if (!parsedGraphicElementIds.contains(element.getUniqueId())) mTelemetryProvider.incrementCount(mAVGSRenderedWithHA);
+
             canvas.clipRect(mTmpBounds);
-            mVectorState.drawAVGToCanvas(canvas, (int) scaledWidth, (int) scaledHeight,true);
+            mVectorState.drawAVGToCanvas(canvas, (int) scaledWidth, (int) scaledHeight, true);
         } else {
             if (BuildConfig.DEBUG) Log.d(TAG, "Using software acceleration for AVG rendering");
+            if (!parsedGraphicElementIds.contains(element.getUniqueId())) mTelemetryProvider.incrementCount(mAVGSRenderedWithoutHA);
+
             mVectorState.createOrEraseCachedBitmap((int) scaledWidth, (int) scaledHeight);
             mVectorState.drawCachedBitmapWithRootAlpha(canvas, colorFilter, mTmpBounds);
         }
+
+        parsedGraphicElementIds.add(element.getUniqueId());
         canvas.restoreToCount(saveCount);
+    }
+
+    // For cases where there is grow/shrink/stretch present
+    private boolean doesUniformScaling(float scaledWidth, float scaledHeight) {
+        float mScaledWidth = scaledWidth / mViewportWidth;
+        float mScaledHeight = scaledHeight / mViewportHeight;
+        // Check if mScaledWidth is not equal to mScaledHeight
+        return Math.abs(mScaledWidth - mScaledHeight) <= EPSILON;
     }
 
     @Override
@@ -297,10 +341,6 @@ public class AlexaVectorDrawable extends Drawable {
     @Override
     public Drawable.ConstantState getConstantState() {
         return mVectorState;
-    }
-
-    public void setScale(VectorGraphicScale scale){
-        mScale = scale;
     }
 
     private boolean needMirroring() {

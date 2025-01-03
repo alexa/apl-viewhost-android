@@ -3,10 +3,10 @@ package com.amazon.apl.devtools.models.common;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public abstract class FrameMetricsDomainCommandResponse extends Response {
+public class FrameMetricsDomainCommandResponse extends Response {
     private final String mSessionId;
 
-    protected FrameMetricsDomainCommandResponse(int id, String sessionId) {
+    public FrameMetricsDomainCommandResponse(int id, String sessionId) {
         super(id);
         mSessionId = sessionId;
     }

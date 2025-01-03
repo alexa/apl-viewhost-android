@@ -4,6 +4,7 @@
  */
 package com.amazon.apl.viewhost.config;
 
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
 
@@ -46,6 +47,8 @@ public interface EmbeddedDocumentFactory {
          * @param reason The reason for failure
          */
         void fail(final String reason);
+
+        RootConfig getRootConfig();
     }
 
     /**

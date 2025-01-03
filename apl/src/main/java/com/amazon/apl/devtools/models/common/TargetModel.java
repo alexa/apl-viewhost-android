@@ -6,20 +6,19 @@
 package com.amazon.apl.devtools.models.common;
 
 import com.amazon.apl.devtools.enums.TargetType;
-import com.amazon.apl.devtools.util.DependencyContainer;
-import com.amazon.apl.devtools.util.TargetCatalog;
+import com.amazon.apl.devtools.util.IdGenerator;
 
 public abstract class TargetModel {
-    private final static String SEPERATOR = ".";
+    private final static String SEPARATOR = ".";
+    private final static IdGenerator mSerializeIdGenerator = new IdGenerator(1);
     private final String mTargetId;
     private final TargetType mType;
     private final String mName;
 
     protected TargetModel(String targetId, TargetType type, String name) {
-        TargetCatalog catalog = DependencyContainer.getInstance().getTargetCatalog();
         mTargetId = targetId;
         mType = type;
-        mName = name + SEPERATOR + catalog.getAll().size();
+        mName = name + SEPARATOR + mSerializeIdGenerator.generateId();
     }
 
     public String getTargetId() {

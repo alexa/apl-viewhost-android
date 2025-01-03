@@ -12,6 +12,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.ExtensionMediator;
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.viewhost.DocumentHandle;
 import com.amazon.apl.viewhost.PreparedDocument;
@@ -36,9 +37,10 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
     private static final String PREPARE_EMBEDDED_DOC_TIME = "prepareEmbeddedDocTime";
     private final int mPrepareEmbeddedDocCount;
     private final int mPrepareEmbeddedDocTime;
+    private final RootConfig mRootConfig;
 
     EmbeddedDocumentRequestImpl(EmbeddedDocumentRequestProxy embeddedDocumentRequestProxy,
-                                Handler handler, ITelemetryProvider telemetryProvider) {
+                                Handler handler, ITelemetryProvider telemetryProvider, RootConfig config) {
         mSource = EMPTY;
         mEmbeddedDocumentRequestProxy = embeddedDocumentRequestProxy;
         mTelemetryProvider = telemetryProvider;
@@ -48,6 +50,7 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
         mIsVisualContextConnected = false;
         mPrepareEmbeddedDocCount = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, PREPARE_EMBEDDED_DOC_COUNT, ITelemetryProvider.Type.COUNTER);
         mPrepareEmbeddedDocTime = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, PREPARE_EMBEDDED_DOC_TIME, ITelemetryProvider.Type.TIMER);
+        mRootConfig = config;
     }
     public void setSource(String source) {
         mSource = source;
@@ -58,6 +61,11 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
      */
     public void setIsVisualContextConnected(boolean isVisualContextConnected) {
         mIsVisualContextConnected = isVisualContextConnected;
+    }
+
+    @Override
+    public RootConfig getRootConfig() {
+        return mRootConfig;
     }
 
     @Override
@@ -183,7 +191,7 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
                     // a DocumentConfig on initial Content creation
                     // Manually refresh the content with DocumentConfig and proceed
                     content.refresh(mEmbeddedDocumentRequestProxy.getNativeHandle(), documentConfigHandle);
-                    if (content.isWaiting()) {
+                    if (!content.isReady()) {
                         Log.i(TAG, "Content is waiting, hence resolving the request");
                         content.resolve(new Content.CallbackV2() {
                             @Override
@@ -194,7 +202,7 @@ public class EmbeddedDocumentRequestImpl implements EmbeddedDocumentFactory.Embe
                             public void onError(Exception e) {
                                 Log.e(TAG, "Error occurred during content refresh: " + e.getMessage());
                             }
-                        });
+                        }, mRootConfig);
                     } else {
                         onContentRefreshComplete(content, mDocumentHandle.getDocumentOptions(), mediator, documentConfigHandle);
                     }

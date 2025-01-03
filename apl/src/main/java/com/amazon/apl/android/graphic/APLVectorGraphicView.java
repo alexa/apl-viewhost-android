@@ -47,11 +47,6 @@ public class APLVectorGraphicView extends ImageView {
      */
     public APLVectorGraphicView(@NonNull Context context, @NonNull IAPLViewPresenter presenter) {
         super(context);
-        if (presenter.isHardwareAccelerationForVectorGraphicsEnabled()){
-            // Required for drawing view alpha accurately when drawing on hardware accelerated canvas
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            setLayerType(LAYER_TYPE_HARDWARE, paint);
-        }
         mBitmapFactory = presenter.getBitmapFactory();
     }
 

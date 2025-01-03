@@ -143,10 +143,22 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
     @Override
     public synchronized void onDocumentRender(@NonNull final RootContext rootContext) {
         mExecutor.setRootContext(rootContext);
+        mExecutor.resume();
     }
 
     public void enable(boolean enabled) {
         nEnable(getNativeHandle(), enabled);
+    }
+
+    /**
+     * Stop processing tasks on the executor. 
+     *
+     * Note: This is a workaround to prevent conflicts between async inflation
+     * and extension message processing. The executor automatically resumes
+     * when inflation completes and onDocumentRender is called.
+     */
+    public void pauseForInflation() {
+        mExecutor.pause();
     }
 
     /**
@@ -157,6 +169,12 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
         nOnSessionEnded(getNativeHandle());
     }
 
+    public void finish() {
+        extensionResourceProvider = null;
+        mLoadExtensionCallback = null;
+        nFinish(getNativeHandle());
+    }
+
     private native long nCreate(long providerHandler_, long resourceProviderHandler_, long executorHandler_, long sessionHandler_);
     private static native void nInitializeExtensions(long mediatorHandler_, long rootConfigHandler_, long contentHandler_);
     private static native void nInitializeExtensions(long mediatorHandler_, Object flags_, long contentHandler_);
@@ -164,4 +182,5 @@ public class ExtensionMediator extends BoundObject implements IExtensionEventCal
     private static native void nLoadExtensions(long mediatorHandler_, Object flags_, long contentHandler_);
     private static native void nEnable(long mediatorHandler_, boolean enabled);
     private static native void nOnSessionEnded(long mediatorHandler_);
+    private static native void nFinish(long mediatorHandler_);
 }

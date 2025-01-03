@@ -54,7 +54,7 @@ public abstract class LiveObjectTest extends AbstractDocUnitTest {
         when(mAPLPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
-        mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter, mMetricsRecorder));
+        mRootContext = Mockito.spy(RootContext.create(metrics, content, rootConfig, mOptions, mAPLPresenter, mMetricsRecorder, mFluidityIncidentReporter));
         assertNotNull(mRootContext);
 
         mRootContext.initTime();

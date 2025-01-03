@@ -31,8 +31,11 @@ import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
+import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLImageView;
+import com.amazon.apl.devtools.util.IDTCallback;
+import com.amazon.apl.devtools.util.RequestStatus;
 import com.amazon.apl.enums.ComponentType;
 import com.amazon.apl.enums.GradientType;
 import com.amazon.apl.enums.PropertyKey;
@@ -41,12 +44,18 @@ import com.amazon.apl.enums.ScreenMode;
 import com.amazon.apl.enums.ViewportMode;
 import com.google.common.collect.ImmutableMap;
 
+import org.json.JSONException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLooper;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -69,7 +78,11 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class APLLayoutTest extends ViewhostRobolectricTest {
+import androidx.test.core.app.ApplicationProvider;
+
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 22, manifest = Config.NONE)
+public class APLLayoutTest {
 
     private APLLayout mView;
 
@@ -94,6 +107,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
     @Before
     public void setup() {
+        MockitoAnnotations.openMocks(this);
         when(mockConfigurationChangeBuilder.screenReaderEnabled(anyBoolean())).thenReturn(mockConfigurationChangeBuilder);
         when(mockConfigurationChangeBuilder.fontScale(anyFloat())).thenReturn(mockConfigurationChangeBuilder);
         when(mockConfigurationChangeBuilder.screenMode(any(ScreenMode.class))).thenReturn(mockConfigurationChangeBuilder);
@@ -480,7 +494,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
     @Test
     public void test_contentBackground_linearGradient() {
-        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        APLLayout aplLayout = new APLLayout(ApplicationProvider.getApplicationContext(), false);
         IAPLViewPresenter presenter = aplLayout.getPresenter();
         aplLayout.measure(
                 View.MeasureSpec.makeMeasureSpec(1200, View.MeasureSpec.EXACTLY),
@@ -515,7 +529,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
     @Test
     public void test_contentBackground_radialGradient() {
-        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        APLLayout aplLayout = new APLLayout(ApplicationProvider.getApplicationContext(), false);
         IAPLViewPresenter presenter = aplLayout.getPresenter();
         aplLayout.measure(
                 View.MeasureSpec.makeMeasureSpec(1200, View.MeasureSpec.EXACTLY),
@@ -550,7 +564,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
     @Test
     public void test_loadBackground_afterFinish_loadsBackground() {
-        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        APLLayout aplLayout = new APLLayout(ApplicationProvider.getApplicationContext(), false);
         aplLayout.measure(
                 View.MeasureSpec.makeMeasureSpec(1200, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY));
@@ -588,7 +602,7 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
     @Test
     public void test_accessibilityStateChangeListener_registeredWhenAttached() {
         AccessibilityManager accessibilityManager = mock(AccessibilityManager.class);
-        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        APLLayout aplLayout = new APLLayout(ApplicationProvider.getApplicationContext(), false);
         aplLayout.setAccessibilityManager(accessibilityManager);
         aplLayout.onAttachedToWindow();
         verify(accessibilityManager).addAccessibilityStateChangeListener(aplLayout);
@@ -598,7 +612,23 @@ public class APLLayoutTest extends ViewhostRobolectricTest {
 
     @Test(expected = Test.None.class)
     public void test_onDetachedFromWindow_doesntThrowExceptionWhenTimeZoneNotRegistered() {
-        APLLayout aplLayout = new APLLayout(getApplication(), false);
+        APLLayout aplLayout = new APLLayout(ApplicationProvider.getApplicationContext(), false);
         aplLayout.onDetachedFromWindow();
+    }
+
+    @Test
+    public void testStartFrameMetricsRecording() {
+        mView.onDocumentRender(mockRootContext);
+        IDTCallback callback = mock(IDTCallback.class);
+        mView.startFrameMetricsRecording(1, callback);
+        verify(mockRootContext).startFrameMetricsRecording();
+    }
+
+    @Test
+    public void testStopFrameMetricsRecording() throws JSONException {
+        mView.onDocumentRender(mockRootContext);
+        IDTCallback callback = mock(IDTCallback.class);
+        mView.stopFrameMetricsRecording(1, callback);
+        verify(mockRootContext).stopFrameMetricsRecording();
     }
 }

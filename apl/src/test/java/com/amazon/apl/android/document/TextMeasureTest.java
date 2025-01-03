@@ -69,7 +69,7 @@ public class TextMeasureTest extends ViewhostRobolectricTest {
     @Before
     public void setup() {
         // Text Proxy Mock
-        when(mockStyledText.getText(any(), any())).thenReturn("");
+        when(mockStyledText.getText(any(), any(), any())).thenReturn("");
         when(mockTextProxy.getVisualHash()).thenReturn(TEXT_HASH);
         when(mockTextProxy.getTextAlignment()).then(InvocationOnMock::callRealMethod);
         when(mockTextProxy.getDirectionHeuristic()).then(InvocationOnMock::callRealMethod);
@@ -100,7 +100,7 @@ public class TextMeasureTest extends ViewhostRobolectricTest {
 
         float expectedLayoutWidthDp = (float)Math.ceil(41f * 160f / mMetricsMobile.dpi());
         float expectedLayoutHeightDp = (float)Math.ceil(41f * 160f / mMetricsMobile.dpi());
-        APLTextLayout textLayout = new APLTextLayout(layout, mockStyledText, false, expectedLayoutWidthDp, expectedLayoutHeightDp);
+        APLTextLayout textLayout = new APLTextLayout(layout, "", false, expectedLayoutWidthDp, expectedLayoutHeightDp);
 
         when(mockTextProxy.getDisplay()).thenReturn(Display.kDisplayNormal);
         when(tlf.getOrCreateTextLayoutForTextMeasure(anyInt(), eq(mockTextProxy), eq(mockStyledText), eq(500.4f), eq(Exactly), eq(600.4f), eq(Undefined), any())).thenReturn(textLayout);

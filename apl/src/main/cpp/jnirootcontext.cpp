@@ -820,6 +820,19 @@ namespace apl {
         }
 
         JNIEXPORT jstring JNICALL
+        Java_com_amazon_apl_android_RootContext_nSerializeDocumentState(JNIEnv *env, jclass clazz,
+                                                                        jlong handle) {
+            auto rc = get<RootContext>(handle);
+            rapidjson::Document document(rapidjson::kObjectType);
+            auto documentState = rc->serializeDocumentState(document.GetAllocator());
+            rapidjson::StringBuffer buffer;
+            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+            documentState.Accept(writer);
+            std::u16string u16 = converter.from_bytes(buffer.GetString());
+            return env->NewString(reinterpret_cast<const jchar *>(u16.c_str()), u16.length());
+        }
+
+        JNIEXPORT jstring JNICALL
         Java_com_amazon_apl_android_RootContext_nSerializeVisualContext(JNIEnv *env,
                                                                         jclass clazz,
                                                                         jlong handle) {

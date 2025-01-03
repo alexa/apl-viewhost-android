@@ -261,7 +261,7 @@ public class VectorGraphicTest extends AbstractComponentUnitTest<APLVectorGraphi
         RootConfig rootConfig = RootConfig.create("Unit Test", "1.0");
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
-        mRootContext = RootContext.create(mMetrics, content, rootConfig, options, mAPLPresenter, mMetricsRecorder);
+        mRootContext = RootContext.create(mMetrics, content, rootConfig, options, mAPLPresenter, mMetricsRecorder, mFluidityIncidentReporter);
 
         if (mRootContext.getNativeHandle() == 0) {
             Assert.fail("The document failed to load.");

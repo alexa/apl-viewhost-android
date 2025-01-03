@@ -5,6 +5,7 @@
 package com.amazon.apl.viewhost.internal;
 
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
@@ -19,10 +20,12 @@ import com.amazon.apl.android.Event;
 import com.amazon.apl.android.ExtensionMediator;
 import com.amazon.apl.android.ExtensionMediator.ILoadExtensionCallback;
 import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.PackageManager;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.Session;
 import com.amazon.apl.android.UserPerceivedFatalReporter;
+import com.amazon.apl.android.configuration.ConfigurationChange;
 import com.amazon.apl.android.dependencies.IDataSourceFetchCallback;
 import com.amazon.apl.android.dependencies.IPackageLoader;
 import com.amazon.apl.android.dependencies.ISendEventCallbackV2;
@@ -58,6 +61,7 @@ import com.amazon.apl.viewhost.primitives.JsonStringDecodable;
 import com.amazon.apl.viewhost.request.FinishDocumentRequest;
 import com.amazon.apl.viewhost.request.PrepareDocumentRequest;
 import com.amazon.apl.viewhost.request.RenderDocumentRequest;
+import com.amazon.apl.viewhost.request.UpdateViewStateRequest;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -71,6 +75,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -91,27 +96,27 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
 
     private final Executor mRuntimeInteractionWorker;
     private final Handler mCoreWorker;
-    private final AtomicInteger mNextMessageId;
+    private final AtomicInteger mNextMessageId = new AtomicInteger(1);
     private static final String EMPTY = "";
-    private final DTNetworkRequestManager mDTNetworkRequestManager;
+    private final DTNetworkRequestManager mDTNetworkRequestManager = new DTNetworkRequestManager();
 
     private APLLayout mAplLayout;
     private DevToolsProvider mDevToolsProvider;
 
-    private Set<DocumentStateChangeListener> mDocumentStateChangeListeners;
+    private final Set<DocumentStateChangeListener> mDocumentStateChangeListeners = new HashSet<>();
 
     private ITelemetryProvider mTelemetryProvider = NoOpTelemetryProvider.getInstance();
 
     private static final String RENDER_DOCUMENT_COUNT_TAG = "Viewhost." + ITelemetryProvider.RENDER_DOCUMENT + "Count";
     private Integer mRenderDocumentCount;
 
-    private APLProperties mProperties;
+    private final APLProperties mProperties = new APLProperties();
 
     /**
      * Maintain a map of documents that are known to the new viewhost. This is needed for event
      * routing.
      */
-    private final Map<Long, WeakReference<DocumentHandleImpl>> mDocumentMap;
+    private final Map<Long, WeakReference<DocumentHandleImpl>> mDocumentMap = new ConcurrentHashMap<>();
 
     @Nullable
     private RootContext mRootContext;
@@ -119,41 +124,56 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     @Nullable
     private DocumentHandle mTopDocument;
 
+    // Display state of the view.
+    //
+    // Note: Fully-scoped to distinguish the VH:core and runtime:VH contract.
+    //       - com.amazon.apl.enums.DisplayState is used for the VH:core contract
+    //       - com.amazon.apl.viewhost.primitives.DisplayState is used for the runtime:VH contract
+    private com.amazon.apl.viewhost.primitives.DisplayState mDisplayState =
+            com.amazon.apl.viewhost.primitives.DisplayState.FOREGROUND;
+    // -1 is unthrottled, 0 is paused, non-zero is the maximum frame rate in Hz
+    private double mProcessingRate = -1.0;
+
     public ViewhostImpl(ViewhostConfig config, Executor runtimeInteractionWorker, Handler coreWorker) {
         mConfig = config;
-        if (mConfig.getDefaultDocumentOptions() != null && mConfig.getDefaultDocumentOptions().getTelemetryProvider() != null) {
-            mTelemetryProvider = mConfig.getDefaultDocumentOptions().getTelemetryProvider();
-        }
-
-        mDocumentMap = new HashMap<>();
+        init();
         mRuntimeInteractionWorker = runtimeInteractionWorker;
         mCoreWorker = coreWorker;
-        mNextMessageId = new AtomicInteger(1);
-        mDocumentStateChangeListeners = new HashSet<>();
-        mDTNetworkRequestManager = new DTNetworkRequestManager();
-
-        // Copy over configuration properties
-        mProperties = new APLProperties();
-        for (Map.Entry<String, Object> entry : config.getProperties().entrySet()) {
-            mProperties.set(entry.getKey(), entry.getValue());
-        }
-
-        mRenderDocumentCount = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, RENDER_DOCUMENT_COUNT_TAG, ITelemetryProvider.Type.COUNTER);
     }
 
     public ViewhostImpl(ViewhostConfig config) {
-        this(config, Threading.createSequentialExecutor(), new Handler(Looper.getMainLooper()));
+        mConfig = config;
+        init();
+        mRuntimeInteractionWorker = Threading.createSequentialExecutor();
+        Map<String, Object> properties = config.getDefaultDocumentOptions().getProperties();
+        if (properties != null && properties.containsKey("inflateOnMainThread") && (boolean) properties.get("inflateOnMainThread")) {
+            mCoreWorker = new Handler(Looper.getMainLooper());
+        } else {
+            HandlerThread thread = new HandlerThread("BackgroundHandler");
+            thread.setPriority(Thread.MAX_PRIORITY);
+            thread.start();
+            mCoreWorker = new Handler(thread.getLooper());
+        }
+    }
+
+    private void init() {
+        if (mConfig.getDefaultDocumentOptions() != null && mConfig.getDefaultDocumentOptions().getTelemetryProvider() != null) {
+            mTelemetryProvider = mConfig.getDefaultDocumentOptions().getTelemetryProvider();
+        }
+        mRenderDocumentCount = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, RENDER_DOCUMENT_COUNT_TAG, ITelemetryProvider.Type.COUNTER);
     }
 
     @Override
     public PreparedDocument prepare(final PrepareDocumentRequest request) {
-        Log.d(TAG, "Prepare called with token: " + request.getToken());
+        Log.i(TAG, "Prepare called with token: " + request.getToken());
         // For first iteration of M1 milestone we are keeping the content creation in this block. May move it later
         String document = request.getDocument() != null ? ((JsonStringDecodable) request.getDocument()).getString() : EMPTY;
         APLOptions options = createAPLOptions(request);
-        DocumentOptions documentOptions = request.getDocumentOptions() != null ? request.getDocumentOptions() : mConfig.getDefaultDocumentOptions();
+        // Merge the two document options into one.
+        DocumentOptions documentOptions = mConfig.getDefaultDocumentOptions().merge(request.getDocumentOptions());
 
         DocumentHandleImpl handle = new DocumentHandleImpl(this, mCoreWorker, options.getMetricsOptions());
+        handle.setRootConfig(createRootConfig());
         handle.setToken(request.getToken());
         if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
             handle.setUserPerceivedFatalReporter(new UserPerceivedFatalReporter(documentOptions.getUserPerceivedFatalCallback()));
@@ -161,17 +181,8 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         DocumentSession session = request.getDocumentSession();
         session.setCoreWorker(mCoreWorker);
 
-        // Set the telemetry provider for the DocumentHandle in the following order of preference:
-        // 1. DocumentOptions passed through PreparedDocumentRequest
-        // 2. DocumentOptions passed to the Viewhost config
-        if (request.getDocumentOptions() != null && request.getDocumentOptions().getTelemetryProvider() != null) {
-            handle.setTelemetryProvider(request.getDocumentOptions().getTelemetryProvider());
-        } else {
-            DocumentOptions defaultOptions = (mConfig != null) ? mConfig.getDefaultDocumentOptions() : null;
-
-            if (defaultOptions != null && defaultOptions.getTelemetryProvider() != null) {
-                handle.setTelemetryProvider(defaultOptions.getTelemetryProvider());
-            }
+        if (documentOptions != null && documentOptions.getTelemetryProvider() != null) {
+            handle.setTelemetryProvider(documentOptions.getTelemetryProvider());
         }
 
         Content.create(document, options, new Content.CallbackV2() {
@@ -180,6 +191,10 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
             public void onComplete(Content content) {
                 if (documentOptions != null) {
                     handle.setDocumentOptions(documentOptions);
+                }
+
+                if (mConfig.getLegacyExtensionRegistration() != null && handle.getRootConfig() != null) {
+                    mConfig.getLegacyExtensionRegistration().registerExtensions(content, handle.getRootConfig());
                 }
 
                 // Fetch the registrar in the following order of preference:
@@ -220,7 +235,8 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
             public void onPackageLoaded(Content content) {
                 // do nothing when packages are loaded
             }
-        }, handle.getSession(), mDTNetworkRequestManager, true);
+        }, handle.getSession(), mDTNetworkRequestManager, true, mCoreWorker);
+
         return new PreparedDocumentImpl(handle);
     }
 
@@ -270,7 +286,8 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         // In order to re-use the existing Content::Create methods creating an APLOptions instance here
         // This wil be eventually phased out in favor of other unified Viewhost APIs
         IPackageLoader packageLoader = mConfig.getIPackageLoader() == null ? (importRequest, successCallback, failureCallback) -> failureCallback.onFailure(importRequest, "Content package loading not implemented.") : mConfig.getIPackageLoader();
-        DocumentOptions documentOptions = request.getDocumentOptions() != null ? request.getDocumentOptions() : mConfig.getDefaultDocumentOptions();
+        // Merge the two document options into one.
+        DocumentOptions documentOptions = mConfig.getDefaultDocumentOptions().merge(request.getDocumentOptions());
 
         MetricsOptions metricsOptions;
         if (documentOptions != null && documentOptions.getMetricsOptions() != null) {
@@ -354,21 +371,22 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     }
 
     @Override
-    public void bind(APLLayout aplLayout) {
+    public void bind(@NonNull APLLayout aplLayout) {
         if (mAplLayout != null) {
             throw new IllegalStateException("There is already a view bound");
         } else {
             mAplLayout = aplLayout;
             if (mAplLayout != null) {
-                mDevToolsProvider = aplLayout.getDevToolsProvider();
+                mDevToolsProvider = ((APLLayout.APLViewPresenterImpl)aplLayout.getPresenter()).getDevToolsProvider();
                 mDTNetworkRequestManager.bindDTNetworkRequest(mDevToolsProvider.getNetworkRequestHandler());
             }
 
             DocumentHandleImpl topDocument = (DocumentHandleImpl) mTopDocument;
             if (mTopDocument != null && topDocument.getContent() != null &&
                     (DocumentState.DISPLAYED.equals(topDocument.getDocumentState()) || DocumentState.INFLATED.equals(topDocument.getDocumentState()))) {
-                Log.d(TAG, "Reusing prepared document to render");
+                Log.i(TAG, "Reusing prepared document to render");
                 inflate(topDocument);
+
             }
         }
     }
@@ -402,10 +420,58 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     }
 
     @Override
+    public void updateViewState(UpdateViewStateRequest request) {
+        UpdateViewStateRequest.UpdateViewStateCallback callback = request.getCallback();
+        mCoreWorker.post(() -> { 
+            if (request.getDisplayState() != null) {
+                mDisplayState = request.getDisplayState();
+            }
+            if (request.getProcessingRate() != null) {
+                mProcessingRate = request.getProcessingRate();
+            }
+
+            applyViewState(mRootContext);
+            if (callback != null) {
+                publish(() -> callback.onComplete());
+            }
+        });
+    }
+
+    private void applyViewState(RootContext rootContext) {
+        if (rootContext == null) {
+            Log.d(TAG, "View state not applied, as there is no root context currently.");
+            return;
+        }
+
+        Log.d(TAG, String.format("Applying view state displayState=%s, processingRate=%.2f",
+                mDisplayState, mProcessingRate));
+        mRootContext.updateDisplayState(getCoreDisplayState());
+        mRootContext.setProcessingRate(mProcessingRate);
+    }
+
+    private DisplayState getCoreDisplayState() {
+        switch (mDisplayState) {
+            case HIDDEN:
+                return DisplayState.kDisplayStateHidden;
+            case BACKGROUND:
+                return DisplayState.kDisplayStateBackground;
+        }
+        return DisplayState.kDisplayStateForeground;
+    }
+
+    public com.amazon.apl.viewhost.primitives.DisplayState getDisplayState() {
+        return mDisplayState;
+    }
+
+    public double getProcessingRate() {
+        return mProcessingRate;
+    }
+
+    @Override
     public void cancelExecution() {
         Log.d(TAG, "Received cancelExecution for handle: " + mTopDocument);
         if (mRootContext != null) {
-            mRootContext.cancelExecution();
+            mCoreWorker.post(() -> mRootContext.cancelExecution());
         } else {
             Log.w(TAG, "RootContext is null, skipping cancelExecution");
         }
@@ -483,7 +549,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
      * Internal method for notifying viewhost about document context assignments
      * @param handle The document handle
      */
-    public void updateDocumentMap(DocumentHandle handle) {
+    public synchronized void updateDocumentMap(DocumentHandle handle) {
         cleanDocumentMap();
 
         Long key = ((DocumentHandleImpl)handle).getDocumentContext().getId();
@@ -532,8 +598,8 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
             return handle(documentHandle, (RefreshEvent) event);
         }
 
-        // We know this event is related to a document we're managing, so we drop it
-        return false;
+        // We know that the rest of the events needs to be simply executed without sending messages or callbacks.
+        return true;
     }
 
     public void checkAndReportDataSourceErrors(Object primaryDocumentErrors) {
@@ -552,7 +618,6 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                 } else {
                     Log.e(TAG, "Neither document config nor root context defined, hence ignoring the request");
                 }
-
             }
         }
     }
@@ -610,6 +675,30 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                 "VisualContextChanged",
                 new DecodableShim());
         publish(() -> handler.handleNotification(message));
+    }
+
+    public void notifyScreenLockedChanged(DocumentHandle handle, boolean isLocked) {
+        Log.d(TAG, String.format("notifyScreenLockedChanged for document: %s with isLocked: %b", handle.toString(), isLocked));
+        MessageHandler messageHandler = mConfig.getMessageHandler();
+        if (messageHandler == null) {
+            Log.i(TAG, "No message handler defined, hence ignoring it");
+            return;
+        }
+
+        try {
+            JSONObject payload = new JSONObject();
+            payload.put("isLocked", isLocked);
+            NotificationMessage message = new NotificationMessageImpl(
+                    mNextMessageId.getAndIncrement(),
+                    handle,
+                    "ScreenLockStatusChanged",
+                    new JsonDecodable(payload));
+            publish(() -> messageHandler.handleNotification(message));
+        } catch (JSONException e) {
+            Log.e(TAG, String.format("Unexpected failure with message %s to handle notifyScreenLocked, it will be dropped",
+                    e.getMessage()));
+            e.printStackTrace();
+        }
     }
 
     public void notifyDocumentStateChanged(DocumentHandle handle, DocumentState state) {
@@ -767,7 +856,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
                     Log.e(TAG, "Error occured during content resolution: " + e.getMessage());
                     document.getUserPerceivedFatalReporter().reportFatal(UserPerceivedFatalReporter.UpfReason.CONTENT_RESOLUTION_FAILURE);
                 }
-            });
+            }, document.getRootConfig());
         }
         return content.isReady();
     }
@@ -850,74 +939,95 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     }
 
     private void inflate(DocumentHandleImpl documentHandle) {
-        {
-            if (!isBound()) {
-                Log.i(TAG, "No view bound to Viewhost, hence request not fulfilled");
-                return;
-            }
+        if (!isBound()) {
+            Log.i(TAG, "No view bound to Viewhost, hence request not fulfilled");
+            return;
+        }
 
-            IUserPerceivedFatalCallback userPerceivedFatalCallback;
-            final DocumentOptions documentOptions = documentHandle.getDocumentOptions();
-            if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
-                userPerceivedFatalCallback = documentOptions.getUserPerceivedFatalCallback();
-            } else {
-                Log.d(TAG, "No UserPerceivedFatalCallback provided by the runtime to report UPF.");
-                userPerceivedFatalCallback = new NoOpUserPerceivedFatalCallback();
-            }
+        IUserPerceivedFatalCallback userPerceivedFatalCallback;
+        final DocumentOptions documentOptions = documentHandle.getDocumentOptions();
+        if (documentOptions != null && documentOptions.getUserPerceivedFatalCallback() != null) {
+            userPerceivedFatalCallback = documentOptions.getUserPerceivedFatalCallback();
+        } else {
+            Log.d(TAG, "No UserPerceivedFatalCallback provided by the runtime to report UPF.");
+            userPerceivedFatalCallback = new NoOpUserPerceivedFatalCallback();
+        }
 
-            APLOptions options = APLOptions.builder()
-                    .telemetryProvider(mTelemetryProvider)
-                    .userPerceivedFatalCallback(userPerceivedFatalCallback)
-                    .metricsOptions(documentHandle.getMetricsOptions())
-                    .viewhost(this).build();
-            RootConfig rootConfig;
-            if (documentHandle.getRootConfig() == null) {
-                rootConfig = createRootConfig();
-                documentHandle.setRootConfig(rootConfig);
-            } else {
-                rootConfig = documentHandle.getRootConfig();
-            }
-            rootConfig.session(documentHandle.getSession());
-            mAplLayout.setAPLSession(documentHandle.getSession());
-            documentHandle.getSession().setAPLListener(mDevToolsProvider.getAPLSessionListener());
-            mDevToolsProvider.registerSink(options.getMetricsOptions().getMetricsSinkList());
+        APLOptions.Builder aplOptionsBuilder = APLOptions.builder()
+                .telemetryProvider(mTelemetryProvider)
+                .userPerceivedFatalCallback(userPerceivedFatalCallback)
+                .metricsOptions(documentHandle.getMetricsOptions())
+                .viewhost(this);
+        if (mConfig.getTimeProvider() != null) {
+            aplOptionsBuilder.timeProvider(mConfig.getTimeProvider());
+        }
 
-            if (documentHandle.getExtensionMediator() != null) {
-                rootConfig.extensionMediator(documentHandle.getExtensionMediator());
-            }
+        APLOptions options = aplOptionsBuilder.build();
 
-            if (documentHandle.getDocumentOptions() != null && documentHandle.getDocumentOptions().getEmbeddedDocumentFactory() != null)  {
-                rootConfig.setDocumentManager(documentHandle.getDocumentOptions().getEmbeddedDocumentFactory() , mCoreWorker, mTelemetryProvider);
-            }
+        RootConfig rootConfig = documentHandle.getRootConfig();
 
-            mAplLayout.setAgentName(rootConfig);
-            mAplLayout.addMetricsReadyListener(viewportMetrics -> {
-                IAPLViewPresenter presenter = mAplLayout.getPresenter();
-                mCoreWorker.post(() -> {
-                    try {
-                        final RootContext rootContext;
-                        if (documentHandle.getRootContext() != null) {
-                            rootContext = RootContext.createFromCache(presenter, documentHandle.getRootContext().getMetricsTransform(), options, rootConfig, documentHandle.getContent(), documentHandle.getRootContext().getNativeHandle());
-                            if (presenter.getConfigurationChange() != null) {
-                                rootContext.handleConfigurationChange(presenter.getConfigurationChange());
-                            }
-                        } else {
-                            rootContext = RootContext.create(viewportMetrics, documentHandle.getContent(), rootConfig, options, presenter, documentHandle.getUserPerceivedFatalReporter(), documentHandle.getContent().getMetricsRecorder());
-                        }
-                        presenter.onDocumentRender(rootContext);
-                        documentHandle.setPrimary(rootContext, this);
-                        setTopDocumentHandleAndRootContext(documentHandle, rootContext);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Exception occurred while fulfilling request and the exception is: " + e);
-                        documentHandle.setDocumentState(DocumentState.ERROR);
+        if (rootConfig.getPackageManager() == null) {
+            PackageManager packageManager = new PackageManager(mConfig.getIPackageLoader(), mTelemetryProvider, mDevToolsProvider.getNetworkRequestHandler());
+            rootConfig.packageManager(packageManager);
+        }
+        rootConfig.session(documentHandle.getSession());
+        mAplLayout.setAPLSession(documentHandle.getSession());
+        documentHandle.getSession().setAPLListener(mDevToolsProvider.getAPLSessionListener());
+        mDevToolsProvider.registerSink(options.getMetricsOptions().getMetricsSinkList());
+        mDevToolsProvider.getDTView().setCurrentDocumentId(documentHandle.getSerializedId());
+
+        if (documentHandle.getExtensionMediator() != null) {
+            rootConfig.extensionMediator(documentHandle.getExtensionMediator());
+        }
+
+        if (documentHandle.getDocumentOptions() != null && documentHandle.getDocumentOptions().getEmbeddedDocumentFactory() != null)  {
+            rootConfig.setDocumentManager(documentHandle.getDocumentOptions().getEmbeddedDocumentFactory() , mCoreWorker, mTelemetryProvider);
+        }
+
+        for (Map.Entry<String, Object> entry : documentHandle.getDocumentOptions().getProperties().entrySet()) {
+           mProperties.set(entry.getKey(), entry.getValue());
+        }
+
+        mProperties.set(APLProperty.kFluidityRefreshRate, (double) 1000.0f / mAplLayout.getDisplayRefreshRate());
+
+        mAplLayout.setAgentName(rootConfig);
+        mAplLayout.addMetricsReadyListener(viewportMetrics -> {
+            IAPLViewPresenter presenter = mAplLayout.getPresenter();
+            mCoreWorker.post(() -> {
+                if (!documentHandle.isValid()) {
+                    Log.w(TAG, String.format("Document is no longer valid (handle:%s), dropping request to inflate document.", documentHandle));
+                    return;
+                }
+                try {
+                    final RootContext rootContext;
+                    if (documentHandle.getRootContext() != null) {
+                        rootContext = documentHandle.getRootContext(); // no change
+                        //update the view
+                        rootContext.setViewPresenter(presenter);
+
+                        // Apply the new viewportMetrics.
+                        rootContext.handleConfigurationChange(ConfigurationChange.create(viewportMetrics, rootConfig).build());
+                    } else {
+                        rootConfig.set(RootProperty.kInitialDisplayState, getCoreDisplayState());
+                        rootContext = RootContext.create(viewportMetrics, documentHandle.getContent(), rootConfig, options, presenter, documentHandle.getUserPerceivedFatalReporter(), documentHandle.getContent().getMetricsRecorder(), mProperties);
                     }
-                });
-                documentHandle.getContent().createDocumentBackground(viewportMetrics, rootConfig);
-                if (presenter != null) {
-                    presenter.loadBackground(documentHandle.getContent().getDocumentBackground());
+                    // This will inflate the document.
+                    documentHandle.setPrimary(rootContext, this);
+                    presenter.onDocumentRender(rootContext);
+
+                    // it will also set the state to inflated
+                    documentHandle.setDocumentContext(rootContext.getDocumentContext());
+                    setTopDocumentHandleAndRootContext(documentHandle, rootContext);
+                } catch (Exception e) {
+                    Log.e(TAG, "Exception occurred while fulfilling request and the exception is: " + e);
+                    documentHandle.setDocumentState(DocumentState.ERROR);
                 }
             });
-        }
+            documentHandle.getContent().createDocumentBackground(viewportMetrics, rootConfig);
+            if (presenter != null) {
+                presenter.loadBackground(documentHandle.getContent().getDocumentBackground());
+            }
+        });
     }
 
     /**
@@ -929,6 +1039,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
     void setTopDocumentHandleAndRootContext(DocumentHandle documentHandle, RootContext rootContext) {
         mTopDocument = documentHandle;
         mRootContext = rootContext;
+        applyViewState(rootContext);
     }
 
     /**
@@ -958,6 +1069,7 @@ public class ViewhostImpl extends Viewhost implements DocumentStateChangeListene
         if (mConfig.getMediaPlayerFactory() != null) {
             config.mediaPlayerFactory(mConfig.getMediaPlayerFactory());
         }
+
 
         return config;
     }

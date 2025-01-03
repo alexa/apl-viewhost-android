@@ -397,6 +397,14 @@ public final class ExtensionMultiplexService {
         public int hashCode() {
             return Objects.hash(connectionPID, connectionID);
         }
+
+        @Override
+        public String toString() {
+            return "ConnectionID{" +
+                    "connectionPID=" + connectionPID +
+                    ", connectionID=" + connectionID +
+                    '}';
+        }
     }
 
     /**
@@ -526,6 +534,7 @@ public final class ExtensionMultiplexService {
 
             try {
                 ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), client.L2_connectionID());
+                Log.d(TAG, "L2_connect connectionID:" + connectionID);
                 int transact = validate(client);
                 // registerCallback the client, this adds a death monitor
                 if (L2_IRemoteClient.TRANSACT_VERSION == transact
@@ -610,6 +619,7 @@ public final class ExtensionMultiplexService {
             try {
                 mClients.unregister(client);
                 ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), client.L2_connectionID());
+                Log.d(TAG, "L2_connectionClosed connectionID:" + connectionID);
                 if (null != mHandler) {
                     mHandler.post(() -> notifyConnectionClosed(connectionID, message));
                 } else {
@@ -673,9 +683,8 @@ public final class ExtensionMultiplexService {
         @SuppressWarnings("RedundantThrows")
         @Override
         public synchronized void L2_receive(final int clientID, final int routingID, final String message) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "L2_receive: " + message);
-
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
+            Log.d(TAG, "L2_receive connectionID:" + connectionID);
 
             if (null != mHandler) {
                 mHandler.post(() -> notifyReceive(connectionID, routingID, message));
@@ -728,9 +737,8 @@ public final class ExtensionMultiplexService {
         @SuppressWarnings("RedundantThrows")
         @Override
         public synchronized void L2_onFocusLost(int clientID, int routingID) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "L2_onFocusLost");
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
-
+            Log.d(TAG, "L2_onFocusLost connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyFocusLost(connectionID, routingID));
             } else {
@@ -768,9 +776,8 @@ public final class ExtensionMultiplexService {
         @Override
         @SuppressWarnings("RedundantThrows")
         public synchronized void L2_onFocusGained(int clientID, int routingID) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "L2_onFocusGained");
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
-
+            Log.d(TAG, "L2_onFocusGained connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyFocusGained(connectionID, routingID));
             } else {
@@ -809,7 +816,7 @@ public final class ExtensionMultiplexService {
         @Override
         public synchronized void L2_onPause(int clientID, int routingID) throws RemoteException {
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
-
+            Log.d(TAG, "L2_onPause connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyPause(connectionID, routingID));
             } else {
@@ -848,7 +855,7 @@ public final class ExtensionMultiplexService {
         @SuppressWarnings("RedundantThrows")
         public synchronized void L2_onResume(int clientID, int routingID) throws RemoteException {
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
-
+            Log.d(TAG, "L2_onResume connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyResume(connectionID, routingID));
             } else {
@@ -885,7 +892,7 @@ public final class ExtensionMultiplexService {
         @Override
         public synchronized void L2_onExit(int clientID, int routingID) throws RemoteException {
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
-
+            Log.d(TAG, "L2_onExit connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyOnExit(connectionID, routingID));
             } else {
@@ -1035,7 +1042,7 @@ public final class ExtensionMultiplexService {
         @Override
         public synchronized void L2_sendFailure(final L2_IRemoteClient client, final int routingID, final int errorCode, final String error,
                                    final String failedMessage) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "sendFailure: " + error);
+            Log.d(TAG, "sendFailure: " + error);
 
             client.L2_messageFailure(routingID, errorCode, error, failedMessage);
         }
@@ -1063,8 +1070,8 @@ public final class ExtensionMultiplexService {
 
         @Override
         public synchronized void L2_onResourceAvailable(int clientID, int routingID, Surface surface, Rect rect, String resourceID) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "onResourceAvailable: " + resourceID);
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
+            Log.d(TAG, String.format("L2_onResourceAvailable connectionID:%s and resourceID:%s", connectionID, resourceID));
             if (null != mHandler) {
                 mHandler.post(() -> notifyResourceAvailable(connectionID, routingID, surface, rect, resourceID));
             } else {
@@ -1074,8 +1081,8 @@ public final class ExtensionMultiplexService {
 
         @Override
         public synchronized void L2_onResourceUnavailable(int clientID, int routingID, String resourceID) throws RemoteException {
-            if (BuildConfig.DEBUG_LOGGING)  Log.d(TAG, "onResourceUnavailable: " + resourceID);
             ConnectionID connectionID = ConnectionID.valueOf(getCallingPid(), clientID);
+            Log.d(TAG, "L2_onResourceUnavailable connectionID:" + connectionID);
             if (null != mHandler) {
                 mHandler.post(() -> notifyResourceUnavailable(connectionID, routingID, resourceID));
             } else {

@@ -7,7 +7,7 @@ package com.amazon.apl.devtools.executers;
 
 import android.util.Log;
 
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.models.Session;
 import com.amazon.apl.devtools.models.ViewTypeTarget;
@@ -21,35 +21,20 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public final class LiveDataUpdateCommandRequest
-        extends LiveDataUpdateCommandRequestModel implements ICommandValidator {
+        extends LiveDataUpdateCommandRequestModel {
     private static final String TAG = LiveDataUpdateCommandRequest.class.getSimpleName();
-    private final CommandRequestValidator mCommandRequestValidator;
-    private final DTConnection mConnection;
-    private ViewTypeTarget mViewTypeTarget;
 
     public LiveDataUpdateCommandRequest(CommandRequestValidator commandRequestValidator,
                                         JSONObject obj,
                                         DTConnection connection)
             throws JSONException, DTException {
-        super(obj);
-        mCommandRequestValidator = commandRequestValidator;
-        mConnection = connection;
-        validate();
+        super(obj, commandRequestValidator, connection);
     }
 
     @Override
     public void execute(IDTCallback<LiveDataUpdateCommandResponse> callback) {
         Log.i(TAG, "Executing " + CommandMethod.LIVE_DATA_UPDATE + " command");
-        mViewTypeTarget.updateLiveData(getParams().getName(), getParams().getOperations(), (result, requestStatus) ->
+        getViewTypeTarget().updateLiveData(getParams().getName(), getParams().getOperations(), (result, requestStatus) ->
             callback.execute(new LiveDataUpdateCommandResponse(getId(), getSessionId(), result), requestStatus));
-    }
-
-    @Override
-    public void validate() throws DTException {
-        Log.i(TAG, "Validating " + CommandMethod.LIVE_DATA_UPDATE + " command");
-        mCommandRequestValidator.validateBeforeGettingSession(getId(), getSessionId(), mConnection);
-        Session session = mConnection.getSession(getSessionId());
-        // TODO:: Validate target type before casting when more target types are added
-        mViewTypeTarget = (ViewTypeTarget) session.getTarget();
     }
 }

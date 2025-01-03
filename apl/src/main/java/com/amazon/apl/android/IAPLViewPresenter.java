@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 
 import com.amazon.apl.android.bitmap.IBitmapFactory;
 import com.amazon.apl.android.configuration.ConfigurationChange;
-import com.amazon.apl.android.functional.Consumer;
+import com.amazon.common.Consumer;
 import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -23,8 +23,11 @@ import com.amazon.apl.android.scaling.Scaling;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.UpdateType;
+
+import org.json.JSONObject;
 
 import java.util.List;
 
@@ -270,8 +273,6 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
     @Nullable
     APLTrace getAPLTrace();
 
-    boolean isHardwareAccelerationForVectorGraphicsEnabled();
-
     /**
      * Inflates a hierarchy of Components from given root Component in their corresponding Android
      * Views by calling
@@ -289,4 +290,14 @@ public interface IAPLViewPresenter extends View.OnClickListener, IDocumentLifecy
      * Clear any enqueued motion events
      */
     void clearMotionEvents();
+
+    /**
+     * Report fluidity incident events
+     */
+    void emitFluidityIncident(int incidentId, FrameStat[] incidentReportedFrameStats, Double[] upsValues, JSONObject details);
+
+    /**
+     * @return @true if the frame metrics is enabled in the session, @c false otherwise
+     */
+    boolean isFrameMetricsEventsEnabled();
 }

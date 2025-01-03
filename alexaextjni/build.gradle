@@ -6,6 +6,7 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 
 apply plugin: 'com.android.library'
+apply plugin: com.amazon.apl.android.APLPlugin
 
 ext {
     cmakeProjectPath = projectDir.absolutePath
@@ -69,13 +70,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation project(":common")
-    implementation project(':coreengine')
-}
-
-task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
-    cmakeArgs aplAndroidCmakeArgs
-    makeTargets "alexaextjni"
-    dependsOn ':coreengine:buildHostJNI'
+    implementation 'com.amazon.apl.android:coreengine:latest.integration'
 }
 
 project.afterEvaluate {
@@ -83,13 +78,6 @@ project.afterEvaluate {
     println "APL CMake Args: " + aplAndroidCmakeArgs
     println "Android SDK Directory: " + android.sdkDirectory.path
     println "Android NDK Directory: " + android.ndkDirectory.path
-
-    // We need to make sure the host jni library is built before any debug or release unit testing.
-    tasks.preDebugUnitTestBuild.dependsOn(buildHostJNI)
-    tasks.preReleaseUnitTestBuild.dependsOn(buildHostJNI)
-    tasks.buildHostJNI.dependsOn(':coreengine:buildHostJNI')
-    tasks.buildHostJNI.dependsOn(':common:buildHostJNI')
 }
 
-tasks.build.dependsOn(buildHostJNI)
 

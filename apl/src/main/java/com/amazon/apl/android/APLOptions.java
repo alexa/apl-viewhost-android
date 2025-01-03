@@ -49,6 +49,7 @@ import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTtsPlayerProvider;
+import com.amazon.apl.viewhost.TimeProvider;
 import com.amazon.apl.viewhost.Viewhost;
 import com.amazon.apl.viewhost.config.EmbeddedDocumentFactory;
 import com.amazon.apl.viewhost.config.NoOpEmbeddedDocumentFactory;
@@ -57,7 +58,9 @@ import com.google.auto.value.extension.memoized.Memoized;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * APLOptions are runtime configurable providers, callbacks, and listeners.
@@ -111,8 +114,16 @@ public abstract class APLOptions {
     @Nullable
     public abstract IImageProcessor getImageProcessor();
 
+    /**
+     *
+     * @deprecated use {@link APLOptions#getTimeProvider()} instead.
+     */
+    @Deprecated //use {@link
     @Nullable
     public abstract ILocalTimeOffsetProvider getLocalTimeOffsetProvider();
+
+    @Nullable
+    public abstract TimeProvider getTimeProvider();
 
     // Callbacks
     public abstract IOnAplFinishCallback getOnAplFinishCallback();
@@ -159,6 +170,8 @@ public abstract class APLOptions {
     public abstract IUserPerceivedFatalCallback getUserPerceivedFatalCallback();
 
     public abstract boolean isScenegraphEnabled();
+
+    public abstract Map<String, Object> getConfigurationMap();
 
     /**
      * @return options that are {@link IDocumentLifecycleListener}s.
@@ -213,6 +226,7 @@ public abstract class APLOptions {
                 .embeddedDocumentFactory(new NoOpEmbeddedDocumentFactory())
                 .viewportSizeUpdateCallback((width, height) ->{})
                 .userPerceivedFatalCallback(new NoOpUserPerceivedFatalCallback())
+                .configurationMap(new HashMap<String, Object>())
                 .metricsOptions(MetricsOptions.builder().metricsSinkList(Collections.emptyList()).build());
     }
 
@@ -269,10 +283,21 @@ public abstract class APLOptions {
          * Required for the local time to transition with timezones or daylight savings.
          * @param provider the local time offset provider.
          * @return this builder
+         * @deprecated Please use {@link Builder#timeProvider(TimeProvider)} instead.
          */
+        @Deprecated
         public abstract Builder localTimeOffsetProvider(ILocalTimeOffsetProvider provider);
 
         /**
+         * Enabled only from Unified API pathway
+         * Required for the local time to transition with timezones or daylight savings.
+         * @param provider the local time offset provider.
+         * @return this builder
+         */
+        public abstract Builder timeProvider(TimeProvider provider);
+        /**
+         *
+         *
          * Required to support FinishEvents.
          * Defaults to no-op
          *
@@ -457,6 +482,14 @@ public abstract class APLOptions {
          * @return this builder
          */
         public abstract Builder userPerceivedFatalCallback(IUserPerceivedFatalCallback userPerceivedFatalCallback);
+
+        /**
+         * Map of options that could be set by Runtimes as per Viewhost specification
+         *
+         * @param configurationMap key-value map
+         * @return this builder
+         */
+        public abstract Builder configurationMap(Map<String, Object> configurationMap);
 
         /**
          * Builds the options for this document.

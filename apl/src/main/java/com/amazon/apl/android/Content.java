@@ -25,13 +25,17 @@ import com.amazon.apl.android.metrics.ITimer;
 import com.amazon.apl.android.metrics.MetricsMilestoneConstants;
 import com.amazon.apl.android.metrics.MetricsSegmentConstants;
 import com.amazon.apl.android.metrics.impl.MetricsRecorder;
+import com.amazon.apl.android.metrics.impl.NoOpMetricsRecorder;
 import com.amazon.apl.android.primitive.Gradient;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.impl.NoOpTelemetryProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.ColorUtils;
+import com.amazon.apl.android.utils.JNIUtils;
 import com.amazon.apl.devtools.enums.DTNetworkRequestType;
 import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
+import com.amazon.apl.viewhost.primitives.Decodable;
+import com.amazon.apl.viewhost.primitives.JsonDecodable;
 import com.amazon.common.BoundObject;
 import com.amazon.apl.enums.GradientType;
 import com.google.auto.value.AutoValue;
@@ -50,6 +54,9 @@ import static com.amazon.apl.android.providers.ITelemetryProvider.Type.COUNTER;
 import static com.amazon.apl.android.providers.ITelemetryProvider.Type.TIMER;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /**
  * Access to APL Document Contents.  These methods are called from the APLInflater worker thread.
  */
@@ -64,6 +71,8 @@ public final class Content extends BoundObject {
     public static final String METRIC_CONTENT_ERROR = TAG + ".error";
     private int cContentError;
     private ICounter mContentErrorCounter;
+
+    private boolean usePackageManager;
 
     public static final String METRIC_CONTENT_IMPORT_REQUESTS = TAG + ".imports";
     private int cContentImportRequests;
@@ -96,6 +105,10 @@ public final class Content extends BoundObject {
     private IMetricsRecorder mMetricsRecorder;
 
     private Map<ImportRef, APLJSONData> mPackages = new ConcurrentHashMap<>();
+
+    private Handler mExecutionHandler;
+
+    private Decodable mCachedDocumentSettings;
 
     /**
      * This Exception is thrown when a Content object cannot be created.
@@ -147,8 +160,22 @@ public final class Content extends BoundObject {
         mDataRetriever = dataRetriever;
         setPackageLoader(packageLoader);
         mMainHandler = new Handler(Looper.getMainLooper());
+        mExecutionHandler = mMainHandler;
         mDTNetworkRequestHandler = dtNetworkRequest;
         mMetricsRecorder = metricsRecorder;
+        usePackageManager = false;
+    }
+
+    private Content(@NonNull ITelemetryProvider telemetryProvider,
+                    @Nullable IPackageLoader packageLoader,
+                    @Nullable IContentDataRetriever dataRetriever,
+                    long entryTime,
+                    @Nullable IDTNetworkRequestHandler dtNetworkRequest,
+                    IMetricsRecorder metricsRecorder,
+                    boolean parametersOptional,
+                    Handler executionHandler) {
+        this(telemetryProvider, packageLoader, dataRetriever, entryTime, dtNetworkRequest, metricsRecorder, parametersOptional);
+        mExecutionHandler = executionHandler;
     }
 
     /**
@@ -315,10 +342,10 @@ public final class Content extends BoundObject {
      * @return                  A Content object if the maintemplate is valid, otherwise null.
      */
     @Nullable
-    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session, IDTNetworkRequestHandler dtNetworkRequest, boolean parametersOptional) {
+    public static Content create(final String mainTemplate, @NonNull final APLOptions aplOptions, @NonNull final CallbackV2 callback, Session session, IDTNetworkRequestHandler dtNetworkRequest, boolean parametersOptional, Handler executionHandler) {
         long entryTime = SystemClock.elapsedRealtimeNanos();
         try {
-            return createContent(mainTemplate, aplOptions, null, callback, parametersOptional, entryTime, null, session, dtNetworkRequest);
+            return createContent(mainTemplate, aplOptions, null, callback, parametersOptional, entryTime, null, session, dtNetworkRequest, executionHandler);
         } catch (ContentException e) {
             callback.onError(e);
             return null;
@@ -368,6 +395,7 @@ public final class Content extends BoundObject {
         }
     }
 
+
     private static Content createContent(@NonNull final String mainTemplate,
                                          @Nullable final APLOptions aplOptions,
                                          @Nullable final Callback callback,
@@ -382,7 +410,8 @@ public final class Content extends BoundObject {
         }
         Content content = null;
         try {
-            IMetricsRecorder metricsRecorder = new MetricsRecorder();
+            // TODO: Remove the NoOpMetricsRecorder when completely moving to the MetricsRecorder
+            IMetricsRecorder metricsRecorder = BuildConfig.DEBUG ? new MetricsRecorder() : new NoOpMetricsRecorder();
             if (aplOptions != null && aplOptions.getMetricsOptions() != null) {
                 List<IMetricsSink> metricsSinkList = aplOptions.getMetricsOptions().getMetricsSinkList() == null ?
                         Collections.emptyList() : aplOptions.getMetricsOptions().getMetricsSinkList();
@@ -392,6 +421,47 @@ public final class Content extends BoundObject {
                 metricsRecorder.mergeMetadata(aplOptions.getMetricsOptions().getMetaData());
             }
             content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime, dtNetworkRequestHandler, metricsRecorder, parametersOptional);
+            content.setCallbacks(callbackV2, callback);
+            content.importDocument(mainTemplate, rootConfig, session);
+        } catch (Exception e) {
+            if (content != null) {
+                content.recordErrorState();
+            }
+            throw new ContentException("Could not create APL content:", e);
+        }
+        if (!content.isBound()) {
+            content.recordErrorState();
+            throw new ContentException("Invalid document.");
+        }
+        return content;
+    }
+
+    private static Content createContent(@NonNull final String mainTemplate,
+                                         @Nullable final APLOptions aplOptions,
+                                         @Nullable final Callback callback,
+                                         @Nullable final CallbackV2 callbackV2,
+                                         boolean parametersOptional,
+                                         long entryTime,
+                                         final RootConfig rootConfig,
+                                         final Session session,
+                                         final IDTNetworkRequestHandler dtNetworkRequestHandler,
+                                         final Handler executionHandler) throws ContentException {
+        if (mainTemplate.length() == 0) {
+            throw new ContentException("Invalid document length.");
+        }
+        Content content = null;
+        try {
+            // TODO: Remove the NoOpMetricsRecorder when completely moving to the MetricsRecorder
+            IMetricsRecorder metricsRecorder = BuildConfig.DEBUG ? new MetricsRecorder() : new NoOpMetricsRecorder();
+            if (aplOptions != null && aplOptions.getMetricsOptions() != null) {
+                List<IMetricsSink> metricsSinkList = aplOptions.getMetricsOptions().getMetricsSinkList() == null ?
+                        Collections.emptyList() : aplOptions.getMetricsOptions().getMetricsSinkList();
+                for (IMetricsSink sink: metricsSinkList) {
+                    metricsRecorder.addSink(sink);
+                }
+                metricsRecorder.mergeMetadata(aplOptions.getMetricsOptions().getMetaData());
+            }
+            content = new Content(getTelemetryProvider(aplOptions), getPackageLoader(aplOptions), getDataRetriever(aplOptions), entryTime, dtNetworkRequestHandler, metricsRecorder, parametersOptional, executionHandler);
             content.setCallbacks(callbackV2, callback);
             content.importDocument(mainTemplate, rootConfig, session);
         } catch (Exception e) {
@@ -466,6 +536,11 @@ public final class Content extends BoundObject {
      * @param mainTemplate Contents of an APL document that contains the 'mainTemplate'.
      */
     private void importDocument(String mainTemplate, RootConfig rootConfig, Session session) {
+
+        if(rootConfig != null && rootConfig.getPackageManager() != null) {
+            usePackageManager = true;
+        }
+
         long nativeHandle = nCreate(mainTemplate, rootConfig!= null ? rootConfig.getNativeHandle() : 0, session.getNativeHandle());
         if (nativeHandle != 0) {
             bind(nativeHandle);
@@ -473,6 +548,10 @@ public final class Content extends BoundObject {
             // update the callback with both package and data requests
             notifyCallback(true, true);
         }
+    }
+
+    public boolean shouldUsePackageManager() {
+        return usePackageManager;
     }
 
     /**
@@ -625,7 +704,8 @@ public final class Content extends BoundObject {
         if (mDTNetworkRequestHandler != null && IDTNetworkRequestHandler.isUrlRequest(source)) {
             mDTNetworkRequestHandler.loadingFinished(request.getRequestId(), SystemClock.elapsedRealtimeNanos(), result.getSize());
         }
-        invokeOnMyThread(() -> addPackage(request, result));
+
+       invokeOnMyThread(() -> addPackage(request, result));
     }
 
     private void handleDataSuccess(String param, String result) {
@@ -633,15 +713,11 @@ public final class Content extends BoundObject {
     }
 
     private void invokeOnMyThread(Runnable runnable) {
-        if (Thread.currentThread() == mMainHandler.getLooper().getThread()) {
+        if (Thread.currentThread() == mExecutionHandler.getLooper().getThread()) {
             runnable.run();
         } else {
-            mMainHandler.post(runnable);
+            mExecutionHandler.post(runnable);
         }
-    }
-
-    private void tryAddPackage(ImportRequest request, APLJSONData result) {
-        addPackage(request, result);
     }
 
     /**
@@ -650,14 +726,15 @@ public final class Content extends BoundObject {
      * @param nativeHandle Handle to the native peer ImportRequest.
      * @param name         The package name.
      * @param version      The package version.
+     * @param domain       The package domain.
      */
     @SuppressWarnings("unused")
-    private void coreRequestPackage(long nativeHandle, String source, String name, String version) {
+    private void coreRequestPackage(long nativeHandle, String source, String name, String version, String domain) {
         mTelemetryProvider.incrementCount(cContentImportRequests);
         if (mMetricsRecorder != null) {
             mContentImportRequestCounter.increment(1);
         }
-        mImportRequests.add(new ImportRequest(nativeHandle, source, name, version, IDTNetworkRequestHandler.IdGenerator.generateId()));
+        mImportRequests.add(new ImportRequest(nativeHandle, source, name, version, domain, IDTNetworkRequestHandler.IdGenerator.generateId()));
     }
 
     /**
@@ -764,13 +841,13 @@ public final class Content extends BoundObject {
         private final ImportRef mImportRef;
         private final int mRequestId;
 
-        ImportRequest(long nativeHandle, String source, String packageName, String version, int requestId) {
+        ImportRequest(long nativeHandle, String source, String packageName, String version, String domain, int requestId) {
             bind(nativeHandle);
             // TODO replace these fields with native call to bound object
             this.source = source;
             this.packageName = packageName;
             this.version = version;
-            mImportRef = ImportRef.create(packageName, version);
+            mImportRef = ImportRef.create(packageName, version, domain);
             mRequestId = requestId;
         }
 
@@ -807,8 +884,14 @@ public final class Content extends BoundObject {
         public abstract String name();
         public abstract String version();
 
+        public abstract String domain();
+
+        public static ImportRef create(String name, String version, String domain) {
+            return new AutoValue_Content_ImportRef(name, version, domain);
+        }
+
         public static ImportRef create(String name, String version) {
-            return new AutoValue_Content_ImportRef(name, version);
+            return new AutoValue_Content_ImportRef(name, version, "");
         }
     }
 
@@ -996,10 +1079,27 @@ public final class Content extends BoundObject {
     }
 
     /**
+     * @return  Returns the setting value stored in the APL Document
+     */
+    public Decodable getSerializedDocumentSettings(@NonNull RootConfig rootConfig) throws JSONException {
+        if (mCachedDocumentSettings != null) {
+            return mCachedDocumentSettings;
+        }
+        mCachedDocumentSettings = new JsonDecodable(new JSONObject(JNIUtils.safeStringValues(nGetSerializedDocumentSettings(getNativeHandle(), rootConfig.getNativeHandle()))));
+        return mCachedDocumentSettings;
+    }
+
+    /**
      * resolve request after conditional imports.
      * @param callback
      */
-    public void resolve(CallbackV2 callback) {
+    public void resolve(CallbackV2 callback, RootConfig configOfParent) {
+
+        // Update usePackageManager according to availability of package manager
+        // in parent and hence host component.
+        if(configOfParent != null)
+            usePackageManager = configOfParent.getPackageManager() != null;
+
         mCallback = callback;
         nUpdate(getNativeHandle());
         notifyCallback(true, true);
@@ -1026,6 +1126,8 @@ public final class Content extends BoundObject {
     private static native boolean nIsError(long nativeHandle);
 
     private static native Object nSetting(long nativeHandle, String settingName);
+
+    private static native String nGetSerializedDocumentSettings(long nativeHandle, long _rootConfigHandler);
 
     @NonNull
     private static native Set<String> nGetExtensionRequests(long nativeHandle);

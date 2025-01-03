@@ -10,7 +10,6 @@ import android.util.Log;
 import com.amazon.apl.android.metrics.IMetricsSink;
 import com.amazon.apl.android.metrics.ITimer;
 import com.amazon.apl.android.metrics.ICounter;
-import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.metrics.ITimestampGenerator;
 import com.amazon.apl.android.metrics.MetricEventType;
 import com.amazon.apl.android.metrics.MetricsEvent;
@@ -26,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * The MetricsRecorder is the class responsible for recording and publishing metrics.
  * It should contain all the background threading logic as well as the business logic needed to calculate the WellKnown metrics.
  */
-public class MetricsRecorder implements IMetricsRecorder {
+public class MetricsRecorder extends APLMetricsRecorder {
 
     private static final String TAG = "MetricsRecorder";
 

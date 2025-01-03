@@ -7,6 +7,7 @@ package com.amazon.apl.android.component;
 
 import android.net.Uri;
 import android.os.Looper;
+import android.view.View;
 
 import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.VectorGraphic;
@@ -15,6 +16,7 @@ import com.amazon.apl.android.graphic.APLVectorGraphicView;
 import com.amazon.apl.android.graphic.AlexaVectorDrawable;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.primitive.UrlRequests;
+import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.scaling.IMetricsTransform;
 import com.amazon.apl.enums.PropertyKey;
 import com.amazon.apl.enums.VectorGraphicAlign;
@@ -46,6 +48,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static org.robolectric.Shadows.shadowOf;
 import static org.robolectric.annotation.LooperMode.Mode.LEGACY;
@@ -62,6 +65,8 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     private RenderingContext mockRenderingContext;
     @Mock
     IMetricsTransform mockMetricsTransform;
+    @Mock
+    ITelemetryProvider mProvider;
     private Set<Integer> mDirtyGraphicsSet = new HashSet<>();
 
     @Override
@@ -73,6 +78,8 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
     void componentSetup() {
         when(mockMetricsTransform.toViewhost(anyFloat())).thenReturn(10.0f);
         when(mockRenderingContext.getMetricsTransform()).thenReturn(mockMetricsTransform);
+        when(mockRenderingContext.getTelemetryProvider()).thenReturn(mProvider);
+        when(mockRenderingContext.isRuntimeHardwareAccelerationEnabled()).thenReturn(false);
         when(mockGraphicContainerElement.getRenderingContext()).thenReturn(mockRenderingContext);
         when(component().getAlign()).thenReturn(VectorGraphicAlign.kVectorGraphicAlignCenter);
         when(component().getScale()).thenReturn(VectorGraphicScale.kVectorGraphicScaleNone);
@@ -84,6 +91,31 @@ public class VectorGraphicViewAdapterTest extends AbstractComponentViewAdapterTe
         final UrlRequests.UrlRequest request = UrlRequests.UrlRequest.builder().url("").build();
         when(component().getSourceRequest()).thenReturn(request);
 
+    }
+
+    @Test
+    @Override
+    public void test_refresh_opacity() {
+        when(component().hasProperty(PropertyKey.kPropertyOpacity)).thenReturn(true);
+        when(component().getOpacity()).thenReturn(0.25f);
+
+        refreshProperties(PropertyKey.kPropertyOpacity);
+
+        verify(component()).getOpacity();
+        verify(component()).hasProperty(PropertyKey.kPropertyOpacity);
+        verify(component()).getRenderingContext();
+        verifyNoMoreInteractions(component());
+        assertEquals(View.LAYER_TYPE_NONE, getView().getLayerType());
+        assertEquals(0.25f, getView().getAlpha(), 0.01);
+
+        // Opacity refresh with hardware acceleration
+        when(mockRenderingContext.isRuntimeHardwareAccelerationEnabled()).thenReturn(true);
+        when(component().getOpacity()).thenReturn(0.28f);
+        refreshProperties(PropertyKey.kPropertyOpacity);
+        assertEquals(View.LAYER_TYPE_HARDWARE, getView().getLayerType());
+        when(component().getOpacity()).thenReturn(1.0f);
+        refreshProperties(PropertyKey.kPropertyOpacity);
+        assertEquals(View.LAYER_TYPE_NONE, getView().getLayerType());
     }
 
     @Test

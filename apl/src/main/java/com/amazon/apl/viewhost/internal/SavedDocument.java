@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 
 import com.amazon.apl.enums.DisplayState;
 import com.amazon.apl.viewhost.DocumentHandle;
+import com.amazon.apl.viewhost.request.FinishDocumentRequest;
 import com.google.auto.value.AutoValue;
 
 /**
@@ -22,6 +23,12 @@ public abstract class SavedDocument {
 
     public static Builder builder() {
         return new AutoValue_SavedDocument.Builder();
+    }
+
+    public void finish() {
+        getDocumentHandle().finish(FinishDocumentRequest.builder()
+                .token(getDocumentHandle().getToken())
+                .build());
     }
 
     @AutoValue.Builder

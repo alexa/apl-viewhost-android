@@ -14,10 +14,13 @@ import java.util.Map;
  */
 public class APLProperties {
     private static final String TAG = "APLProperties";
-    private Map<APLProperty, Object> mProperties = new HashMap<APLProperty, Object>(){{
+    private final Map<APLProperty, Object> mProperties = new HashMap<APLProperty, Object>(){{
         put(APLProperty.kFluidityIncidentUpsThreshold, 1.1d);
         put(APLProperty.kFluidityIncidentUpsWindowSize, 60);
-        put(APLProperty.kFluidityIncidentMinimumDurationMs, 1000);
+        put(APLProperty.kFluidityIncidentMinimumDurationMs, 1000.0d);
+        put(APLProperty.kFluidityRefreshRate, 16.7d);
+        put(APLProperty.kIsRuntimeHardwareAccelerationEnabled, true);
+        put(APLProperty.kPerformanceInflateOnMainThread, false);
     }};
 
     /**

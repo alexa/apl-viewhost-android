@@ -4,13 +4,15 @@
  */
 package com.amazon.alexaext;
 
+import android.os.SystemClock;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 public class RemoteExtensionProxy extends ExtensionProxy  {
     private static final String TAG = "MultiplexExtensionProxy";
@@ -21,6 +23,8 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
     private static final String METHOD_COMMAND_FAILURE = "CommandFailure";
     private static final String METHOD_REGISTER_SUCCESS = "RegisterSuccess";
     private static final String METHOD_REGISTER_FAILURE = "RegisterFailure";
+    private final String mUri;
+    Long mExtensionRegistrationStartTime;
 
     @NonNull
     private final BaseRemoteProxyDelegate mProxyDelegate;
@@ -28,6 +32,7 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
 
     public RemoteExtensionProxy(@NonNull final String uri, @NonNull final BaseRemoteProxyDelegate proxyDelegate) {
         super(uri);
+        mUri = uri;
 
         mProxyDelegate = proxyDelegate;
         mProxyDelegate.setOnInternalMessageAction((activity, message, registered) -> {
@@ -73,31 +78,44 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
 
     @Override
     protected boolean initialize(@NonNull final String uri) {
+        Log.d(TAG, "Initializing RemoteExtensionProxy uri: " + mUri);
         return mProxyDelegate.onProxyInitialize(uri);
     }
 
     @Override
     protected boolean invokeCommand(@NonNull final ActivityDescriptor activity, final String command) {
+        Log.d(TAG, "invokeCommand uri: " + mUri);
         return mProxyDelegate.sendMessage(activity, command);
     }
 
     @Override
     protected boolean sendMessage(@NonNull final ActivityDescriptor activity, final String message) {
+        Log.d(TAG, "sendMessage uri: " + mUri);
         return mProxyDelegate.sendMessage(activity, message);
     }
 
     @Override
     protected boolean requestRegistration(@NonNull final ActivityDescriptor activity, final String request) {
+        Log.d(TAG, "requestRegistration uri: " + mUri);
+        mExtensionRegistrationStartTime = SystemClock.elapsedRealtimeNanos();
         return mProxyDelegate.onRequestRegistration(activity, request);
     }
 
     @Override
     protected void onRegistered(@NonNull final ActivityDescriptor activity) {
+        Log.d(TAG, "onRegistered uri: " + mUri);
+        if (mExtensionRegistrationStartTime != null) {
+            final long duration = NANOSECONDS.toMillis(SystemClock.elapsedRealtimeNanos() - mExtensionRegistrationStartTime);
+            Log.i(TAG, String.format("Extension '%s' took %d milliseconds to register.",
+                    mUri,
+                    duration));
+        }
         mProxyDelegate.onRegisteredInternal(activity);
     }
 
     @Override
     protected void onUnregistered(@NonNull final ActivityDescriptor activity) {
+        Log.d(TAG, "onUnregistered uri: " + mUri);
         mProxyDelegate.onUnregisteredInternal(activity);
     }
 
@@ -109,26 +127,31 @@ public class RemoteExtensionProxy extends ExtensionProxy  {
 
     @Override
     protected void onSessionStarted(SessionDescriptor session) {
+        Log.d(TAG, "onSessionStarted uri: " + mUri);
         mProxyDelegate.onSessionStartedInternal(session);
     }
 
     @Override
     protected void onSessionEnded(SessionDescriptor session) {
+        Log.d(TAG, "onSessionEnded uri: " + mUri);
         mProxyDelegate.onSessionEndedInternal(session);
     }
 
     @Override
     protected void onForeground(ActivityDescriptor activity) {
+        Log.d(TAG, "onForeground uri: " + mUri);
         mProxyDelegate.onForegroundInternal(activity);
     }
 
     @Override
     protected void onBackground(ActivityDescriptor activity) {
+        Log.d(TAG, "onBackground uri: " + mUri);
         mProxyDelegate.onBackgroundInternal(activity);
     }
 
     @Override
     protected void onHidden(ActivityDescriptor activity) {
+        Log.d(TAG, "onHidden uri: " + mUri);
         mProxyDelegate.onHiddenInternal(activity);
     }
 }

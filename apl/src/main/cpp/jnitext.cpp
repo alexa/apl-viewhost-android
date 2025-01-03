@@ -20,12 +20,15 @@ namespace apl {
 #endif
 
 JNIEXPORT jint JNICALL
-        Java_com_amazon_apl_android_Text_nCountCharactersInRange(JNIEnv *env, jclass clazz, jlong componentHandle, jint index, jint count) {
-            auto c = get<Component>(componentHandle);
-            std::string text = c->getCalculated(kPropertyText).get<StyledText>().getText();
-
-            int utf8Characters = utf8StringLength((uint8_t *)text.data() + index, count);
-
+        Java_com_amazon_apl_android_utils_APLTextUtil_nCountCharactersInRange(JNIEnv *env,
+                                                                              jclass clazz,
+                                                                              jstring text,
+                                                                              jint index,
+                                                                              jint count) {
+            const char* chars = env->GetStringUTFChars(text, nullptr);
+            std::string result(chars);
+            int utf8Characters = utf8StringLength((uint8_t *)result.data() + index, count);
+            env->ReleaseStringUTFChars(text, chars);
             return static_cast<jint>(utf8Characters);
         }
 

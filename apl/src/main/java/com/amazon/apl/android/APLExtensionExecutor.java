@@ -13,24 +13,28 @@ import com.amazon.alexaext.ExtensionExecutor;
 import java.lang.ref.WeakReference;
 
 /**
- * If we are attached to a RootContext, post the task to it.
- * If not, try to schedule the task on calling thread; if this is not possible,
- * schedule on main thread.
+ * Implementation of ExtensionExecutor which provides extension task processing
+ * associated to a RootContext.
  */
 public class APLExtensionExecutor extends ExtensionExecutor {
-    WeakReference<RootContext> mWeakRootContext = new WeakReference<>(null);
+    // Maintain only a weak reference to RootContext once it's available so
+    // that we don't end up with a circular reference.
+    private WeakReference<RootContext> mWeakRootContext = new WeakReference<>(null);
 
-    public APLExtensionExecutor() {
-        super();
-    }
-
-    public void setRootContext(RootContext rootContext) {
+    /**
+     * Called when a root context becomes available (after inflation).
+     *
+     * @param rootContext  The root context (an inflated document)
+     */
+    public synchronized void setRootContext(RootContext rootContext) {
         mWeakRootContext = new WeakReference<>(rootContext);
     }
 
-
+    /**
+     * Called internally whenever a task has been added to the JNI executor's internal queue.
+     */
     @Override
-    protected void onTaskAdded() {
+    protected synchronized void onTaskAdded() {
         RootContext ctx = mWeakRootContext.get();
         if (ctx != null) {
             ctx.post(this::executeTasks);

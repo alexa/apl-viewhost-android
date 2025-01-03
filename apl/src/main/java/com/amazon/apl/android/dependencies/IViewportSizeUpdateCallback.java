@@ -11,8 +11,8 @@ public interface IViewportSizeUpdateCallback {
 
     /**
      * To be called when view port is updated, on auto size trigger.
-     * @param width  updated width
      * @param height updated height
+     * @param width  updated width
      */
-    void onViewportSizeUpdate(int width, int height);
+    void onViewportSizeUpdate(int height, int width);
 }

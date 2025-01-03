@@ -84,6 +84,7 @@ add_library(
         src/main/cpp/jnistyledtext.cpp
         src/main/cpp/jnishadowblur.cpp
         src/main/cpp/jninoisefilter.cpp
+        src/main/cpp/jnipackagemanager.cpp
         ${SCENEGRAPH_SOURCES}
         src/main/cpp/jnitext.cpp
 )
@@ -101,32 +102,25 @@ if (NOT ANDROID)
 
     add_library(aplcore STATIC IMPORTED)
 
-    if (ENABLE_SCENEGRAPH)
-        list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/aplsgconfig/include")
-    else()
-        list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/aplconfig/include")
-    endif()
-    list(APPEND APL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/apl/include")
-
     set_target_properties(aplcore
             PROPERTIES
             IMPORTED_LOCATION
-            "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/.cxx/cmake/debug/host/_deps/aplcore-build/aplcore/libapl.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${APL_INCLUDE_DIR}"
+            "${APL_HOST_BINARIES}/libapl.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${APL_INCLUDE}"
             )
 
     add_library(alexaext STATIC IMPORTED)
     set_target_properties(alexaext
             PROPERTIES
             IMPORTED_LOCATION
-            "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/.cxx/cmake/debug/host/_deps/aplcore-build/extensions/alexaext/libalexaext.a"
-            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/alexaext/include"
+            "${APL_HOST_BINARIES}/libalexaext.a"
+            INTERFACE_INCLUDE_DIRECTORIES "${ALEXAEXT_INCLUDE}"
             )
 
     add_library(rapidjson INTERFACE)
     target_include_directories(rapidjson INTERFACE
             # When we're building against RapidJSON, just use the include directory we discovered above
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../coreengine/src/main/cpp/rapidjson/include>
+            $<BUILD_INTERFACE:${RAPIDJSON_INCLUDE}>
             )
     if(INCLUDE_ALEXAEXT)
         add_library(alexaextjni STATIC IMPORTED)

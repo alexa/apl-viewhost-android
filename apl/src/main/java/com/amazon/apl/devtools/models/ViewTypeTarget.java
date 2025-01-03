@@ -8,18 +8,22 @@ package com.amazon.apl.devtools.models;
 import android.graphics.Bitmap;
 import android.os.Handler;
 
+import android.util.Log;
 import android.view.View;
 import android.view.MotionEvent;
 import androidx.annotation.VisibleForTesting;
 import com.amazon.apl.android.APLOptions;
+import com.amazon.apl.android.Component;
 import com.amazon.apl.android.LiveData;
 import com.amazon.apl.android.dependencies.IAPLSessionListener;
 import com.amazon.apl.android.providers.impl.LoggingTelemetryProvider;
+import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.android.utils.MetricInfo;
 import com.amazon.apl.developer.views.CaptureImageHelper;
 import com.amazon.apl.devtools.enums.DTError;
 import com.amazon.apl.devtools.enums.TargetType;
 import com.amazon.apl.devtools.enums.ViewState;
+import com.amazon.apl.devtools.models.frameMetrics.FrameIncidentReportedEvent;
 import com.amazon.apl.devtools.models.log.LogEntry;
 import com.amazon.apl.devtools.models.log.LogEntryAddedEvent;
 import com.amazon.apl.devtools.models.network.NetworkLoadingFailedEvent;
@@ -35,6 +39,7 @@ import com.amazon.apl.devtools.util.IDTCallback;
 import com.amazon.apl.devtools.util.IdGenerator;
 import com.amazon.apl.devtools.util.RequestStatus;
 import com.amazon.apl.devtools.views.IAPLView;
+
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -45,6 +50,7 @@ import java.util.List;
  */
 public final class ViewTypeTarget extends Target implements IAPLSessionListener {
     private static final String TARGET_NAME = "main";
+    private static final String TAG = "ViewTypeTarget";
     private IAPLView mView;
     private final Handler mHandler;
     private final List<LogEntry> mLogEntries = new ArrayList<>();
@@ -273,5 +279,22 @@ public final class ViewTypeTarget extends Target implements IAPLSessionListener 
                         timestamp, encodedDataLength));
             }
         }
+    }
+
+    public boolean isFrameMetricsEventsEnabled() {
+        for (Session session : getRegisteredSessions()) {
+            if (session.isFrameMetricsEventsEnabled()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void onFrameIncidentReported(int incidentId, FrameStat[] framestats, Double[] upsValues, JSONObject details) {
+        post(() -> {
+            for (Session session : getRegisteredSessions()) {
+                session.sendEvent(new FrameIncidentReportedEvent(session.getSessionId(), incidentId, framestats, upsValues, details));
+            }
+        });
     }
 }

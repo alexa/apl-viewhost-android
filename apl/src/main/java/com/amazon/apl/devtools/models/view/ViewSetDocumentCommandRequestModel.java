@@ -5,10 +5,12 @@
 
 package com.amazon.apl.devtools.models.view;
 
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.enums.DTError;
-import com.amazon.apl.devtools.models.common.ViewDomainCommandRequest;
+import com.amazon.apl.devtools.models.common.SessionCommandRequest;
 import com.amazon.apl.devtools.models.error.DTException;
+import com.amazon.apl.devtools.util.CommandRequestValidator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,7 +22,7 @@ import java.util.Map;
 import java.util.List;
 
 public abstract class ViewSetDocumentCommandRequestModel
-        extends ViewDomainCommandRequest<ViewSetDocumentCommandResponse> {
+        extends SessionCommandRequest<ViewSetDocumentCommandResponse> {
     private final Params mParams;
 
     public static class Configuration {
@@ -54,8 +56,8 @@ public abstract class ViewSetDocumentCommandRequestModel
         }
     }
 
-    protected ViewSetDocumentCommandRequestModel(JSONObject obj) throws JSONException, DTException {
-        super(CommandMethod.VIEW_SET_DOCUMENT, obj);
+    protected ViewSetDocumentCommandRequestModel(JSONObject obj, CommandRequestValidator commandRequestValidator, DTConnection connection) throws JSONException, DTException {
+        super(CommandMethod.VIEW_SET_DOCUMENT, obj, commandRequestValidator, connection);
         try {
             JSONObject params = obj.getJSONObject("params");
             JSONObject document = params.getJSONObject("document");

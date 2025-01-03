@@ -8,7 +8,6 @@ package com.amazon.apl.android.document;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.APLTestContext;
 import com.amazon.apl.android.BuildConfig;
-import com.amazon.apl.android.NotOnUiThreadError;
 import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.dependencies.IDataSourceContextListener;
@@ -17,7 +16,6 @@ import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.providers.impl.MediaPlayerProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.utils.TestClock;
-import com.amazon.apl.enums.RootProperty;
 
 import org.junit.Test;
 
@@ -111,7 +109,7 @@ public class RootContextTest extends ViewhostRobolectricTest {
         rootContext.finishDocument();
     }
 
-    @Test(expected = NotOnUiThreadError.class)
+    @Test
     public void test_finishDocument_notOnUiThread() throws Exception, Throwable {
         assumeTrue(BuildConfig.DEBUG);
         // create a RootContext

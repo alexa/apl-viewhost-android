@@ -23,11 +23,13 @@ import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.WindowManager;
 import android.view.accessibility.AccessibilityManager;
 import android.widget.FrameLayout;
 import android.widget.RelativeLayout;
@@ -43,7 +45,7 @@ import com.amazon.apl.android.component.ComponentViewAdapter;
 import com.amazon.apl.android.component.ComponentViewAdapterFactory;
 import com.amazon.apl.android.component.ImageViewAdapter;
 import com.amazon.apl.android.configuration.ConfigurationChange;
-import com.amazon.apl.android.functional.Consumer;
+import com.amazon.common.Consumer;
 import com.amazon.apl.android.graphic.GraphicContainerElement;
 import com.amazon.apl.android.metrics.ICounter;
 import com.amazon.apl.android.metrics.IMetricsRecorder;
@@ -62,6 +64,7 @@ import com.amazon.apl.android.shadow.ShadowBitmapRenderer;
 import com.amazon.apl.android.touch.Pointer;
 import com.amazon.apl.android.touch.PointerTracker;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.android.utils.KeyUtils;
 import com.amazon.apl.android.utils.LazyImageLoader;
 import com.amazon.apl.android.utils.TracePoint;
@@ -85,6 +88,8 @@ import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.UpdateType;
 import com.amazon.apl.enums.ViewportMode;
 import com.amazon.apl.viewhost.internal.DocumentState;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -428,6 +433,11 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         }
     }
 
+    public float getDisplayRefreshRate() {
+        Display display = ((WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        return display.getRefreshRate();
+    }
+
     private void drawPathFromPoints(ArrayList<float[]> componentPoints) {
         IMetricsTransform metricsTransform = mRootContext.getMetricsTransform();
 
@@ -452,13 +462,6 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
     private void clearDrawing() {
         mPath.reset();
-    }
-
-    /**
-     * @return the {@link DevToolsProvider} instance corresponding to the view.
-     */
-    public DevToolsProvider getDevToolsProvider() {
-        return mDevToolsProvider;
     }
 
     /**
@@ -686,7 +689,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
      * Listens to changes in APL RootContext and updates the view hierarchy.
      */
     @NonNull
-    IAPLViewPresenter mAplViewPresenter = new IAPLViewPresenter() {
+    IAPLViewPresenter mAplViewPresenter = new APLViewPresenterImpl();
+
+    public class APLViewPresenterImpl implements IAPLViewPresenter {
 
         // TODO extract this impl
 
@@ -865,7 +870,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         public void onDocumentRender(RootContext rootContext) {
             // TODO We should consider an api that handles this for our clients. For now this is an
             //  error scenario.
-            if (mRootContext != null) {
+            if (rootContext == mRootContext) {
+                Log.i(TAG, "Inflating on an already created rootContext");
+            } else if (mRootContext != null) {
                 String message = "Trying to render a document prior to finishing old document!";
                 if (BuildConfig.DEBUG) {
                     throw new AssertionError(message);
@@ -873,6 +880,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
                 Log.wtf(TAG, message);
                 int id = mTelemetryProvider.createMetricId(ITelemetryProvider.APL_DOMAIN, METRIC_INFLATE_BEFORE_FINISH_ERROR, COUNTER);
                 mTelemetryProvider.incrementCount(id);
+            }
+            if (rootContext.getDocumentHandle() != null) {
+                Log.i(TAG, "onDocumentRender called for document: " + rootContext.getDocumentHandle());
             }
 
             // Init telemetry
@@ -1004,6 +1014,9 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
 
         @Override
         public void onDocumentFinish() {
+            if (mRootContext != null && mRootContext.getDocumentHandle() != null) {
+                Log.i(TAG, "onDocumentFinish called for document: " + mRootContext.getDocumentHandle());
+            }
             APLLayout.this.onFinish();
             tRenderDocument = ITelemetryProvider.UNKNOWN_METRIC_ID;
             mTelemetryProvider = NoOpTelemetryProvider.getInstance();
@@ -1141,11 +1154,6 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
         }
 
         @Override
-        public boolean isHardwareAccelerationForVectorGraphicsEnabled() {
-            return mRootContext != null ? mRootContext.getRenderingContext().isHardwareAccelerationForVectorGraphicsEnabled() : false;
-        }
-
-        @Override
         public void onChildViewAdded(View parent, View child) {
             // no-op
         }
@@ -1267,7 +1275,25 @@ public class APLLayout extends FrameLayout implements AccessibilityManager.Acces
             }
             Log.w(TAG, "Trying to cancel motion events when there is no document rendered");
         }
-    };
+
+        @Override
+        public void emitFluidityIncident(int incidentId, FrameStat[] incidentReportedFrameStats, Double[] upsValues, JSONObject details) {
+            mDTView.onFrameIncidentReported(incidentId, incidentReportedFrameStats, upsValues, details);
+        }
+
+        @Override
+        public boolean isFrameMetricsEventsEnabled() {
+            return mDTView.isFrameMetricsEventsEnabled();
+        }
+
+        /**
+         * @return the {@link DevToolsProvider} instance corresponding to the view.
+         */
+        public DevToolsProvider getDevToolsProvider() {
+            return mDevToolsProvider;
+        }
+    }
+
 
     /**
      * Sets the agent name for documents rendered in this layout.

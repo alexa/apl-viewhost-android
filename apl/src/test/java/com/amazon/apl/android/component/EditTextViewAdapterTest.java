@@ -18,9 +18,11 @@ import android.view.inputmethod.EditorInfo;
 import com.amazon.apl.android.APLGradientDrawable;
 import com.amazon.apl.android.EditText;
 import com.amazon.apl.android.EditTextProxy;
+import com.amazon.apl.android.RenderingContext;
 import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.primitive.Dimension;
 import com.amazon.apl.android.primitive.Rect;
+import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.views.APLEditText;
 import com.amazon.apl.enums.FontStyle;
 import com.amazon.apl.enums.KeyboardType;
@@ -83,6 +85,10 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     private Typeface mockDefaultLangTypeface;
     @Mock
     private TypefaceResolver mockTypefaceResolver;
+    @Mock
+    private RenderingContext mRenderingContext;
+    @Mock
+    private MetricsTransform mMetricsTransform;
 
     @Override
     EditText component() {
@@ -96,6 +102,8 @@ public class EditTextViewAdapterTest extends AbstractComponentViewAdapterTest<Ed
     void componentSetup() {
         when(mMockPresenter.findComponent(getView())).thenReturn(mEditText);
         when(mEditText.getProxy()).thenReturn(proxy());
+        when(mEditText.getRenderingContext()).thenReturn(mRenderingContext);
+        when(mRenderingContext.getMetricsTransform()).thenReturn(mMetricsTransform);
         when(mockTypefaceResolver.getTypeface(DEFAULT_FONT_FAMILY, 0, false, TEXT_FONT_LANGUAGE, false)).thenReturn(mockDefaultTypeface);
         when(mockTypefaceResolver.getTypeface(DEFAULT_FONT_FAMILY, 0, false, "", false)).thenReturn(mockDefaultLangTypeface);
 

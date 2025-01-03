@@ -20,10 +20,13 @@ import com.amazon.common.BoundObject;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import static com.amazon.apl.enums.SpanAttributeName.kSpanAttributeNameColor;
@@ -33,6 +36,7 @@ import android.graphics.Typeface;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
+import android.text.TextPaint;
 import android.text.style.AbsoluteSizeSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StrikethroughSpan;
@@ -53,6 +57,10 @@ public class StyledText {
     private final long mNativeHandle;
     private int mPropertyIndex = -1;
     private final List<Span> mSpans;
+    private SpanType mLastSpan = SpanType.kSpanTypeLineBreak;
+
+    private SpanType mLastSpanTransitionSpanType = null;
+    private int mLastConsecutiveLineBreakCount = 0;
 
     public StyledText(BoundObject boundObject, APLEnum propertyKey) {
         this.mNativeHandle = boundObject.getNativeHandle();
@@ -69,7 +77,7 @@ public class StyledText {
 
     /**
      * Get the text string of the styled text BEFORE the spans have been processed. This text can
-     * differ from the styled text calculated by {@link com.amazon.apl.android.TextProxy#getText(StyledText)}
+     * differ from the styled text calculated by {@link TextProxy#getStyledText()}}
      */
     public String getUnprocessedText() {
         return mText;
@@ -227,17 +235,21 @@ public class StyledText {
     /**
      * @return Data to display in the text block.
      */
-    public CharSequence getText(LineSpan currentLineSpan, IMetricsTransform metricsTransform) {
-        final SpannableStringBuilder styled = processStyledText(currentLineSpan, metricsTransform);
+    public CharSequence getText(LineSpan currentLineSpan, IMetricsTransform metricsTransform, @NonNull TextPaint textPaint) {
+        final SpannableStringBuilder styled = processStyledText(currentLineSpan, metricsTransform, textPaint);
         return Spannable.Factory.getInstance().newSpannable(styled);
     }
 
     /**
      * Transform and add APL style span to Android Spannable.
-     *
-     * @param output SpannableStringBuilder to contain result.
      */
-    private void addSpan(@NonNull SpannableStringBuilder output, int start, int end, SpanType type, Map<SpanAttributeName, Object> spanAttributes) {
+    private void addSpan(
+            @NonNull SpannableStringBuilder output,
+            int start,
+            int end,
+            SpanType type,
+            Map<SpanAttributeName, Object> spanAttributes,
+            @NonNull TextPaint textPaint) {
         List<Object> textSpans = new ArrayList<>();
         switch (type) {
             case kSpanTypeLineBreak:
@@ -264,6 +276,9 @@ public class StyledText {
             case kSpanTypeSubscript:
                 textSpans.add(new SubscriptSpan());
                 break;
+            case kSpanTypeListItem:
+                textSpans.add(new ListItemSpan(textPaint));
+                break;
             case kSpanTypeSpan:
                 if (spanAttributes.get(SpanAttributeName.kSpanAttributeNameColor) != null) {
                     int cl = (int) spanAttributes.get(SpanAttributeName.kSpanAttributeNameColor);
@@ -285,6 +300,15 @@ public class StyledText {
     }
 
     private void handleStartSpan(Stack<SpanType> nobrTags, SpannableStringBuilder output, SpanType spanType) {
+        // Reset last closed span
+        mLastSpan = SpanType.kSpanTypeLineBreak;
+
+        // Android requires explicit new lines between margin spans.
+        if (spanType == SpanType.kSpanTypeListItem) {
+            output.append('\n');
+            return;
+        }
+
         if (spanType != SpanType.kSpanTypeNoBreak) return;
 
         if (nobrTags.empty()) {
@@ -295,6 +319,8 @@ public class StyledText {
     }
 
     private void handleEndSpan(Stack<SpanType> nobrTags, SpannableStringBuilder output, SpanType spanType) {
+        mLastSpan = spanType;
+
         if (spanType != SpanType.kSpanTypeNoBreak) return;
         if (nobrTags.empty()) return;
 
@@ -315,12 +341,12 @@ public class StyledText {
         // To prevent word breaks within nobr tags we add word joiner unicode chars
         s = s.replace("", String.valueOf(TextProxy.WORD_JOINER_CHAR));
         //strip first WORD_JOINER_CHAR
-        s = s.substring(1, s.length());
+        s = s.substring(1);
         return s;
     }
 
     @NonNull
-    private SpannableStringBuilder processStyledText(LineSpan currentLineSpan, IMetricsTransform metricsTransform) {
+    private SpannableStringBuilder processStyledText(LineSpan currentLineSpan, IMetricsTransform metricsTransform, @NonNull TextPaint textPaint) {
         final SpannableStringBuilder output = new SpannableStringBuilder();
         StyledText.StyledTextIterator iter = this.new StyledTextIterator(metricsTransform);
 
@@ -330,25 +356,51 @@ public class StyledText {
         while (iter.hasNext()) {
             StyledText.SpanTransition it = iter.next();
             TokenType currToken = it.getTokenType();
+            SpanType spanType = it.getSpanType();
             switch (currToken) {
                 case kStartSpan:
-                    openSpans.push(it);
-                    startPositions.push(output.length());
                     handleStartSpan(nobrTags, output, it.getSpanType());
+                    openSpans.push(it);
+
+                    // TODO: Remove the legacy handling for new lines, make it consistent with other platforms
+                    // If there were any line breaks before this span, include them in the span's
+                    // styling by adjusting the start index
+                    int start = output.length();
+                    if (it.getSpanType() == SpanType.kSpanTypeSpan) {
+                        start = Math.max(output.length() - mLastConsecutiveLineBreakCount, 0);
+                    }
+                    startPositions.push(start);
                     break;
                 case kEndSpan:
                     int startPos = startPositions.pop();
                     StyledText.SpanTransition openSpan = openSpans.pop();
-                    addSpan(output, startPos, output.length(), it.getSpanType(), openSpan.getAttributes());
+                    addSpan(output, startPos, output.length(), spanType, openSpan.getAttributes(), textPaint);
                     handleEndSpan(nobrTags, output, it.getSpanType());
+
+                    // Increment the line break count if the previous token was a line break, otherwise reset count
+                    if (spanType == mLastSpanTransitionSpanType && spanType == SpanType.kSpanTypeLineBreak) {
+                        mLastConsecutiveLineBreakCount++;
+                    } else {
+                        mLastConsecutiveLineBreakCount = 0;
+                    }
                     break;
                 case kString:
+                    if (mLastSpan == SpanType.kSpanTypeListItem) {
+                        mLastSpan = SpanType.kSpanTypeLineBreak;
+                        output.append('\n');
+                    }
+                    // Line breaks only affected by immediate span types, not strings. Reset.
+                    if (mLastSpanTransitionSpanType == SpanType.kSpanTypeLineBreak) {
+                        mLastConsecutiveLineBreakCount = 0;
+                    }
+
                     String s = handleString(nobrTags, it.getString());
                     output.append(s);
                     break;
                 case kEnd:
                     break;
             }
+            mLastSpanTransitionSpanType = it.getSpanType();
         }
 
         // Apply Karaoke span if we have a current line span

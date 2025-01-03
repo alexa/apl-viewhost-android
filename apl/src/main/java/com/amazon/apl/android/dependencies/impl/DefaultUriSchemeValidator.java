@@ -21,6 +21,6 @@ public class DefaultUriSchemeValidator implements IImageUriSchemeValidator {
      */
     @Override
     public boolean isUriSchemeValid(@NonNull String scheme, int aplVersion) {
-        return aplVersion <= APLVersionCodes.APL_1_1 || "https".equals(scheme) || "content".equals(scheme) || "file".equals(scheme);
+        return aplVersion <= APLVersionCodes.APL_1_1 || "https".equals(scheme) || "data".equals(scheme) || "content".equals(scheme) || "file".equals(scheme);
     }
 }

@@ -8,11 +8,13 @@ package com.amazon.apl.devtools.models.input;
 import android.os.SystemClock;
 import android.view.MotionEvent;
 
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.enums.DTError;
-import com.amazon.apl.devtools.models.common.InputDomainCommandRequest;
 import com.amazon.apl.devtools.models.common.InputDomainCommandResponse;
+import com.amazon.apl.devtools.models.common.SessionCommandRequest;
 import com.amazon.apl.devtools.models.error.DTException;
+import com.amazon.apl.devtools.util.CommandRequestValidator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,10 +23,13 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class InputTouchCommandRequestModel extends InputDomainCommandRequest<InputDomainCommandResponse> {
-    private Params mParams;
-    protected InputTouchCommandRequestModel(CommandMethod method, JSONObject obj) throws JSONException, DTException {
-        super(method, obj);
+public class InputTouchCommandRequestModel extends SessionCommandRequest<InputDomainCommandResponse> {
+    private final Params mParams;
+    protected InputTouchCommandRequestModel(CommandMethod method,
+                                            JSONObject obj,
+                                            CommandRequestValidator commandRequestValidator,
+                                            DTConnection connection) throws JSONException, DTException {
+        super(method, obj, commandRequestValidator, connection);
         try {
             JSONObject paramsJsonObject = obj.getJSONObject("params");
             JSONArray eventsJsonArray = paramsJsonObject.getJSONArray("events");
@@ -34,7 +39,7 @@ public class InputTouchCommandRequestModel extends InputDomainCommandRequest<Inp
                 Params.InputEvent event = new Params.InputEvent(eventJson.optString("type"),
                         eventJson.optInt("x"),
                         eventJson.optInt("y"),
-                        eventJson.optLong("delay", 0l));
+                        eventJson.optLong("delay", 0L));
                 mParams.addEvent(event);
             }
         } catch (JSONException e) {

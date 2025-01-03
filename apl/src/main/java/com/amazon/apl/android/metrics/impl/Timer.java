@@ -19,9 +19,9 @@ public class Timer implements ITimer {
     private Map<String, String> mMetadata;
     private long mSegmentStartId;
 
-    private MetricsRecorder mMetricsRecorder;
+    private APLMetricsRecorder mMetricsRecorder;
 
-    Timer(final String name, final Map<String, String> metadata, final MetricsRecorder metricsRecorder) {
+    Timer(final String name, final Map<String, String> metadata, final APLMetricsRecorder metricsRecorder) {
         mName = name;
         mMetadata = metadata == null ? new HashMap<>() : metadata;
         mMetricsRecorder = metricsRecorder;

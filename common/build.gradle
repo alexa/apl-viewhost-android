@@ -5,6 +5,7 @@
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
+apply plugin: com.amazon.apl.android.APLPlugin
 
 android {
     namespace 'com.amazon.common'
@@ -71,9 +72,6 @@ publishing {
             }
         }
     }
-}
-
-task buildHostJNI(type: com.amazon.apl.android.CMakeTask) {
 }
 
 task release(dependsOn: ['build', 'publish']) {

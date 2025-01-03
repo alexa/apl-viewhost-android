@@ -527,6 +527,13 @@ namespace apl {
         }
 
         JNIEXPORT void JNICALL
+        Java_com_amazon_apl_android_RootConfig_nPackageManager(JNIEnv *env, jclass clazz, jlong rootConfigHandle,
+                                                             jlong packageManagerHandle) {
+            auto rc = get<RootConfig>(rootConfigHandle);
+            rc->packageManager(get<PackageManager>(packageManagerHandle));
+        }
+
+        JNIEXPORT void JNICALL
         Java_com_amazon_apl_android_RootConfig_nSetDocumentManager(JNIEnv *env, jclass clazz, jlong nativeHandle, jlong managerHandle) {
             auto rc = get<RootConfig>(nativeHandle);
             auto documentManager = get<DocumentManager>(managerHandle);

@@ -57,7 +57,7 @@ public class NativeBinding extends PhantomReference<BoundObject> {
      *
      * @param referent The bound object.
      */
-    static synchronized void register(BoundObject referent) {
+    public static synchronized void register(BoundObject referent) {
         if (!referent.isBound()) {
             throw new IllegalStateException("The object is not yet bound");
         }

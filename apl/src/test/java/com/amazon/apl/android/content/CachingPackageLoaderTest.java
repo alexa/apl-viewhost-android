@@ -72,12 +72,12 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
         mPackageLoader.fetch(mImportRequest, successCallback, failureCallback);
 
         verify(successCallback).onSuccess(eq(mImportRequest), eq(mJSONData));
-        verify(mPackageCache).put(eq(Content.ImportRef.create("a", "1")), eq(mJSONData));
+        verify(mPackageCache).put(eq(Content.ImportRef.create("a", "1", "")), eq(mJSONData));
     }
 
     @Test
     public void testSimpleRequest_failure() {
-        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
+        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
         doAnswer(invocation -> {
             Content.ImportRequest request = invocation.getArgument(0);
             IContentRetriever.FailureCallback<Content.ImportRequest> failureCallback = invocation.getArgument(2);
@@ -93,19 +93,19 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
 
     @Test
     public void testSimpleRequest_inCache() {
-        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
-        when(mPackageCache.get(Content.ImportRef.create("a", "1"))).thenReturn(mJSONData);
+        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
+        when(mPackageCache.get(Content.ImportRef.create("a", "1", "domain"))).thenReturn(mJSONData);
 
         mPackageLoader.fetch(mImportRequest, successCallback, failureCallback);
 
-        verify(mPackageCache).get(Content.ImportRef.create("a", "1"));
+        verify(mPackageCache).get(Content.ImportRef.create("a", "1", "domain"));
         verify(successCallback).onSuccess(eq(mImportRequest), eq(mJSONData));
     }
 
     @Test
     public void testMultipleRequests_sendsOneRequest() throws Exception {
-        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
-        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
+        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
+        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
 
         CountDownLatch innerDone = new CountDownLatch(1);
         CountDownLatch outerDone = new CountDownLatch(1);
@@ -133,14 +133,14 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
         verify(mDelegate).fetch(eq(mImportRequest), any(), any());
         verify(successCallback).onSuccess(eq(mImportRequest), eq(mJSONData));
         verify(successCallbackTwo).onSuccess(eq(mImportRequestTwo), eq(mJSONData));
-        verify(mPackageCache, times(2)).put(eq(Content.ImportRef.create("a", "1")), eq(mJSONData));
+        verify(mPackageCache, times(2)).put(eq(Content.ImportRef.create("a", "1", "domain")), eq(mJSONData));
         verifyNoInteractions(failureCallback);
     }
 
     @Test
     public void testMultipleRequests_usesCache() {
-        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
-        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
+        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
+        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
         doAnswer(invocation -> {
             Content.ImportRequest request = invocation.getArgument(0);
             IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
@@ -150,20 +150,20 @@ public class CachingPackageLoaderTest extends ViewhostRobolectricTest {
 
         mPackageLoader.fetch(mImportRequest, successCallback, failureCallback);
         verify(successCallback).onSuccess(eq(mImportRequest), eq(mJSONData));
-        verify(mPackageCache).put(eq(Content.ImportRef.create("a", "1")), eq(mJSONData));
+        verify(mPackageCache).put(eq(Content.ImportRef.create("a", "1", "domain")), eq(mJSONData));
 
-        when(mPackageCache.get(Content.ImportRef.create("a", "1"))).thenReturn(mJSONData);
+        when(mPackageCache.get(Content.ImportRef.create("a", "1", "domain"))).thenReturn(mJSONData);
 
         mPackageLoader.fetch(mImportRequestTwo, successCallbackTwo, failureCallback);
 
-        verify(mPackageCache, times(2)).get(eq(Content.ImportRef.create("a", "1")));
+        verify(mPackageCache, times(2)).get(eq(Content.ImportRef.create("a", "1", "domain")));
         verify(successCallbackTwo).onSuccess(eq(mImportRequestTwo), eq(mJSONData));
     }
 
     @Test
     public void testRepeatedLoads_noCache() {
-        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
-        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1"));
+        when(mImportRequest.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
+        when(mImportRequestTwo.getImportRef()).thenReturn(Content.ImportRef.create("a", "1", "domain"));
         doAnswer(invocation -> {
             Content.ImportRequest request = invocation.getArgument(0);
             IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);

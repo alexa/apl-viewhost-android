@@ -174,7 +174,7 @@ namespace apl {
             apl::Object getObject(int propertyId, jlong handle) override {
                 auto component = get<Component>(handle);
                 auto prop = static_cast<apl::PropertyKey>(propertyId);
-                return component->getCalculated().get(prop);
+                return component->getCalculated(prop);
             }
 
             std::shared_ptr<Context> getContext(jlong handle) override {

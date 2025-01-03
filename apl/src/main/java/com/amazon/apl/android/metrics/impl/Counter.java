@@ -12,10 +12,10 @@ import com.amazon.apl.android.metrics.ICounter;
  * Otherwise, it just queues up the increment value to be processed immediately.
  */
 public class Counter implements ICounter {
-    private MetricsRecorder mMetricsRecorder;
+    private APLMetricsRecorder mMetricsRecorder;
     private String mName;
 
-    Counter(String name, MetricsRecorder metricsRecorder) {
+    Counter(String name, APLMetricsRecorder metricsRecorder) {
         mMetricsRecorder = metricsRecorder;
         mName = name;
     }

@@ -6,9 +6,12 @@ package com.amazon.apl.viewhost.config;
 
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.audio.IAudioPlayerFactory;
+import com.amazon.apl.android.extension.IExtensionRegistration;
 import com.amazon.apl.android.media.RuntimeMediaPlayerFactory;
 import com.amazon.apl.android.metrics.IMetricsRecorder;
+import com.amazon.apl.android.providers.ILocalTimeOffsetProvider;
 import com.amazon.apl.enums.RootProperty;
+import com.amazon.apl.viewhost.TimeProvider;
 import com.amazon.apl.viewhost.message.MessageHandler;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageLoader;
@@ -81,15 +84,18 @@ public abstract class ViewhostConfig {
     @Nullable
     public abstract RuntimeMediaPlayerFactory getMediaPlayerFactory();
 
-    public Map<String, Object> getProperties() { return builder().mProperties; };
+    @Nullable
+    public abstract TimeProvider getTimeProvider();
+
+    @Nullable
+    public abstract IExtensionRegistration getLegacyExtensionRegistration();
 
     public static Builder builder() {
-        return new AutoValue_ViewhostConfig.Builder();
+        return new AutoValue_ViewhostConfig.Builder().defaultDocumentOptions(DocumentOptions.builder().build());
     }
 
     @AutoValue.Builder
     public abstract static class Builder {
-        private Map<String, Object> mProperties = new HashMap<>();
 
         public abstract Builder defaultDocumentOptions(DocumentOptions options);
         public abstract Builder messageHandler(MessageHandler handler);
@@ -107,16 +113,13 @@ public abstract class ViewhostConfig {
         public abstract Builder environmentProperties(Map<String, Object> map);
 
         /**
-         * Set a configuration property.
-         *
-         * @param property The name of the property to set
-         * @param value The value for this property
-         * @return the builder
+         * Required for the local time to transition with timezones for daylight savings.
+         * @param timeProvider the local time offset provider.
+         * @return this builder
          */
-        public Builder set(String property, Object value) {
-            mProperties.put(property, value);
-            return this;
-        }
+        public abstract Builder timeProvider(TimeProvider timeProvider);
+
+        public abstract Builder legacyExtensionRegistration(IExtensionRegistration legacyExtensionRegistration);
 
         public abstract ViewhostConfig build();
     }

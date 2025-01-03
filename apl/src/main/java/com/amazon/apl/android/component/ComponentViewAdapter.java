@@ -132,7 +132,7 @@ public abstract class ComponentViewAdapter<C extends Component, V extends View> 
      * @param component the component
      * @param view      the view
      */
-    private void applyAlpha(C component, V view) {
+    public void applyAlpha(C component, V view) {
         if (component.hasProperty(PropertyKey.kPropertyOpacity)) {
             view.setAlpha(component.getOpacity());
         }

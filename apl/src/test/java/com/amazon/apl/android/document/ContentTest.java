@@ -6,21 +6,32 @@
 package com.amazon.apl.android.document;
 
 import android.graphics.Color;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLJSONData;
 import com.amazon.apl.android.APLOptions;
 import com.amazon.apl.android.Content;
 import com.amazon.apl.android.Content.ImportRequest;
+import com.amazon.apl.android.IAPLViewPresenter;
+import com.amazon.apl.android.PackageManager;
 import com.amazon.apl.android.RootConfig;
+import com.amazon.apl.android.RootContext;
 import com.amazon.apl.android.Session;
 import com.amazon.apl.android.dependencies.IContentDataRetriever;
 import com.amazon.apl.android.dependencies.IContentRetriever;
 import com.amazon.apl.android.dependencies.IPackageLoader;
+import com.amazon.apl.android.metrics.ICounter;
+import com.amazon.apl.android.metrics.IMetricsRecorder;
+import com.amazon.apl.android.metrics.ITimer;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
 import com.amazon.apl.android.scaling.ViewportMetrics;
+import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.devtools.enums.DTNetworkRequestType;
 import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.GradientType;
@@ -30,6 +41,7 @@ import com.amazon.apl.enums.ViewportMode;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -58,8 +70,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -67,7 +81,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import junit.framework.TestCase;
+
 public class ContentTest extends ViewhostRobolectricTest {
+
+    static {
+        APLController.initializeAPL(getApplication().getApplicationContext());
+        APLController.waitForInitializeAPLToComplete(null);
+    }
     // Test content
     private final String mTestDoc = "{" +
             "  \"type\": \"APL\"," +
@@ -258,6 +279,75 @@ public class ContentTest extends ViewhostRobolectricTest {
             "  }" +
             "}";
 
+    private final String mImportPackageCommandDoc = "{\n  " +
+            "    \"type\": \"APL\",\n   " +
+            "   \"version\": \"2024.2\",\n  " +
+            "    \"onMount\": {\n     " +
+            "   \"type\": \"ImportPackage\",\n   " +
+            "     \"name\": \"alexa-layouts\",\n     " +
+            "   \"version\": \"1.2.0\",\n      " +
+            "  \"sequencer\": \"MySequencer\"\n      },\n   " +
+            "   \"mainTemplate\": {\n     " +
+            "   \"items\": {\n      " +
+            "    \"type\": \"TouchWrapper\",\n     " +
+            "     \"item\": {\n          " +
+            "  \"type\": \"Text\",\n      " +
+            "      \"text\": \"Hello\",\n      " +
+            "      \"id\": \"USER_MESSAGE\"\n    " +
+            "      },\n      " +
+            "    \"onMount\": {\n       " +
+            "     \"type\": \"ImportPackage\",\n       " +
+            "     \"name\": \"alexa-layouts\",\n     " +
+            "       \"version\": \"1.2.0\",\n       " +
+            "     \"accept\": \">=1.2.0\",\n       " +
+            "     \"onLoad\": {\n          " +
+            "    \"type\": \"Log\",\n         " +
+            "     \"level\": \"info\",\n         " +
+            "     \"message\": \"alexa-layouts package loading succeeded\",\n    " +
+            "          \"arguments\": [\n                \"${elapsedTime}\"\n     " +
+            "         ]\n            },\n        " +
+            "    \"onFail\": {\n              \"type\": \"Log\",\n     " +
+            "         \"level\": \"info\",\n        " +
+            "      \"message\": \"alexa-layouts package loading failed\",\n   " +
+            "           \"arguments\": [\n              " +
+            "  \"${elapsedTime}\"\n           " +
+            "   ]\n            }\n          }\n  " +
+            "      }\n      }\n    }";
+
+    private final String mImportPackageCommandDocFail = "{\n  " +
+            "    \"type\": \"APL\",\n   " +
+            "   \"version\": \"2024.2\",\n  " +
+            "    \"onMount\": {\n     " +
+            "   \"type\": \"ImportPackage\",\n   " +
+            "     \"name\": \"AlexaLayout\",\n     " +
+            "   \"version\": \"1.2.0\",\n      " +
+            "  \"sequencer\": \"MySequencer\"\n      },\n   " +
+            "   \"mainTemplate\": {\n     " +
+            "   \"items\": {\n      " +
+            "    \"type\": \"TouchWrapper\",\n     " +
+            "     \"item\": {\n          " +
+            "  \"type\": \"Text\",\n      " +
+            "      \"text\": \"Hello\",\n      " +
+            "      \"id\": \"USER_MESSAGE\"\n    " +
+            "      },\n      " +
+            "    \"onMount\": {\n       " +
+            "     \"type\": \"ImportPackage\",\n       " +
+            "     \"name\": \"alexa-layouts\",\n     " +
+            "       \"version\": \"1.2.0\",\n       " +
+            "     \"accept\": \">=1.2.0\",\n       " +
+            "     \"onLoad\": {\n          " +
+            "    \"type\": \"Log\",\n         " +
+            "     \"level\": \"info\",\n         " +
+            "     \"message\": \"alexa-layouts package loading succeeded\",\n    " +
+            "          \"arguments\": [\n                \"${elapsedTime}\"\n     " +
+            "         ]\n            },\n        " +
+            "    \"onFail\": {\n              \"type\": \"Log\",\n     " +
+            "         \"level\": \"info\",\n        " +
+            "      \"message\": \"alexa-layouts package loading failed\",\n   " +
+            "           \"arguments\": [\n              " +
+            "  \"${elapsedTime}\"\n           " +
+            "   ]\n            }\n          }\n  " +
+            "      }\n      }\n    }";
     private ViewportMetrics metrics = ViewportMetrics.builder()
             .width(640)
             .height(480)
@@ -281,6 +371,16 @@ public class ContentTest extends ViewhostRobolectricTest {
     private Session mSession;
     @Mock
     private IDTNetworkRequestHandler mDTNetworkRequestHandler;
+    @Mock
+    private IAPLViewPresenter mPresenter;
+    @Mock
+    private IMetricsRecorder mMetricsRecorder;
+    @Mock
+    private ICounter mCounter;
+    @Mock
+    private ITimer mTimer;
+    @Mock
+    private FluidityIncidentReporter mFluidityIncidentReporter;
 
 
     @Before
@@ -305,6 +405,11 @@ public class ContentTest extends ViewhostRobolectricTest {
                 .thenReturn(CONTENT_ERROR_METRIC_ID);
         when(mMockTelemetryProvider.createMetricId(APL_DOMAIN, METRIC_CONTENT_IMPORT_REQUESTS, COUNTER))
                 .thenReturn(CONTENT_IMPORTS_METRIC_ID);
+        when(mPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
+        when(mPresenter.getOrCreateViewportMetrics()).thenReturn(metrics);
+        when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
+        when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
+
     }
 
 
@@ -322,6 +427,183 @@ public class ContentTest extends ViewhostRobolectricTest {
         }
         assertEquals("1.0", content.getAPLVersion());
     }
+
+    @Test
+    public void testDoc_versionPackageManager() {
+        resetMocks();
+        Content content = null;
+        RootConfig config = RootConfig.create();
+        PackageManager packageManager = new PackageManager(mAplOptions.getPackageLoader(),
+                mAplOptions.getTelemetryProvider(),
+                null);
+        config.packageManager(packageManager);
+
+        doAnswer(invocation -> {
+            Content.ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            if ("test-package".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            } else if ("test-package2".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage2));
+            }
+            return null;
+        }).when(mPackageLoader).fetchV2(any(), any(), any());
+
+        content = Content.create(mTestDoc, mAplOptions, null, config, null);
+
+        try {
+            Thread.sleep(200);
+        } catch (Exception e) {
+        }
+
+        assertNotNull(content);
+        verify(mPackageLoader, times(1)).fetchV2(any(), any(), any());
+        TestCase.assertEquals("1.0", content.getAPLVersion());
+    }
+
+    /**
+     * Test synchronous document create, package import, data set.
+     */
+    @Test
+    public void testRequest_asSyncCallback_withPackageManager() {
+        final boolean[] doc = {false, false};
+
+        resetMocks();
+        Content content = null;
+        RootConfig config = RootConfig.create();
+        PackageManager packageManager = new PackageManager(mAplOptions.getPackageLoader(),
+                mAplOptions.getTelemetryProvider(),
+                null);
+        config.packageManager(packageManager);
+
+        doAnswer(invocation -> {
+            Content.ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            if ("test-package".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            } else if ("test-package2".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage2));
+            }
+            return null;
+        }).when(mPackageLoader).fetchV2(any(), any(), any());
+
+        doAnswer(invocation -> {
+            String param = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<String, String> successCallback = invocation.getArgument(1);
+            if ("payload".equals(param)) {
+                successCallback.onSuccess(param, mTestData);
+            }
+            return null;
+        }).when(mDataRetriever).fetch(any(), any(), any());
+
+        content = Content.create(mTestDoc, mAplOptions, new Content.CallbackV2() {
+                @Override
+                public void onPackageLoaded(Content content) {
+                    doc[0] = true;
+                }
+
+                @Override
+                public void onComplete(Content content) {
+                    doc[1] = true;
+                }
+
+                @Override
+                public void onError(Exception e) {
+                    fail("Unexpected error on document load");
+                }
+            }, config, null);
+
+        assertTrue("Expected package request", doc[0]);
+        assertTrue("Expected data request", doc[1]);
+        verify(mDataRetriever, times(1)).fetch(any(), any(), any());
+        assertTrue(content.isReady());
+
+    }
+
+    private void testImportPackage(String mainTemplate, int numImports) {
+
+        final boolean[] doc = {false, false};
+
+        resetMocks();
+        Content content = null;
+        RootConfig config = RootConfig.create();
+        PackageManager packageManager = new PackageManager(mAplOptions.getPackageLoader(),
+                mAplOptions.getTelemetryProvider(),
+                null);
+        config.packageManager(packageManager);
+
+        doAnswer(invocation -> {
+            Content.ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<Content.ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            IContentRetriever.FailureCallbackV2<Content.ImportRequest> failure = invocation.getArgument(2);
+            if ("alexa-layouts".equals(request.getPackageName())) {
+                successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+            } else {
+                failure.onFailure(request,"Not found",404);
+            }
+            return null;
+        }).when(mPackageLoader).fetchV2(any(), any(), any());
+
+        doAnswer(invocation -> {
+            String param = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<String, String> successCallback = invocation.getArgument(1);
+            if ("payload".equals(param)) {
+                successCallback.onSuccess(param, mTestData);
+            }
+            return null;
+        }).when(mDataRetriever).fetch(any(), any(), any());
+
+        content = Content.create(mainTemplate, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onPackageLoaded(Content content) {
+                doc[0] = true;
+            }
+
+            @Override
+            public void onComplete(Content content) {
+                doc[1] = true;
+            }
+
+            @Override
+            public void onError(Exception e) {
+                fail("Unexpected error on document load");
+            }
+        }, config, null);
+
+        RootContext r = RootContext.create(metrics, content, config, mAplOptions, mPresenter, mMetricsRecorder, mFluidityIncidentReporter);
+        try {
+            Thread.sleep(2000);
+        } catch(Exception e) {
+
+        }
+
+        // Package loading does not happen while creating the Content but while executing command
+        assertFalse("Expected package request", doc[0]);
+        TestCase.assertTrue("Expected data request", doc[1]);
+        verify(mDataRetriever, times(0)).fetch(any(), any(), any());
+        verify(mPackageLoader, times(numImports)).fetchV2(any(), any(), any());
+        TestCase.assertTrue(content.isReady());
+    }
+
+    /**
+     * Test Import Package.
+     */
+    @Test
+    public void test_ImportPackage() {
+        // Since request will success so response will be cached
+        // so we will see 1 requests
+        testImportPackage(mImportPackageCommandDoc, 1);
+
+    }
+
+    @Test
+    public void test_ImportPackageFail() {
+        // Since request will fail so nothing will be cached
+        // so we will see 2 requests
+        testImportPackage(mImportPackageCommandDocFail, 2);
+
+    }
+
 
     /**
      * Test synchronous document create, package import, data set.
@@ -420,6 +702,47 @@ public class ContentTest extends ViewhostRobolectricTest {
         verifyImportsTelemetry(1);
     }
 
+    @Test
+    public void testRequest_background_thread() {
+        CountDownLatch packageRequestedCountdown = new CountDownLatch(3);
+        doAnswer(invocation -> {
+            ImportRequest request = invocation.getArgument(0);
+            IContentRetriever.SuccessCallback<ImportRequest, APLJSONData> successCallback = invocation.getArgument(1);
+            if ("test-package".equals(request.getPackageName())) {
+                Thread backgroundThread = new Thread(() -> {
+                    Looper.prepare();
+                    packageRequestedCountdown.countDown();
+                    successCallback.onSuccess(request, APLJSONData.create(mTestPackage));
+                    Looper.loop();
+                });
+                backgroundThread.start();
+            }
+            return null;
+        }).when(mPackageLoader).fetch(any(), any(), any());
+        Handler executionHandler = mock(Handler.class);
+        when(executionHandler.getLooper()).thenReturn(Looper.getMainLooper());
+        Content.create(mTestDoc, mAplOptions, new Content.CallbackV2() {
+            @Override
+            public void onPackageLoaded(Content content) {
+                super.onComplete(content);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                fail("Unexpected error on document load");
+            }
+        }, mSession, null, true, executionHandler);
+        try {
+            packageRequestedCountdown.await(1, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            Assert.fail();
+        }
+        verifyImportsTelemetry(1);
+        ArgumentCaptor<Runnable> runnableArgumentCaptor = ArgumentCaptor.forClass(Runnable.class);
+        verify(executionHandler).post(runnableArgumentCaptor.capture());
+        runnableArgumentCaptor.getValue().run();
+        verifySuccessTelemetry();
+    }
 
     /**
      * Test access to Content requests through collection interface.
@@ -612,9 +935,9 @@ public class ContentTest extends ViewhostRobolectricTest {
         assertFalse("Expected document not waiting.", content.isWaiting());
         assertFalse("Expected document not error.", content.isError());
 
-        verifySuccessTelemetry();
         verifyImportsTelemetry(2);
         verify(mPackageLoader, times(2)).fetch(any(), any(), any());
+        verifySuccessTelemetry();
     }
 
     @Test

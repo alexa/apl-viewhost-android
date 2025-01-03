@@ -6,7 +6,7 @@
 package com.amazon.apl.devtools.executers;
 
 import android.util.Log;
-import com.amazon.apl.devtools.controllers.DTConnection;
+import com.amazon.apl.devtools.controllers.impl.DTConnection;
 import com.amazon.apl.devtools.enums.CommandMethod;
 import com.amazon.apl.devtools.models.Session;
 import com.amazon.apl.devtools.models.error.DTException;
@@ -23,7 +23,7 @@ import org.json.JSONObject;
 /**
  * Class to handle Target.detachFromTarget request to terminate the session
  */
-public class DetachFromTargetCommandRequest extends DetachFromTargetModelRequest implements ICommandValidator {
+public class DetachFromTargetCommandRequest extends DetachFromTargetModelRequest {
     private static final String TAG = DetachFromTargetCommandRequest.class.getSimpleName();
     private final DTConnection mConnection;
     private final CommandRequestValidator mCommandRequestValidator;

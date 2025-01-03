@@ -78,7 +78,7 @@ public class TextLayoutFactoryTest extends ViewhostRobolectricTest {
                 .build();
         TypefaceResolver.getInstance().initialize(context, runtimeConfig);
 
-        when(mStyledText.getText(any(), any())).thenReturn("My Text");
+        when(mStyledText.getText(any(), any(), any())).thenReturn("My Text");
         when(mStyledText.getHash()).thenReturn("text_hash");
         when(mMockTextProxy.getStyledText()).thenReturn(mStyledText);
         when(mMockTextProxy.getColor()).thenReturn(Color.BLACK);

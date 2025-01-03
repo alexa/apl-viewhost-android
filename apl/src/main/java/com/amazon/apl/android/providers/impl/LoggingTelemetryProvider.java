@@ -172,8 +172,15 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     public synchronized void incrementCount(int metricId, int by) {
         Metric metric = mMetrics.get(metricId);
         metric.success += by;
-        Log.i(TAG, String.format("Incrementing counter: %s by %d%s%d", metric.metricName, by, COUNT_LOG,
+        Log.i(TAG, String.format("Incrementing counter: %s by %d%s%f", metric.metricName, by, COUNT_LOG,
                 metric.success));
+    }
+
+    @Override
+    public synchronized void incrementCount(int metricId, double by) {
+        Metric metric = mMetrics.get(metricId);
+        metric.success += by;
+        Log.i(TAG, String.format("Incrementing counter: %s by %f%s%f", metric.metricName, by, COUNT_LOG, metric.success));
     }
 
     /**
@@ -232,7 +239,7 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
         public long seedTime = 0;
         public long startTime = 0;
         public long totalTime = 0;
-        public int success = 0;
+        public double success = 0;
         public int fail = 0;
     }
 
@@ -254,7 +261,14 @@ public class LoggingTelemetryProvider implements ITelemetryProvider {
     public synchronized List<MetricInfo> getPerformanceMetrics() {
         List<MetricInfo> copyOfMetrics = Collections.synchronizedList(new ArrayList<>());
         for (Metric metric: mMetrics){
-            MetricInfo metricInfo = new MetricInfo(metric.metricName, (double) TimeUnit.MILLISECONDS.convert(metric.totalTime, TimeUnit.NANOSECONDS));
+            MetricInfo metricInfo;
+            if (metric.totalTime > 0 && metric.success > 0) {
+                metricInfo = new MetricInfo(metric.metricName, (double) TimeUnit.MILLISECONDS.convert(metric.totalTime, TimeUnit.NANOSECONDS));
+            } else if (metric.success > 0){
+                metricInfo = new MetricInfo(metric.metricName, (double) metric.success);
+            } else {
+                metricInfo = new MetricInfo(metric.metricName, (double) metric.fail);
+            }
             copyOfMetrics.add(metricInfo);
         }
         return copyOfMetrics;

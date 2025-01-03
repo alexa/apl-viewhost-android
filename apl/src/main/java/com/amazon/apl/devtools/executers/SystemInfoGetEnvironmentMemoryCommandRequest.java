@@ -29,46 +29,30 @@
      @Override
      public SystemInfoGetEnvironmentMemoryCommandResponse execute() {
          Log.i(TAG, "Executing " + CommandMethod.SYSTEM_INFO_GET_ENVIRONMENT_MEMORY + " command");
-         return new SystemInfoGetEnvironmentMemoryCommandResponse(getId(), getSystemTotalMemory(), getSystemAvailableMemory());
+         SystemMemoryInfo memoryInfo = getSystemMemoryInfo();
+         return new SystemInfoGetEnvironmentMemoryCommandResponse(getId(), memoryInfo.totalMemory, memoryInfo.availableMemory);
      }
 
-     /**
-      * Get the available memory on the system.
-      *
-      * @return The available memory in bytes, or -1 if unable to retrieve memory info or if the context is null.
-      */
-     private long getSystemAvailableMemory() {
-         if (mTargetCatalog != null && mTargetCatalog.getAppContext() != null) {
-             ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-             ActivityManager activityManager = (ActivityManager) mTargetCatalog.getAppContext().getSystemService(Context.ACTIVITY_SERVICE);
-             if (activityManager != null) {
-                 activityManager.getMemoryInfo(memoryInfo);
-                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                     return memoryInfo.availMem;
-                 }
+     private SystemMemoryInfo getSystemMemoryInfo() {
+         ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+         ActivityManager activityManager = (ActivityManager) mTargetCatalog.getAppContext().getSystemService(Context.ACTIVITY_SERVICE);
+         if (activityManager != null) {
+             activityManager.getMemoryInfo(memoryInfo);
+             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                 return new SystemMemoryInfo(memoryInfo.availMem, memoryInfo.totalMem);
              }
          }
-         return -1;
+         return new SystemMemoryInfo(-1, -1);
      }
 
+     private static class SystemMemoryInfo {
+         private final long availableMemory;
+         private final long totalMemory;
 
-     /**
-      * Get amount of physical memory on the system.
-      *
-      * @return The total memory in bytes, or -1 if unable to retrieve memory info or if the context is null.
-      */
-     private long getSystemTotalMemory() {
-         if (mTargetCatalog != null && mTargetCatalog.getAppContext() != null) {
-             ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-             ActivityManager activityManager = (ActivityManager) mTargetCatalog.getAppContext().getSystemService(Context.ACTIVITY_SERVICE);
-             if (activityManager != null) {
-                 activityManager.getMemoryInfo(memoryInfo);
-                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                     return memoryInfo.totalMem;
-                 }
-             }
+         private SystemMemoryInfo(long availableMemory, long totalMemory) {
+             this.availableMemory = availableMemory;
+             this.totalMemory = totalMemory;
          }
-         return -1;
      }
 
  }

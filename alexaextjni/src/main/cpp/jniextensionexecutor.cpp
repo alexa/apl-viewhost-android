@@ -59,6 +59,15 @@ namespace alexaext {
             env->DeleteGlobalRef(EXTENSIONEXECUTOR_CLASS);
         }
 
+        /**
+         * Implements the extension executor contract, acting as a bridge between the C++ extension
+         * framework and the Java ExtensionExecutor class. The Java ExtensionExecutor class ensures
+         * that tasks are executed on the appropriate (core) thread.
+         *
+         * This class buffers tasks in in a local queue (mPendingTasks) and notifies the Java class
+         * whenever a new task was added via onTaskAdded(). When the Java ExtensionExecutor instance
+         * is ready to execute the tasks, it calls executePending() on the appropriate thread.
+         */
         class ExtensionExecutor : public alexaext::Executor {
         public:
             ExtensionExecutor(jweak instance) : mWeakInstance(instance) {}
@@ -71,6 +80,11 @@ namespace alexaext {
                 env->DeleteWeakGlobalRef(mWeakInstance);
             }
 
+            /**
+             * Called by the extension framework when a new task needs to be executed. It adds the
+             * task to the executor's queue, notifies Java ExtensionExecutor via onTaskAdded() and
+             * returns immediately (does not block to actually perform the task).
+             */
             bool enqueueTask(Task task) override {
                 std::lock_guard<std::recursive_mutex> guard(mTasksMutex);
                 mPendingTasks.push(std::move(task));
@@ -78,6 +92,9 @@ namespace alexaext {
                 return true;
             }
 
+            /**
+             * Called by Java ExtensionExecutor class to execute any queued tasks.
+             */
             void executePending() {
                 std::lock_guard<std::recursive_mutex> guard(mTasksMutex);
                 while (!mPendingTasks.empty()) {

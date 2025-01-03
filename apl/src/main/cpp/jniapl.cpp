@@ -24,6 +24,7 @@
 #include "jnitextlayout.h"
 #include "jnitextmeasurecallback.h"
 #include "jniutil.h"
+#include "jnipackagemanager.h"
 #ifdef SCENEGRAPH
 #include "jniaplview.h"
 #include "jniapllayer.h"
@@ -40,6 +41,9 @@
 #include "jniextensionproxy.h"
 #include "jniextensionregistrar.h"
 #include "jniextensionresource.h"
+#include "jnidestination.h"
+#include "jnidestinationfactory.h"
+#include "jnimetricsextensionv2.h"
 #endif
 
 #ifdef __ANDROID__
@@ -85,6 +89,7 @@ namespace apl {
             jboolean textlayoutLoaded = textlayout_OnLoad(vm, reserved);
             jboolean textmeasureLoaded = textmeasurecallback_OnLoad(vm, reserved);
             jboolean textpropertiesLoaded = apltextproperties_OnLoad(vm, reserved);
+            jboolean packagemanagerLoaded = packagemanager_OnLoad(vm, reserved);
 
 #ifdef SCENEGRAPH
             jboolean jniaplviewLoaded = aplview_OnLoad(vm, reserved);
@@ -102,9 +107,12 @@ namespace apl {
             jboolean extensionProxyLoaded = extensionproxy_OnLoad(vm, reserved);
             jboolean extensionProviderLoaded = extensionprovider_OnLoad(vm, reserved);
             jboolean extensionResourceProviderLoaded = extensionresource_OnLoad(vm, reserved);
+            jboolean destinationLoaded = destination_OnLoad(vm, reserved);
+            jboolean destinationFactoryLoaded = destinationfactory_OnLoad(vm, reserved);
+            jboolean metricsExtensionV2Loaded = metricsextensionV2_OnLoad(vm, reserved);
 
             if (!extensionProxyLoaded || !extensionProviderLoaded || !extensionResourceProviderLoaded
-                || !extensionExecutorLoaded) {
+                || !extensionExecutorLoaded || !destinationLoaded || !destinationFactoryLoaded || !metricsExtensionV2Loaded) {
                     return JNI_ERR;
             }
 #endif
@@ -115,7 +123,7 @@ namespace apl {
                 || !jniutilLoaded || !jniscalingLoaded || !textmeasureLoaded
                 || !localExtensionMediatorLoaded || !audioFactoryLoaded || !audioPlayerLoaded
                 || !localExtensionMediatorLoaded || !mediaplayerLoaded || !mediaplayerFactoryLoaded
-                || !documentmanagerLoaded || !jnisessionLoaded
+                || !documentmanagerLoaded || !jnisessionLoaded || !packagemanagerLoaded
 #ifdef SCENEGRAPH
                 || !sgcontentLoaded || !sglayerLoaded || !apllayerLoaded || !aplscenegraphLoaded
                 || !jniaplviewLoaded || !edittextLoaded || !edittextfactoryLoaded || !mediaManagerLoaded
@@ -153,7 +161,7 @@ namespace apl {
             rootcontext_OnUnload(vm, reserved);
             textlayout_OnUnload(vm, reserved);
             textmeasurecallback_OnUnload(vm, reserved);
-
+            packagemanager_OnUnload(vm, reserved);
 #ifdef SCENEGRAPH
             aplview_OnUnload(vm, reserved);
             apllayer_OnUnload(vm, reserved);
@@ -170,6 +178,9 @@ namespace apl {
             extensionproxy_OnUnload(vm, reserved);
             extensionprovider_OnUnload(vm, reserved);
             extensionresource_OnUnload(vm, reserved);
+            destination_OnUnload(vm, reserved);
+            destinationfactory_OnUnload(vm, reserved);
+            metricsextensionV2_OnUnload(vm, reserved);
 #endif
 
         }

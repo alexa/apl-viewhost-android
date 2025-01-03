@@ -8,7 +8,6 @@ package com.amazon.apl.viewhost.internal;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -34,12 +33,13 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 @RunWith(AndroidJUnit4.class)
 public class DocumentHandleTest extends ViewhostRobolectricTest {
+
+
+    @Mock
+    private Content mContent;
 
     @Mock
     private ViewhostImpl mViewhost;
@@ -83,6 +83,7 @@ public class DocumentHandleTest extends ViewhostRobolectricTest {
                 .callback(executeCommandsCallback)
                 .build();
         mDocumentHandle = new DocumentHandleImpl(mViewhost, mHandler, mMetricsOptions);
+        ((DocumentHandleImpl)mDocumentHandle).setContent(mContent);
     }
 
     @Test
@@ -114,61 +115,6 @@ public class DocumentHandleTest extends ViewhostRobolectricTest {
 
         ((DocumentHandleImpl)mDocumentHandle).setDocumentState(DocumentState.ERROR);
         assertFalse(mDocumentHandle.setUserData(userData));
-    }
-
-    @Test
-    public void testGetContentSetting_nullContent_returnsDefaultValue() {
-        DocumentHandleImpl handle = (DocumentHandleImpl) mDocumentHandle;
-        handle.setContent(null);
-
-        String ret = handle.getDocumentSetting("my-property", "fallback");
-        assertEquals("fallback", ret);
-    }
-
-    private static String DOC_SETTINGS = "{" +
-            "  \"type\": \"APL\"," +
-            "  \"version\": \"1.0\"," +
-            "  \"mainTemplate\": {" +
-            "    \"item\": {" +
-            "      \"type\": \"Frame\"," +
-            "      \"backgroundColor\": \"orange\"" +
-            "    }" +
-            "  }," +
-            "  \"settings\": {" +
-            "    \"propertyA\": true," +
-            "    \"propertyB\": 60000," +
-            "    \"propertyC\": \"abc\"," +
-            "    \"subSetting\": {" +
-            "      \"propertyD\": 12.34" +
-            "    }" +
-            "  }" +
-            "}";
-    @Test
-    public void testGetContentSetting_content_returnsExpectedValue() {
-        DocumentHandleImpl handle = (DocumentHandleImpl) mDocumentHandle;
-        try {
-            Content mContent = Content.create(DOC_SETTINGS);
-            handle.setContent(mContent);
-        } catch (Content.ContentException e) {
-            fail(e.getMessage());
-        }
-
-        // Properties existing in Content return expected values
-        boolean propertyA = handle.getDocumentSetting("propertyA", false);
-        int propertyB = handle.getDocumentSetting("propertyB", 3000);
-        String propertyC = handle.getDocumentSetting("propertyC", "def");
-        Map<String, Double> subSetting = handle.getDocumentSetting("subSetting", new HashMap<>());
-        double propertyD = subSetting.get("propertyD");
-
-        assertEquals(true, propertyA);
-        assertEquals(60000, propertyB);
-        assertEquals( "abc", propertyC);
-        assertEquals(12.34, propertyD, 0.001);
-
-        // Properties not existing return default value
-        String propertyF = handle.getDocumentSetting("propertyF", "fallback");
-
-        assertEquals("fallback", propertyF);
     }
 
     @Test

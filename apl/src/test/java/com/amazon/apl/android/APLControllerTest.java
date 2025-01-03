@@ -7,6 +7,8 @@ package com.amazon.apl.android;
 
 import android.content.Context;
 import android.os.Looper;
+import android.view.Display;
+import android.view.WindowManager;
 
 import com.amazon.alexaext.ExtensionRegistrar;
 import com.amazon.apl.android.dependencies.IUserPerceivedFatalCallback;
@@ -28,13 +30,18 @@ import com.amazon.apl.android.font.TypefaceResolver;
 import com.amazon.apl.android.providers.ITelemetryProvider;
 import com.amazon.apl.android.providers.ITtsPlayerProvider;
 import com.amazon.apl.android.robolectric.ViewhostRobolectricTest;
-import com.amazon.apl.devtools.models.network.IDTNetworkRequestHandler;
 import com.amazon.apl.enums.DisplayState;
+import com.amazon.common.NativeBinding;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 import org.robolectric.Robolectric;
 
 import java.util.Collection;
@@ -70,6 +77,8 @@ import static org.robolectric.Shadows.shadowOf;
 
 public class APLControllerTest extends ViewhostRobolectricTest {
 
+    private static final long ROOT_CONTEXT_NATIVE_HANDLE = 1L;
+
     @Mock
     private RootContext mRootContext;
     @Mock
@@ -81,7 +90,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     @Mock
     private APLOptions mOptions;
     @Mock
-    private IAPLViewPresenter mViewPresenter;
+    private APLLayout.APLViewPresenterImpl mViewPresenter;
     @Mock
     private RootConfig mRootConfig;
     @Mock
@@ -106,7 +115,12 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private DevToolsProvider mDevToolsProvider;
     @Mock
     private Session mAPLSession;
+    @Mock
     private Context mContext;
+    @Mock
+    private Display mDisplay;
+    @Mock
+    private WindowManager mWindowManager;
     @Mock
     private RuntimeConfig mRuntimeConfig;
     @Mock
@@ -115,12 +129,20 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     private ExtensionRegistrar mExtensionRegistrar;
     @Mock
     private IMetricsRecorder mMetricsRecorder;
+    @Captor
+    private ArgumentCaptor<DocumentState> documentStateArgumentCaptor;
 
     private APLController mController;
 
     @Before
     public void setup() {
-        mController = new APLController(mRootContext, mContent);
+        mController = new APLController(mRootContext, mContent, 0);
+
+        doAnswer((Answer<Void>) invocation -> {
+            mController.onDocumentFinish();
+            return null;
+        }).when(mRootContext).finishDocument();
+
         when(mContent.getMetricsRecorder()).thenReturn(mMetricsRecorder);
         when(mOptions.getTelemetryProvider()).thenReturn(mTelemetryProvider);
         when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
@@ -128,8 +150,12 @@ public class APLControllerTest extends ViewhostRobolectricTest {
         when(mRootContext.getOptions()).thenReturn(mOptions);
         when(mRootContext.getRootConfig()).thenReturn(mRootConfig);
         when(mRootConfig.getSession()).thenReturn(mAPLSession);
+        when(mDisplay.getRefreshRate()).thenReturn(60.0f);
+        when(mWindowManager.getDefaultDisplay()).thenReturn(mDisplay);
+        when(mContext.getSystemService(Context.WINDOW_SERVICE)).thenReturn(mWindowManager);
         when(mAplLayout.getPresenter()).thenReturn(mViewPresenter);
-        when(mAplLayout.getDevToolsProvider()).thenReturn(mDevToolsProvider);
+        when(mAplLayout.getContext()).thenReturn(mContext);
+        when(mViewPresenter.getDevToolsProvider()).thenReturn(mDevToolsProvider);
         when(mDevToolsProvider.getDTView()).thenReturn(mViewTypeTarget);
         when(mOptions.getUserPerceivedFatalCallback()).thenReturn(mUserPerceivedFatalCallback);
         try {
@@ -145,8 +171,64 @@ public class APLControllerTest extends ViewhostRobolectricTest {
     }
 
     @Test
+    public void testExtensionMediatorFinished() {
+        when(mRootConfig.getExtensionMediator()).thenReturn(mExtensionMediator);
+
+        mController.finishDocument();
+
+        verify(mRootContext).finishDocument();
+        verify(mExtensionMediator).enable(false);
+        verify(mExtensionMediator).finish();
+
+        verifyNoMoreInteractions(mExtensionMediator);
+    }
+
+    @Test
+    public void testExtensionMediatorNotFinishedWhenOnBackStack() {
+        try(MockedStatic mockedStatic = Mockito.mockStatic(NativeBinding.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedStatic.when(() -> NativeBinding.register(any())).thenAnswer((Answer<Void>) invocation -> null);
+
+            when(mRootConfig.getExtensionMediator()).thenReturn(mExtensionMediator);
+            when(mRootContext.getNativeHandle()).thenReturn(ROOT_CONTEXT_NATIVE_HANDLE);
+
+            mController.getDocumentState().setOnBackstack(true);
+            mController.finishDocument();
+
+            verify(mRootContext).finishDocument();
+            verify(mExtensionMediator).enable(false);
+            verifyNoMoreInteractions(mExtensionMediator);
+
+            mockedStatic.verify(() -> NativeBinding.register(documentStateArgumentCaptor.capture()));
+            DocumentState actual = documentStateArgumentCaptor.getValue();
+            assertEquals(ROOT_CONTEXT_NATIVE_HANDLE, actual.getNativeHandle());
+        }
+    }
+
+    @Test
+    public void testExtensionMediatorFinishedWhenPoppedFromBackStack() {
+        try(MockedStatic mockedStatic = Mockito.mockStatic(NativeBinding.class, Mockito.CALLS_REAL_METHODS)) {
+            mockedStatic.when(() -> NativeBinding.register(any())).thenAnswer((Answer<Void>) invocation -> null);
+
+            when(mRootConfig.getExtensionMediator()).thenReturn(mExtensionMediator);
+            when(mRootContext.getNativeHandle()).thenReturn(ROOT_CONTEXT_NATIVE_HANDLE);
+
+            mController.getDocumentState().setOnBackstack(false);
+            mController.finishDocument();
+
+            verify(mRootContext).finishDocument();
+            verify(mExtensionMediator).enable(false);
+            verify(mExtensionMediator).finish();
+            verifyNoMoreInteractions(mExtensionMediator);
+
+            mockedStatic.verify(() -> NativeBinding.register(documentStateArgumentCaptor.capture()));
+            DocumentState actual = documentStateArgumentCaptor.getValue();
+            assertEquals(ROOT_CONTEXT_NATIVE_HANDLE, actual.getNativeHandle());
+        }
+    }
+
+    @Test
     public void testRunnablesQueuedAreInvokedOnRender() {
-        mController = new APLController(null, mContent);
+        mController = new APLController(null, mContent, 0);
 
         mController.executeCommands("commands", null);
         mController.updateDataSource("type", "data", null);
@@ -172,7 +254,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
     @Test
     public void testRunnablesNotInvokedAfterFinish() {
-        mController = new APLController(mRootContext, mContent);
+        mController = new APLController(mRootContext, mContent, 0);
         mController.onDocumentFinish();
 
         mController.executeCommands("commands", null);
@@ -186,7 +268,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
     @Test
     public void testMultipleCommandsInvokedInOrder() {
-        mController = new APLController(null, mContent);
+        mController = new APLController(null, mContent, 0);
 
         mController.executeCommands("a", null);
         mController.executeCommands("b", null);
@@ -202,7 +284,7 @@ public class APLControllerTest extends ViewhostRobolectricTest {
 
     @Test
     public void testInvokedOnOtherThread() throws InterruptedException {
-        mController = new APLController(mRootContext, mContent);
+        mController = new APLController(mRootContext, mContent, 0);
 
         CountDownLatch inner = new CountDownLatch(1);
         CountDownLatch outer = new CountDownLatch(1);

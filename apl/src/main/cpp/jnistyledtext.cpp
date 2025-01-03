@@ -29,7 +29,6 @@ namespace apl {
                 // so converts the rapidjson value to UTF-16
                 // and uses NewString to create Java string instead
                 // not using NewStringUTF
-                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
                 std::u16string u16str = converter.from_bytes(styledText.getText().data());
                 return env->NewString((const jchar*)u16str.data(), u16str.length());
             }
@@ -98,7 +97,6 @@ namespace apl {
                 // so converts the rapidjson value to UTF-16
                 // and uses NewString to create Java string instead
                 // not using NewStringUTF
-                std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
                 std::u16string u16str = converter.from_bytes(styledText.getText().data());
                 return env->NewString((const jchar*)u16str.data(), u16str.length());
             }
@@ -109,7 +107,7 @@ namespace apl {
                                                                            jint propertyId) {
                 auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
                 const auto &styledText = value.get<StyledText>();
-                auto spans = styledText.getSpans();
+                const auto& spans = styledText.getSpans();
                 return static_cast<jint>(spans.size());
             }
 
@@ -156,7 +154,6 @@ namespace apl {
                     jint propertyId) {
                 auto value = getLookup<PropertyLookup>(handle)->getObject(static_cast<int>(propertyId), handle);
                 const auto &styledText = value.get<StyledText>();
-                auto spans = styledText.getSpans();
                 return (jlong) new StyledText::Iterator(styledText);
             }
 
@@ -177,9 +174,9 @@ namespace apl {
                 auto it = (StyledText::Iterator *) nativePtr;
                 auto spanAttributes = it->getSpanAttributes();
 
-                int count = spanAttributes.size();
+                auto count = spanAttributes.size();
                 jint names[count];
-                for (int i = 0; i < count; i++) {
+                for (size_t i = 0; i < count; i++) {
                     names[i] = static_cast<int>(spanAttributes[i].name);
                 }
                 jintArray result = env->NewIntArray(count);
@@ -193,7 +190,7 @@ namespace apl {
                 auto it = (StyledText::Iterator *) nativePtr;
                 auto spanAttributes = it->getSpanAttributes();
 
-                for (auto attr : spanAttributes) {
+                for (const auto& attr : spanAttributes) {
                     if (attr.name == attributeKey) {
                         return static_cast<jlong>(attr.value.asColor().get());
                     }
@@ -207,7 +204,7 @@ namespace apl {
                 auto it = (StyledText::Iterator *) nativePtr;
                 auto spanAttributes = it->getSpanAttributes();
 
-                for (auto attr : spanAttributes) {
+                for (const auto& attr : spanAttributes) {
                     if (attr.name == attributeKey) {
                         if (attr.value.isAbsoluteDimension()) {
                             auto dimension = attr.value;

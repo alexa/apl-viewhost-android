@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazon.apl.viewhost.internal;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -10,6 +15,7 @@ import android.os.Handler;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.amazon.apl.android.RootConfig;
 import com.amazon.apl.android.metrics.ICounter;
 import com.amazon.apl.android.metrics.impl.MetricsRecorder;
 import com.amazon.apl.android.providers.ITelemetryProvider;
@@ -37,6 +43,8 @@ public class DocumentManagerTest extends ViewhostRobolectricTest {
     MetricsRecorder mMetricsRecorder;
     @Mock
     ICounter mCounter;
+    @Mock
+    RootConfig mConfig;
 
     DocumentManager documentManager;
 
@@ -44,7 +52,7 @@ public class DocumentManagerTest extends ViewhostRobolectricTest {
     public void setup() {
         MockitoAnnotations.openMocks(this);
         when(mMetricsRecorder.createCounter(anyString())).thenReturn(mCounter);
-        documentManager = new DocumentManager(mEmbeddedDocumentFactory, mHandler, mTelemetryProvider);
+        documentManager = new DocumentManager(mEmbeddedDocumentFactory, mHandler, mTelemetryProvider, mConfig);
     }
 
     @Test

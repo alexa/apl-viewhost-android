@@ -16,6 +16,7 @@ import com.amazon.apl.android.metrics.IMetricsRecorder;
 import com.amazon.apl.android.providers.AbstractMediaPlayerProvider;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.enums.RootProperty;
 import com.amazon.apl.enums.ScreenShape;
 import com.amazon.apl.enums.ViewportMode;
@@ -71,6 +72,8 @@ public class APLTestContext {
     private IMediaPlayer mMockMediaPlayer = mock(IMediaPlayer.class);
 
     private IMetricsRecorder mMetricsRecorder = mock(IMetricsRecorder.class);
+
+    private FluidityIncidentReporter mFluidityIncidentReporter = mock(FluidityIncidentReporter.class);
 
     public Content buildContent() {
         if (mContent == null) {
@@ -180,7 +183,7 @@ public class APLTestContext {
         buildRootContextDependencies();
 
         if (mRootContext == null)
-            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter, mMetricsRecorder);
+            mRootContext = RootContext.create(mMetrics, mContent, mRootConfig, mAplOptions, mPresenter, mMetricsRecorder, mFluidityIncidentReporter);
 
         return mRootContext;
     }

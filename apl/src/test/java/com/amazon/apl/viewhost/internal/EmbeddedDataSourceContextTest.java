@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import android.os.Handler;
+import android.os.Looper;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
@@ -180,6 +181,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
         when(mMetricsRecorder.startTimer(anyString(), any())).thenReturn(mTimer);
 
         // Fake "core worker" executes everything immediately
+        when(mCoreWorker.getLooper()).thenReturn(Looper.getMainLooper());
         when(mCoreWorker.post(any(Runnable.class))).thenAnswer(invocation -> {
             Runnable task = invocation.getArgument(0);
             task.run();
@@ -236,7 +238,7 @@ public class EmbeddedDataSourceContextTest extends AbstractDocUnitTest {
         when(presenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
         when(presenter.getOrCreateViewportMetrics()).thenReturn(metrics);
 
-        mRootContext = RootContext.create(metrics, content, mRootConfig, mAplOptions, presenter, mMetricsRecorder);
+        mRootContext = RootContext.create(metrics, content, mRootConfig, mAplOptions, presenter, mMetricsRecorder, mFluidityIncidentReporter);
         mRootContext.initTime();
         update(100);
 

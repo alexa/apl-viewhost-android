@@ -5,5 +5,13 @@
 
 include ':apl', ':common', ':commonTest', ':app', ':ttsplayer', ':back', ':metrics',  ':discovery', ':service', ':e2ee'
 include ':automationapp'
-include ':coreengine'
 include ':alexaextjni'
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        jcenter()
+        google()
+        mavenLocal()
+    }
+}

@@ -32,6 +32,7 @@ import com.amazon.apl.android.scaling.MetricsTransform;
 import com.amazon.apl.android.scaling.ViewportMetrics;
 import com.amazon.apl.android.scenegraph.text.APLTextLayout;
 import com.amazon.apl.android.utils.APLTrace;
+import com.amazon.apl.android.utils.FluidityIncidentReporter;
 import com.amazon.apl.enums.Display;
 import com.amazon.apl.enums.FontStyle;
 import com.amazon.apl.enums.ScreenShape;
@@ -97,7 +98,7 @@ public class TextMeasureTest extends APLViewhostTest {
     public void setup() {
         MockitoAnnotations.initMocks(this);
 
-        when(mockStyledText.getText(any(), any())).thenReturn("");
+        when(mockStyledText.getText(any(), any(), any())).thenReturn("");
 
         // Text Proxy Modk
         when(mockTextProxy.getVisualHash()).thenReturn(TEXT_HASH);
@@ -136,6 +137,7 @@ public class TextMeasureTest extends APLViewhostTest {
         RootConfig rootConfig = RootConfig.create("Unit Test", "1.0");
         IAPLViewPresenter mPresenter = mock(IAPLViewPresenter.class);
         MetricsRecorder metricsRecorder = mock(MetricsRecorder.class);
+        FluidityIncidentReporter fluidityIncidentCounter = mock(FluidityIncidentReporter.class);
         ICounter counter = mock(ICounter.class);
         ITimer timer = mock(ITimer.class);
         when(mPresenter.getAPLTrace()).thenReturn(mock(APLTrace.class));
@@ -152,7 +154,7 @@ public class TextMeasureTest extends APLViewhostTest {
         when(metricsRecorder.createCounter(anyString())).thenReturn(counter);
         when(metricsRecorder.startTimer(anyString(), any())).thenReturn(timer);
         RootContext ctx = RootContext.create(mMetrics, content, rootConfig,
-                mOptions, mPresenter, metricsRecorder);
+                mOptions, mPresenter, metricsRecorder, fluidityIncidentCounter);
         if (ctx == null || ctx.getNativeHandle() == 0) {
             fail("The document failed to load.");
         }
@@ -205,7 +207,7 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_ModeAtMostExciting() {
-        when(mockStyledText.getText(any(), any())).thenReturn("77°F");
+        when(mockStyledText.getText(any(), any(), any())).thenReturn("77°F");
         APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 1011, AtMost, 641, AtMost, mockStyledText);
         float[] measure = layout.getSize();
         assertEquals(100, measure[0], 25); // rough width of a string shorter than alloted width
@@ -215,7 +217,7 @@ public class TextMeasureTest extends APLViewhostTest {
     @Test
     @SmallTest
     public void testMeasure_ModeAtMostTruncate() {
-        when(mockStyledText.getText(any(), any())).thenReturn("And here's to you, Mrs. Robinson Jesus loves you more than you will know");
+        when(mockStyledText.getText(any(), any(), any())).thenReturn("And here's to you, Mrs. Robinson Jesus loves you more than you will know");
         APLTextLayout layout = mMeasureSpy.measure(mockTextProxy, 160, AtMost, 150, AtMost, mockStyledText);
         float[] measure = layout.getSize();
         assertEquals(160, measure[0], 0);

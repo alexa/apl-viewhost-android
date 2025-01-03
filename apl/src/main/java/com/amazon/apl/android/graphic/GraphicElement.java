@@ -183,6 +183,77 @@ public abstract class GraphicElement extends BoundObject {
     }
 
     /**
+     * Checks whether this AVG object has any skew associated with it
+     *
+     * @return true if yes, otherwise false
+     */
+    boolean containsSkew() {
+        if (!mProperties.hasProperty(kGraphicPropertyTransform)) {
+            return false;
+        }
+
+        Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
+        float[] matrixValues = new float[9];
+        transformMatrix.getValues(matrixValues);
+
+        float skewX = matrixValues[Matrix.MSKEW_X];
+        float skewY = matrixValues[Matrix.MSKEW_Y];
+
+        if (skewX != 0 || skewY != 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks whether this AVG object has any non-uniform scaling
+     *
+     * @return true if yes, otherwise false
+     */
+    boolean containsNonUniformScaling() {
+        if (!mProperties.hasProperty(kGraphicPropertyTransform)) {
+            return false;
+        }
+
+        Matrix transformMatrix = mProperties.getTransform(kGraphicPropertyTransform);
+        float[] matrixValues = new float[9];
+        transformMatrix.getValues(matrixValues);
+
+        float scaleX = matrixValues[Matrix.MSCALE_X];
+        float scaleY = matrixValues[Matrix.MSCALE_Y];
+
+        return (scaleX != scaleY);
+
+    }
+
+    /**
+     * Checks whether the hierarchy of this group contains a skew transform
+     *
+     * @return true if the hierarchy contains a skew transform, false otherwise
+     */
+    boolean doesMapContainsSkew() {
+        return mGraphicElementMap.containsSkew();
+    }
+
+    /**
+     * Checks whether the hierarchy of this group contains no uniform scaling
+     *
+     * @return true if the hierarchy contains non uniform scaling, false otherwise
+     */
+    boolean doesMapContainNonUniformScaling() {
+        return mGraphicElementMap.containsNonUniformScaling();
+    }
+
+    /**
+     * Checks whether the hierarchy of this group contains a filter
+     *
+     * @return true if the hierarchy contains a filter, false otherwise
+     */
+    boolean doesMapContainFilters() {
+        return mGraphicElementMap.containsFilters();
+    }
+
+    /**
      * Update cached properties when Graphic is marked dirty.
      */
     abstract void applyProperties();

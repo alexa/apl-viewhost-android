@@ -6,25 +6,29 @@ import com.amazon.apl.android.utils.FrameStat;
 import com.amazon.apl.devtools.enums.EventMethod;
 import com.amazon.apl.devtools.models.common.Event;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class FrameIncidentReportedEvent extends Event {
     private static final String TAG = "IncidentReportedEvent";
 
     private final Params mParams;
-    public FrameIncidentReportedEvent(String sessionId, int incidentId, FrameStat[] frameStats, double[] upsValues, Object detail) {
+    public FrameIncidentReportedEvent(String sessionId, int incidentId, FrameStat[] frameStats, Double[] upsValues, JSONObject detail) {
         super(EventMethod.FRAMEMETRICS_INCIDENT_REPORTED, sessionId);
         mParams = new Params(incidentId, frameStats, upsValues, detail);
     }
 
     private static class Params {
-        private int mIncidentId;
-        private FrameStat[] frameStats;
-        private double[] upsValues;
-        private Object detail;
+        private final int mIncidentId;
+        private final FrameStat[] frameStats;
+        private final Double[] upsValues;
+        private final JSONObject detail;
 
-        public Params(int mIncidentId, FrameStat[] frameStats, double[] upsValues, Object detail) {
+        public Params(int mIncidentId, FrameStat[] frameStats, Double[] upsValues, JSONObject detail) {
             this.mIncidentId = mIncidentId;
             this.frameStats = frameStats;
             this.upsValues = upsValues;
@@ -35,15 +39,24 @@ public class FrameIncidentReportedEvent extends Event {
             return mIncidentId;
         }
 
-        public FrameStat[] getFrameStats() {
-            return frameStats;
+        public JSONArray getFrameStats() {
+            // Convert the array to a JSONArray
+            JSONArray jsonArray = new JSONArray();
+            try {
+                for (FrameStat frameStat : frameStats) {
+                    jsonArray.put(frameStat.toJSON());
+                }
+            } catch (JSONException e) {
+                Log.e(TAG, "Error serializing frameStats ", e);
+            }
+            return jsonArray;
         }
 
-        public double[] getUpsValues() {
+        public Double[] getUpsValues() {
             return upsValues;
         }
 
-        public Object getDetail() {
+        public JSONObject getDetail() {
             return detail;
         }
     }
@@ -54,7 +67,7 @@ public class FrameIncidentReportedEvent extends Event {
         return super.toJSONObject().put("params", new JSONObject()
                 .put("incidentId", mParams.getIncidentId())
                 .put("framestats", mParams.getFrameStats())
-                .put("upsValues", mParams.getUpsValues())
+                .put("upsValues", new JSONArray(mParams.getUpsValues()))
                 .put("detail", mParams.getDetail()));
     }
 }

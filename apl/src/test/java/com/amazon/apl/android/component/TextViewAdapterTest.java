@@ -46,6 +46,9 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
     private TextLayoutFactory mockLayoutFactory;
     @Mock
     private TextProxy mockTextProxy;
+
+    private CharSequence mMockRenderedText;
+
     @Mock
     private RenderingContext mMockRenderingContext;
     @Mock
@@ -82,7 +85,7 @@ public class TextViewAdapterTest extends AbstractComponentViewAdapterTest<Text, 
                 maxLines(10).
                 ellipsizedWidth(10).
                 build();
-        mTextLayout = new APLTextLayout(layout, proxy().getStyledText(), false, layout.getWidth(), layout.getHeight());
+        mTextLayout = new APLTextLayout(layout, mMockRenderedText, false, layout.getWidth(), layout.getHeight());
         when(component().getProxy()).thenReturn(proxy());
         when(component().getRenderingContext()).thenReturn(mMockRenderingContext);
         when(mMockRenderingContext.getTextLayoutFactory()).thenReturn(mockLayoutFactory);

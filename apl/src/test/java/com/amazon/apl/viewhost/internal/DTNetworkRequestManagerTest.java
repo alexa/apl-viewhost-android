@@ -1,3 +1,8 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package com.amazon.apl.viewhost.internal;
 
 import com.amazon.apl.devtools.enums.DTNetworkRequestType;
@@ -34,6 +39,22 @@ public class DTNetworkRequestManagerTest {
         mDTNetworkRequestManager.loadingFinished(requestId, 0, 0);
         mDTNetworkRequestManager.loadingFailed(requestId, 0);
 
+        mDTNetworkRequestManager.bindDTNetworkRequest(mDTNetworkRequestHandler);
+
+        verify(mDTNetworkRequestHandler).requestWillBeSent(eq(requestId), anyDouble(),eq(testUrl), eq(DTNetworkRequestType.PACKAGE));
+        verify(mDTNetworkRequestHandler).loadingFinished(eq(requestId), anyDouble(), anyInt());
+        verify(mDTNetworkRequestHandler).loadingFailed(eq(requestId), anyDouble());
+    }
+
+    @Test
+    public void testBindDTNetworkRequest_BindingTwiceOnlyReportCachedEventsOnce() {
+        int requestId = IDTNetworkRequestHandler.IdGenerator.generateId();
+        String testUrl = "testUrl";
+        mDTNetworkRequestManager.requestWillBeSent(requestId,0, testUrl, DTNetworkRequestType.PACKAGE);
+        mDTNetworkRequestManager.loadingFinished(requestId, 0, 0);
+        mDTNetworkRequestManager.loadingFailed(requestId, 0);
+
+        mDTNetworkRequestManager.bindDTNetworkRequest(mDTNetworkRequestHandler);
         mDTNetworkRequestManager.bindDTNetworkRequest(mDTNetworkRequestHandler);
 
         verify(mDTNetworkRequestHandler).requestWillBeSent(eq(requestId), anyDouble(),eq(testUrl), eq(DTNetworkRequestType.PACKAGE));

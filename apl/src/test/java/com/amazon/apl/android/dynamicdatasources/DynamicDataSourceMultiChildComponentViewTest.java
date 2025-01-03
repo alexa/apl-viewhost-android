@@ -8,28 +8,22 @@ package com.amazon.apl.android.dynamicdatasources;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import android.graphics.Color;
 import android.view.View;
 
 import androidx.test.filters.LargeTest;
 
 import com.amazon.apl.android.APLController;
 import com.amazon.apl.android.APLGradientDrawable;
-import com.amazon.apl.android.APLLayout;
 import com.amazon.apl.android.Component;
 import com.amazon.apl.android.MultiChildComponent;
 import com.amazon.apl.android.Text;
-import com.amazon.apl.android.functional.Consumer;
 import com.amazon.apl.android.views.APLAbsoluteLayout;
 import com.amazon.apl.android.views.APLTextView;
 
 import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.robolectric.shadows.ShadowLooper;
 
-import java.util.List;
 import java.util.Map;
 
 public class DynamicDataSourceMultiChildComponentViewTest extends AbstractDynamicDataSourceComponentViewTest {

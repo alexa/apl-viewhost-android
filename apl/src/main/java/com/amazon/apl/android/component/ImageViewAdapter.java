@@ -18,7 +18,7 @@ import androidx.annotation.UiThread;
 
 import com.amazon.apl.android.IAPLViewPresenter;
 import com.amazon.apl.android.Image;
-import com.amazon.apl.android.functional.Consumer;
+import com.amazon.common.Consumer;
 import com.amazon.apl.android.image.ImageProcessingAsyncTask;
 import com.amazon.apl.android.image.ProcessedImageBitmapKey;
 import com.amazon.apl.android.image.filters.RenderScriptProvider;

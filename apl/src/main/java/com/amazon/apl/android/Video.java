@@ -23,7 +23,7 @@ import com.amazon.apl.enums.VideoScale;
  * See <a href="https://developer.amazon.com/docs/alexa-presentation-language/apl-video.html">
  * APL Video Specification</a>
  */
-public class Video extends Component implements IMediaPlayer.IMediaListener {
+public class Video extends Component {
 
     private IMediaPlayer mMediaPlayer;
 
@@ -43,11 +43,6 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
     Video(long nativeHandle, String componentId, @NonNull RenderingContext renderingContext) {
         super(nativeHandle, componentId, renderingContext);
     }
-
-    private static native void nUpdateMediaState(long nativeHandle, int trackIndex, int trackCount,
-                                                 int currentTime, int duration, boolean paused,
-                                                 boolean ended, boolean muted, boolean fromEvent, int trackState,
-                                                 int errorCode);
 
     private static native MediaPlayer nGetMediaPlayer(long nativeHandle);
 
@@ -125,46 +120,7 @@ public class Video extends Component implements IMediaPlayer.IMediaListener {
         return nGetMediaPlayer(getNativeHandle());
     }
 
-    /**
-     * Indicates whether a pending media state change is the result of an Event, such as
-     * {@link com.amazon.apl.android.events.PlayMediaEvent}. This is needed to correctly apply
-     * "fast mode" to commands.
-     *
-     * @param fromEvent True to indicate that upcoming state change is from an event, else false
-     */
-    public void setFromEvent(boolean fromEvent) {
-        mFromEvent = fromEvent;
-    }
-
     public AbstractMediaPlayerProvider getMediaPlayerProvider() {
         return getRenderingContext().getMediaPlayerProvider();
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void updateMediaState(@NonNull IMediaPlayer player) {
-        MediaState state = mMediaPlayer.getCurrentMediaState();
-        if (state == MediaState.RELEASED) {
-            return;
-        }
-        nUpdateMediaState(getNativeHandle(),
-                player.getCurrentTrackIndex(),
-                player.getTrackCount(),
-                player.getCurrentSeekPosition(),
-                player.getDuration(),
-                !player.isPlaying(),
-                state == MediaState.END,
-                player.isMuted(),
-                mFromEvent,
-                player.getTrackState(),
-                player.getCurrentError());
-        // Reset the fromEvent flag after a PlayMedia or ControlMedia command have been applied
-        if (state == MediaState.PLAYING) {
-            mFromEvent = false;
-        }
-    }
-
-
 }
